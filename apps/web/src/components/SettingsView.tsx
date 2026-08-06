@@ -77,7 +77,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProviderChange }) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: targetProvider,
-          api_key: apiKey.strip ? apiKey.strip() : apiKey.trim(),
+          api_key: apiKey.trim(),
           model_name: model
         }),
       });

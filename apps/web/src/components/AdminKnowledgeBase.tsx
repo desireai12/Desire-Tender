@@ -91,7 +91,7 @@ export const AdminKnowledgeBase: React.FC = () => {
         const resData = await response.json();
         const newDoc: DocumentAsset = {
           id: `doc-${Date.now()}`,
-          filename: file.filename || file.name,
+          filename: file.name,
           doc_type: selectedCategory === 'Competitor Profile' ? 'competitor_data' : 'company_credentials',
           category: selectedCategory,
           chunks_count: resData.chunks_created || 5,
