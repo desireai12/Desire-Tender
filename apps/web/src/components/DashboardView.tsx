@@ -200,16 +200,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <div>
                 <h4 className="font-medium text-sm text-white">
-                  Municipal Water Filtration Plant Upgrade (Tender #MWP-2026-09)
+                  Jal Jeevan Mission (JJM) Rural Water Supply (Tender #JJM-RJ-2026-44)
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Assessed 10 mins ago • 4 Parameters Checked • RAG Match Verified
+                  Assessed 10 mins ago • Category: RHDS • 120 Villages OHT & Pipeline • RAG Match Verified
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3 self-end sm:self-center">
               <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">
-                VERDICT: ELIGIBLE (92%)
+                VERDICT: ELIGIBLE (95%)
               </span>
               <button 
                 onClick={() => onNavigate('eligibility')}
@@ -223,21 +223,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Feed Item 2 */}
           <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-cyan-500/30 transition">
             <div className="flex items-start space-x-3">
-              <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 mt-0.5">
-                <AlertTriangle className="w-5 h-5" />
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 mt-0.5">
+                <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
                 <h4 className="font-medium text-sm text-white">
-                  Regional SCADA Telemetry & Pumping Pipeline (Tender #RST-8812)
+                  PM-Kusum Component-B Solar Pumping (Tender #KUSUM-UP-8812)
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Assessed 2 hours ago • ISO 27001 Certificate Audit Pending
+                  Assessed 45 mins ago • Category: KUSUM • 5,000 HP Sunaquator RMS Telemetry
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3 self-end sm:self-center">
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 font-mono text-xs font-bold border border-amber-500/30">
-                VERDICT: CONDITIONAL (78%)
+              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">
+                VERDICT: ELIGIBLE (93%)
               </span>
               <button 
                 onClick={() => onNavigate('eligibility')}
