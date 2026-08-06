@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { API_BASE_URL } from '@/lib/api';
 import { 
   FileCheck2, 
   Upload, 
@@ -78,7 +79,7 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ currentP
     formData.append('file', selectedFile);
 
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/tender/analyze?provider=${currentProvider}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/tender/analyze?provider=${currentProvider}`, {
         method: 'POST',
         body: formData,
       });

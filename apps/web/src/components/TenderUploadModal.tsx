@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { API_BASE_URL } from '@/lib/api';
 import { Upload, RefreshCw, CheckCircle2, FileText } from 'lucide-react';
 
 interface TenderUploadModalProps {
@@ -32,7 +33,7 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/v1/tender/analyze?provider=${currentProvider}`,
+        `${API_BASE_URL}/api/v1/tender/analyze?provider=${currentProvider}`,
         { method: 'POST', body: formData }
       );
       if (res.ok) {

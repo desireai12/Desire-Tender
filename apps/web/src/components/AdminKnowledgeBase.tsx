@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/lib/api';
 import { 
   Upload, 
   FileText, 
@@ -82,7 +83,7 @@ export const AdminKnowledgeBase: React.FC = () => {
     formData.append('doc_category', selectedCategory);
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/knowledge-base/upload/company-credentials', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/knowledge-base/upload/company-credentials`, {
         method: 'POST',
         body: formData,
       });

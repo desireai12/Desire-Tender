@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/lib/api';
 import { 
   Key, 
   Eye, 
@@ -38,7 +39,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProviderChange }) 
 
   // Load existing config on mount
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/settings/config')
+    fetch(`${API_BASE_URL}/api/v1/settings/config`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === 'success') {
@@ -72,7 +73,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProviderChange }) 
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/settings/test-key', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/settings/test-key`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,7 +115,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProviderChange }) 
     };
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/settings/config', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/settings/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
