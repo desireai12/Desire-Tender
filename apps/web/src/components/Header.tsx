@@ -51,10 +51,12 @@ export const Header: React.FC<HeaderProps> = ({
               onChange={(e) => onProjectChange(e.target.value)}
               className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
             >
-              <option value="jjm" className="bg-[#101415] text-white">Jal Jeevan Mission (1,00,000+ Villages)</option>
-              <option value="scada" className="bg-[#101415] text-white">Jaipur SCADA Telemetry (14+ Cities)</option>
-              <option value="kusum" className="bg-[#101415] text-white">PM-Kusum Solar Pumping Project</option>
-              <option value="panghat" className="bg-[#101415] text-white">Panghat Decentralized Water Mgmt</option>
+              <option value="EPC" className="bg-[#101415] text-white">Project: EPC (Turnkey Construction)</option>
+              <option value="ESCO" className="bg-[#101415] text-white">Project: ESCO (Energy Efficiency)</option>
+              <option value="SOLAR" className="bg-[#101415] text-white">Project: SOLAR (Solar Pumping)</option>
+              <option value="STP" className="bg-[#101415] text-white">Project: STP (Sewage Treatment)</option>
+              <option value="KUSUM" className="bg-[#101415] text-white">Project: KUSUM (PM-Kusum Solar)</option>
+              <option value="RHDS" className="bg-[#101415] text-white">Project: RHDS (Rural Water Supply)</option>
             </select>
           </div>
         )}
