@@ -7,8 +7,59 @@ from core.config import settings
 from core.llm_factory import LLMFactory
 
 # In-Memory Store Fallback for Document Management
-_in_memory_docs_db: List[Dict[str, Any]] = []
-_in_memory_chunks_db: List[Document] = []
+_in_memory_docs_db: List[Dict[str, Any]] = [
+    {
+        "id": "doc-desire-01",
+        "filename": "Desire_Energy_Corporate_Credentials_2026.pdf",
+        "doc_type": "company_credentials",
+        "category": "Company Profile",
+        "chunks_count": 8,
+        "uploaded_at": "2026-08-01 10:00:00"
+    },
+    {
+        "id": "doc-desire-02",
+        "filename": "Audited_Financials_Turnover_FY23_25.pdf",
+        "doc_type": "company_credentials",
+        "category": "Financial",
+        "chunks_count": 6,
+        "uploaded_at": "2026-08-02 11:30:00"
+    },
+    {
+        "id": "doc-desire-03",
+        "filename": "Jal_Jeevan_Mission_100k_Villages_Completion.pdf",
+        "doc_type": "company_credentials",
+        "category": "Past Experience",
+        "chunks_count": 12,
+        "uploaded_at": "2026-08-03 14:15:00"
+    },
+    {
+        "id": "doc-desire-04",
+        "filename": "AquaLogix_IoT_AI_Telemetry_Architecture.pdf",
+        "doc_type": "company_credentials",
+        "category": "Technical Capability",
+        "chunks_count": 10,
+        "uploaded_at": "2026-08-04 09:45:00"
+    }
+]
+
+_in_memory_chunks_db: List[Document] = [
+    Document(
+        page_content="Desire Energy Solutions Pvt. Ltd., headquartered in Jaipur (Rajasthan), is a nationally recognized water infrastructure technology company managing water supply operations across 1,00,000+ villages and 14+ cities in India. Core models include ESCO energy efficiency, Smart EPC, Decentralized Water Management (DWM), Operations & Maintenance (O&M), and AquaLogix IoT/AI telemetry.",
+        metadata={"document_id": "doc-desire-01", "doc_type": "company_credentials", "category": "Company Profile"}
+    ),
+    Document(
+        page_content="Flagship Program Experience: Key aggregator and executor under Jal Jeevan Mission (JJM), PM-Kusum (Solar Pumping), and Panghat Yojana. Products: Aqualogix Smart Water Meter, Aqualogix Automation Solution, Sunaquator Solar Pump Controller. Workforce: 2,000+ deployed professionals.",
+        metadata={"document_id": "doc-desire-01", "doc_type": "company_credentials", "category": "Past Experience"}
+    ),
+    Document(
+        page_content="Executive Leadership & Operations: Gaurav Kumar Gupta (Founder & MD, 2011), Saurabh Gupta (Director, Solar & DWM), Suraj Khandelwal (Director, ESCO & EPC), Ruchi Gupta (Director, Strategy & Culture, CFA), Dharmesh Khandelwal (GM AquaLogix, Nirma/PennState), Honey Gupta (DGM RO/EPC), Ankit Purohit (COO, B.Tech IIT Roorkee, MBA SPJIMR), Sandesh Saxena (Sr Mgr PPC, MS Kingston London), Mohit Modi (AGM Purchase, TUV Auditor), Deepak Khandelwal (GM Finance), Prashant Mishra (CTO, B.Tech ECE).",
+        metadata={"document_id": "doc-desire-01", "doc_type": "company_credentials", "category": "Technical Capability"}
+    ),
+    Document(
+        page_content="Desire Energy Financial Standing: Annual Turnover ₹285 Crore (FY 2024-2025), Net Worth ₹78 Crore, Solvency Certificate ₹50 Crore. Valid ISO 9001:2015, ISO 14001:2015, and ISO 45001:2018 certifications.",
+        metadata={"document_id": "doc-desire-02", "doc_type": "company_credentials", "category": "Financial"}
+    )
+]
 
 
 class SupabaseVectorStoreManager:

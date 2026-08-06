@@ -6,16 +6,20 @@ import { ShieldCheck, Cpu, Sparkles, Layers, Activity } from 'lucide-react';
 interface HeaderProps {
   currentProvider: 'gemini' | 'openai';
   onProviderChange: (provider: 'gemini' | 'openai') => void;
+  selectedProject?: string;
+  onProjectChange?: (project: string) => void;
   onNavigateSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentProvider,
   onProviderChange,
+  selectedProject = 'jjm',
+  onProjectChange,
   onNavigateSettings,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full glass-card border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full glass-card border-b border-white/10 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
       {/* Brand & Logo */}
       <div className="flex items-center space-x-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
@@ -31,15 +35,32 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
           <p className="text-xs text-[#b9cacb] hidden sm:block">
-            Water Infrastructure Eligibility & Costing Engine
+            Water Infrastructure Eligibility & Costing Engine • Jaipur HQ
           </p>
         </div>
       </div>
 
       {/* Control Actions & Status */}
       <div className="flex items-center space-x-4">
+        {/* Project Selector Dropdown */}
+        {onProjectChange && (
+          <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-aqua-950/90 border border-cyan-500/40">
+            <span className="text-xs font-mono text-cyan-300 hidden xl:inline">Project:</span>
+            <select
+              value={selectedProject}
+              onChange={(e) => onProjectChange(e.target.value)}
+              className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
+            >
+              <option value="jjm" className="bg-[#101415] text-white">Jal Jeevan Mission (1,00,000+ Villages)</option>
+              <option value="scada" className="bg-[#101415] text-white">Jaipur SCADA Telemetry (14+ Cities)</option>
+              <option value="kusum" className="bg-[#101415] text-white">PM-Kusum Solar Pumping Project</option>
+              <option value="panghat" className="bg-[#101415] text-white">Panghat Decentralized Water Mgmt</option>
+            </select>
+          </div>
+        )}
+
         {/* System Status Indicator */}
-        <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+        <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
           <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
           <span className="text-xs font-mono text-emerald-300">pgvector: Online</span>
         </div>

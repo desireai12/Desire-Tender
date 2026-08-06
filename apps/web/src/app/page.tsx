@@ -13,6 +13,7 @@ import { SettingsView } from '@/components/SettingsView';
 export default function Home() {
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
+  const [selectedProject, setSelectedProject] = useState<string>('jjm');
 
   return (
     <div className="flex flex-col min-h-screen bg-[#101415] text-[#e0e3e5]">
@@ -20,6 +21,8 @@ export default function Home() {
       <Header 
         currentProvider={provider} 
         onProviderChange={setProvider}
+        selectedProject={selectedProject}
+        onProjectChange={setSelectedProject}
         onNavigateSettings={() => setActiveTab('settings')}
       />
 
