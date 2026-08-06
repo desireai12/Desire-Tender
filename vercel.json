@@ -1,23 +1,10 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "cd apps/web && npm install && npm run build",
+  "outputDirectory": "apps/web/.next",
+  "rewrites": [
     {
-      "src": "apps/api/main.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "apps/api/main.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "apps/web/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }
