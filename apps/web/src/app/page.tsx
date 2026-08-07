@@ -138,7 +138,7 @@ export default function Home() {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsView onProviderChange={setProvider} />
+            <SettingsView activeRole={activeRole} onProviderChange={setProvider} />
           )}
 
           {activeTab === 'admin' && (

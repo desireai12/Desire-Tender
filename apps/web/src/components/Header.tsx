@@ -69,42 +69,47 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="text-xs font-mono text-emerald-300">Company Knowledge: Connected</span>
         </div>
 
-        {/* Engine Provider Switcher */}
-        <div className="flex items-center space-x-1.5 bg-aqua-950/80 p-1 rounded-lg border border-white/10">
-          <button
-            onClick={() => onProviderChange('gemini')}
-            className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
-              currentProvider === 'gemini'
-                ? 'bg-cyan-400 text-aqua-950 font-bold shadow-md shadow-cyan-400/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Engine: Gemini</span>
-          </button>
-          <button
-            onClick={() => onProviderChange('openai')}
-            className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
-              currentProvider === 'openai'
-                ? 'bg-cyan-400 text-aqua-950 font-bold shadow-md shadow-cyan-400/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5" />
-            <span>Engine: OpenAI</span>
-          </button>
-        </div>
+        {/* Admin-Only Control Actions (Engine Provider Switcher & Admin Backend Config) */}
+        {activeRole === 'Admin' && (
+          <>
+            {/* Engine Provider Switcher */}
+            <div className="flex items-center space-x-1.5 bg-aqua-950/80 p-1 rounded-lg border border-white/10">
+              <button
+                onClick={() => onProviderChange('gemini')}
+                className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  currentProvider === 'gemini'
+                    ? 'bg-cyan-400 text-aqua-950 font-bold shadow-md shadow-cyan-400/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Engine: Gemini</span>
+              </button>
+              <button
+                onClick={() => onProviderChange('openai')}
+                className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  currentProvider === 'openai'
+                    ? 'bg-cyan-400 text-aqua-950 font-bold shadow-md shadow-cyan-400/20'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Cpu className="w-3.5 h-3.5" />
+                <span>Engine: OpenAI</span>
+              </button>
+            </div>
 
-        {/* Configure Keys Quick CTA */}
-        {onNavigateSettings && (
-          <button
-            onClick={onNavigateSettings}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-cyan-300 border border-cyan-500/30 transition"
-            title={activeRole === 'Admin' ? 'Open Admin AI & Credentials Vault' : 'Admin Authorization Required'}
-          >
-            <ShieldCheck className="w-4 h-4 text-cyan-400" />
-            <span className="hidden sm:inline">{activeRole === 'Admin' ? 'API Vault (Admin)' : 'Admin Config'}</span>
-          </button>
+            {/* Admin Backend Config Quick CTA */}
+            {onNavigateSettings && (
+              <button
+                onClick={onNavigateSettings}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-cyan-400 text-aqua-950 font-bold text-xs hover:bg-cyan-300 transition shadow-lg shadow-cyan-400/20"
+                title="Open Admin AI & Credentials Vault"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Admin AI & Keys Vault</span>
+              </button>
+            )}
+          </>
         )}
       </div>
     </header>

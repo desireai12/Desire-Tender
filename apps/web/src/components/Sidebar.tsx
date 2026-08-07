@@ -27,9 +27,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, active
     { id: 'wizard' as NavTab, label: 'Tender Assessment Wizard', icon: Wand2, badge: 'Guided', adminOnly: false },
     { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Workflow, badge: '6 Stages', adminOnly: false },
     { id: 'competitors' as NavTab, label: 'Competitor Analysis', icon: Swords, badge: 'Intel', adminOnly: false },
-    { id: 'settings' as NavTab, label: 'System Settings', icon: Settings, badge: null, adminOnly: false },
     { id: 'admin' as NavTab, label: 'Company Records (Admin)', icon: ShieldCheck, badge: 'Admin Only', adminOnly: true },
     { id: 'admin_config' as NavTab, label: 'AI System & Keys (Admin)', icon: FileCode, badge: 'Encrypted', adminOnly: true },
+    { id: 'settings' as NavTab, label: 'System Settings (Admin)', icon: Settings, badge: 'Admin', adminOnly: true },
   ];
 
   const navItems = allNavItems.filter(item => !item.adminOnly || activeRole === 'Admin');

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/lib/api';
+import { DepartmentRole } from '@/lib/types';
 import { 
   Key, 
   Eye, 
@@ -13,14 +14,16 @@ import {
   ShieldCheck, 
   Save, 
   RefreshCw,
-  Server
+  Server,
+  Lock
 } from 'lucide-react';
 
 interface SettingsViewProps {
+  activeRole?: DepartmentRole;
   onProviderChange?: (provider: 'gemini' | 'openai') => void;
 }
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ onProviderChange }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProviderChange }) => {
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [geminiKey, setGeminiKey] = useState<string>('');
   const [openaiKey, setOpenaiKey] = useState<string>('');
@@ -36,6 +39,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onProviderChange }) 
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  if (activeRole && activeRole !== 'Admin') {
+    return (
+      <div className="glass-card p-12 rounded-2xl text-center space-y-4 border-2 border-rose-500/30 max-w-3xl mx-auto my-8">
+        <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
+          <Lock className="w-8 h-8 stroke-[2.5]" />
+        </div>
+        <h3 className="text-xl font-display font-bold text-white">System Settings Restricted — Admin Authorization Required</h3>
+        <p className="text-xs text-slate-300 max-w-lg mx-auto">
+          API key management, model configurations, and system settings are strictly managed by authorized Administrators. End users cannot view or modify these settings.
+        </p>
+      </div>
+    );
+  }
 
   // Load existing config on mount
   useEffect(() => {
