@@ -95,6 +95,7 @@ export interface TenderProcess {
     is_eligible: boolean;
     reasoning: string;
     score: number;
+    status_verdict?: 'Eligible' | 'Partially Eligible' | 'Not Eligible';
   };
 
   // Step 2 & Stage 2: AI Report
@@ -118,8 +119,11 @@ export interface TenderProcess {
     bid_amount: number;
     bid_date: string;
     emd_amount: number;
+    emd_reference?: string;
     tender_id_code: string;
     supporting_docs_attached: string[];
+    submitted_by?: string;
+    remarks?: string;
   };
 
   // Stage 6: Result & Knowledge Capture
@@ -127,6 +131,11 @@ export interface TenderProcess {
   lost_reason_details?: {
     winner_company: string;
     winning_price: number;
+    l2_company?: string;
+    l2_price?: number;
+    l3_company?: string;
+    l3_price?: number;
+    our_rank?: string;
     price_difference_amount: number;
     price_difference_pct: number;
     reasons: string;

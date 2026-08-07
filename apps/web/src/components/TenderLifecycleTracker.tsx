@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Workflow, 
   CheckCircle2, 
@@ -17,7 +17,11 @@ import {
   UserCheck, 
   ShieldAlert, 
   ArrowRight,
-  Database
+  Database,
+  Plus,
+  Trash2,
+  Edit3,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   TenderProcess, 
@@ -41,41 +45,125 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
   const [selectedTenderId, setSelectedTenderId] = useState<string>(tenders[0]?.id || '');
   const activeTender = tenders.find((t) => t.id === selectedTenderId) || tenders[0];
 
-  // Stage 3 BOQ Form State
+  // Stage viewing state (allows user to click any stage header to view its details)
+  const [viewingStage, setViewingStage] = useState<TenderStage>(activeTender?.current_stage || '1_ELIGIBILITY');
+
+  // Sync viewing stage when active tender changes
+  useEffect(() => {
+    if (activeTender) {
+      setViewingStage(activeTender.current_stage);
+    }
+  }, [activeTender?.id, activeTender?.current_stage]);
+
+  // Stage 1 State
+  const [stage1Verdict, setStage1Verdict] = useState<'Eligible' | 'Partially Eligible' | 'Not Eligible'>(
+    activeTender?.eligibility_result?.status_verdict || (activeTender?.eligibility_result?.is_eligible ? 'Eligible' : 'Not Eligible')
+  );
+  const [stage1Remarks, setStage1Remarks] = useState<string>(
+    activeTender?.eligibility_result?.reasoning || 'Verified against company financial records (₹285 Cr turnover) and active Class-A PHED license.'
+  );
+
+  // Stage 2 State
+  const [stage2Remarks, setStage2Remarks] = useState<string>('Technical specifications and compliance matrix verified by Engineering department.');
+
+  // Stage 3 BOQ Form & Inline Editing State
+  const [boqItems, setBOQItems] = useState<BOQLineItem[]>(activeTender?.boq_items || [
+    { id: 'boq-1', category: 'Equipment', item_name: 'Solar Submersible Pump Sets (5 HP)', unit_of_measure: 'Sets', quantity: 150, unit_cost: 135000, markup_percentage: 12, tax_percentage: 18 },
+    { id: 'boq-2', category: 'Raw Materials', item_name: 'HDPE Distribution Pipeline (110mm)', unit_of_measure: 'Meters', quantity: 25000, unit_cost: 680, markup_percentage: 10, tax_percentage: 18 },
+    { id: 'boq-3', category: 'Equipment', item_name: 'IoT Telemetry Controller & Flow Sensors', unit_of_measure: 'Units', quantity: 150, unit_cost: 28000, markup_percentage: 15, tax_percentage: 18 }
+  ]);
+  const [newBOQCategory, setNewBOQCategory] = useState<BOQLineItem['category']>('Equipment');
   const [newBOQItemName, setNewBOQItemName] = useState<string>('');
   const [newBOQQuantity, setNewBOQQuantity] = useState<number>(100);
   const [newBOQUnitCost, setNewBOQUnitCost] = useState<number>(4500);
 
   // Stage 4 Decision State
-  const [didApplyDecision, setDidApplyDecision] = useState<boolean>(true);
-  const [applyDecisionReason, setApplyDecisionReason] = useState<string>('High win probability based on Desire Energy Jaipur credentials and competitive AquaLogix telemetry pricing.');
+  const [didApplyDecision, setDidApplyDecision] = useState<boolean>(activeTender?.did_apply ?? true);
+  const [applyDecisionReason, setApplyDecisionReason] = useState<string>(
+    activeTender?.apply_decision_reason || 'Approved to bid. High win probability based on Jaipur HQ execution track record and competitive solar pricing.'
+  );
 
   // Stage 5 Bid Details State
-  const [bidAmount, setBidAmount] = useState<number>(145000000);
-  const [emdAmount, setEmdAmount] = useState<number>(2900000);
-  const [tenderCode, setTenderCode] = useState<string>('PHED-RJ-2026-8812');
+  const [bidAmount, setBidAmount] = useState<number>(activeTender?.bid_details?.bid_amount || 145000000);
+  const [emdAmount, setEmdAmount] = useState<number>(activeTender?.bid_details?.emd_amount || 2900000);
+  const [emdReference, setEmdReference] = useState<string>(activeTender?.bid_details?.emd_reference || 'BG-SBI-JPR-2026-9941');
+  const [tenderCode, setTenderCode] = useState<string>(activeTender?.bid_details?.tender_id_code || `PHED-RJ-${activeTender?.id || '2026'}`);
+  const [submittedBy, setSubmittedBy] = useState<string>(activeTender?.bid_details?.submitted_by || 'Ankit Purohit (Tender Head)');
+  const [submissionRemarks, setSubmissionRemarks] = useState<string>(activeTender?.bid_details?.remarks || 'Submitted online via RajCOMP portal with digital signature.');
 
-  // Stage 6 Result & Self-Learning State
-  const [resultStatus, setResultStatus] = useState<'Won' | 'Lost' | 'Cancelled' | 'Under Evaluation'>('Won');
-  const [winnerCompany, setWinnerCompany] = useState<string>('L&T Water IC');
-  const [winningPrice, setWinningPrice] = useState<number>(138000000);
-  const [lostReason, setLostReason] = useState<string>('Rival undercut on civil excavation rate.');
-  const [lessonsLearned, setLessonsLearned] = useState<string>('Optimize localized civil labor procurement in district hubs for future packages.');
+  // Stage 6 Result & Competitive Intelligence State
+  const [resultStatus, setResultStatus] = useState<'Won' | 'Lost' | 'Cancelled' | 'Under Evaluation'>(activeTender?.result_status || 'Won');
+  const [winnerCompany, setWinnerCompany] = useState<string>(activeTender?.lost_reason_details?.winner_company || 'L&T Water IC');
+  const [winningPrice, setWinningPrice] = useState<number>(activeTender?.lost_reason_details?.winning_price || 138000000);
+  const [l2Company, setL2Company] = useState<string>(activeTender?.lost_reason_details?.l2_company || 'Desire Energy Solutions');
+  const [l2Price, setL2Price] = useState<number>(activeTender?.lost_reason_details?.l2_price || 145000000);
+  const [l3Company, setL3Company] = useState<string>(activeTender?.lost_reason_details?.l3_company || 'Va Tech Wabag');
+  const [l3Price, setL3Price] = useState<number>(activeTender?.lost_reason_details?.l3_price || 152000000);
+  const [ourRank, setOurRank] = useState<string>(activeTender?.lost_reason_details?.our_rank || 'L2 (2nd Lowest)');
+  const [lostReason, setLostReason] = useState<string>(activeTender?.lost_reason_details?.reasons || 'L1 competitor undercut on civil excavation and piping labor unit rates.');
+  const [lessonsLearned, setLessonsLearned] = useState<string>(activeTender?.lost_reason_details?.lessons_learned || 'Negotiate volume discounts for HDPE pipe suppliers in district clusters.');
 
   const [feedbackToast, setFeedbackToast] = useState<string | null>(null);
+
+  // Sync state when active tender changes
+  useEffect(() => {
+    if (activeTender) {
+      if (activeTender.boq_items && activeTender.boq_items.length > 0) {
+        setBOQItems(activeTender.boq_items);
+      }
+      if (activeTender.did_apply !== undefined) {
+        setDidApplyDecision(activeTender.did_apply);
+      }
+      if (activeTender.bid_details) {
+        setBidAmount(activeTender.bid_details.bid_amount);
+        setEmdAmount(activeTender.bid_details.emd_amount);
+        setTenderCode(activeTender.bid_details.tender_id_code);
+      }
+      if (activeTender.result_status) {
+        setResultStatus(activeTender.result_status);
+      }
+    }
+  }, [activeTender?.id]);
 
   if (!activeTender) {
     return (
       <div className="glass-card p-12 rounded-2xl text-center space-y-4">
         <Workflow className="w-12 h-12 text-cyan-400 mx-auto" />
-        <h3 className="text-xl font-display font-bold text-white">No Active Tenders in Lifecycle Pipeline</h3>
-        <p className="text-xs text-slate-400">Use the Tender Wizard to start a new tender process.</p>
+        <h3 className="text-xl font-display font-bold text-white">No Active Tenders in Process Queue</h3>
+        <p className="text-xs text-slate-400">Use the Tender Assessment Wizard to create a new tender entry.</p>
       </div>
     );
   }
 
-  // Handle Stage Advancement
-  const advanceStage = (nextStage: TenderStage, actionText: string, nextPending: string) => {
+  // 6 Stages Mapping
+  const stagesList: Array<{ 
+    stage: TenderStage; 
+    stepNum: number; 
+    label: string; 
+    dept: DepartmentRole; 
+    desc: string 
+  }> = [
+    { stage: '1_ELIGIBILITY', stepNum: 1, label: '1. Eligibility Check', dept: 'Business Development', desc: 'Criteria & Experience Evaluation' },
+    { stage: '2_AI_ANALYSIS', stepNum: 2, label: '2. Tender Analysis', dept: 'Engineering', desc: 'Clause & Compliance Breakdown' },
+    { stage: '3_COST_ESTIMATION', stepNum: 3, label: '3. Cost Estimation', dept: 'Estimation Team', desc: 'BOQ Unit Rates & Pricing' },
+    { stage: '4_DECISION', stepNum: 4, label: '4. Bid Decision', dept: 'Business Development', desc: 'Apply / Do Not Apply Decision' },
+    { stage: '5_BID_DETAILS', stepNum: 5, label: '5. Bid Details', dept: 'Tender Team', desc: 'Bid Amount & Submission' },
+    { stage: '6_TENDER_RESULT', stepNum: 6, label: '6. Tender Result', dept: 'Tender Team', desc: 'Win/Loss & Market Intelligence' }
+  ];
+
+  const getStageIndex = (s: TenderStage) => stagesList.findIndex(st => st.stage === s);
+  const currentStageIdx = getStageIndex(activeTender.current_stage);
+
+  // Check Department RBAC Permission for Active Stage
+  const canUserEditStage = (stageDept: DepartmentRole) => {
+    if (activeRole === 'Admin') return true;
+    if (stageDept === 'Business Development' && (activeRole === 'Business Development' || activeRole === 'Management')) return true;
+    if (stageDept === 'Tender Team' && (activeRole === 'Tender Team' || activeRole === 'Finance' || activeRole === 'Management')) return true;
+    return activeRole === stageDept;
+  };
+
+  // Generic helper to advance stage
+  const advanceToStage = (nextStage: TenderStage, actionText: string, nextPending: string) => {
     const newLog: AuditLog = {
       id: `log-${Date.now()}`,
       user: `Officer (${activeRole})`,
@@ -95,37 +183,153 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
     };
 
     onUpdateTender(updated);
+    setViewingStage(nextStage);
+
+    setFeedbackToast(`Tender #${activeTender.id} advanced to ${nextStage.replace('_', ' ')}!`);
+    setTimeout(() => setFeedbackToast(null), 4000);
   };
 
-  // Stage 3: Add BOQ Item
+  // Stage 1 Action: Complete Eligibility
+  const handleCompleteStage1 = () => {
+    const isEligible = stage1Verdict !== 'Not Eligible';
+    const updated: TenderProcess = {
+      ...activeTender,
+      eligibility_result: {
+        is_eligible: isEligible,
+        score: isEligible ? 95 : 35,
+        reasoning: stage1Remarks,
+        status_verdict: stage1Verdict
+      }
+    };
+    onUpdateTender(updated);
+    advanceToStage(
+      '2_AI_ANALYSIS', 
+      `Stage 1 Completed: Verdict ${stage1Verdict}`, 
+      'Engineering Department to complete Stage 2 Tender Analysis'
+    );
+  };
+
+  // Stage 2 Action: Complete Analysis
+  const handleCompleteStage2 = () => {
+    advanceToStage(
+      '3_COST_ESTIMATION', 
+      `Stage 2 Tender Analysis Approved: ${stage2Remarks}`, 
+      'Estimation Team to construct Stage 3 Costing BOQ'
+    );
+  };
+
+  // Stage 3 BOQ Items Management (Add, Edit Unit Cost, Delete)
   const handleAddBOQItem = () => {
     if (!newBOQItemName) return;
-
     const newItem: BOQLineItem = {
       id: `boq-${Date.now()}`,
-      category: 'Equipment',
+      category: newBOQCategory,
       item_name: newBOQItemName,
       unit_of_measure: 'Units',
       quantity: newBOQQuantity,
       unit_cost: newBOQUnitCost,
-      markup_percentage: 15,
+      markup_percentage: 12,
       tax_percentage: 18
     };
 
-    const updatedItems = [...(activeTender.boq_items || []), newItem];
+    const updatedItems = [...boqItems, newItem];
+    setBOQItems(updatedItems);
+    
     const updated: TenderProcess = {
       ...activeTender,
       boq_items: updatedItems,
-      current_stage: '3_COST_ESTIMATION',
-      stage_status: 'In Progress'
+    };
+    onUpdateTender(updated);
+
+    setNewBOQItemName('');
+    setFeedbackToast(`New unit rate for '${newItem.item_name}' saved to Company Knowledge Base.`);
+    setTimeout(() => setFeedbackToast(null), 4000);
+  };
+
+  const handleUpdateUnitCost = (id: string, newCost: number) => {
+    const updatedItems = boqItems.map(item => item.id === id ? { ...item, unit_cost: newCost } : item);
+    setBOQItems(updatedItems);
+    onUpdateTender({ ...activeTender, boq_items: updatedItems });
+  };
+
+  const handleDeleteBOQItem = (id: string) => {
+    const updatedItems = boqItems.filter(item => item.id !== id);
+    setBOQItems(updatedItems);
+    onUpdateTender({ ...activeTender, boq_items: updatedItems });
+  };
+
+  // Stage 3 Action: Complete BOQ Costing
+  const handleCompleteStage3 = () => {
+    const updated: TenderProcess = {
+      ...activeTender,
+      boq_items: boqItems
+    };
+    onUpdateTender(updated);
+    advanceToStage(
+      '4_DECISION',
+      `Stage 3 Cost Estimation Finalized (Total Items: ${boqItems.length})`,
+      'Business Development & Management to record Stage 4 Apply Decision'
+    );
+  };
+
+  // Stage 4 Action: Record Decision
+  const handleCompleteStage4 = () => {
+    const nextStage = didApplyDecision ? '5_BID_DETAILS' : '4_DECISION';
+    const actionMsg = didApplyDecision 
+      ? 'Stage 4 Decision: APPROVED TO BID' 
+      : `Stage 4 Decision: DO NOT BID (Reason: ${applyDecisionReason})`;
+
+    const newLog: AuditLog = {
+      id: `log-${Date.now()}`,
+      user: `Officer (${activeRole})`,
+      department: activeRole,
+      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      action: actionMsg,
+      status: didApplyDecision ? 'Approved' : 'Stopped (No Bid)',
+      next_pending_action: didApplyDecision ? 'Tender Team to fill Stage 5 Bid Details' : 'Process Closed'
+    };
+
+    const updated: TenderProcess = {
+      ...activeTender,
+      did_apply: didApplyDecision,
+      apply_decision_reason: applyDecisionReason,
+      current_stage: didApplyDecision ? '5_BID_DETAILS' : '4_DECISION',
+      stage_status: didApplyDecision ? 'Completed' : 'Rejected',
+      updated_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      audit_trail: [newLog, ...activeTender.audit_trail]
     };
 
     onUpdateTender(updated);
-    setNewBOQItemName('');
+    if (didApplyDecision) {
+      setViewingStage('5_BID_DETAILS');
+    }
   };
 
-  // Stage 6: Finalize Result & Trigger Self-Learning
-  const handleFinalizeResult = () => {
+  // Stage 5 Action: Submit Bid Details
+  const handleCompleteStage5 = () => {
+    const updated: TenderProcess = {
+      ...activeTender,
+      bid_details: {
+        bid_amount: bidAmount,
+        bid_date: new Date().toISOString().slice(0, 10),
+        emd_amount: emdAmount,
+        emd_reference: emdReference,
+        tender_id_code: tenderCode,
+        supporting_docs_attached: ['Financial_Turnover.pdf', 'ClassA_License.pdf'],
+        submitted_by: submittedBy,
+        remarks: submissionRemarks
+      }
+    };
+    onUpdateTender(updated);
+    advanceToStage(
+      '6_TENDER_RESULT',
+      `Stage 5 Bid Details Submitted (Amount: ₹${(bidAmount / 10000000).toFixed(2)} Cr)`,
+      'Tender Team to record Stage 6 Final Outcome & Competitive Intelligence'
+    );
+  };
+
+  // Stage 6 Action: Finalize Outcome & Commit to Knowledge Base
+  const handleFinalizeStage6 = () => {
     const priceDiff = bidAmount - winningPrice;
     const priceDiffPct = bidAmount > 0 ? (priceDiff / bidAmount) * 100 : 0;
 
@@ -134,9 +338,9 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       user: `Tender Officer (${activeRole})`,
       department: activeRole,
       timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      action: `Finalized Stage 6 Tender Result: ${resultStatus}`,
+      action: `Finalized Stage 6 Result: ${resultStatus} (Rank: ${ourRank})`,
       status: resultStatus,
-      next_pending_action: 'Self-Learning Feedback Loop Committed to AI Knowledge Base'
+      next_pending_action: 'Self-Learning Feedback Loop Committed to Company Knowledge Base'
     };
 
     const updated: TenderProcess = {
@@ -144,64 +348,67 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       current_stage: '6_TENDER_RESULT',
       stage_status: 'Completed',
       result_status: resultStatus,
-      lost_reason_details: resultStatus === 'Lost' ? {
+      lost_reason_details: {
         winner_company: winnerCompany,
         winning_price: winningPrice,
+        l2_company: l2Company,
+        l2_price: l2Price,
+        l3_company: l3Company,
+        l3_price: l3Price,
+        our_rank: ourRank,
         price_difference_amount: priceDiff,
-        price_difference_pct: roundVal(priceDiffPct, 1),
+        price_difference_pct: Number(priceDiffPct.toFixed(1)),
         reasons: lostReason,
         lessons_learned: lessonsLearned
-      } : undefined,
+      },
       audit_trail: [newLog, ...activeTender.audit_trail]
     };
 
     onUpdateTender(updated);
 
-    // Show Self-Learning Confirmation Toast
-    setFeedbackToast(`Tender #${activeTender.id} (${resultStatus}) committed to AI Knowledge Base for future RAG training.`);
+    setFeedbackToast(`Tender #${activeTender.id} outcome (${resultStatus}) committed to Company Knowledge Base!`);
     setTimeout(() => setFeedbackToast(null), 5000);
   };
 
-  const roundVal = (v: number, dec: number) => Number(v.toFixed(dec));
-
-  const stagesList: Array<{ stage: TenderStage; label: string; dept: string }> = [
-    { stage: '1_ELIGIBILITY', label: '1. Eligibility', dept: 'Business Dev' },
-    { stage: '2_AI_ANALYSIS', label: '2. AI Report', dept: 'Engineering' },
-    { stage: '3_COST_ESTIMATION', label: '3. Costing BOQ', dept: 'Estimation Team' },
-    { stage: '4_DECISION', label: '4. Apply Decision', dept: 'Management' },
-    { stage: '5_BID_DETAILS', label: '5. Bid Details', dept: 'Tender Team' },
-    { stage: '6_TENDER_RESULT', label: '6. Win/Loss Result', dept: 'Tender Team' }
-  ];
+  // Calculate live total BOQ cost
+  const totalBOQCost = boqItems.reduce((acc, item) => {
+    const lineTotal = item.quantity * item.unit_cost;
+    const withMarkup = lineTotal * (1 + item.markup_percentage / 100);
+    const withTax = withMarkup * (1 + item.tax_percentage / 100);
+    return acc + withTax;
+  }, 0);
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Toast Notification */}
+      {/* Toast Notification for Knowledge Base Feedback Loop */}
       {feedbackToast && (
         <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-aqua-950 font-bold text-xs flex items-center justify-between shadow-2xl animate-bounce">
           <div className="flex items-center space-x-2">
             <Database className="w-5 h-5" />
             <span>{feedbackToast}</span>
           </div>
-          <span className="text-[10px] font-mono uppercase bg-aqua-950 text-emerald-300 px-2 py-0.5 rounded-md">Self-Learning Active</span>
+          <span className="text-[10px] font-mono uppercase bg-aqua-950 text-emerald-300 px-2.5 py-0.5 rounded-md">
+            Company Knowledge Updated
+          </span>
         </div>
       )}
 
       {/* Module Banner */}
-      <div className="glass-card p-6 rounded-2xl border border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="glass-card p-6 rounded-2xl border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-purple-400 font-mono text-xs mb-1">
+          <div className="flex items-center space-x-2 text-cyan-400 font-mono text-xs mb-1">
             <Workflow className="w-4 h-4" />
-            <span>ENTERPRISE TENDER LIFECYCLE TRACKER • 6 STAGES</span>
+            <span>ENTERPRISE TENDER PROCESS QUEUE • 6 STAGES</span>
           </div>
           <h2 className="text-2xl font-display font-bold text-white">
-            Tender Progress Pipeline & Department Ownership
+            Tender Process Queue & Lifecycle Pipeline
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Every tender advances through 6 distinct stages. Active Role: <strong className="text-purple-300">{activeRole}</strong>
+            Progress tenders through 6 sequential stages. Current User Role: <strong className="text-cyan-300">{activeRole}</strong>
           </p>
         </div>
 
-        {/* Select Active Tender Dropdown */}
+        {/* Active Tender Selector */}
         <div className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-aqua-950/80 border border-white/10 shrink-0">
           <span className="text-xs font-mono text-slate-400">Select Tender:</span>
           <select
@@ -218,77 +425,365 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
         </div>
       </div>
 
-      {/* 6-Stage Pipeline Visual Stepper */}
+      {/* 6-Stage Pipeline Stepper Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {stagesList.map((s, idx) => {
-          const isCurrent = activeTender.current_stage === s.stage;
-          const isPassed = stagesList.findIndex(st => st.stage === activeTender.current_stage) > idx;
+          const isCurrentActive = activeTender.current_stage === s.stage;
+          const isPassed = currentStageIdx > idx;
+          const isViewing = viewingStage === s.stage;
 
           return (
-            <div
+            <button
               key={s.stage}
-              className={`p-3.5 rounded-xl border transition-all ${
-                isCurrent
-                  ? 'bg-gradient-to-br from-purple-950 to-aqua-900 border-purple-400 shadow-lg shadow-purple-500/20 ring-1 ring-purple-400'
+              type="button"
+              onClick={() => setViewingStage(s.stage)}
+              className={`p-3.5 rounded-xl border text-left transition-all ${
+                isViewing
+                  ? 'ring-2 ring-cyan-400 bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/20'
                   : isPassed
                   ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'
+                  : isCurrentActive
+                  ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200'
                   : 'bg-aqua-950/40 border-white/5 opacity-50'
               }`}
             >
               <div className="flex items-center justify-between text-[10px] font-mono mb-1">
-                <span className={isPassed ? 'text-emerald-400 font-bold' : isCurrent ? 'text-purple-300 font-bold' : 'text-slate-500'}>
-                  {isPassed ? 'DONE' : isCurrent ? 'ACTIVE' : 'PENDING'}
+                <span className={`font-bold ${isPassed ? 'text-emerald-400' : isCurrentActive ? 'text-cyan-300' : 'text-slate-500'}`}>
+                  {isPassed ? '✅ DONE' : isCurrentActive ? '🔄 ACTIVE' : '⏳ PENDING'}
                 </span>
-                <span className="text-slate-400">{s.dept}</span>
+                <span className="text-slate-400">{s.dept.split(' ')[0]}</span>
               </div>
               <div className="font-display font-semibold text-xs text-white truncate">{s.label}</div>
-            </div>
+              <div className="text-[10px] text-slate-400 truncate mt-0.5">{s.desc}</div>
+            </button>
           );
         })}
       </div>
 
-      {/* ACTIVE STAGE WORKFLOW ACTION CARDS */}
+      {/* Viewing Stage Detail Banner */}
+      <div className="p-4 rounded-xl bg-aqua-950/70 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center space-x-2 text-slate-300">
+          <span className="font-mono text-cyan-400 font-bold">STAGE VIEW:</span>
+          <span className="font-semibold text-white">
+            {stagesList.find(s => s.stage === viewingStage)?.label}
+          </span>
+          <span className="text-slate-400">• Assigned Department:</span>
+          <strong className="text-cyan-300">
+            {stagesList.find(s => s.stage === viewingStage)?.dept}
+          </strong>
+        </div>
 
-      {/* Stage 3: Cost Estimation (Estimation Team) */}
-      {activeTender.current_stage === '3_COST_ESTIMATION' && (
-        <div className="glass-card p-8 rounded-2xl space-y-6 border-2 border-cyan-500/40">
+        {/* RBAC Badge */}
+        {!canUserEditStage(stagesList.find(s => s.stage === viewingStage)?.dept || 'Admin') ? (
+          <div className="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-[11px] flex items-center space-x-1">
+            <Lock className="w-3 h-3 text-amber-400" />
+            <span>View-Only Mode (Switch Role to {stagesList.find(s => s.stage === viewingStage)?.dept} to edit)</span>
+          </div>
+        ) : (
+          <div className="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] flex items-center space-x-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Role Authorized ({activeRole})</span>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================== */}
+      {/* STAGE 1: ELIGIBILITY CHECK ACTION CARD */}
+      {/* ========================================== */}
+      {viewingStage === '1_ELIGIBILITY' && (
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-cyan-500/40">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div className="flex items-center space-x-2">
-              <Calculator className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-lg font-display font-bold text-white">Stage 3 — Cost Estimation & BOQ Pricing</h3>
+              <Building2 className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-lg font-display font-bold text-white">
+                Stage 1 — Company Qualification & Eligibility Assessment
+              </h3>
             </div>
             <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
-              Assigned: Estimation Team
+              Department: Business Development
             </span>
           </div>
 
-          {/* RBAC Warning */}
-          {activeRole !== 'Estimation Team' && activeRole !== 'Admin' && (
-            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-center space-x-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Permission Notice: Only the <strong>Estimation Team</strong> can add or edit BOQ line item pricing.</span>
+          {/* Qualification Summary Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 rounded-xl bg-aqua-950/80 border border-white/10 space-y-1">
+              <span className="text-[11px] font-mono uppercase text-slate-400">Financial Turnover</span>
+              <div className="text-sm font-bold text-white">₹285 Cr Verified</div>
+              <p className="text-[11px] text-emerald-400">Exceeds ₹150 Cr requirement</p>
+            </div>
+            <div className="p-4 rounded-xl bg-aqua-950/80 border border-white/10 space-y-1">
+              <span className="text-[11px] font-mono uppercase text-slate-400">Track Record</span>
+              <div className="text-sm font-bold text-white">1,00,000+ Villages</div>
+              <p className="text-[11px] text-emerald-400">JJM / ESCO / Solar pumps</p>
+            </div>
+            <div className="p-4 rounded-xl bg-aqua-950/80 border border-white/10 space-y-1">
+              <span className="text-[11px] font-mono uppercase text-slate-400">Licenses & ISO</span>
+              <div className="text-sm font-bold text-white">Class-A PHED License</div>
+              <p className="text-[11px] text-emerald-400">Active & Valid in Rajasthan</p>
+            </div>
+          </div>
+
+          {/* Eligibility Verdict Form */}
+          <div className="space-y-4 p-5 rounded-xl bg-aqua-950/60 border border-white/10">
+            <label className="text-xs font-mono uppercase text-slate-300 block">Eligibility Verdict *</label>
+            <div className="flex flex-wrap gap-3">
+              {(['Eligible', 'Partially Eligible', 'Not Eligible'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  disabled={!canUserEditStage('Business Development')}
+                  onClick={() => setStage1Verdict(v)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${
+                    stage1Verdict === v
+                      ? v === 'Eligible'
+                        ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-md shadow-emerald-400/20'
+                        : v === 'Partially Eligible'
+                        ? 'bg-amber-400 text-aqua-950 border-amber-300'
+                        : 'bg-rose-500 text-white border-rose-400'
+                      : 'bg-aqua-950 text-slate-400 border-white/10'
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-1.5 pt-2">
+              <label className="text-xs font-mono uppercase text-slate-300 block">Officer Remarks / Qualification Notes</label>
+              <textarea
+                value={stage1Remarks}
+                disabled={!canUserEditStage('Business Development')}
+                onChange={(e) => setStage1Remarks(e.target.value)}
+                rows={2}
+                className="w-full p-3 rounded-xl bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Action Button */}
+          {canUserEditStage('Business Development') && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleCompleteStage1}
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
+              >
+                <span>Approve Stage 1 Eligibility & Unlock Stage 2 (Tender Analysis)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           )}
+        </div>
+      )}
 
-          {/* Add BOQ Line Item Form */}
-          {(activeRole === 'Estimation Team' || activeRole === 'Admin') && (
+      {/* ========================================== */}
+      {/* STAGE 2: TENDER ANALYSIS ACTION CARD */}
+      {/* ========================================== */}
+      {viewingStage === '2_AI_ANALYSIS' && (
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-cyan-500/40">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center space-x-2">
+              <FileText className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-lg font-display font-bold text-white">
+                Stage 2 — Tender Specification & Clause Breakdown Analysis
+              </h3>
+            </div>
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+              Department: Engineering
+            </span>
+          </div>
+
+          {/* Uploaded File Info */}
+          <div className="p-4 rounded-xl bg-aqua-950/80 border border-cyan-500/30 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <FileText className="w-6 h-6 text-cyan-400" />
+              <div>
+                <h4 className="text-xs font-bold text-white">
+                  Uploaded Document: {activeTender.uploaded_files?.tender_pdf || 'Tender_Specification_Package.pdf'}
+                </h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Analyzed against Company Knowledge Base & Technical Standards
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-md font-mono text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              Analyzed
+            </span>
+          </div>
+
+          {/* Clause Analysis Sample Breakdown */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-mono uppercase text-cyan-300">Technical Compliance Summary</h4>
+            <div className="space-y-2 text-xs">
+              <div className="p-3 rounded-lg bg-aqua-950/60 border border-white/5 flex items-center justify-between">
+                <div>
+                  <strong className="text-white">Sec 4.2 — HDPE Pipeline Pressure Rating (PN-10)</strong>
+                  <p className="text-[11px] text-slate-400">Compliant with ISO 4427 standards.</p>
+                </div>
+                <span className="text-emerald-400 font-mono text-[10px]">Pass</span>
+              </div>
+              <div className="p-3 rounded-lg bg-aqua-950/60 border border-white/5 flex items-center justify-between">
+                <div>
+                  <strong className="text-white">Sec 6.1 — Solar Inverter Efficiency (&gt; 98.5%)</strong>
+                  <p className="text-[11px] text-slate-400">Matched with Sunaquator RMS controller specs.</p>
+                </div>
+                <span className="text-emerald-400 font-mono text-[10px]">Pass</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 p-4 rounded-xl bg-aqua-950/60 border border-white/10">
+            <label className="text-xs font-mono uppercase text-slate-300 block">Engineering Compliance Remarks</label>
+            <textarea
+              value={stage2Remarks}
+              disabled={!canUserEditStage('Engineering')}
+              onChange={(e) => setStage2Remarks(e.target.value)}
+              rows={2}
+              className="w-full p-3 rounded-xl bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+            />
+          </div>
+
+          {/* Action Button */}
+          {canUserEditStage('Engineering') && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleCompleteStage2}
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
+              >
+                <span>Approve Stage 2 Technical Analysis & Unlock Stage 3 (Cost Estimation)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* STAGE 3: COST ESTIMATION & EDITABLE BOQ */}
+      {/* ========================================== */}
+      {viewingStage === '3_COST_ESTIMATION' && (
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-cyan-500/40">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center space-x-2">
+              <Calculator className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-lg font-display font-bold text-white">
+                Stage 3 — Cost Estimation & Interactive BOQ Pricing
+              </h3>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                Department: Estimation Team
+              </span>
+            </div>
+          </div>
+
+          {/* Learning Feedback Indicator */}
+          <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-300 flex items-center space-x-2">
+            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span>
+              <strong>Continuous AI Learning Active:</strong> Any manual edits to unit rates below will update the Company Knowledge Base to refine future tender cost estimations!
+            </span>
+          </div>
+
+          {/* Editable BOQ Table */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-mono uppercase text-white">BOQ Unit Rate Breakdown Table</h4>
+              <div className="text-right">
+                <span className="text-xs font-mono text-slate-400">Total Estimated Cost: </span>
+                <strong className="text-base font-display font-bold text-cyan-300">
+                  ₹{(totalBOQCost / 10000000).toFixed(2)} Cr
+                </strong>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-aqua-950 text-cyan-300 font-mono uppercase text-[11px]">
+                  <tr>
+                    <th className="p-3">Category</th>
+                    <th className="p-3">Item Description</th>
+                    <th className="p-3 text-right">Quantity</th>
+                    <th className="p-3 text-right">Unit Rate (₹)</th>
+                    <th className="p-3 text-right">Markup %</th>
+                    <th className="p-3 text-right">Total (₹)</th>
+                    {canUserEditStage('Estimation Team') && <th className="p-3 text-center">Action</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {boqItems.map((item) => {
+                    const lineTotal = item.quantity * item.unit_cost * (1 + item.markup_percentage / 100) * (1 + item.tax_percentage / 100);
+                    return (
+                      <tr key={item.id} className="hover:bg-white/5 transition">
+                        <td className="p-3 font-mono text-cyan-300">{item.category}</td>
+                        <td className="p-3 font-semibold text-white">{item.item_name}</td>
+                        <td className="p-3 text-right font-mono">{item.quantity} {item.unit_of_measure}</td>
+                        <td className="p-3 text-right font-mono">
+                          {canUserEditStage('Estimation Team') ? (
+                            <input
+                              type="number"
+                              value={item.unit_cost}
+                              onChange={(e) => handleUpdateUnitCost(item.id, Number(e.target.value))}
+                              className="w-24 px-2 py-1 bg-aqua-950 border border-cyan-500/30 rounded text-right text-white font-mono text-xs focus:border-cyan-400"
+                            />
+                          ) : (
+                            <span>₹{item.unit_cost.toLocaleString()}</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-right font-mono">{item.markup_percentage}%</td>
+                        <td className="p-3 text-right font-mono font-bold text-emerald-400">
+                          ₹{Math.round(lineTotal).toLocaleString()}
+                        </td>
+                        {canUserEditStage('Estimation Team') && (
+                          <td className="p-3 text-center">
+                            <button
+                              onClick={() => handleDeleteBOQItem(item.id)}
+                              className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Add Custom BOQ Line Item */}
+          {canUserEditStage('Estimation Team') && (
             <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/10 space-y-3">
-              <h4 className="text-xs font-mono uppercase text-cyan-300">Add BOQ Component Line Item</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <h4 className="text-xs font-mono uppercase text-cyan-300">Add BOQ Line Item to Cost Model</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                <select
+                  value={newBOQCategory}
+                  onChange={(e) => setNewBOQCategory(e.target.value as BOQLineItem['category'])}
+                  className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                >
+                  <option value="Equipment">Equipment</option>
+                  <option value="Raw Materials">Raw Materials</option>
+                  <option value="Labour">Labour</option>
+                  <option value="Logistics">Logistics</option>
+                  <option value="Subcontractor">Subcontractor</option>
+                </select>
+
                 <input
                   type="text"
-                  placeholder="Item Name (e.g. Sunaquator Pump)"
+                  placeholder="Item Name (e.g. Pump Controller)"
                   value={newBOQItemName}
                   onChange={(e) => setNewBOQItemName(e.target.value)}
-                  className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                  className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white sm:col-span-2"
                 />
+
                 <input
                   type="number"
-                  placeholder="Quantity"
+                  placeholder="Qty"
                   value={newBOQQuantity}
                   onChange={(e) => setNewBOQQuantity(Number(e.target.value))}
                   className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
                 />
+
                 <input
                   type="number"
                   placeholder="Unit Cost (₹)"
@@ -296,143 +791,245 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   onChange={(e) => setNewBOQUnitCost(Number(e.target.value))}
                   className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
                 />
+              </div>
+
+              <div className="flex justify-end">
                 <button
                   onClick={handleAddBOQItem}
-                  className="px-4 py-2 rounded-lg bg-cyan-400 text-aqua-950 font-bold text-xs hover:bg-cyan-300 transition"
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-cyan-400 text-aqua-950 font-bold text-xs hover:bg-cyan-300 transition"
                 >
-                  Add BOQ Item
+                  <Plus className="w-4 h-4" />
+                  <span>Add Line Item & Update Learning</span>
                 </button>
               </div>
             </div>
           )}
 
-          {/* Advance to Stage 4 Button */}
-          <div className="flex justify-end pt-2">
-            <button
-              onClick={() => advanceStage('4_DECISION', 'Completed Stage 3 BOQ Cost Estimation', 'Management to issue Stage 4 Apply Decision')}
-              className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
-            >
-              <span>Finalize Costing & Advance to Stage 4 (Decision)</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Action Button */}
+          {canUserEditStage('Estimation Team') && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleCompleteStage3}
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
+              >
+                <span>Finalize BOQ Costing & Unlock Stage 4 (Bid Decision)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Stage 4: Decision (Management) */}
-      {activeTender.current_stage === '4_DECISION' && (
-        <div className="glass-card p-8 rounded-2xl space-y-6 border-2 border-purple-500/40">
+      {/* ========================================== */}
+      {/* STAGE 4: BID DECISION ACTION CARD */}
+      {/* ========================================== */}
+      {viewingStage === '4_DECISION' && (
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-purple-500/40">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div className="flex items-center space-x-2">
               <UserCheck className="w-5 h-5 text-purple-400" />
-              <h3 className="text-lg font-display font-bold text-white">Stage 4 — Executive Management Bid Approval Decision</h3>
+              <h3 className="text-lg font-display font-bold text-white">
+                Stage 4 — Executive Management & BD Bid Decision
+              </h3>
             </div>
             <span className="text-xs font-mono px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30">
-              Assigned: Management
+              Department: Business Development / Management
             </span>
           </div>
 
           <div className="space-y-4">
-            <label className="text-xs font-mono uppercase text-slate-300 block">Did We Apply / Proceed to Bid?</label>
-            <div className="flex space-x-4">
+            <label className="text-xs font-mono uppercase text-slate-300 block">Bid Application Decision *</label>
+            <div className="flex flex-wrap gap-4">
               <button
+                type="button"
+                disabled={!canUserEditStage('Business Development')}
                 onClick={() => setDidApplyDecision(true)}
                 className={`px-6 py-3 rounded-xl font-bold text-xs transition border ${
-                  didApplyDecision ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-lg shadow-emerald-400/20' : 'bg-aqua-950 text-slate-400 border-white/10'
+                  didApplyDecision
+                    ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-lg shadow-emerald-400/20'
+                    : 'bg-aqua-950 text-slate-400 border-white/10'
                 }`}
               >
                 YES — Proceed to Bid Submission
               </button>
+
               <button
+                type="button"
+                disabled={!canUserEditStage('Business Development')}
                 onClick={() => setDidApplyDecision(false)}
                 className={`px-6 py-3 rounded-xl font-bold text-xs transition border ${
-                  !didApplyDecision ? 'bg-rose-500 text-white border-rose-400 shadow-lg shadow-rose-500/20' : 'bg-aqua-950 text-slate-400 border-white/10'
+                  !didApplyDecision
+                    ? 'bg-rose-500 text-white border-rose-400 shadow-lg shadow-rose-500/20'
+                    : 'bg-aqua-950 text-slate-400 border-white/10'
                 }`}
               >
                 NO — Do Not Bid
               </button>
             </div>
 
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-mono uppercase text-slate-300 block">Executive Approval Rationale</label>
+            <div className="space-y-1.5 pt-2">
+              <label className="text-xs font-mono uppercase text-slate-300 block">Decision Rationale & Strategic Comments</label>
               <textarea
                 value={applyDecisionReason}
+                disabled={!canUserEditStage('Business Development')}
                 onChange={(e) => setApplyDecisionReason(e.target.value)}
-                rows={2}
-                className="w-full p-3 rounded-xl bg-aqua-950/80 border border-white/15 text-xs text-white focus:outline-none"
+                rows={3}
+                className="w-full p-3 rounded-xl bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="flex justify-end pt-2">
-            <button
-              onClick={() => advanceStage('5_BID_DETAILS', `Stage 4 Approval: Did Apply = ${didApplyDecision}`, 'Tender Team to enter Stage 5 Submission Details')}
-              className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-purple-400/20"
-            >
-              <span>Approve & Advance to Stage 5 (Bid Details)</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Action Button */}
+          {canUserEditStage('Business Development') && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleCompleteStage4}
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-purple-400/20"
+              >
+                <span>Record Bid Decision & Advance to Stage 5 (Bid Details)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Stage 5 & 6: Bid Details & Tender Result (Tender Team) */}
-      {(activeTender.current_stage === '5_BID_DETAILS' || activeTender.current_stage === '6_TENDER_RESULT') && (
-        <div className="glass-card p-8 rounded-2xl space-y-6 border-2 border-emerald-500/40">
+      {/* ========================================== */}
+      {/* STAGE 5: BID DETAILS ACTION CARD */}
+      {/* ========================================== */}
+      {viewingStage === '5_BID_DETAILS' && (
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-500/40">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div className="flex items-center space-x-2">
               <Trophy className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-lg font-display font-bold text-white">Stage 5 & 6 — Bid Submission & Win/Loss Self-Learning Result</h3>
+              <h3 className="text-lg font-display font-bold text-white">
+                Stage 5 — Bid Submission & Tender Documentation Details
+              </h3>
             </div>
             <span className="text-xs font-mono px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-              Assigned: Tender Team
+              Department: Tender Team / Finance
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-400">Final Submitted Bid Amount (₹)</label>
+              <label className="text-xs font-mono text-slate-300">Submitted Bid Amount (₹) *</label>
               <input
                 type="number"
+                disabled={!canUserEditStage('Tender Team')}
                 value={bidAmount}
                 onChange={(e) => setBidAmount(Number(e.target.value))}
                 className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
               />
             </div>
+
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-400">EMD Deposit Amount (₹)</label>
+              <label className="text-xs font-mono text-slate-300">EMD Deposit Amount (₹) *</label>
               <input
                 type="number"
+                disabled={!canUserEditStage('Tender Team')}
                 value={emdAmount}
                 onChange={(e) => setEmdAmount(Number(e.target.value))}
                 className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
               />
             </div>
+
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-400">Tender Reference ID</label>
+              <label className="text-xs font-mono text-slate-300">EMD Guarantee Reference</label>
               <input
                 type="text"
-                value={tenderCode}
-                onChange={(e) => setTenderCode(e.target.value)}
+                disabled={!canUserEditStage('Tender Team')}
+                value={emdReference}
+                onChange={(e) => setEmdReference(e.target.value)}
                 className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
               />
             </div>
           </div>
 
-          {/* Stage 6 Result & Lessons Learned */}
-          <div className="p-6 rounded-2xl bg-aqua-950/80 border border-white/10 space-y-4">
-            <h4 className="text-sm font-display font-bold text-white">Stage 6 Final Tender Outcome & Self-Learning Knowledge Capture</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-slate-300">Tender Reference ID / Portal Code</label>
+              <input
+                type="text"
+                disabled={!canUserEditStage('Tender Team')}
+                value={tenderCode}
+                onChange={(e) => setTenderCode(e.target.value)}
+                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+              />
+            </div>
 
-            <div className="flex space-x-3">
-              {(['Won', 'Lost', 'Cancelled', 'Under Evaluation'] as const).map((st) => (
+            <div className="space-y-1.5">
+              <label className="text-xs font-mono text-slate-300">Submitted By Officer</label>
+              <input
+                type="text"
+                disabled={!canUserEditStage('Tender Team')}
+                value={submittedBy}
+                onChange={(e) => setSubmittedBy(e.target.value)}
+                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-mono text-slate-300">Submission Remarks & Digital Sign-off</label>
+            <textarea
+              value={submissionRemarks}
+              disabled={!canUserEditStage('Tender Team')}
+              onChange={(e) => setSubmissionRemarks(e.target.value)}
+              rows={2}
+              className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+            />
+          </div>
+
+          {/* Action Button */}
+          {canUserEditStage('Tender Team') && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleCompleteStage5}
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-emerald-400/20"
+              >
+                <span>Submit Bid Details & Unlock Stage 6 (Tender Result)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* STAGE 6: TENDER RESULT & KNOWLEDGE CAPTURE */}
+      {/* ========================================== */}
+      {viewingStage === '6_TENDER_RESULT' && (
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-500/40">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center space-x-2">
+              <Trophy className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-lg font-display font-bold text-white">
+                Stage 6 — Final Tender Outcome & Competitive Intelligence Capture
+              </h3>
+            </div>
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+              Department: Tender Team / Management
+            </span>
+          </div>
+
+          {/* Outcome Status Selector */}
+          <div className="space-y-3">
+            <label className="text-xs font-mono uppercase text-slate-300 block">Final Result Status *</label>
+            <div className="flex flex-wrap gap-3">
+              {(['Won', 'Lost', 'Under Evaluation', 'Cancelled'] as const).map((st) => (
                 <button
                   key={st}
+                  type="button"
+                  disabled={!canUserEditStage('Tender Team')}
                   onClick={() => setResultStatus(st)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold transition border ${
                     resultStatus === st
                       ? st === 'Won'
                         ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-md shadow-emerald-400/20'
-                        : 'bg-rose-500 text-white border-rose-400'
+                        : st === 'Lost'
+                        ? 'bg-rose-500 text-white border-rose-400'
+                        : 'bg-amber-400 text-aqua-950 border-amber-300'
                       : 'bg-aqua-950 text-slate-300 border-white/10'
                   }`}
                 >
@@ -440,60 +1037,138 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 </button>
               ))}
             </div>
+          </div>
 
-            {resultStatus === 'Lost' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* Detailed Competitive Bidding Breakdown (L1, L2, L3) */}
+          {resultStatus === 'Lost' && (
+            <div className="p-5 rounded-2xl bg-aqua-950/80 border border-white/10 space-y-4">
+              <h4 className="text-xs font-mono uppercase text-cyan-300">
+                Competitive Bidding Ranking & Market Prices (L1 / L2 / L3)
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-400">Winning Competitor Company</label>
+                  <label className="text-xs font-mono text-slate-400">Winning Company (L1)</label>
                   <input
                     type="text"
+                    disabled={!canUserEditStage('Tender Team')}
                     value={winnerCompany}
                     onChange={(e) => setWinnerCompany(e.target.value)}
                     className="w-full p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-400">Winning Price (₹)</label>
+                  <label className="text-xs font-mono text-slate-400">L1 Winning Bid Price (₹)</label>
                   <input
                     type="number"
+                    disabled={!canUserEditStage('Tender Team')}
                     value={winningPrice}
                     onChange={(e) => setWinningPrice(Number(e.target.value))}
-                    className="w-full p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                    className="w-full p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-slate-400">Our Final Rank</label>
+                  <input
+                    type="text"
+                    disabled={!canUserEditStage('Tender Team')}
+                    value={ourRank}
+                    onChange={(e) => setOurRank(e.target.value)}
+                    className="w-full p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
                   />
                 </div>
               </div>
-            )}
 
-            <div className="space-y-1">
-              <label className="text-xs font-mono text-slate-400">Lessons Learned & AI Strategy Takeaways</label>
-              <textarea
-                value={lessonsLearned}
-                onChange={(e) => setLessonsLearned(e.target.value)}
-                rows={2}
-                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-slate-400">L2 Company & Price (₹)</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      disabled={!canUserEditStage('Tender Team')}
+                      value={l2Company}
+                      onChange={(e) => setL2Company(e.target.value)}
+                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                    />
+                    <input
+                      type="number"
+                      disabled={!canUserEditStage('Tender Team')}
+                      value={l2Price}
+                      onChange={(e) => setL2Price(Number(e.target.value))}
+                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-mono text-slate-400">L3 Company & Price (₹)</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      disabled={!canUserEditStage('Tender Team')}
+                      value={l3Company}
+                      onChange={(e) => setL3Company(e.target.value)}
+                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                    />
+                    <input
+                      type="number"
+                      disabled={!canUserEditStage('Tender Team')}
+                      value={l3Price}
+                      onChange={(e) => setL3Price(Number(e.target.value))}
+                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1 pt-2">
+                <label className="text-xs font-mono text-slate-400">Primary Reason for Loss / Observations</label>
+                <textarea
+                  value={lostReason}
+                  disabled={!canUserEditStage('Tender Team')}
+                  onChange={(e) => setLostReason(e.target.value)}
+                  rows={2}
+                  className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-mono text-slate-400">Lessons Learned & AI Strategy Takeaways</label>
+                <textarea
+                  value={lessonsLearned}
+                  disabled={!canUserEditStage('Tender Team')}
+                  onChange={(e) => setLessonsLearned(e.target.value)}
+                  rows={2}
+                  className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex justify-end pt-2">
-            <button
-              onClick={handleFinalizeResult}
-              className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-xl shadow-emerald-400/20"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Finalize Result & Index into AI Knowledge Base</span>
-            </button>
-          </div>
+          {/* Action Button */}
+          {canUserEditStage('Tender Team') && (
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleFinalizeStage6}
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-xl shadow-emerald-400/20"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Finalize Result & Index into Company Knowledge Base</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* AUDIT TRAIL TIMELINE */}
+      {/* ========================================== */}
+      {/* AUDIT TRAIL TIMELINE & HISTORY */}
+      {/* ========================================== */}
       <div className="glass-card p-6 rounded-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center space-x-2">
             <Clock className="w-5 h-5 text-cyan-400" />
             <h3 className="font-display font-semibold text-base text-white">
-              Complete Audit Trail & Timeline (#TND-{activeTender.id})
+              Complete Audit Trail & Lifecycle Timeline (#TND-{activeTender.id})
             </h3>
           </div>
           <span className="text-xs font-mono text-slate-400">{activeTender.audit_trail.length} Logs Recorded</span>
