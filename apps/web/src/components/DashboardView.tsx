@@ -19,12 +19,12 @@ import { NavTab } from './Sidebar';
 
 interface DashboardViewProps {
   onNavigate: (tab: NavTab) => void;
-  recentAssessmentScore?: number;
+  tendersCount?: number;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigate,
-  recentAssessmentScore = 92
+  tendersCount = 2
 }) => {
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -35,36 +35,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="max-w-3xl space-y-4">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-xs font-mono">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Water Infrastructure Procurement Intelligence</span>
+            <span>Enterprise Water Infrastructure Procurement System</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight leading-tight">
-            Instant Eligibility. <br />
+            Guided Tender Wizard. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">
-              Intelligent Costing & Bid Strategy.
+              6-Stage Lifecycle & Self-Learning AI.
             </span>
           </h1>
 
           <p className="text-slate-300 text-base leading-relaxed">
-            Automate tender criteria cross-retrieval against company financials, evaluate competitor win/loss patterns, and generate AI-optimized costing breakdowns in seconds.
+            Progress tenders through a strict 4-step wizard, locked project verticals, department-wise permissions, and automated win/loss self-learning feedback loops.
           </p>
 
           <div className="flex flex-wrap gap-4 pt-2">
             <button
-              onClick={() => onNavigate('eligibility')}
+              onClick={() => onNavigate('wizard')}
               className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-cyan-400 text-aqua-950 font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-cyan-400/25 group"
             >
               <FileCheck2 className="w-5 h-5" />
-              <span>Check Tender Eligibility</span>
+              <span>Start Guided Tender Wizard</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
 
             <button
-              onClick={() => onNavigate('costing')}
+              onClick={() => onNavigate('lifecycle')}
               className="flex items-center space-x-2 px-6 py-3 rounded-xl glass-card text-white hover:bg-white/10 border border-white/15 transition-all"
             >
               <Calculator className="w-5 h-5 text-cyan-400" />
-              <span>Costing Estimator V2</span>
+              <span>Tender Lifecycle Queue ({tendersCount})</span>
             </button>
           </div>
         </div>
@@ -72,9 +72,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Key Action Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Card 1: Check Tender Eligibility */}
+        {/* Card 1: Guided Tender Wizard */}
         <div 
-          onClick={() => onNavigate('eligibility')}
+          onClick={() => onNavigate('wizard')}
           className="glass-card rounded-xl p-6 hover:border-cyan-400/50 transition-all cursor-pointer group space-y-4 relative overflow-hidden"
         >
           <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
@@ -82,33 +82,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div>
             <h3 className="font-display font-semibold text-lg text-white group-hover:text-cyan-300 transition-colors">
-              Check Tender Eligibility
+              Start Guided Wizard
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Upload municipal tender PDF/DOCX for automated RAG parameter evaluation.
+              Step 1 Eligibility Gate $\rightarrow$ Step 2 PDF Upload $\rightarrow$ Step 3 20s AI Analysis $\rightarrow$ Step 4 Report.
             </p>
           </div>
           <div className="flex items-center text-xs font-mono text-cyan-400 pt-2">
-            <span>Upload Document</span>
+            <span>Launch 4-Step Wizard</span>
             <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 
-        {/* Card 2: Tenders Assessed Real-time Stat Badge */}
-        <div className="glass-card rounded-xl p-6 space-y-4 relative">
+        {/* Card 2: Lifecycle Queue Stat Badge */}
+        <div 
+          onClick={() => onNavigate('lifecycle')}
+          className="glass-card rounded-xl p-6 hover:border-emerald-400/50 transition-all cursor-pointer group space-y-4 relative"
+        >
           <div className="flex items-center justify-between">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <TrendingUp className="w-6 h-6" />
             </div>
             <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono border border-emerald-500/30">
-              +24% this month
+              Active Pipeline
             </span>
           </div>
           <div>
-            <div className="text-3xl font-display font-bold text-white">48</div>
+            <div className="text-3xl font-display font-bold text-white">{tendersCount} Tenders</div>
             <p className="text-xs text-slate-400 mt-1">
-              Tenders Assessed with Average Match Score of{' '}
-              <span className="text-emerald-400 font-bold">{recentAssessmentScore}%</span>
+              Progressing through 6 Enterprise Stages
             </p>
           </div>
         </div>
@@ -116,7 +118,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Card 3: View Competitor Battle Cards */}
         <div 
           onClick={() => onNavigate('competitors')}
-          className="glass-card rounded-xl p-6 hover:border-cyan-400/50 transition-all cursor-pointer group space-y-4"
+          className="glass-card rounded-xl p-6 hover:border-purple-400/50 transition-all cursor-pointer group space-y-4"
         >
           <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
             <Swords className="w-6 h-6" />
@@ -126,55 +128,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Competitor Battle Cards
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Side-by-side win/loss rationales, bidding patterns & markup strategies.
+              Analyze L&T, Wabag, Shakti Pumps, KBL & Tata Power bidding patterns.
             </p>
           </div>
           <div className="flex items-center text-xs font-mono text-purple-400 pt-2">
-            <span>Explore 4 Competitors</span>
+            <span>Explore 5 Competitors</span>
             <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 
-        {/* Card 4: Knowledge Base Status Indicator */}
+        {/* Card 4: Admin Knowledge Base Status Indicator */}
         <div 
           onClick={() => onNavigate('admin')}
-          className="glass-card rounded-xl p-6 hover:border-teal-400/50 transition-all cursor-pointer group space-y-4"
+          className="glass-card rounded-xl p-6 hover:border-teal-400/50 transition-all cursor-pointer group space-y-4 md:col-span-3"
         >
           <div className="flex items-center justify-between">
             <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
               <Database className="w-6 h-6" />
             </div>
             <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-300 text-xs font-mono">
-              12 Chunks Indexed
+              Admin Portal Only
             </span>
           </div>
           <div>
             <h3 className="font-display font-semibold text-lg text-white group-hover:text-teal-300 transition-colors">
-              Knowledge Base Status
+              5 Dedicated Knowledge Base Modules & Asset Versioning
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Company Credentials, Balance Sheets, ISO Certs & Past Turnovers ready.
+              Restricted exclusively to System Admin. Manage Company SOPs, ISO Licenses, Competitor Intel, Past BOQs & Self-Learning feedback logs.
             </p>
-          </div>
-        </div>
-
-        {/* Card 5: Costing Templates */}
-        <div 
-          onClick={() => onNavigate('costing')}
-          className="glass-card rounded-xl p-6 hover:border-cyan-400/50 transition-all cursor-pointer group space-y-4 md:col-span-2 lg:col-span-2"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-              <Calculator className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-display font-semibold text-lg text-white group-hover:text-cyan-300 transition-colors">
-                Costing Estimation Engine V2
-              </h3>
-              <p className="text-xs text-slate-400">
-                Interactive financial line-item breakdown with custom manual overrides & AI RAG bid amount comparison.
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -185,7 +167,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex items-center space-x-2">
             <Clock className="w-5 h-5 text-cyan-400" />
             <h2 className="font-display font-semibold text-lg text-white">
-              Recent Tender Activity & Assessment Feed
+              Recent Tender Lifecycle Pipeline Activity Feed
             </h2>
           </div>
           <span className="text-xs font-mono text-slate-400">Real-time Updates</span>
@@ -203,19 +185,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   Jal Jeevan Mission (JJM) Rural Water Supply (Tender #JJM-RJ-2026-44)
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Assessed 10 mins ago • Category: RHDS • 120 Villages OHT & Pipeline • RAG Match Verified
+                  Category: RHDS • Stage 2 Complete • Verified ₹285 Cr turnover & 1,00,000+ villages
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3 self-end sm:self-center">
               <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">
-                VERDICT: ELIGIBLE (95%)
+                STAGE 2: APPROVED
               </span>
               <button 
-                onClick={() => onNavigate('eligibility')}
+                onClick={() => onNavigate('lifecycle')}
                 className="text-xs text-cyan-400 hover:underline font-medium"
               >
-                View Details
+                Open Lifecycle Queue
               </button>
             </div>
           </div>
@@ -223,7 +205,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Feed Item 2 */}
           <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-cyan-500/30 transition">
             <div className="flex items-start space-x-3">
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 mt-0.5">
+              <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 mt-0.5">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
@@ -231,19 +213,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   PM-Kusum Component-B Solar Pumping (Tender #KUSUM-UP-8812)
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Assessed 45 mins ago • Category: KUSUM • 5,000 HP Sunaquator RMS Telemetry
+                  Category: KUSUM • Stage 3 In Progress • Estimation Team BOQ Construction
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3 self-end sm:self-center">
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">
-                VERDICT: ELIGIBLE (93%)
+              <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 font-mono text-xs font-bold border border-cyan-500/30">
+                STAGE 3: COSTING IN PROGRESS
               </span>
               <button 
-                onClick={() => onNavigate('eligibility')}
+                onClick={() => onNavigate('lifecycle')}
                 className="text-xs text-cyan-400 hover:underline font-medium"
               >
-                View Details
+                Open Lifecycle Queue
               </button>
             </div>
           </div>

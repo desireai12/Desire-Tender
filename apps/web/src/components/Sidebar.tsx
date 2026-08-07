@@ -3,30 +3,34 @@
 import React from 'react';
 import { 
   LayoutDashboard, 
-  Database, 
-  FileCheck2, 
+  Wand2, 
+  Workflow, 
   Swords, 
-  Calculator, 
-  Settings,
+  Settings, 
+  ShieldCheck,
   Waves
 } from 'lucide-react';
+import { DepartmentRole } from '@/lib/types';
 
-export type NavTab = 'dashboard' | 'admin' | 'eligibility' | 'competitors' | 'costing' | 'settings';
+export type NavTab = 'dashboard' | 'wizard' | 'lifecycle' | 'competitors' | 'settings' | 'admin';
 
 interface SidebarProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
+  activeRole: DepartmentRole;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
-  const navItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard, badge: null },
-    { id: 'admin' as NavTab, label: 'Knowledge Base', icon: Database, badge: 'Admin' },
-    { id: 'eligibility' as NavTab, label: 'Check Eligibility', icon: FileCheck2, badge: 'V1 Core' },
-    { id: 'competitors' as NavTab, label: 'Battle Cards', icon: Swords, badge: 'Intel' },
-    { id: 'costing' as NavTab, label: 'Costing Estimator', icon: Calculator, badge: 'V2 AI' },
-    { id: 'settings' as NavTab, label: 'Settings & Keys', icon: Settings, badge: null },
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, activeRole }) => {
+  const allNavItems = [
+    { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, adminOnly: false },
+    { id: 'wizard' as NavTab, label: 'Tender Wizard', icon: Wand2, badge: 'Guided', adminOnly: false },
+    { id: 'lifecycle' as NavTab, label: 'Tender Lifecycle Queue', icon: Workflow, badge: '6 Stages', adminOnly: false },
+    { id: 'competitors' as NavTab, label: 'Competitor Battle Cards', icon: Swords, badge: 'Intel', adminOnly: false },
+    { id: 'settings' as NavTab, label: 'Settings & Keys', icon: Settings, badge: null, adminOnly: false },
+    { id: 'admin' as NavTab, label: 'Admin Portal', icon: ShieldCheck, badge: 'Admin Only', adminOnly: true },
   ];
+
+  const navItems = allNavItems.filter(item => !item.adminOnly || activeRole === 'Admin');
 
   return (
     <aside className="w-64 glass-card border-r border-white/10 p-4 flex flex-col justify-between hidden md:flex min-h-[calc(100vh-65px)]">

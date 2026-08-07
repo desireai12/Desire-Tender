@@ -3,19 +3,21 @@
 import React from 'react';
 import { ShieldCheck, Cpu, Sparkles, Layers, Activity } from 'lucide-react';
 
+import { DepartmentRole } from '@/lib/types';
+
 interface HeaderProps {
   currentProvider: 'gemini' | 'openai';
   onProviderChange: (provider: 'gemini' | 'openai') => void;
-  selectedProject?: string;
-  onProjectChange?: (project: string) => void;
+  activeRole: DepartmentRole;
+  onRoleChange: (role: DepartmentRole) => void;
   onNavigateSettings?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentProvider,
   onProviderChange,
-  selectedProject = 'jjm',
-  onProjectChange,
+  activeRole,
+  onRoleChange,
   onNavigateSettings,
 }) => {
   return (
@@ -28,38 +30,38 @@ export const Header: React.FC<HeaderProps> = ({
         <div>
           <div className="flex items-center space-x-2">
             <h1 className="font-display text-lg font-bold tracking-tight text-white">
-              DESIRE <span className="text-cyan-400">TENDER INTELLIGENCE</span>
+              DESIRE <span className="text-cyan-400">TENDER INTELLIGENCE SYSTEM</span>
             </h1>
             <span className="px-2 py-0.5 text-[10px] font-mono uppercase bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full">
-              PROD V2.4
+              ENTERPRISE LIFECYCLE
             </span>
           </div>
           <p className="text-xs text-[#b9cacb] hidden sm:block">
-            Water Infrastructure Eligibility & Costing Engine • Jaipur HQ
+            Water Infrastructure Lifecycle & Costing Engine • Jaipur HQ
           </p>
         </div>
       </div>
 
-      {/* Control Actions & Status */}
-      <div className="flex items-center space-x-4">
-        {/* Project Selector Dropdown */}
-        {onProjectChange && (
-          <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-aqua-950/90 border border-cyan-500/40">
-            <span className="text-xs font-mono text-cyan-300 hidden xl:inline">Project:</span>
-            <select
-              value={selectedProject}
-              onChange={(e) => onProjectChange(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-white focus:outline-none cursor-pointer"
-            >
-              <option value="EPC" className="bg-[#101415] text-white">Project: EPC (Turnkey Construction)</option>
-              <option value="ESCO" className="bg-[#101415] text-white">Project: ESCO (Energy Efficiency)</option>
-              <option value="SOLAR" className="bg-[#101415] text-white">Project: SOLAR (Solar Pumping)</option>
-              <option value="STP" className="bg-[#101415] text-white">Project: STP (Sewage Treatment)</option>
-              <option value="KUSUM" className="bg-[#101415] text-white">Project: KUSUM (PM-Kusum Solar)</option>
-              <option value="RHDS" className="bg-[#101415] text-white">Project: RHDS (Rural Water Supply)</option>
-            </select>
-          </div>
-        )}
+      {/* Control Actions & Department Role Switcher */}
+      <div className="flex items-center space-x-3 flex-wrap gap-y-2">
+        {/* Active Department Role Selector */}
+        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-aqua-950/90 border border-purple-500/40">
+          <span className="text-xs font-mono text-purple-300 hidden md:inline">Role:</span>
+          <select
+            value={activeRole}
+            onChange={(e) => onRoleChange(e.target.value as DepartmentRole)}
+            className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+          >
+            <option value="Business Development" className="bg-[#101415] text-white">Department: Business Development</option>
+            <option value="Engineering" className="bg-[#101415] text-white">Department: Engineering</option>
+            <option value="Estimation Team" className="bg-[#101415] text-white">Department: Estimation Team</option>
+            <option value="Management" className="bg-[#101415] text-white">Department: Management</option>
+            <option value="Tender Team" className="bg-[#101415] text-white">Department: Tender Team</option>
+            <option value="Procurement" className="bg-[#101415] text-white">Department: Procurement</option>
+            <option value="Finance" className="bg-[#101415] text-white">Department: Finance</option>
+            <option value="Admin" className="bg-[#101415] text-white">Department: Admin (Full Access)</option>
+          </select>
+        </div>
 
         {/* System Status Indicator */}
         <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
