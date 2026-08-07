@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
 from rag.ingestion import DocumentIngestion

@@ -39,14 +39,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight leading-tight">
-            Guided Tender Wizard. <br />
+            Tender Assessment Wizard. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">
-              6-Stage Lifecycle & Self-Learning AI.
+              6-Stage Process Queue & Company Knowledge.
             </span>
           </h1>
 
           <p className="text-slate-300 text-base leading-relaxed">
-            Progress tenders through a strict 4-step wizard, locked project verticals, department-wise permissions, and automated win/loss self-learning feedback loops.
+            Upload tender documents, evaluate company eligibility, manage department permissions across 6 stages, and maintain historical bidding insights.
           </p>
 
           <div className="flex flex-wrap gap-4 pt-2">
@@ -55,7 +55,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-cyan-400 text-aqua-950 font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-cyan-400/25 group"
             >
               <FileCheck2 className="w-5 h-5" />
-              <span>Start Guided Tender Wizard</span>
+              <span>Start Tender Assessment</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
 
@@ -64,7 +64,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="flex items-center space-x-2 px-6 py-3 rounded-xl glass-card text-white hover:bg-white/10 border border-white/15 transition-all"
             >
               <Calculator className="w-5 h-5 text-cyan-400" />
-              <span>Tender Lifecycle Queue ({tendersCount})</span>
+              <span>Tender Process Queue ({tendersCount})</span>
             </button>
           </div>
         </div>

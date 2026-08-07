@@ -23,11 +23,11 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, activeRole }) => {
   const allNavItems = [
     { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, adminOnly: false },
-    { id: 'wizard' as NavTab, label: 'Tender Wizard', icon: Wand2, badge: 'Guided', adminOnly: false },
-    { id: 'lifecycle' as NavTab, label: 'Tender Lifecycle Queue', icon: Workflow, badge: '6 Stages', adminOnly: false },
-    { id: 'competitors' as NavTab, label: 'Competitor Battle Cards', icon: Swords, badge: 'Intel', adminOnly: false },
-    { id: 'settings' as NavTab, label: 'Settings & Keys', icon: Settings, badge: null, adminOnly: false },
-    { id: 'admin' as NavTab, label: 'Admin Portal', icon: ShieldCheck, badge: 'Admin Only', adminOnly: true },
+    { id: 'wizard' as NavTab, label: 'Tender Assessment Wizard', icon: Wand2, badge: 'Guided', adminOnly: false },
+    { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Workflow, badge: '6 Stages', adminOnly: false },
+    { id: 'competitors' as NavTab, label: 'Competitor Analysis', icon: Swords, badge: 'Intel', adminOnly: false },
+    { id: 'settings' as NavTab, label: 'System Settings', icon: Settings, badge: null, adminOnly: false },
+    { id: 'admin' as NavTab, label: 'Company Records (Admin)', icon: ShieldCheck, badge: 'Admin Only', adminOnly: true },
   ];
 
   const navItems = allNavItems.filter(item => !item.adminOnly || activeRole === 'Admin');
@@ -84,14 +84,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, active
         </nav>
       </div>
 
-      {/* Water Infra Plant Status Card */}
+      {/* System Status Card */}
       <div className="p-3.5 rounded-xl bg-aqua-950/80 border border-white/10 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-white">System Active</span>
+          <span className="text-xs font-semibold text-white">Company Records Active</span>
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
         </div>
         <p className="text-[11px] text-slate-400 leading-relaxed">
-          Supabase pgvector RAG active. Ready to evaluate municipal tender bids & costing.
+          Company knowledge connected. Ready to evaluate municipal tender bids & costing.
         </p>
       </div>
     </aside>

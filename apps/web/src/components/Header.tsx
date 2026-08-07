@@ -66,10 +66,10 @@ export const Header: React.FC<HeaderProps> = ({
         {/* System Status Indicator */}
         <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
           <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          <span className="text-xs font-mono text-emerald-300">pgvector: Online</span>
+          <span className="text-xs font-mono text-emerald-300">Company Knowledge: Connected</span>
         </div>
 
-        {/* LLM Engine Provider Switcher */}
+        {/* Engine Provider Switcher */}
         <div className="flex items-center space-x-1.5 bg-aqua-950/80 p-1 rounded-lg border border-white/10">
           <button
             onClick={() => onProviderChange('gemini')}
@@ -80,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Gemini 3 Flash</span>
+            <span>Engine: Gemini</span>
           </button>
           <button
             onClick={() => onProviderChange('openai')}
@@ -91,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />
-            <span>OpenAI GPT-4o</span>
+            <span>Engine: OpenAI</span>
           </button>
         </div>
 

@@ -120,13 +120,13 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
         <div>
           <div className="flex items-center space-x-2 text-cyan-400 text-xs font-mono mb-1">
             <Database className="w-4 h-4" />
-            <span>ADMIN BACKEND KNOWLEDGE PORTAL</span>
+            <span>ADMIN COMPANY RECORDS PORTAL</span>
           </div>
           <h2 className="text-2xl font-display font-bold text-white">
-            AI Training Knowledge Base & Asset Versioning
+            Company Records Repository & Asset Versioning
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Manage company credentials, certificate registries, competitor intelligence, and historical BOQ repositories stored in Supabase <code className="text-cyan-400">pgvector</code>.
+            Manage company credentials, certificate registries, competitor intelligence, and historical BOQ repositories.
           </p>
         </div>
         <div className="px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center shrink-0">
