@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Sidebar, NavTab } from '@/components/Sidebar';
 import { DashboardView } from '@/components/DashboardView';
 import { AdminKnowledgeBase } from '@/components/AdminKnowledgeBase';
+import { AdminBackendConfig } from '@/components/AdminBackendConfig';
 import { TenderWizard } from '@/components/TenderWizard';
 import { TenderLifecycleTracker } from '@/components/TenderLifecycleTracker';
 import { CompetitorBattleCardsView } from '@/components/CompetitorBattleCardsView';
@@ -95,7 +96,7 @@ export default function Home() {
         onProviderChange={setProvider}
         activeRole={activeRole}
         onRoleChange={setActiveRole}
-        onNavigateSettings={() => setActiveTab('settings')}
+        onNavigateSettings={() => setActiveTab(activeRole === 'Admin' ? 'admin_config' : 'settings')}
       />
 
       {/* Main Workspace Layout */}
@@ -142,6 +143,10 @@ export default function Home() {
 
           {activeTab === 'admin' && (
             <AdminKnowledgeBase activeRole={activeRole} />
+          )}
+
+          {activeTab === 'admin_config' && (
+            <AdminBackendConfig activeRole={activeRole} />
           )}
         </main>
       </div>

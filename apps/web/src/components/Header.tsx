@@ -100,9 +100,10 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onNavigateSettings}
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-cyan-300 border border-cyan-500/30 transition"
+            title={activeRole === 'Admin' ? 'Open Admin AI & Credentials Vault' : 'Admin Authorization Required'}
           >
             <ShieldCheck className="w-4 h-4 text-cyan-400" />
-            <span className="hidden sm:inline">API Keys</span>
+            <span className="hidden sm:inline">{activeRole === 'Admin' ? 'API Vault (Admin)' : 'Admin Config'}</span>
           </button>
         )}
       </div>

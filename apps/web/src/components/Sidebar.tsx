@@ -8,11 +8,12 @@ import {
   Swords, 
   Settings, 
   ShieldCheck,
+  FileCode,
   Waves
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
 
-export type NavTab = 'dashboard' | 'wizard' | 'lifecycle' | 'competitors' | 'settings' | 'admin';
+export type NavTab = 'dashboard' | 'wizard' | 'lifecycle' | 'competitors' | 'settings' | 'admin' | 'admin_config';
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -28,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, active
     { id: 'competitors' as NavTab, label: 'Competitor Analysis', icon: Swords, badge: 'Intel', adminOnly: false },
     { id: 'settings' as NavTab, label: 'System Settings', icon: Settings, badge: null, adminOnly: false },
     { id: 'admin' as NavTab, label: 'Company Records (Admin)', icon: ShieldCheck, badge: 'Admin Only', adminOnly: true },
+    { id: 'admin_config' as NavTab, label: 'AI System & Keys (Admin)', icon: FileCode, badge: 'Encrypted', adminOnly: true },
   ];
 
   const navItems = allNavItems.filter(item => !item.adminOnly || activeRole === 'Admin');
