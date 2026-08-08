@@ -27,8 +27,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab, 
   onTabChange, 
   activeRole,
-  userPermissions = ['eligibility'],
-  userStatus = 'Pending'
+  userPermissions = ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
+  userStatus = 'Active'
 }) => {
   const allNavItems = [
     { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, perm: 'eligibility', adminOnly: false },

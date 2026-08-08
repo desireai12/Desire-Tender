@@ -15,9 +15,24 @@ import { AdminPortal } from '@/components/AdminPortal';
 import { DepartmentRole, TenderProcess, UserProfile } from '@/lib/types';
 import { ShieldAlert } from 'lucide-react';
 
+const DEFAULT_USER: UserProfile = {
+  id: 'usr-101',
+  employee_id: 'EMP001',
+  full_name: 'Ankit Purohit',
+  email: 'ankit.purohit@desireenergy.com',
+  phone: '9829012345',
+  role: 'BD Executive',
+  department: 'Business Development',
+  status: 'Active',
+  permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
+  assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+  registered_at: '2026-08-01 09:00:00',
+  last_login: new Date().toISOString()
+};
+
 export default function Home() {
   const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(DEFAULT_USER);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
@@ -30,13 +45,13 @@ export default function Home() {
       setViewMode('admin');
     } else {
       setViewMode('user');
-      setActiveTab(user.status === 'Pending' ? 'wizard' : 'dashboard');
+      setActiveTab('dashboard');
     }
   };
 
   // Handle Logout
   const handleLogout = () => {
-    setCurrentUser(null);
+    setCurrentUser(DEFAULT_USER);
     setViewMode('user');
     setActiveRole('Business Development');
     setActiveTab('dashboard');
