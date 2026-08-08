@@ -1,6 +1,5 @@
-'use client';
-
 import { UserProfile, Project, PermissionType, UserStatus, DepartmentRole } from './types';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 // Default initial users
 const INITIAL_USERS: UserProfile[] = [
@@ -128,6 +127,23 @@ export function saveUser(user: UserProfile): UserProfile[] {
   if (typeof window !== 'undefined') {
     localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(updatedUsers));
   }
+
+  // Supabase Sync
+  if (isSupabaseConfigured && supabase) {
+    Promise.resolve(supabase.from('users').upsert({
+      employee_id: user.employee_id,
+      full_name: user.full_name,
+      email: user.email,
+      phone: user.phone,
+      password_hash: 'desire@2026',
+      role: user.role,
+      department: user.department,
+      status: user.status,
+      permissions: user.permissions,
+      assigned_projects: user.assigned_projects
+    })).catch(() => null);
+  }
+
   return updatedUsers;
 }
 
