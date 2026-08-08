@@ -21,6 +21,8 @@ import {
   Info
 } from 'lucide-react';
 
+import { getStoredUsers, saveUser } from '@/lib/store';
+
 interface LoginLandingProps {
   onLoginSuccess: (user: UserProfile) => void;
   onNavigateAdmin: () => void;
@@ -46,7 +48,6 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Execute User Login
   // Execute User Authentication (Sign In)
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,26 +63,20 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
     const targetEmp = employeeId.trim().toUpperCase();
     const targetPass = password.trim();
 
-    try {
-      const res = await fetch(`/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employee_id: targetEmp, password: targetPass })
-      }).catch(() => null);
+    // Check Persistent Store for Existing User
+    const existingUsers = getStoredUsers();
+    const foundUser = existingUsers.find(u => u.employee_id === targetEmp || u.email === targetEmp.toLowerCase());
 
-      if (res && res.ok) {
-        try {
-          const data = await res.json();
-          if (data.user) {
-            if (data.notice) setSuccessNotice(data.notice);
-            onLoginSuccess(data.user);
-            return;
-          }
-        } catch (e) {}
+    if (foundUser) {
+      if (foundUser.status === 'Pending') {
+        setSuccessNotice('Your account is pending Admin approval. You can access Eligibility Checking.');
       }
-    } catch (err) {}
+      onLoginSuccess(foundUser);
+      setIsSubmitting(false);
+      return;
+    }
 
-    // 100% Fail-Safe Client Login Handling
+    // Default Admin Account Login
     if (targetEmp === 'ADMIN' || targetEmp === 'EMP999') {
       if (targetPass === 'AquaAdmin@2026#DES' || targetPass === 'admin' || targetPass.length >= 4) {
         onLoginSuccess({
@@ -103,7 +98,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       }
     }
 
-    // Default Employee Account Login
+    // Default Fallback Employee Account Login
     const fallbackUser: UserProfile = {
       id: `usr-${Date.now()}`,
       employee_id: targetEmp,
@@ -119,6 +114,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       last_login: new Date().toISOString()
     };
 
+    saveUser(fallbackUser);
     onLoginSuccess(fallbackUser);
     setIsSubmitting(false);
   };
@@ -162,32 +158,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
 
     setIsSubmitting(true);
 
-    try {
-      const res = await fetch(`/api/v1/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          employee_id: empId,
-          full_name: fullName,
-          phone: phone,
-          email: email,
-          password: pass
-        })
-      }).catch(() => null);
-
-      if (res && res.ok) {
-        try {
-          const data = await res.json();
-          if (data.user) {
-            setSuccessNotice(data.message || 'Account created successfully!');
-            onLoginSuccess(data.user);
-            return;
-          }
-        } catch (e) {}
-      }
-    } catch (err) {}
-
-    // 100% Fail-Safe Registration Account Creation
+    // Create New User & Save to Global Store so Admin Portal Sees It Immediately!
     const newRegisteredUser: UserProfile = {
       id: `usr-${Date.now()}`,
       employee_id: empId,
@@ -202,6 +173,9 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       registered_at: new Date().toISOString(),
       last_login: new Date().toISOString()
     };
+
+    // PERSIST USER IMMEDIATELY FOR ADMIN PORTAL!
+    saveUser(newRegisteredUser);
 
     setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
     onLoginSuccess(newRegisteredUser);
