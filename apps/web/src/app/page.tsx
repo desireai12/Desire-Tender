@@ -21,8 +21,8 @@ const DEFAULT_USER: UserProfile = {
   full_name: 'Ankit Purohit',
   email: 'ankit.purohit@desireenergy.com',
   phone: '9829012345',
-  role: 'BD Executive',
-  department: 'Business Development',
+  role: 'Administrator',
+  department: 'Admin',
   status: 'Active',
   permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
   assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
@@ -35,7 +35,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(DEFAULT_USER);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
-  const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
+  const [activeRole, setActiveRole] = useState<DepartmentRole>('Admin');
 
   // Handle Login Success
   const handleLoginSuccess = (user: UserProfile) => {

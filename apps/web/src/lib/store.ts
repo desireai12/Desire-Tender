@@ -10,10 +10,10 @@ const INITIAL_USERS: UserProfile[] = [
     full_name: 'Ankit Purohit',
     email: 'ankit.purohit@desireenergy.com',
     phone: '9829012345',
-    role: 'BD Executive',
-    department: 'Business Development',
+    role: 'Administrator',
+    department: 'Admin',
     status: 'Active',
-    permissions: ['eligibility', 'ai_analysis', 'bid_decision'],
+    permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
     assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
     registered_at: '2026-08-01 09:00:00',
     last_login: '2026-08-08 10:15:00'
