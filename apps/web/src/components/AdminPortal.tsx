@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/lib/api';
 import { UserProfile, Project, DepartmentRole, ProjectCategory, PermissionType, UserStatus } from '@/lib/types';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { AdminBackendConfig } from '@/components/AdminBackendConfig';
 import { 
   ShieldCheck, 
@@ -95,11 +96,46 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
   const fetchAdminData = async () => {
     // Load stored users and projects immediately from store!
-    const users = getStoredUsers();
-    const projects = getStoredProjects();
+    let users = getStoredUsers();
+    let projects = getStoredProjects();
 
     setUserList(users);
     setProjectList(projects);
+
+    // Query Supabase Cloud Database live!
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: dbUsers, error } = await supabase.from('users').select('*');
+        if (!error && dbUsers && dbUsers.length > 0) {
+          const mappedUsers: UserProfile[] = dbUsers.map((u: any) => ({
+            id: u.id || `usr-${u.employee_id}`,
+            employee_id: u.employee_id,
+            full_name: u.full_name,
+            email: u.email,
+            phone: u.phone,
+            role: u.role || 'User',
+            department: u.department || 'Tender Team',
+            status: u.status || 'Pending',
+            permissions: Array.isArray(u.permissions) ? u.permissions : ['eligibility'],
+            assigned_projects: Array.isArray(u.assigned_projects) ? u.assigned_projects : ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+            registered_at: u.created_at || new Date().toISOString(),
+            last_login: u.updated_at || new Date().toISOString()
+          }));
+
+          const mergedMap = new Map<string, UserProfile>();
+          users.forEach(u => mergedMap.set(u.employee_id, u));
+          mappedUsers.forEach(u => mergedMap.set(u.employee_id, u));
+
+          const finalUsers = Array.from(mergedMap.values());
+          setUserList(finalUsers);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(finalUsers));
+          }
+
+          users = finalUsers;
+        }
+      } catch (err) {}
+    }
 
     setMetrics({
       total_users: users.length,

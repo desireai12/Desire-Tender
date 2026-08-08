@@ -149,8 +149,10 @@ export function saveUser(user: UserProfile): UserProfile[] {
 
 export function updateUserStatus(userId: string, status: UserStatus, department?: DepartmentRole): UserProfile[] {
   const users = getStoredUsers();
+  let targetEmp = userId;
   const updatedUsers = users.map(u => {
     if (u.id === userId || u.employee_id === userId) {
+      targetEmp = u.employee_id;
       const perms: PermissionType[] = status === 'Active'
         ? ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision']
         : ['eligibility'];
@@ -167,13 +169,23 @@ export function updateUserStatus(userId: string, status: UserStatus, department?
   if (typeof window !== 'undefined') {
     localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(updatedUsers));
   }
+
+  // Supabase Live Sync
+  if (isSupabaseConfigured && supabase) {
+    Promise.resolve(
+      supabase.from('users').update({ status, department }).eq('employee_id', targetEmp)
+    ).catch(() => null);
+  }
+
   return updatedUsers;
 }
 
 export function updateUserPermissions(userId: string, permissions: PermissionType[], department?: DepartmentRole): UserProfile[] {
   const users = getStoredUsers();
+  let targetEmp = userId;
   const updatedUsers = users.map(u => {
     if (u.id === userId || u.employee_id === userId) {
+      targetEmp = u.employee_id;
       return { 
         ...u, 
         permissions,
@@ -186,6 +198,14 @@ export function updateUserPermissions(userId: string, permissions: PermissionTyp
   if (typeof window !== 'undefined') {
     localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(updatedUsers));
   }
+
+  // Supabase Live Sync
+  if (isSupabaseConfigured && supabase) {
+    Promise.resolve(
+      supabase.from('users').update({ permissions, department }).eq('employee_id', targetEmp)
+    ).catch(() => null);
+  }
+
   return updatedUsers;
 }
 
