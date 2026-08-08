@@ -67,6 +67,12 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
   // Users State
   const [userList, setUserList] = useState<UserProfile[]>([]);
   const [loginLogs, setLoginLogs] = useState<any[]>([]);
+  const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
+  const [newUserName, setNewUserName] = useState<string>('');
+  const [newUserEmail, setNewUserEmail] = useState<string>('');
+  const [newUserPhone, setNewUserPhone] = useState<string>('');
+  const [newUserPassword, setNewUserPassword] = useState<string>('');
+  const [newUserDept, setNewUserDept] = useState<DepartmentRole>('Business Development');
 
   // Credentials State
   const [credentials, setCredentials] = useState<CredentialItem[]>([]);
@@ -130,6 +136,45 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
     } catch (err) {
       setUserList((prev) => prev.map(u => u.id === userId ? { ...u, department: newDept } : u));
       setToastMessage('Updated user department rights in active session!');
+    } finally {
+      setTimeout(() => setToastMessage(null), 4000);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserName.trim() || !newUserEmail.trim() || !newUserPhone.trim() || !newUserPassword.trim()) {
+      setToastMessage('Please fill in all user details (Name, Email, 10-Digit Mobile, Password, Department).');
+      setTimeout(() => setToastMessage(null), 4000);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newUserName.trim(),
+          email: newUserEmail.trim(),
+          phone: newUserPhone.trim(),
+          password: newUserPassword.trim(),
+          department: newUserDept
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setToastMessage(data.message || 'New user credential created successfully!');
+        fetchUsers();
+        setShowAddUserModal(false);
+        setNewUserName('');
+        setNewUserEmail('');
+        setNewUserPhone('');
+        setNewUserPassword('');
+      } else {
+        throw new Error(data.detail || 'Failed to create user');
+      }
+    } catch (err: any) {
+      setToastMessage(err.message || 'User registered in active session.');
     } finally {
       setTimeout(() => setToastMessage(null), 4000);
     }
@@ -374,10 +419,108 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 Assign user department roles and module permissions. Regular users are automatically restricted to their assigned department rights upon login.
               </p>
             </div>
-            <div className="px-3.5 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center shrink-0">
-              Total Users: {userList.length} Registered
+            <div className="flex items-center space-x-3 shrink-0">
+              <button
+                onClick={() => setShowAddUserModal(!showAddUserModal)}
+                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-cyan-400 text-aqua-950 font-bold text-xs hover:bg-cyan-300 transition shadow-lg shadow-cyan-400/20"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Add Authorized User</span>
+              </button>
+              <div className="px-3 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center">
+                Total Users: {userList.length}
+              </div>
             </div>
           </div>
+
+          {/* Add User Modal / Form */}
+          {showAddUserModal && (
+            <div className="p-5 rounded-2xl bg-aqua-950/80 border border-cyan-500/30 space-y-4 animate-fadeIn">
+              <h4 className="text-xs font-mono uppercase text-cyan-300 font-bold flex items-center space-x-1.5">
+                <Plus className="w-4 h-4" />
+                <span>Register New Authorized User Credential</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <label className="text-[11px] font-mono text-slate-300 block mb-1">Officer Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Ramesh Kumar"
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-white text-xs focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-mono text-slate-300 block mb-1">Work Email Address *</label>
+                  <input
+                    type="email"
+                    placeholder="ramesh.kumar@desireenergy.com"
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-white text-xs focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-mono text-slate-300 block mb-1">10-Digit Mobile Number *</label>
+                  <input
+                    type="tel"
+                    maxLength={10}
+                    placeholder="9829099999"
+                    value={newUserPhone}
+                    onChange={(e) => setNewUserPhone(e.target.value.replace(/\D/g, ''))}
+                    className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-cyan-300 text-xs font-mono focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-mono text-slate-300 block mb-1">Account Password *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. desire@2026#Ramesh"
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-white text-xs font-mono focus:border-cyan-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-mono text-slate-300 block mb-1">Assigned Department Role *</label>
+                  <select
+                    value={newUserDept}
+                    onChange={(e) => setNewUserDept(e.target.value as DepartmentRole)}
+                    className="w-full p-2.5 rounded-xl bg-[#101415] border border-cyan-500/30 text-white text-xs font-bold focus:outline-none cursor-pointer"
+                  >
+                    <option value="Business Development">Business Development</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Estimation Team">Estimation Team</option>
+                    <option value="Tender Team">Tender Team</option>
+                    <option value="Management">Management</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Admin">Admin (Full Access)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-end space-x-2">
+                  <button
+                    onClick={handleCreateUser}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-md"
+                  >
+                    Create User Account
+                  </button>
+                  <button
+                    onClick={() => setShowAddUserModal(false)}
+                    className="px-4 py-2.5 rounded-xl bg-white/5 text-slate-400 text-xs hover:text-white transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* User Rights Management Table */}
           <div className="space-y-3">
