@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/lib/api';
-import { DepartmentRole, ProjectCategory } from '@/lib/types';
+import { UserProfile, DepartmentRole, ProjectCategory } from '@/lib/types';
 import { 
   ShieldCheck, 
   Key, 
@@ -22,7 +22,9 @@ import {
   Activity,
   Plus,
   ArrowRight,
-  AlertTriangle
+  AlertTriangle,
+  Users,
+  UserCheck
 } from 'lucide-react';
 
 interface AdminBackendConfigProps {
@@ -60,7 +62,11 @@ interface ProjectAIConfig {
 }
 
 export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRole }) => {
-  const [activeTab, setActiveTab] = useState<'credentials' | 'prompts' | 'knowledge_binding' | 'audit'>('prompts');
+  const [activeTab, setActiveTab] = useState<'credentials' | 'prompts' | 'knowledge_binding' | 'users' | 'audit'>('users');
+
+  // Users State
+  const [userList, setUserList] = useState<UserProfile[]>([]);
+  const [loginLogs, setLoginLogs] = useState<any[]>([]);
 
   // Credentials State
   const [credentials, setCredentials] = useState<CredentialItem[]>([]);
@@ -89,11 +95,45 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
     STP: ['Company Profile', 'CPCB Standards', 'STP Historical BOQs']
   });
 
-  // Fetch configs and credentials on mount
+  // Fetch configs, credentials, and user list on mount
   useEffect(() => {
     fetchCredentials();
     fetchAIConfigs();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        setUserList(data.users);
+        setLoginLogs(data.login_logs || []);
+      }
+    } catch (err) {
+      // Handled gracefully
+    }
+  };
+
+  const handleAssignUserRole = async (userId: string, newDept: DepartmentRole) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users/assign-role`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, department: newDept })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToastMessage(data.message || 'User department rights updated!');
+        fetchUsers();
+      }
+    } catch (err) {
+      setUserList((prev) => prev.map(u => u.id === userId ? { ...u, department: newDept } : u));
+      setToastMessage('Updated user department rights in active session!');
+    } finally {
+      setTimeout(() => setToastMessage(null), 4000);
+    }
+  };
 
   // Update form fields when selected project changes
   useEffect(() => {
@@ -291,12 +331,13 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
       </div>
 
       {/* Admin Module Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
-          { id: 'prompts' as const, label: '1. Project AI Rules', desc: 'System Instructions & Prompts', icon: FileCode },
-          { id: 'credentials' as const, label: '2. API Key Vault', desc: 'Encrypted Credentials & Tests', icon: Key },
-          { id: 'knowledge_binding' as const, label: '3. Knowledge Bindings', desc: 'Assign Data Repositories', icon: Database },
-          { id: 'audit' as const, label: '4. Security Audit Log', desc: 'Rotation & Prompt History', icon: History }
+          { id: 'users' as const, label: '1. User Roles & Rights', desc: 'Assign Department Access', icon: Users },
+          { id: 'prompts' as const, label: '2. Project AI Rules', desc: 'System Instructions & Prompts', icon: FileCode },
+          { id: 'credentials' as const, label: '3. API Key Vault', desc: 'Encrypted Credentials & Tests', icon: Key },
+          { id: 'knowledge_binding' as const, label: '4. Knowledge Bindings', desc: 'Assign Data Repositories', icon: Database },
+          { id: 'audit' as const, label: '5. Security Audit Log', desc: 'Rotation & Login Logs', icon: History }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -319,6 +360,105 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
           );
         })}
       </div>
+
+      {/* MODULE: USER ROLES & DEPARTMENT RIGHTS MANAGEMENT */}
+      {activeTab === 'users' && (
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border border-white/10">
+          <div className="border-b border-white/10 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
+                <Users className="w-5 h-5 text-cyan-400" />
+                <span>Backend User Directory & Department Rights Assignment</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Assign user department roles and module permissions. Regular users are automatically restricted to their assigned department rights upon login.
+              </p>
+            </div>
+            <div className="px-3.5 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center shrink-0">
+              Total Users: {userList.length} Registered
+            </div>
+          </div>
+
+          {/* User Rights Management Table */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-mono uppercase text-slate-300">Registered Users & Department Assignments</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-aqua-950 text-cyan-300 font-mono uppercase text-[11px]">
+                  <tr>
+                    <th className="p-3">User Name</th>
+                    <th className="p-3">Email Address</th>
+                    <th className="p-3">Mobile (10-Digit)</th>
+                    <th className="p-3">Assigned Department</th>
+                    <th className="p-3">Last Active</th>
+                    <th className="p-3 text-center">Change Rights</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {userList.map((usr) => (
+                    <tr key={usr.id} className="hover:bg-white/5 transition">
+                      <td className="p-3 font-bold text-white flex items-center space-x-2">
+                        <UserCheck className="w-4 h-4 text-cyan-400" />
+                        <span>{usr.name}</span>
+                      </td>
+                      <td className="p-3 font-mono text-slate-300">{usr.email}</td>
+                      <td className="p-3 font-mono text-cyan-300">{usr.phone}</td>
+                      <td className="p-3">
+                        <span className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold ${
+                          usr.department === 'Admin'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                            : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
+                        }`}>
+                          {usr.department}
+                        </span>
+                      </td>
+                      <td className="p-3 font-mono text-slate-400 text-[11px]">{usr.last_login}</td>
+                      <td className="p-3 text-center">
+                        <select
+                          value={usr.department}
+                          onChange={(e) => handleAssignUserRole(usr.id, e.target.value as DepartmentRole)}
+                          className="bg-aqua-950 border border-cyan-500/30 rounded-lg text-xs font-bold text-cyan-300 p-1.5 focus:outline-none cursor-pointer"
+                        >
+                          <option value="Business Development" className="bg-[#101415] text-white">Business Development</option>
+                          <option value="Engineering" className="bg-[#101415] text-white">Engineering</option>
+                          <option value="Estimation Team" className="bg-[#101415] text-white">Estimation Team</option>
+                          <option value="Tender Team" className="bg-[#101415] text-white">Tender Team</option>
+                          <option value="Management" className="bg-[#101415] text-white">Management</option>
+                          <option value="Finance" className="bg-[#101415] text-white">Finance</option>
+                          <option value="Admin" className="bg-[#101415] text-white">Admin (Full Access)</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* User Login Audit Logs */}
+          <div className="pt-4 border-t border-white/10 space-y-3">
+            <h4 className="text-xs font-mono uppercase text-slate-300 flex items-center space-x-2">
+              <History className="w-4 h-4 text-cyan-400" />
+              <span>Real-Time Login Audit Logs (Email & 10-Digit Mobile Verifications)</span>
+            </h4>
+            <div className="space-y-2 text-xs">
+              {loginLogs.slice(0, 5).map((log, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-aqua-950/60 border border-white/5 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-white">{log.user_name}</span>
+                    <span className="text-slate-400 font-mono ml-2">({log.email} • {log.phone})</span>
+                    <p className="text-[11px] text-cyan-300 mt-0.5">Assigned Department: {log.department}</p>
+                  </div>
+                  <div className="text-right font-mono text-[11px] text-slate-400">
+                    <div>{log.timestamp}</div>
+                    <span className="text-emerald-400 font-bold">{log.status}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODULE 1: PROJECT-SPECIFIC AI CONFIGURATION & PROMPT VERSIONING */}
       {activeTab === 'prompts' && (

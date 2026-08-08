@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
-from routers import knowledge_base, tender, admin_config
+from routers import knowledge_base, tender, admin_config, auth
 from routers import settings as settings_router
 
 app = FastAPI(
@@ -32,6 +32,7 @@ app.include_router(knowledge_base.router, prefix=settings.API_V1_STR)
 app.include_router(tender.router, prefix=settings.API_V1_STR)
 app.include_router(settings_router.router, prefix=settings.API_V1_STR)
 app.include_router(admin_config.router, prefix=settings.API_V1_STR)
+app.include_router(auth.router, prefix=settings.API_V1_STR)
 
 
 @app.get("/", tags=["Health Check"])

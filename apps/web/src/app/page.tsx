@@ -10,12 +10,28 @@ import { TenderWizard } from '@/components/TenderWizard';
 import { TenderLifecycleTracker } from '@/components/TenderLifecycleTracker';
 import { CompetitorBattleCardsView } from '@/components/CompetitorBattleCardsView';
 import { SettingsView } from '@/components/SettingsView';
-import { DepartmentRole, TenderProcess } from '@/lib/types';
+import { LoginLanding } from '@/components/LoginLanding';
+import { DepartmentRole, TenderProcess, UserProfile } from '@/lib/types';
 
 export default function Home() {
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
+
+  // Handle Login Success
+  const handleLoginSuccess = (user: UserProfile) => {
+    setCurrentUser(user);
+    setActiveRole(user.department);
+    setActiveTab(user.department === 'Admin' ? 'admin_config' : 'dashboard');
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setActiveRole('Business Development');
+    setActiveTab('dashboard');
+  };
 
   // Initial Tender Processes Queue
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([
@@ -88,14 +104,21 @@ export default function Home() {
     setTendersQueue((prev) => prev.map((t) => (t.id === updatedProcess.id ? updatedProcess : t)));
   };
 
+  // If user is not logged in, render the clean Login Landing Page first
+  if (!currentUser) {
+    return <LoginLanding onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-[#101415] text-[#e0e3e5]">
-      {/* Header Bar with Department Role Switcher */}
+      {/* Header Bar with User Badge & Logout */}
       <Header 
         currentProvider={provider} 
         onProviderChange={setProvider}
         activeRole={activeRole}
         onRoleChange={setActiveRole}
+        currentUser={currentUser}
+        onLogout={handleLogout}
         onNavigateSettings={() => setActiveTab(activeRole === 'Admin' ? 'admin_config' : 'settings')}
       />
 

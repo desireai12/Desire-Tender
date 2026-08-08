@@ -3,13 +3,16 @@
 import React from 'react';
 import { ShieldCheck, Cpu, Sparkles, Layers, Activity } from 'lucide-react';
 
-import { DepartmentRole } from '@/lib/types';
+import { UserProfile, DepartmentRole } from '@/lib/types';
+import { LogOut, User } from 'lucide-react';
 
 interface HeaderProps {
   currentProvider: 'gemini' | 'openai';
   onProviderChange: (provider: 'gemini' | 'openai') => void;
   activeRole: DepartmentRole;
   onRoleChange: (role: DepartmentRole) => void;
+  currentUser?: UserProfile | null;
+  onLogout?: () => void;
   onNavigateSettings?: () => void;
 }
 
@@ -18,6 +21,8 @@ export const Header: React.FC<HeaderProps> = ({
   onProviderChange,
   activeRole,
   onRoleChange,
+  currentUser,
+  onLogout,
   onNavigateSettings,
 }) => {
   return (
@@ -42,26 +47,46 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Control Actions & Department Role Switcher */}
+      {/* Control Actions & Department Role Information */}
       <div className="flex items-center space-x-3 flex-wrap gap-y-2">
-        {/* Active Department Role Selector */}
-        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-aqua-950/90 border border-purple-500/40">
-          <span className="text-xs font-mono text-purple-300 hidden md:inline">Role:</span>
-          <select
-            value={activeRole}
-            onChange={(e) => onRoleChange(e.target.value as DepartmentRole)}
-            className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
-          >
-            <option value="Business Development" className="bg-[#101415] text-white">Department: Business Development</option>
-            <option value="Engineering" className="bg-[#101415] text-white">Department: Engineering</option>
-            <option value="Estimation Team" className="bg-[#101415] text-white">Department: Estimation Team</option>
-            <option value="Management" className="bg-[#101415] text-white">Department: Management</option>
-            <option value="Tender Team" className="bg-[#101415] text-white">Department: Tender Team</option>
-            <option value="Procurement" className="bg-[#101415] text-white">Department: Procurement</option>
-            <option value="Finance" className="bg-[#101415] text-white">Department: Finance</option>
-            <option value="Admin" className="bg-[#101415] text-white">Department: Admin (Full Access)</option>
-          </select>
-        </div>
+        {/* User Profile / Department Badge */}
+        {currentUser && (
+          <div className="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-xl bg-aqua-950/90 border border-cyan-500/30">
+            <div className="w-6 h-6 rounded-full bg-cyan-400/20 flex items-center justify-center text-cyan-300">
+              <User className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-white flex items-center space-x-1.5">
+                <span>{currentUser.name}</span>
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-cyan-500/20 text-cyan-300">
+                  {activeRole}
+                </span>
+              </div>
+              <p className="text-[10px] font-mono text-slate-400">{currentUser.email}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Role Switcher (Visible to Admin Only for multi-department management) */}
+        {activeRole === 'Admin' && (
+          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/40">
+            <span className="text-xs font-mono text-purple-300 hidden md:inline">Admin Override:</span>
+            <select
+              value={activeRole}
+              onChange={(e) => onRoleChange(e.target.value as DepartmentRole)}
+              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+            >
+              <option value="Admin" className="bg-[#101415] text-white">Department: Admin (Full Access)</option>
+              <option value="Business Development" className="bg-[#101415] text-white">View As: Business Development</option>
+              <option value="Engineering" className="bg-[#101415] text-white">View As: Engineering</option>
+              <option value="Estimation Team" className="bg-[#101415] text-white">View As: Estimation Team</option>
+              <option value="Management" className="bg-[#101415] text-white">View As: Management</option>
+              <option value="Tender Team" className="bg-[#101415] text-white">View As: Tender Team</option>
+              <option value="Procurement" className="bg-[#101415] text-white">View As: Procurement</option>
+              <option value="Finance" className="bg-[#101415] text-white">View As: Finance</option>
+            </select>
+          </div>
+        )}
 
         {/* System Status Indicator */}
         <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
@@ -110,6 +135,18 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
           </>
+        )}
+
+        {/* Logout Action Button */}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition cursor-pointer"
+            title="Sign Out of Session"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </button>
         )}
       </div>
     </header>

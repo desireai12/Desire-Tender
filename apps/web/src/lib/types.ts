@@ -166,3 +166,15 @@ export interface KnowledgeDocument {
   tags: string[];
   summary: string;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  department: DepartmentRole;
+  allowed_modules: string[];
+  is_approved: boolean;
+  registered_at: string;
+  last_login: string;
+}
