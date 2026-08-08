@@ -192,10 +192,9 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   const fetchCredentials = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/credentials`);
-      const data = await res.json();
-      if (data.status === 'success') {
-        setCredentials(data.credentials);
+      const res = await fetch(`/api/v1/admin/credentials`).catch(() => null);
+      if (res && res.ok) {
+        try { const data = await res.json(); if (data.status === 'success') setCredentials(data.credentials); } catch(e) {}
       }
     } catch (err) {
       // Handled gracefully
@@ -204,19 +203,23 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   const fetchAIConfigs = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/ai-config`);
-      const data = await res.json();
-      if (data.status === 'success' && data.projects) {
-        const configMap: Record<string, ProjectAIConfig> = {};
-        data.projects.forEach((p: ProjectAIConfig) => {
-          configMap[p.project_category] = p;
-        });
-        setProjectConfigs(configMap);
-        if (configMap[selectedCategory]) {
-          setSystemInstruction(configMap[selectedCategory].system_instruction);
-          setEligibilityLogic(configMap[selectedCategory].eligibility_logic);
-          setCostingMethodology(configMap[selectedCategory].costing_methodology);
-        }
+      const res = await fetch(`/api/v1/admin/ai-config`).catch(() => null);
+      if (res && res.ok) {
+        try {
+          const data = await res.json();
+          if (data.status === 'success' && data.projects) {
+            const configMap: Record<string, ProjectAIConfig> = {};
+            data.projects.forEach((p: ProjectAIConfig) => {
+              configMap[p.project_category] = p;
+            });
+            setProjectConfigs(configMap);
+            if (configMap[selectedCategory]) {
+              setSystemInstruction(configMap[selectedCategory].system_instruction);
+              setEligibilityLogic(configMap[selectedCategory].eligibility_logic);
+              setCostingMethodology(configMap[selectedCategory].costing_methodology);
+            }
+          }
+        } catch(e) {}
       }
     } catch (err) {
       // Handled gracefully
