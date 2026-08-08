@@ -32,10 +32,10 @@ const DEFAULT_USER: UserProfile = {
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(DEFAULT_USER);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
-  const [activeRole, setActiveRole] = useState<DepartmentRole>('Admin');
+  const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
 
   // Handle Login Success
   const handleLoginSuccess = (user: UserProfile) => {
@@ -45,13 +45,13 @@ export default function Home() {
       setViewMode('admin');
     } else {
       setViewMode('user');
-      setActiveTab('dashboard');
+      setActiveTab(user.status === 'Pending' ? 'wizard' : 'dashboard');
     }
   };
 
   // Handle Logout
   const handleLogout = () => {
-    setCurrentUser(DEFAULT_USER);
+    setCurrentUser(null);
     setViewMode('user');
     setActiveRole('Business Development');
     setActiveTab('dashboard');
