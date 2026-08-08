@@ -167,14 +167,40 @@ export interface KnowledgeDocument {
   summary: string;
 }
 
+export type PermissionType = 
+  | 'eligibility' 
+  | 'ai_analysis' 
+  | 'cost_estimation' 
+  | 'bid_decision' 
+  | 'bid_details' 
+  | 'tender_result' 
+  | 'admin';
+
+export type UserStatus = 'Pending' | 'Active' | 'Rejected' | 'Deactivated';
+
 export interface UserProfile {
   id: string;
-  name: string;
+  employee_id: string;
+  full_name: string;
   email: string;
   phone: string;
+  role: string;
   department: DepartmentRole;
-  allowed_modules: string[];
-  is_approved: boolean;
+  status: UserStatus;
+  permissions: PermissionType[];
+  assigned_projects: ProjectCategory[];
   registered_at: string;
   last_login: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  type: ProjectCategory;
+  client: string;
+  description: string;
+  ai_instructions?: string;
+  knowledge_sources: string[];
+  status: 'Active' | 'Archived';
+  created_at: string;
 }

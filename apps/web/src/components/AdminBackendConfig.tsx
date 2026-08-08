@@ -542,7 +542,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                     <tr key={usr.id} className="hover:bg-white/5 transition">
                       <td className="p-3 font-bold text-white flex items-center space-x-2">
                         <UserCheck className="w-4 h-4 text-cyan-400" />
-                        <span>{usr.name}</span>
+                        <span>{usr.full_name || usr.employee_id}</span>
                       </td>
                       <td className="p-3 font-mono text-slate-300">{usr.email}</td>
                       <td className="p-3 font-mono text-cyan-300">{usr.phone}</td>

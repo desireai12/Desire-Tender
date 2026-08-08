@@ -3,11 +3,48 @@ from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/admin", tags=["Admin Backend Configuration"])
+router = APIRouter(prefix="/admin", tags=["Admin Backend Configuration & RBAC Engine"])
 
-# --- In-Memory Mock Store for Admin Configurations ---
+# --- In-Memory Mock Store for Admin Configurations & Projects ---
 
-# 1. Project-Specific AI Configuration & System Prompts
+# 1. Managed Projects Store
+PROJECTS_STORE: List[Dict[str, Any]] = [
+    {
+        "id": "proj-1",
+        "name": "Jal Jeevan Mission (JJM) Rural Water Supply",
+        "type": "RHDS",
+        "client": "PHED Rajasthan",
+        "description": "Rural water supply distribution schemes across 100,000+ villages under Jal Jeevan Mission.",
+        "ai_instructions": "Focus on HDPE/DI pipeline specs (PN-10/16), OHSR reservoir capacity, and 10-year O&M compliance.",
+        "knowledge_sources": ["Company Profile", "PHED Certificates", "Water Historical BOQs", "SOPs"],
+        "status": "Active",
+        "created_at": "2026-08-01 10:00:00"
+    },
+    {
+        "id": "proj-2",
+        "name": "PM-Kusum Component-B Solar Pump Scheme",
+        "type": "KUSUM",
+        "client": "REDA / RRECL",
+        "description": "Implementation of off-grid solar water pumping systems for agricultural electrification.",
+        "ai_instructions": "Verify REDA empanelment, Sunaquator RMS 4G telemetry controllers, and solar pump specs.",
+        "knowledge_sources": ["Company Profile", "Solar Certificates", "REDA Guidelines", "Solar Historical BOQs"],
+        "status": "Active",
+        "created_at": "2026-08-02 11:30:00"
+    },
+    {
+        "id": "proj-3",
+        "name": "Solar Utility Scale Photovoltaic EPC Projects",
+        "type": "SOLAR",
+        "client": "NTPC / SECI",
+        "description": "Utility scale ground-mounted solar power plants and grid interconnection infrastructure.",
+        "ai_instructions": "Verify PV module wattages, inverter efficiency (>98.5%), and Class-A electrical license.",
+        "knowledge_sources": ["Company Profile", "Solar Certificates", "Solar Historical BOQs", "Competitor Data"],
+        "status": "Active",
+        "created_at": "2026-08-03 14:15:00"
+    }
+]
+
+# 2. Project-Specific AI Configuration & System Prompts
 PROJECT_AI_CONFIGS: Dict[str, Dict[str, Any]] = {
     "SOLAR": {
         "project_category": "SOLAR",
@@ -24,13 +61,6 @@ PROJECT_AI_CONFIGS: Dict[str, Dict[str, Any]] = {
                 "author": "System Admin",
                 "notes": "Added IEC 61215 solar module compliance check rule.",
                 "system_instruction": "You are an expert Solar EPC Procurement & Engineering AI Specialist. Evaluate tenders with primary focus on solar PV module wattages, grid-tied/hybrid inverters, transformer capacity, electrical safety standards (IEC/IS), and solar irradiance BOQs."
-            },
-            {
-                "version": "v1.0",
-                "updated_at": "2026-07-15 14:00:00",
-                "author": "System Admin",
-                "notes": "Initial base prompt creation for Solar EPC.",
-                "system_instruction": "Evaluate Solar tenders focusing on inverter specs and solar pump capacities."
             }
         ]
     },
@@ -51,124 +81,60 @@ PROJECT_AI_CONFIGS: Dict[str, Dict[str, Any]] = {
                 "system_instruction": "You are a Senior Municipal Water Infrastructure & Pipeline Engineering AI Evaluator. Focus on rural water supply distribution schemes (JJM/Panghat), HDPE/DI pipeline pressure ratings (PN-10/PN-16), Overhead Service Reservoirs (OHSR), and Water Treatment Plants (WTP)."
             }
         ]
-    },
-    "KUSUM": {
-        "project_category": "KUSUM",
-        "system_instruction": "You are an AI Specialist for PM-Kusum Component-B/C Off-Grid Solar Pumping Schemes. Evaluate tenders based on REDA guidelines, Sunaquator RMS 4G telemetry controllers, submersible solar pumps, and farmer installation SLAs.",
-        "eligibility_logic": "Require REDA/DISCOM vendor empanelment, 500+ solar pump installation track record, and localized district service centers.",
-        "costing_methodology": "Use PM-Kusum benchmark cost tables (3HP/5HP/7.5HP solar pumps, RMS controller, mounting structure).",
-        "clause_priorities": ["Sec 2.3 Sunaquator RMS Controller Telemetry", "Sec 4.1 Solar Submersible Pump Head & Discharge", "Sec 6.0 5-Year Comprehensive Warranty"],
-        "required_documents": ["REDA Empanelment Certificate", "RMS Telemetry Compliance Test Report", "ISO 9001:2015"],
-        "active_prompt_version": "v2.0",
-        "prompt_history": []
-    },
-    "EPC": {
-        "project_category": "EPC",
-        "system_instruction": "You are an Enterprise Turnkey EPC Tender Evaluation Specialist. Analyze civil engineering, structural designs, mechanical equipment, electrical distribution, procurement schedules, and turnkey commissioning clauses.",
-        "eligibility_logic": "Check Class-A General Contractor registration, joint venture agreements, bank solvency certificates, and similar turnkey project completion.",
-        "costing_methodology": "Comprehensive civil + electromechanical BOQ unit rates with contingency and risk markups.",
-        "clause_priorities": ["Sec 5.0 Turnkey Scope of Work", "Sec 9.1 Liquidated Damages & Delay Penalties", "Sec 12.4 Defect Liability Period"],
-        "required_documents": ["Turnkey Completion Certificates", "Bank Solvency Certificate (>₹50 Cr)", "GST & EPF Registrations"],
-        "active_prompt_version": "v1.2",
-        "prompt_history": []
-    },
-    "ESCO": {
-        "project_category": "ESCO",
-        "system_instruction": "You are an Energy Service Company (ESCO) Performance Contracting AI Specialist. Evaluate energy efficiency gains, guaranteed energy savings models, IoT flow telemetry, and revenue-sharing performance metrics.",
-        "eligibility_logic": "Require Bureau of Energy Efficiency (BEE) ESCO accreditation, verified energy savings audit reports, and pump automation experience.",
-        "costing_methodology": "Shared savings financial modeling, VFD drive unit costs, energy meter telemetry, payback period analysis.",
-        "clause_priorities": ["Sec 3.2 Guaranteed Energy Savings %", "Sec 6.4 Baseline Energy Audit Methodology", "Sec 10.1 Penalty for Savings Shortfall"],
-        "required_documents": ["BEE ESCO Accreditation Certificate", "Past Energy Audit Reports", "VFD Drive OEM Partnership Agreement"],
-        "active_prompt_version": "v1.1",
-        "prompt_history": []
-    },
-    "STP": {
-        "project_category": "STP",
-        "system_instruction": "You are a Sewage Treatment Plant (STP) & Effluent Treatment Engineering AI Specialist. Analyze MBBR/SBR technology specifications, BOD/COD effluent discharge standards, sludge handling, and chemical dosing requirements.",
-        "eligibility_logic": "Verify Pollution Control Board (CPCB/RPCB) compliance history, MLD treatment capacity completion certificate, and biochemical process experience.",
-        "costing_methodology": "STP process equipment BOQs (blowers, diffusers, pumps, chemical dosing, sludge dewatering centrifuges).",
-        "clause_priorities": ["Sec 4.1 Effluent Quality Standards (BOD < 10 mg/L)", "Sec 7.3 SBR/MBBR Process Guaranteed Capacity", "Sec 11.2 Sludge Management Plan"],
-        "required_documents": ["CPCB/RPCB Consent to Establish/Operate", "STP MLD Completion Certificate", "Process Performance Guarantee"],
-        "active_prompt_version": "v1.0",
-        "prompt_history": []
     }
 }
 
-# 2. Encrypted API Keys & Credentials Repository (Masked Store)
+# 3. Encrypted API Keys & Credentials Vault
 ENCRYPTED_CREDENTIALS: List[Dict[str, Any]] = [
     {
-        "id": "cred-gemini",
+        "id": "cred-01",
         "provider": "Google Gemini API",
-        "key_type": "LLM Engine",
+        "key_type": "Primary RAG & Analysis Engine",
         "masked_key": "AIzaSy••••••••••••••••39a1",
         "status": "Active (Encrypted AES-256)",
         "last_rotated": "2026-08-06 09:15:00",
         "is_valid": True,
-        "notes": "Primary LLM engine for tender analysis & eligibility checks"
+        "notes": "Primary RAG engine for tender PDF parsing"
     },
     {
-        "id": "cred-openai",
-        "provider": "OpenAI API (GPT-4o)",
-        "key_type": "LLM Engine",
+        "id": "cred-02",
+        "provider": "OpenAI GPT-4o",
+        "key_type": "Fallback / High-Precision Engine",
         "masked_key": "sk-proj-••••••••••••••••48b2",
         "status": "Active (Encrypted AES-256)",
         "last_rotated": "2026-08-04 14:20:00",
         "is_valid": True,
-        "notes": "Secondary fallback engine for complex BOQ calculations"
-    },
-    {
-        "id": "cred-anthropic",
-        "provider": "Anthropic Claude API",
-        "key_type": "LLM Engine",
-        "masked_key": "sk-ant-api03-••••••••••••••••77c3",
-        "status": "Active (Encrypted AES-256)",
-        "last_rotated": "2026-07-28 11:00:00",
-        "is_valid": True,
-        "notes": "Long-context tender document analysis"
-    },
-    {
-        "id": "cred-ocr",
-        "provider": "Azure Vision OCR Service",
-        "key_type": "OCR Document Reader",
-        "masked_key": "az-ocr-key-••••••••••••••••11d4",
-        "status": "Active (Encrypted AES-256)",
-        "last_rotated": "2026-07-20 16:45:00",
-        "is_valid": True,
-        "notes": "Scanned PDF & drawings text extraction engine"
-    },
-    {
-        "id": "cred-vectordb",
-        "provider": "Supabase pgvector Database",
-        "key_type": "Vector Store & RAG",
-        "masked_key": "sb-vector-db-••••••••••••••••99e5",
-        "status": "Active (Encrypted AES-256)",
-        "last_rotated": "2026-08-01 08:00:00",
-        "is_valid": True,
-        "notes": "Company Knowledge Base & BOQ Vector Embeddings"
+        "notes": "Fallback reasoning engine for complex legal clauses"
     }
 ]
 
-# 3. Project Knowledge Source Matrix
-PROJECT_KNOWLEDGE_SOURCES: Dict[str, List[str]] = {
-    "SOLAR": ["Company Profile", "Certificates", "Solar Historical BOQs", "Competitor Data"],
-    "RHDS": ["Company Profile", "Certificates", "Water Historical BOQs", "SOPs", "Past Tenders"],
-    "KUSUM": ["Company Profile", "Certificates", "Solar Historical BOQs", "REDA Guidelines"],
-    "EPC": ["Company Profile", "Certificates", "Civil Historical BOQs", "Competitor Data", "Past Tenders"],
-    "ESCO": ["Company Profile", "Energy Audits", "BEE Accreditation", "Historical BOQs"],
-    "STP": ["Company Profile", "CPCB Standards", "STP Historical BOQs", "Past Tenders"]
-}
+# 4. Security Audit Log
+SECURITY_AUDIT_LOGS: List[Dict[str, Any]] = [
+    {
+        "id": "aud-001",
+        "action": "Admin Login",
+        "actor": "admin",
+        "target": "Admin Portal",
+        "details": "Admin authenticated successfully",
+        "timestamp": "2026-08-08 10:40:00"
+    },
+    {
+        "id": "aud-002",
+        "action": "User Approved",
+        "actor": "admin",
+        "target": "EMP001 (Ankit Purohit)",
+        "details": "Status changed from Pending to Active. Assigned BD role.",
+        "timestamp": "2026-08-07 11:15:00"
+    }
+]
 
-
-# --- Request/Response Models ---
-
+# --- Models ---
 class UpdateAIConfigPayload(BaseModel):
     project_category: str
     system_instruction: str
-    eligibility_logic: str
-    costing_methodology: str
-    clause_priorities: List[str]
-    required_documents: List[str]
-    changelog_notes: Optional[str] = "Updated via Admin Configuration Module"
+    eligibility_logic: Optional[str] = None
+    costing_methodology: Optional[str] = None
+    changelog_notes: Optional[str] = "Updated system instruction"
 
 class RotateCredentialPayload(BaseModel):
     id: str
@@ -176,77 +142,154 @@ class RotateCredentialPayload(BaseModel):
     raw_api_key: str
     notes: Optional[str] = None
 
-class TestCredentialPayload(BaseModel):
-    provider: str
-    api_key: str
+class CreateProjectPayload(BaseModel):
+    name: str
+    type: str
+    client: str
+    description: str
+    ai_instructions: Optional[str] = ""
 
-class UpdateKnowledgeSourcesPayload(BaseModel):
-    project_category: str
-    knowledge_sources: List[str]
+# --- Routes ---
 
-
-# --- Admin Router Endpoints ---
-
-@router.get("/ai-config")
-async def get_all_project_ai_configs():
-    """Retrieve all project-specific AI system instructions, prompt versions, and rules."""
+@router.get("/metrics")
+async def get_admin_metrics():
+    """Return live Admin Dashboard KPI metrics."""
     return {
         "status": "success",
-        "projects": list(PROJECT_AI_CONFIGS.values())
+        "metrics": {
+            "total_users": 5,
+            "pending_users": 1,
+            "active_users": 4,
+            "inactive_users": 0,
+            "total_projects": len(PROJECTS_STORE),
+            "active_tenders": 8,
+            "pending_approvals": 2,
+            "completed_tenders": 14
+        }
+    }
+
+@router.get("/projects")
+async def list_projects():
+    """List all managed projects."""
+    return {
+        "status": "success",
+        "projects": PROJECTS_STORE
+    }
+
+@router.post("/projects")
+async def create_project(payload: CreateProjectPayload):
+    """Create a new project vertical."""
+    new_proj = {
+        "id": f"proj-{int(time.time())}",
+        "name": payload.name.strip(),
+        "type": payload.type.strip().upper(),
+        "client": payload.client.strip(),
+        "description": payload.description.strip(),
+        "ai_instructions": payload.ai_instructions.strip(),
+        "knowledge_sources": ["Company Profile", "Certificates"],
+        "status": "Active",
+        "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+    PROJECTS_STORE.insert(0, new_proj)
+
+    SECURITY_AUDIT_LOGS.insert(0, {
+        "id": f"aud-{int(time.time())}",
+        "action": "Project Created",
+        "actor": "admin",
+        "target": new_proj["name"],
+        "details": f"Created project {new_proj['type']} for {new_proj['client']}",
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+    return {
+        "status": "success",
+        "message": f"Successfully created project '{new_proj['name']}'!",
+        "project": new_proj
     }
 
 @router.get("/ai-config/{category}")
-async def get_project_ai_config(category: str):
-    """Retrieve AI configuration for a specific project category."""
-    cat_upper = category.upper()
-    if cat_upper not in PROJECT_AI_CONFIGS:
-        raise HTTPException(status_code=404, detail=f"Project category '{category}' not found.")
-    return {
-        "status": "success",
-        "config": PROJECT_AI_CONFIGS[cat_upper]
-    }
+async def get_ai_config(category: str):
+    """Fetch project-specific system instructions, rules, and prompt version history."""
+    cat = category.upper()
+    cfg = PROJECT_AI_CONFIGS.get(cat)
+    if not cfg:
+        # Provide clean default config for new categories
+        cfg = {
+            "project_category": cat,
+            "system_instruction": f"You are a Senior Evaluation AI Specialist for {cat} projects. Analyze eligibility, risks, and BOQ costings.",
+            "eligibility_logic": f"Verify general company experience, Class-A license, and financial turnover for {cat}.",
+            "costing_methodology": f"Use historical unit rates for {cat} procurement.",
+            "clause_priorities": ["Technical Specs", "Financial Turnover", "O&M Guarantee"],
+            "required_documents": ["Company Certificate", "Tax Returns", "License"],
+            "active_prompt_version": "v1.0",
+            "prompt_history": []
+        }
+        PROJECT_AI_CONFIGS[cat] = cfg
+    return {"status": "success", "config": cfg}
 
 @router.post("/ai-config")
-async def update_project_ai_config(payload: UpdateAIConfigPayload):
-    """Update project-specific AI instructions with automatic versioning and changelog."""
+async def update_ai_config(payload: UpdateAIConfigPayload):
+    """Save project-specific system instructions with automatic version incrementing."""
     cat = payload.project_category.upper()
-    if cat not in PROJECT_AI_CONFIGS:
-        raise HTTPException(status_code=400, detail=f"Invalid project category '{payload.project_category}'")
+    cfg = PROJECT_AI_CONFIGS.get(cat)
 
-    current_cfg = PROJECT_AI_CONFIGS[cat]
-    
-    # Calculate new version
-    old_version = current_cfg.get("active_prompt_version", "v1.0")
-    try:
-        major, minor = old_version.replace("v", "").split(".")
-        new_version = f"v{major}.{int(minor) + 1}"
-    except Exception:
-        new_version = "v2.0"
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 
-    new_history_entry = {
-        "version": new_version,
-        "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "author": "System Admin",
-        "notes": payload.changelog_notes,
-        "system_instruction": payload.system_instruction
-    }
+    if not cfg:
+        cfg = {
+            "project_category": cat,
+            "system_instruction": payload.system_instruction,
+            "eligibility_logic": payload.eligibility_logic or "Verify company qualifications",
+            "costing_methodology": payload.costing_methodology or "Use historical BOQ rates",
+            "clause_priorities": ["Technical Specs"],
+            "required_documents": ["Company Certificate"],
+            "active_prompt_version": "v1.0",
+            "prompt_history": []
+        }
+        PROJECT_AI_CONFIGS[cat] = cfg
+    else:
+        cfg["system_instruction"] = payload.system_instruction
+        if payload.eligibility_logic:
+            cfg["eligibility_logic"] = payload.eligibility_logic
+        if payload.costing_methodology:
+            cfg["costing_methodology"] = payload.costing_methodology
 
-    current_cfg["system_instruction"] = payload.system_instruction
-    current_cfg["eligibility_logic"] = payload.eligibility_logic
-    current_cfg["costing_methodology"] = payload.costing_methodology
-    current_cfg["clause_priorities"] = payload.clause_priorities
-    current_cfg["required_documents"] = payload.required_documents
-    current_cfg["active_prompt_version"] = new_version
-    current_cfg["prompt_history"].insert(0, new_history_entry)
+        # Auto-increment version
+        curr_ver = cfg.get("active_prompt_version", "v1.0")
+        try:
+            major, minor = curr_ver.replace("v", "").split(".")
+            next_ver = f"v{major}.{int(minor)+1}"
+        except Exception:
+            next_ver = "v1.1"
+
+        cfg["active_prompt_version"] = next_ver
+
+        history_entry = {
+            "version": next_ver,
+            "updated_at": timestamp,
+            "author": "System Admin",
+            "notes": payload.changelog_notes or "Updated prompt instructions",
+            "system_instruction": payload.system_instruction
+        }
+        cfg.setdefault("prompt_history", []).insert(0, history_entry)
+
+    SECURITY_AUDIT_LOGS.insert(0, {
+        "id": f"aud-{int(time.time())}",
+        "action": "AI Prompt Updated",
+        "actor": "admin",
+        "target": cat,
+        "details": f"Updated AI instructions to version {cfg.get('active_prompt_version', 'v1.0')}",
+        "timestamp": timestamp
+    })
 
     return {
         "status": "success",
-        "message": f"Successfully updated AI configuration for {cat} to version {new_version}.",
-        "config": current_cfg
+        "message": f"Successfully updated AI instructions for '{cat}'! Saved as version {cfg.get('active_prompt_version')}.",
+        "config": cfg
     }
 
 @router.get("/credentials")
-async def get_all_credentials():
+async def list_credentials():
     """Return list of registered API keys and credentials (always masked)."""
     return {
         "status": "success",
@@ -287,42 +330,27 @@ async def rotate_or_add_credential(payload: RotateCredentialPayload):
             "notes": payload.notes or "Added via Admin Credentials Vault"
         }
         ENCRYPTED_CREDENTIALS.append(new_cred)
+
+        SECURITY_AUDIT_LOGS.insert(0, {
+            "id": f"aud-{int(time.time())}",
+            "action": "API Credential Rotated",
+            "actor": "admin",
+            "target": payload.provider,
+            "details": f"Updated masked key: {masked}",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        })
+
         return {
             "status": "success",
             "message": f"Successfully registered new API credential for '{payload.provider}'!",
             "credential": new_cred
         }
 
-@router.post("/test-credentials")
-async def test_credential_connection(payload: TestCredentialPayload):
-    """Test connection validity for any API key against provider endpoints."""
-    if not payload.api_key or len(payload.api_key.strip()) < 6:
-        raise HTTPException(status_code=400, detail="Key validation failed: Key string is empty or invalid.")
-
-    # Simulate provider API ping test
-    time.sleep(0.5)
+@router.get("/audit-logs")
+async def get_audit_logs():
+    """Retrieve immutable security audit trail."""
     return {
         "status": "success",
-        "provider": payload.provider,
-        "message": f"Connection Test Successful! '{payload.provider}' endpoint returned 200 OK. Key is valid and authorized.",
-        "latency_ms": 142
-    }
-
-@router.get("/knowledge-sources")
-async def get_knowledge_sources():
-    """Get project-to-knowledge-source binding matrix."""
-    return {
-        "status": "success",
-        "matrix": PROJECT_KNOWLEDGE_SOURCES
-    }
-
-@router.post("/knowledge-sources")
-async def update_knowledge_sources(payload: UpdateKnowledgeSourcesPayload):
-    """Update project-to-knowledge-source bindings."""
-    cat = payload.project_category.upper()
-    PROJECT_KNOWLEDGE_SOURCES[cat] = payload.knowledge_sources
-    return {
-        "status": "success",
-        "message": f"Successfully updated Knowledge Source bindings for {cat}!",
-        "matrix": PROJECT_KNOWLEDGE_SOURCES
+        "total_logs": len(SECURITY_AUDIT_LOGS),
+        "audit_logs": SECURITY_AUDIT_LOGS
     }

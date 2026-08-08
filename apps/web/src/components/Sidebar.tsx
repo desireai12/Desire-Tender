@@ -11,7 +11,7 @@ import {
   FileCode,
   Waves
 } from 'lucide-react';
-import { DepartmentRole } from '@/lib/types';
+import { DepartmentRole, PermissionType, UserStatus } from '@/lib/types';
 
 export type NavTab = 'dashboard' | 'wizard' | 'lifecycle' | 'competitors' | 'settings' | 'admin' | 'admin_config';
 
@@ -19,20 +19,35 @@ interface SidebarProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
   activeRole: DepartmentRole;
+  userPermissions?: PermissionType[];
+  userStatus?: UserStatus;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, activeRole }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  activeTab, 
+  onTabChange, 
+  activeRole,
+  userPermissions = ['eligibility'],
+  userStatus = 'Pending'
+}) => {
   const allNavItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, adminOnly: false },
-    { id: 'wizard' as NavTab, label: 'Tender Assessment Wizard', icon: Wand2, badge: 'Guided', adminOnly: false },
-    { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Workflow, badge: '6 Stages', adminOnly: false },
-    { id: 'competitors' as NavTab, label: 'Competitor Analysis', icon: Swords, badge: 'Intel', adminOnly: false },
-    { id: 'admin' as NavTab, label: 'Company Records (Admin)', icon: ShieldCheck, badge: 'Admin Only', adminOnly: true },
-    { id: 'admin_config' as NavTab, label: 'AI System & Keys (Admin)', icon: FileCode, badge: 'Encrypted', adminOnly: true },
-    { id: 'settings' as NavTab, label: 'System Settings (Admin)', icon: Settings, badge: 'Admin', adminOnly: true },
+    { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, perm: 'eligibility', adminOnly: false },
+    { id: 'wizard' as NavTab, label: 'Eligibility Check & Wizard', icon: Wand2, badge: 'Guided', perm: 'eligibility', adminOnly: false },
+    { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Workflow, badge: 'Workflow', perm: 'ai_analysis', adminOnly: false },
+    { id: 'competitors' as NavTab, label: 'Competitor Analysis', icon: Swords, badge: 'Intel', perm: 'ai_analysis', adminOnly: false },
+    { id: 'admin' as NavTab, label: 'Company Records (Admin)', icon: ShieldCheck, badge: 'Admin Only', perm: 'admin', adminOnly: true },
+    { id: 'admin_config' as NavTab, label: 'AI System & Keys (Admin)', icon: FileCode, badge: 'Encrypted', perm: 'admin', adminOnly: true },
+    { id: 'settings' as NavTab, label: 'System Settings (Admin)', icon: Settings, badge: 'Admin', perm: 'admin', adminOnly: true },
   ];
 
-  const navItems = allNavItems.filter(item => !item.adminOnly || activeRole === 'Admin');
+  // Dynamic RBAC Navigation Filter
+  const navItems = allNavItems.filter(item => {
+    if (activeRole === 'Admin') return true;
+    if (userStatus === 'Pending') {
+      return item.id === 'dashboard' || item.id === 'wizard';
+    }
+    return !item.adminOnly && (userPermissions.includes(item.perm as PermissionType) || userPermissions.includes('eligibility'));
+  });
 
   return (
     <aside className="w-64 glass-card border-r border-white/10 p-4 flex flex-col justify-between hidden md:flex min-h-[calc(100vh-65px)]">

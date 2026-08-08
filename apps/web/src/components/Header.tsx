@@ -14,6 +14,7 @@ interface HeaderProps {
   currentUser?: UserProfile | null;
   onLogout?: () => void;
   onNavigateSettings?: () => void;
+  onNavigateAdminPortal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   currentUser,
   onLogout,
   onNavigateSettings,
+  onNavigateAdminPortal,
 }) => {
   return (
     <header className="sticky top-0 z-40 w-full glass-card border-b border-white/10 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
@@ -49,17 +51,20 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Control Actions & Department Role Information */}
       <div className="flex items-center space-x-3 flex-wrap gap-y-2">
-        {/* User Profile / Department Badge */}
+        {/* User Profile / Employee ID Badge */}
         {currentUser && (
           <div className="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-xl bg-aqua-950/90 border border-cyan-500/30">
-            <div className="w-6 h-6 rounded-full bg-cyan-400/20 flex items-center justify-center text-cyan-300">
-              <User className="w-3.5 h-3.5" />
+            <div className="w-6 h-6 rounded-full bg-cyan-400/20 flex items-center justify-center text-cyan-300 font-mono text-xs">
+              {currentUser.employee_id?.slice(0, 3) || 'EMP'}
             </div>
             <div>
               <div className="text-xs font-bold text-white flex items-center space-x-1.5">
-                <span>{currentUser.name}</span>
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-cyan-500/20 text-cyan-300">
-                  {activeRole}
+                <span>{currentUser.full_name || currentUser.employee_id}</span>
+                <span className="font-mono text-[10px] text-cyan-300">({currentUser.employee_id})</span>
+                <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${
+                  currentUser.status === 'Active' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
+                }`}>
+                  {currentUser.status}
                 </span>
               </div>
               <p className="text-[10px] font-mono text-slate-400">{currentUser.email}</p>

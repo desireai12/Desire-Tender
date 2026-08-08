@@ -11,9 +11,12 @@ import { TenderLifecycleTracker } from '@/components/TenderLifecycleTracker';
 import { CompetitorBattleCardsView } from '@/components/CompetitorBattleCardsView';
 import { SettingsView } from '@/components/SettingsView';
 import { LoginLanding } from '@/components/LoginLanding';
+import { AdminPortal } from '@/components/AdminPortal';
 import { DepartmentRole, TenderProcess, UserProfile } from '@/lib/types';
+import { ShieldAlert } from 'lucide-react';
 
 export default function Home() {
+  const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
@@ -23,12 +26,18 @@ export default function Home() {
   const handleLoginSuccess = (user: UserProfile) => {
     setCurrentUser(user);
     setActiveRole(user.department);
-    setActiveTab(user.department === 'Admin' ? 'admin_config' : 'dashboard');
+    if (user.department === 'Admin') {
+      setViewMode('admin');
+    } else {
+      setViewMode('user');
+      setActiveTab(user.status === 'Pending' ? 'wizard' : 'dashboard');
+    }
   };
 
   // Handle Logout
   const handleLogout = () => {
     setCurrentUser(null);
+    setViewMode('user');
     setActiveRole('Business Development');
     setActiveTab('dashboard');
   };
@@ -53,43 +62,12 @@ export default function Home() {
       audit_trail: [
         {
           id: 'log-1',
-          user: 'BD Officer (Ankit Purohit)',
+          user: 'BD Officer (EMP001)',
           department: 'Business Development',
           timestamp: '2026-08-06 10:15:00',
           action: 'Completed Step 1 Eligibility & Step 2 PDF Upload',
           status: 'Passed & Locked',
           next_pending_action: 'Estimation Team to construct Stage 3 BOQ'
-        }
-      ]
-    },
-    {
-      id: '881202',
-      tender_name: 'PM-Kusum Component-B Solar Pump Scheme (5,000 HP)',
-      project_category: 'KUSUM',
-      project_locked: true,
-      department_assigned: 'Estimation Team',
-      current_stage: '3_COST_ESTIMATION',
-      stage_status: 'In Progress',
-      created_at: '2026-08-05 14:00:00',
-      updated_at: '2026-08-06 11:00:00',
-      eligibility_result: {
-        is_eligible: true,
-        score: 93,
-        reasoning: 'Verified Sunaquator RMS controller integration & REDA empanelment.'
-      },
-      boq_items: [
-        { id: 'b-1', category: 'Equipment', item_name: '5 HP Submersible Solar Pump Set', unit_of_measure: 'Sets', quantity: 500, unit_cost: 145000, markup_percentage: 12, tax_percentage: 18 },
-        { id: 'b-2', category: 'Equipment', item_name: 'Sunaquator 4G Telemetry Controller', unit_of_measure: 'Units', quantity: 500, unit_cost: 25000, markup_percentage: 15, tax_percentage: 18 }
-      ],
-      audit_trail: [
-        {
-          id: 'log-2',
-          user: 'Sr Estimator (Deepak Khandelwal)',
-          department: 'Estimation Team',
-          timestamp: '2026-08-06 11:00:00',
-          action: 'Added Sunaquator & Pump Line Items to Stage 3 BOQ',
-          status: 'In Progress',
-          next_pending_action: 'Management Stage 4 Apply Approval'
         }
       ]
     }
@@ -104,9 +82,19 @@ export default function Home() {
     setTendersQueue((prev) => prev.map((t) => (t.id === updatedProcess.id ? updatedProcess : t)));
   };
 
-  // If user is not logged in, render the clean Login Landing Page first
+  // Render Dedicated /admin Portal
+  if (viewMode === 'admin') {
+    return <AdminPortal onBackToUserPortal={() => setViewMode('user')} />;
+  }
+
+  // If user is not logged in, render the clean Login / Create Account Landing Page first
   if (!currentUser) {
-    return <LoginLanding onLoginSuccess={handleLoginSuccess} />;
+    return (
+      <LoginLanding 
+        onLoginSuccess={handleLoginSuccess}
+        onNavigateAdmin={() => setViewMode('admin')}
+      />
+    );
   }
 
   return (
@@ -120,7 +108,26 @@ export default function Home() {
         currentUser={currentUser}
         onLogout={handleLogout}
         onNavigateSettings={() => setActiveTab(activeRole === 'Admin' ? 'admin_config' : 'settings')}
+        onNavigateAdminPortal={() => setViewMode('admin')}
       />
+
+      {/* Pending User Approval Banner */}
+      {currentUser.status === 'Pending' && (
+        <div className="bg-amber-500/10 border-b border-amber-500/30 px-6 py-2.5 flex items-center justify-between text-xs text-amber-300">
+          <div className="flex items-center space-x-2">
+            <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>First-Time User Notice:</strong> Your account is pending Admin approval. You currently have access to <strong>Eligibility Checking</strong>. Additional modules will unlock after Admin approval.
+            </span>
+          </div>
+          <button
+            onClick={() => setViewMode('admin')}
+            className="text-[11px] font-mono underline hover:text-white"
+          >
+            Admin Portal (/admin)
+          </button>
+        </div>
+      )}
 
       {/* Main Workspace Layout */}
       <div className="flex flex-1">
@@ -129,6 +136,8 @@ export default function Home() {
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
           activeRole={activeRole}
+          userPermissions={currentUser.permissions}
+          userStatus={currentUser.status}
         />
 
         {/* Tab Content View Container */}
