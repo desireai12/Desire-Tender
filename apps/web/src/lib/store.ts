@@ -224,9 +224,22 @@ export function getAdminMustChangePassword(): boolean {
 }
 
 export function saveAdminPassword(newPassword: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('DESIRE_ADMIN_PWD', newPassword);
-  localStorage.setItem('DESIRE_ADMIN_MUST_CHANGE', 'false');
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('DESIRE_ADMIN_PWD', newPassword);
+    localStorage.setItem('DESIRE_ADMIN_MUST_CHANGE', 'false');
+  }
+
+  if (isSupabaseConfigured && supabase) {
+    Promise.resolve(
+      supabase.from('credentials').upsert({
+        provider: 'ADMIN_ACCOUNT',
+        key_type: 'Admin Password',
+        encrypted_key: newPassword,
+        status: 'ACTIVE',
+        updated_at: new Date().toISOString()
+      })
+    ).catch(() => null);
+  }
 }
 
 // --- PROJECTS STORAGE ---
