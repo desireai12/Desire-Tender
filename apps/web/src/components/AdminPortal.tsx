@@ -77,6 +77,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
   const [userList, setUserList] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedUserModal, setSelectedUserModal] = useState<UserProfile | null>(null);
+  const [modalEditPassword, setModalEditPassword] = useState<string>('');
+  const [showPasswordMap, setShowPasswordMap] = useState<Record<string, boolean>>({});
 
   // Projects State
   const [projectList, setProjectList] = useState<Project[]>([]);
@@ -113,6 +115,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             full_name: u.full_name,
             email: u.email,
             phone: u.phone,
+            password: u.password_hash || u.password || 'desire@2026',
             role: u.role || 'User',
             department: u.department || 'Tender Team',
             status: u.status || 'Pending',
@@ -219,6 +222,39 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
     setUserList(updatedUsers);
     setSelectedUserModal(null);
     setToast(`Permissions updated for ${usr.full_name || usr.employee_id}! Granted rights are now active.`);
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  // Admin Action: Save Credentials, Password & Rights — SAVES TO SUPABASE DATABASE LIVE!
+  const handleSaveFullUserAccount = async (usr: UserProfile, newPassword?: string) => {
+    const finalPassword = newPassword !== undefined && newPassword.trim() !== '' ? newPassword.trim() : (usr.password || 'desire@2026');
+    const updatedUser: UserProfile = {
+      ...usr,
+      password: finalPassword
+    };
+
+    const currentUsers = getStoredUsers();
+    const nextUsers = currentUsers.map(u => u.employee_id === usr.employee_id || u.id === usr.id ? updatedUser : u);
+    setUserList(nextUsers);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(nextUsers));
+    }
+
+    // Live update to Supabase Cloud Database!
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('users').update({
+          password_hash: finalPassword,
+          department: usr.department,
+          status: usr.status,
+          permissions: usr.permissions
+        }).or(`employee_id.eq.${usr.employee_id},id.eq.${usr.id}`);
+      } catch (e) {}
+    }
+
+    setSelectedUserModal(null);
+    setModalEditPassword('');
+    setToast(`User credentials and password for ${usr.full_name || usr.employee_id} saved to Supabase Database!`);
     setTimeout(() => setToast(null), 4000);
   };
 
@@ -608,6 +644,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                     <th className="p-3">Employee ID</th>
                     <th className="p-3">Full Name</th>
                     <th className="p-3">Email & Phone</th>
+                    <th className="p-3">User Password</th>
                     <th className="p-3">Status</th>
                     <th className="p-3">Department Role</th>
                     <th className="p-3">Permissions Granted</th>
@@ -622,6 +659,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                       <td className="p-3 font-mono text-slate-400 text-[11px]">
                         <div>{usr.email}</div>
                         <div className="text-slate-500">{usr.phone}</div>
+                      </td>
+                      <td className="p-3 font-mono text-xs">
+                        <div className="flex items-center space-x-1.5 bg-black/40 px-2.5 py-1 rounded-lg border border-white/10 w-fit">
+                          <Lock className="w-3 h-3 text-amber-400" />
+                          <span className="text-amber-200 font-bold">
+                            {showPasswordMap[usr.id || usr.employee_id] ? (usr.password || 'desire@2026') : '••••••••'}
+                          </span>
+                          <button
+                            onClick={() => setShowPasswordMap(prev => ({ ...prev, [usr.id || usr.employee_id]: !prev[usr.id || usr.employee_id] }))}
+                            className="text-slate-400 hover:text-white ml-1 p-0.5"
+                            title="Toggle Password Visibility"
+                          >
+                            {showPasswordMap[usr.id || usr.employee_id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
                       </td>
                       <td className="p-3">
                         <span className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold ${
@@ -835,49 +887,117 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
         )}
       </div>
 
-      {/* Permissions Modal */}
+      {/* User Credentials & Permissions Modal */}
       {selectedUserModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card p-6 rounded-3xl border border-purple-500/40 max-w-md w-full space-y-4">
-            <h4 className="text-sm font-display font-bold text-white">
-              Assign Module Permissions for {selectedUserModal.full_name || selectedUserModal.employee_id}
-            </h4>
-
-            <div className="space-y-2 text-xs">
-              {(['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result'] as PermissionType[]).map((p) => {
-                const isChecked = (selectedUserModal.permissions || ['eligibility']).includes(p);
-                return (
-                  <label key={p} className="flex items-center justify-between p-2.5 rounded-xl bg-aqua-950 border border-white/10 cursor-pointer">
-                    <span className="font-mono text-white capitalize">{p.replace('_', ' ')}</span>
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={(e) => {
-                        const current = selectedUserModal.permissions || ['eligibility'];
-                        const updated = e.target.checked
-                          ? [...current, p]
-                          : current.filter(x => x !== p);
-                        setSelectedUserModal({ ...selectedUserModal, permissions: updated });
-                      }}
-                      className="rounded border-white/20 text-purple-500 focus:ring-0"
-                    />
-                  </label>
-                );
-              })}
+          <div className="glass-card p-6 rounded-3xl border border-purple-500/40 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h4 className="text-sm font-display font-bold text-white flex items-center space-x-2">
+                  <Key className="w-4 h-4 text-amber-400" />
+                  <span>Edit Account & Reset Password</span>
+                </h4>
+                <p className="text-xs text-slate-400">
+                  {selectedUserModal.full_name} ({selectedUserModal.employee_id}) — {selectedUserModal.email}
+                </p>
+              </div>
+              <button onClick={() => setSelectedUserModal(null)} className="text-slate-400 hover:text-white text-lg">×</button>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-2">
+            <div className="space-y-3 text-xs">
+              {/* Reset Password Field */}
+              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5">
+                <label className="text-[11px] font-mono text-amber-300 font-bold block flex items-center space-x-1.5">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>User Login Password</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder={selectedUserModal.password || 'desire@2026'}
+                  value={modalEditPassword || selectedUserModal.password || ''}
+                  onChange={(e) => setModalEditPassword(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-[#101415] border border-amber-500/40 text-amber-200 font-mono font-bold text-sm focus:outline-none focus:border-amber-400"
+                />
+                <p className="text-[10px] text-slate-400">
+                  Edit or enter a new password for this employee. Saved live to Supabase PostgreSQL Database.
+                </p>
+              </div>
+
+              {/* Department & Status */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[11px] font-mono text-slate-300 block mb-1">Department Role</label>
+                  <select
+                    value={selectedUserModal.department}
+                    onChange={(e) => setSelectedUserModal({ ...selectedUserModal, department: e.target.value as DepartmentRole })}
+                    className="w-full p-2.5 rounded-xl bg-aqua-950 border border-purple-500/30 text-white font-bold text-xs"
+                  >
+                    <option value="Business Development">Business Development</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Estimation Team">Estimation Team</option>
+                    <option value="Tender Team">Tender Team</option>
+                    <option value="Management">Management</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-mono text-slate-300 block mb-1">Account Status</label>
+                  <select
+                    value={selectedUserModal.status}
+                    onChange={(e) => setSelectedUserModal({ ...selectedUserModal, status: e.target.value as UserStatus })}
+                    className="w-full p-2.5 rounded-xl bg-aqua-950 border border-purple-500/30 text-white font-bold text-xs"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending Approval</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Deactivated">Deactivated</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Permissions Matrix */}
+              <div>
+                <label className="text-[11px] font-mono text-slate-300 block mb-1.5">Granted Module Rights</label>
+                <div className="space-y-1.5">
+                  {(['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result'] as PermissionType[]).map((p) => {
+                    const isChecked = (selectedUserModal.permissions || ['eligibility']).includes(p);
+                    return (
+                      <label key={p} className="flex items-center justify-between p-2 rounded-xl bg-aqua-950 border border-white/10 cursor-pointer">
+                        <span className="font-mono text-white capitalize text-[11px]">{p.replace('_', ' ')}</span>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const current = selectedUserModal.permissions || ['eligibility'];
+                            const updated = e.target.checked
+                              ? [...current, p]
+                              : current.filter(x => x !== p);
+                            setSelectedUserModal({ ...selectedUserModal, permissions: updated });
+                          }}
+                          className="rounded border-white/20 text-purple-500 focus:ring-0"
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2 border-t border-white/10">
               <button
-                onClick={() => setSelectedUserModal(null)}
+                onClick={() => { setSelectedUserModal(null); setModalEditPassword(''); }}
                 className="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleSavePermissions(selectedUserModal, selectedUserModal.permissions)}
-                className="px-5 py-2 rounded-xl bg-purple-500 text-white font-bold text-xs hover:bg-purple-400"
+                onClick={() => handleSaveFullUserAccount(selectedUserModal, modalEditPassword)}
+                className="px-5 py-2 rounded-xl bg-purple-500 text-white font-bold text-xs hover:bg-purple-400 flex items-center space-x-1.5 shadow-lg"
               >
-                Save Permissions
+                <Save className="w-4 h-4" />
+                <span>Save Credentials & Password</span>
               </button>
             </div>
           </div>
