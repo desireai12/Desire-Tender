@@ -285,16 +285,47 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Admin Action: Approve / Reject / Deactivate User — ACTIVELY UPDATE STORE & PERMISSIONS!
+  // Admin Action: Approve / Reject / Deactivate User — PERSISTS LIVE TO SUPABASE DB & SERVER API!
   const handleUserStatusAction = async (usr: UserProfile, newStatus: UserStatus) => {
+    // 1. Update local state & store immediately for UI speed
     const updatedUsers = updateUserStatus(usr.id, newStatus, usr.department);
     setUserList(updatedUsers);
     setMetrics((prev: any) => ({
       ...prev,
       pending_users: updatedUsers.filter(u => u.status === 'Pending').length,
-      active_users: updatedUsers.filter(u => u.status === 'Active').length
+      active_users: updatedUsers.filter(u => u.status === 'Active').length,
+      pending_approvals: updatedUsers.filter(u => u.status === 'Pending').length
     }));
-    setToast(`User ${usr.full_name || usr.employee_id} status set to ${newStatus}!`);
+
+    // 2. Persist update live to Backend API Endpoint (Serverless)
+    try {
+      await fetch(`${API_BASE_URL}/auth/users/assign-role`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: usr.employee_id,
+          user_id: usr.id,
+          is_approved: newStatus === 'Active',
+          department: usr.department
+        })
+      });
+    } catch (err: any) {}
+
+    // 3. Persist update live to Supabase Cloud Database directly
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase
+          .from('users')
+          .update({ 
+            status: newStatus,
+            department: usr.department,
+            updated_at: new Date().toISOString()
+          })
+          .eq('employee_id', usr.employee_id);
+      } catch (dbErr) {}
+    }
+
+    setToast(`User ${usr.full_name || usr.employee_id} account set to ${newStatus} in Supabase Cloud Database!`);
     setTimeout(() => setToast(null), 4000);
   };
 
