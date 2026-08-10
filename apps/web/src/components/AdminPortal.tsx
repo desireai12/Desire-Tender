@@ -94,14 +94,43 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
   useEffect(() => {
     fetchAdminData();
+    const interval = setInterval(() => {
+      fetchAdminData();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [isAdminAuthenticated]);
 
   const fetchAdminData = async () => {
     let users: UserProfile[] = [];
     let projects: Project[] = [];
 
-    // Query Supabase Cloud Database live as SINGLE SOURCE OF TRUTH!
-    if (isSupabaseConfigured && supabase) {
+    // 1. Query Server API Endpoint first (Contains multi-device server-synced users!)
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/users`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.users && Array.isArray(data.users) && data.users.length > 0) {
+          users = data.users.map((u: any) => ({
+            id: u.id || `usr-${u.employee_id}`,
+            employee_id: u.employee_id,
+            full_name: u.full_name,
+            email: u.email,
+            phone: u.phone,
+            password: u.password || u.password_hash || '••••••••',
+            role: u.role || 'User',
+            department: u.department || 'Tender Team',
+            status: u.status || 'Pending',
+            permissions: Array.isArray(u.permissions) ? u.permissions : ['eligibility'],
+            assigned_projects: Array.isArray(u.assigned_projects) ? u.assigned_projects : ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+            registered_at: u.registered_at || u.created_at || new Date().toISOString(),
+            last_login: u.updated_at || new Date().toISOString()
+          }));
+        }
+      }
+    } catch (err) {}
+
+    // 2. Query Supabase Cloud Database directly if API returned empty
+    if (users.length === 0 && isSupabaseConfigured && supabase) {
       try {
         const { data: dbUsers, error: uErr } = await supabase.from('users').select('*').order('created_at', { ascending: false });
         if (!uErr && dbUsers) {
@@ -121,16 +150,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             last_login: u.updated_at || new Date().toISOString()
           }));
         }
+      } catch (err) {}
+    }
 
+    if (isSupabaseConfigured && supabase) {
+      try {
         const { data: dbProjects, error: pErr } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
         if (!pErr && dbProjects) {
           projects = dbProjects;
         }
       } catch (err) {}
-    } else {
-      users = getStoredUsers();
-      projects = getStoredProjects();
     }
+
+    if (users.length === 0) users = getStoredUsers();
+    if (projects.length === 0) projects = getStoredProjects();
 
     setUserList(users);
     setProjectList(projects);
