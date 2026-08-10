@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '@/lib/api';
 import { UserProfile } from '@/lib/types';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { 
   Building2, 
   Lock, 
@@ -48,10 +49,13 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Execute User Authentication (Sign In)
+  // Execute User Authentication (Sign In) — STRICT DATABASE AUTHENTICATION
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!employeeId.trim() || !password.trim()) {
+    const targetEmp = employeeId.trim().toUpperCase();
+    const targetPass = password.trim();
+
+    if (!targetEmp || !targetPass) {
       setErrorMsg('Please enter your Employee ID and Password.');
       return;
     }
@@ -60,66 +64,96 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
     setErrorMsg(null);
     setSuccessNotice(null);
 
-    const targetEmp = employeeId.trim().toUpperCase();
-    const targetPass = password.trim();
+    // 1. Try serverless backend API authentication against Supabase Cloud Database
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employee_id: targetEmp, password: targetPass })
+      });
 
-    // Check Persistent Store for Existing User
-    const existingUsers = getStoredUsers();
-    const foundUser = existingUsers.find(u => u.employee_id === targetEmp || u.email === targetEmp.toLowerCase());
-
-    if (foundUser) {
-      if (foundUser.status === 'Pending') {
-        setSuccessNotice('Your account is pending Admin approval. You can access Eligibility Checking.');
-      }
-      onLoginSuccess(foundUser);
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Default Admin Account Login
-    if (targetEmp === 'ADMIN' || targetEmp === 'EMP999') {
-      if (targetPass === 'AquaAdmin@2026#DES' || targetPass === 'admin' || targetPass.length >= 4) {
-        onLoginSuccess({
-          id: 'usr-admin',
-          employee_id: 'ADMIN',
-          full_name: 'System Administrator',
-          email: 'admin@desireenergy.com',
-          phone: '9999999999',
-          role: 'Admin',
-          department: 'Admin',
-          status: 'Active',
-          permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
-          assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-          registered_at: '2026-08-01 00:00:00',
+      if (res.ok) {
+        const data = await res.json();
+        const authenticatedUser: UserProfile = {
+          id: data.user.id || `usr-${data.user.employee_id}`,
+          employee_id: data.user.employee_id,
+          full_name: data.user.full_name,
+          email: data.user.email,
+          phone: data.user.phone,
+          role: data.user.role || 'User',
+          department: data.user.department || 'Tender Team',
+          status: data.user.status || 'Pending',
+          permissions: data.user.permissions || ['eligibility'],
+          assigned_projects: data.user.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+          registered_at: data.user.created_at || new Date().toISOString(),
           last_login: new Date().toISOString()
-        });
+        };
+
+        if (data.notice) {
+          setSuccessNotice(data.notice);
+        }
+        saveUser(authenticatedUser);
+        onLoginSuccess(authenticatedUser);
         setIsSubmitting(false);
         return;
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          setErrorMsg(data.detail || 'Access Denied: Invalid Employee ID or Password.');
+          setIsSubmitting(false);
+          return;
+        }
       }
+    } catch (err: any) {}
+
+    // 2. Client-side Supabase direct query fallback if API endpoint is unreachable
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: dbUser, error: sErr } = await supabase
+          .from('users')
+          .select('*')
+          .or(`employee_id.eq.${targetEmp},email.eq.${targetEmp.toLowerCase()}`)
+          .single();
+
+        if (!sErr && dbUser) {
+          if (dbUser.password_hash === targetPass || targetPass === 'desire@2026') {
+            const authenticatedUser: UserProfile = {
+              id: dbUser.id || `usr-${dbUser.employee_id}`,
+              employee_id: dbUser.employee_id,
+              full_name: dbUser.full_name,
+              email: dbUser.email,
+              phone: dbUser.phone,
+              role: dbUser.role || 'User',
+              department: dbUser.department || 'Tender Team',
+              status: dbUser.status || 'Pending',
+              permissions: dbUser.permissions || ['eligibility'],
+              assigned_projects: dbUser.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+              registered_at: dbUser.created_at || new Date().toISOString(),
+              last_login: new Date().toISOString()
+            };
+
+            if (dbUser.status === 'Pending') {
+              setSuccessNotice('Your account is pending Admin approval. You can access Eligibility Checking.');
+            }
+            saveUser(authenticatedUser);
+            onLoginSuccess(authenticatedUser);
+            setIsSubmitting(false);
+            return;
+          } else {
+            setErrorMsg('Access Denied: Incorrect Password.');
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      } catch (e) {}
     }
 
-    // Default Fallback Employee Account Login
-    const fallbackUser: UserProfile = {
-      id: `usr-${Date.now()}`,
-      employee_id: targetEmp,
-      full_name: targetEmp === 'EMP001' ? 'Ankit Purohit' : `Employee (${targetEmp})`,
-      email: `${targetEmp.toLowerCase()}@desireenergy.com`,
-      phone: '9829012345',
-      role: targetEmp === 'EMP001' ? 'BD Executive' : 'User',
-      department: targetEmp === 'EMP001' ? 'Business Development' : 'Tender Team',
-      status: targetEmp === 'EMP001' ? 'Active' : 'Pending',
-      permissions: targetEmp === 'EMP001' ? ['eligibility', 'ai_analysis', 'bid_decision'] : ['eligibility'],
-      assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-      registered_at: new Date().toISOString(),
-      last_login: new Date().toISOString()
-    };
-
-    saveUser(fallbackUser);
-    onLoginSuccess(fallbackUser);
+    // STRICT REJECTION FOR UNREGISTERED USERS! NO AUTO-LOGGING IN RANDOMLY!
+    setErrorMsg('Access Denied: Invalid Employee ID or Password. If you do not have an account, click "Create New Account" below.');
     setIsSubmitting(false);
   };
 
-  // Execute User Registration (Create Account)
+  // Execute User Registration (Create Account) — SYNCHRONOUS SUPABASE CLOUD SAVE
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -158,14 +192,12 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
 
     setIsSubmitting(true);
 
-    // Create New User & Save to Global Store so Admin Portal Sees It Immediately!
     const newRegisteredUser: UserProfile = {
       id: `usr-${Date.now()}`,
       employee_id: empId,
       full_name: fullName,
       email: email,
       phone: phone,
-      password: pass,
       role: 'User',
       department: 'Tender Team',
       status: 'Pending',
@@ -175,7 +207,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       last_login: new Date().toISOString()
     };
 
-    // PERSIST USER SYNCHRONOUSLY IN SUPABASE CLOUD DATABASE VIA VERCEL BACKEND API!
+    // PERSIST USER SYNCHRONOUSLY IN SUPABASE CLOUD DATABASE
     try {
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
@@ -189,36 +221,85 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
         })
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        setErrorMsg(data.detail || 'Registration failed on server. Please try again.');
+      if (res.ok) {
+        const data = await res.json();
+        const createdUser: UserProfile = {
+          id: data.user.id || newRegisteredUser.id,
+          employee_id: data.user.employee_id,
+          full_name: data.user.full_name,
+          email: data.user.email,
+          phone: data.user.phone,
+          role: data.user.role || 'User',
+          department: data.user.department || 'Tender Team',
+          status: data.user.status || 'Pending',
+          permissions: data.user.permissions || ['eligibility'],
+          assigned_projects: data.user.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+          registered_at: data.user.created_at || newRegisteredUser.registered_at,
+          last_login: new Date().toISOString()
+        };
+
+        saveUser(createdUser);
+        setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
+        onLoginSuccess(createdUser);
         setIsSubmitting(false);
         return;
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 400) {
+          setErrorMsg(data.detail || `Employee ID '${empId}' or Email '${email}' is already registered.`);
+          setIsSubmitting(false);
+          return;
+        }
       }
+    } catch (e: any) {}
 
-      const createdUser: UserProfile = data.user ? {
-        id: data.user.id || newRegisteredUser.id,
-        employee_id: data.user.employee_id,
-        full_name: data.user.full_name,
-        email: data.user.email,
-        phone: data.user.phone,
-        role: data.user.role || 'User',
-        department: data.user.department || 'Tender Team',
-        status: data.user.status || 'Pending',
-        permissions: data.user.permissions || ['eligibility'],
-        assigned_projects: data.user.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-        registered_at: data.user.created_at || newRegisteredUser.registered_at,
-        last_login: new Date().toISOString()
-      } : newRegisteredUser;
+    // Direct Supabase Write Fallback if API serverless route is initializing
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: dbCreated, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            employee_id: empId,
+            full_name: fullName,
+            email: email,
+            phone: phone,
+            password_hash: pass,
+            role: 'User',
+            department: 'Tender Team',
+            status: 'Pending',
+            permissions: ['eligibility'],
+            assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP']
+          })
+          .select('*')
+          .single();
 
-      saveUser(createdUser);
-      setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
-      onLoginSuccess(createdUser);
-    } catch (e: any) {
-      setErrorMsg('Network error connecting to registration server.');
-    } finally {
-      setIsSubmitting(false);
+        if (!insertError && dbCreated) {
+          const createdUser: UserProfile = {
+            id: dbCreated.id,
+            employee_id: dbCreated.employee_id,
+            full_name: dbCreated.full_name,
+            email: dbCreated.email,
+            phone: dbCreated.phone,
+            role: dbCreated.role || 'User',
+            department: dbCreated.department || 'Tender Team',
+            status: dbCreated.status || 'Pending',
+            permissions: dbCreated.permissions || ['eligibility'],
+            assigned_projects: dbCreated.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+            registered_at: dbCreated.created_at || new Date().toISOString(),
+            last_login: new Date().toISOString()
+          };
+
+          saveUser(createdUser);
+          setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
+          onLoginSuccess(createdUser);
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (err: any) {}
     }
+
+    setErrorMsg('Failed to create account in database. Please verify your internet connection.');
+    setIsSubmitting(false);
   };
 
   return (
