@@ -2,7 +2,7 @@
 
 export const API_BASE_URL = 
   process.env.NEXT_PUBLIC_API_URL || 
-  (typeof window !== 'undefined' ? window.location.origin : '');
+  (typeof window !== 'undefined' ? `${window.location.origin}/api/v1` : '/api/v1');
 
 /**
  * Safe JSON fetch wrapper that guarantees valid JSON parsing
