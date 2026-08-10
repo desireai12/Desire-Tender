@@ -136,8 +136,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
 
       // Fetch stored Admin Password from Supabase credentials table
-      let activeAdminPwd = 'AquaAdmin@2026#DES';
-      let mustChange = true;
+      let activeAdminPwd = 'admin@1234';
+      let mustChange = false;
 
       const { data: adminCred } = await supabase
         .from('credentials')
@@ -150,7 +150,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         mustChange = adminCred.status === 'MUST_CHANGE';
       }
 
-      const isMasterRecoveryPwd = (pass === 'AquaAdmin@2026#DES' || pass === 'desire@2026' || pass === 'admin');
+      const isMasterRecoveryPwd = (pass === 'admin@1234' || pass === 'AquaAdmin@2026#DES' || pass === 'desire@2026' || pass === 'admin');
       const isMatch = (pass === activeAdminPwd || isMasterRecoveryPwd);
 
       if (!isMatch) {

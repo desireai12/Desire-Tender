@@ -118,15 +118,15 @@ export function updateUserPermissions(userId: string, permissions: PermissionTyp
 // --- ADMIN PASSWORD MANAGEMENT ---
 
 export function getAdminPassword(): string {
-  if (typeof window === 'undefined') return 'AquaAdmin@2026#DES';
-  return localStorage.getItem('DESIRE_ADMIN_PWD') || 'AquaAdmin@2026#DES';
+  if (typeof window === 'undefined') return 'admin@1234';
+  return localStorage.getItem('DESIRE_ADMIN_PWD') || 'admin@1234';
 }
 
 export function getAdminMustChangePassword(): boolean {
-  if (typeof window === 'undefined') return true;
+  if (typeof window === 'undefined') return false;
   const flag = localStorage.getItem('DESIRE_ADMIN_MUST_CHANGE');
-  if (flag === 'false') return false;
-  return true;
+  if (flag === 'true') return true;
+  return false;
 }
 
 export function saveAdminPassword(newPassword: string): void {

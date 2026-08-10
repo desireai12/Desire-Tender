@@ -97,17 +97,12 @@ export default function Home() {
     setTendersQueue((prev) => prev.map((t) => (t.id === updatedProcess.id ? updatedProcess : t)));
   };
 
-  // Render Dedicated /admin Portal
-  if (viewMode === 'admin') {
-    return <AdminPortal onBackToUserPortal={() => setViewMode('user')} />;
-  }
-
   // If user is not logged in, render the clean Login / Create Account Landing Page first
   if (!currentUser) {
     return (
       <LoginLanding 
         onLoginSuccess={handleLoginSuccess}
-        onNavigateAdmin={() => setViewMode('admin')}
+        onNavigateAdmin={() => window.location.href = '/admin'}
       />
     );
   }
@@ -123,7 +118,7 @@ export default function Home() {
         currentUser={currentUser}
         onLogout={handleLogout}
         onNavigateSettings={() => setActiveTab(activeRole === 'Admin' ? 'admin_config' : 'settings')}
-        onNavigateAdminPortal={() => setViewMode('admin')}
+        onNavigateAdminPortal={() => window.location.href = '/admin'}
       />
 
       {/* Pending User Approval Banner */}
