@@ -259,7 +259,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       try {
         const { data: dbCreated, error: insertError } = await supabase
           .from('users')
-          .insert({
+          .upsert({
             employee_id: empId,
             full_name: fullName,
             email: email,
@@ -270,7 +270,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             status: 'Pending',
             permissions: ['eligibility'],
             assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP']
-          })
+          }, { onConflict: 'employee_id' })
           .select('*')
           .single();
 

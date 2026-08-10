@@ -68,7 +68,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
       const { data: created, error: insertError } = await supabase
         .from('users')
-        .insert(newUserRecord)
+        .upsert(newUserRecord, { onConflict: 'employee_id' })
         .select('*')
         .single();
 

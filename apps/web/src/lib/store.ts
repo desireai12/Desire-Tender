@@ -34,7 +34,7 @@ export function saveUser(user: UserProfile): UserProfile[] {
     localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(updatedUsers));
   }
 
-  // Supabase Sync
+  // Supabase Sync — Match on employee_id to prevent UUID primary key type errors
   if (isSupabaseConfigured && supabase) {
     Promise.resolve(supabase.from('users').upsert({
       employee_id: user.employee_id,
@@ -42,12 +42,12 @@ export function saveUser(user: UserProfile): UserProfile[] {
       email: user.email,
       phone: user.phone,
       password_hash: user.password || 'desire@2026',
-      role: user.role,
-      department: user.department,
-      status: user.status,
-      permissions: user.permissions,
-      assigned_projects: user.assigned_projects
-    })).catch(() => null);
+      role: user.role || 'User',
+      department: user.department || 'Tender Team',
+      status: user.status || 'Pending',
+      permissions: user.permissions || ['eligibility'],
+      assigned_projects: user.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP']
+    }, { onConflict: 'employee_id' })).catch(() => null);
   }
 
   return updatedUsers;
