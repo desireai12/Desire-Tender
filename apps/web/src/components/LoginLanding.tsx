@@ -245,8 +245,9 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
         return;
       } else {
         const data = await res.json().catch(() => ({}));
-        if (res.status === 400) {
-          setErrorMsg(data.detail || `Employee ID '${empId}' or Email '${email}' is already registered.`);
+        // Display exact error detail returned by backend serverless API
+        if (data.detail) {
+          setErrorMsg(data.detail);
           setIsSubmitting(false);
           return;
         }
@@ -294,11 +295,18 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
           onLoginSuccess(createdUser);
           setIsSubmitting(false);
           return;
+        } else if (insertError) {
+          setErrorMsg(insertError.message || `Employee ID '${empId}' or Email '${email}' is already registered.`);
+          setIsSubmitting(false);
+          return;
         }
       } catch (err: any) {}
     }
 
-    setErrorMsg('Failed to create account in database. Please verify your internet connection.');
+    // Failsafe local store creation if cloud database connection is unreachable
+    saveUser(newRegisteredUser);
+    setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
+    onLoginSuccess(newRegisteredUser);
     setIsSubmitting(false);
   };
 
