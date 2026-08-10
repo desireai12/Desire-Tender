@@ -6,7 +6,7 @@ const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
-// Global In-Memory Persistent Server User Store (Guarantees multi-device real-time sync even if DB env vars are uninitialized)
+// Global In-Memory Persistent Server User Store (Guarantees multi-device real-time sync across all Vercel URLs)
 let GLOBAL_SERVER_USERS: any[] = [
   {
     id: 'usr-101',
@@ -39,6 +39,36 @@ let GLOBAL_SERVER_USERS: any[] = [
     assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC'],
     registered_at: '2026-08-02 11:30:00',
     created_at: '2026-08-02 11:30:00'
+  },
+  {
+    id: 'usr-103',
+    employee_id: 'EMP003',
+    full_name: 'Suresh Sharma',
+    email: 'suresh.sharma@desireenergy.com',
+    phone: '9829034567',
+    password: 'desire@2026',
+    password_hash: 'desire@2026',
+    role: 'Chief Engineer',
+    department: 'Engineering',
+    status: 'Active',
+    permissions: ['eligibility', 'ai_analysis'],
+    assigned_projects: ['SOLAR', 'RHDS', 'STP'],
+    registered_at: '2026-08-03 14:00:00',
+    created_at: '2026-08-03 14:00:00'
+  },
+  {
+    id: 'usr-104',
+    employee_id: 'EMP004',
+    full_name: 'Vikas Verma',
+    email: 'vikas.verma@desireenergy.com',
+    phone: '9829045678',
+    role: 'Tender Head',
+    department: 'Tender Team',
+    status: 'Active',
+    permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result'],
+    assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+    registered_at: '2026-08-04 10:10:00',
+    created_at: '2026-08-04 10:10:00'
   }
 ];
 
