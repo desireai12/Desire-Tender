@@ -162,20 +162,29 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
       } catch (err) {}
     }
 
-    if (users.length === 0) users = getStoredUsers();
+    // 3. ALWAYS merge local storage users so no newly registered user is EVER omitted
+    const userMap = new Map<string, UserProfile>();
+    users.forEach(u => userMap.set(u.employee_id, u));
+    getStoredUsers().forEach(u => {
+      if (!userMap.has(u.employee_id)) {
+        userMap.set(u.employee_id, u);
+      }
+    });
+    const finalUsers = Array.from(userMap.values());
+
     if (projects.length === 0) projects = getStoredProjects();
 
-    setUserList(users);
+    setUserList(finalUsers);
     setProjectList(projects);
 
     setMetrics({
-      total_users: users.length,
-      pending_users: users.filter(u => u.status === 'Pending').length,
-      active_users: users.filter(u => u.status === 'Active').length,
-      inactive_users: users.filter(u => u.status === 'Rejected' || u.status === 'Deactivated').length,
+      total_users: finalUsers.length,
+      pending_users: finalUsers.filter(u => u.status === 'Pending').length,
+      active_users: finalUsers.filter(u => u.status === 'Active').length,
+      inactive_users: finalUsers.filter(u => u.status === 'Rejected' || u.status === 'Deactivated').length,
       total_projects: projects.length,
       active_tenders: 8,
-      pending_approvals: users.filter(u => u.status === 'Pending').length,
+      pending_approvals: finalUsers.filter(u => u.status === 'Pending').length,
       completed_tenders: 14
     });
   };
