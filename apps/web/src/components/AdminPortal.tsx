@@ -97,25 +97,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
   }, [isAdminAuthenticated]);
 
   const fetchAdminData = async () => {
-    // Load stored users and projects immediately from store!
-    let users = getStoredUsers();
-    let projects = getStoredProjects();
+    let users: UserProfile[] = [];
+    let projects: Project[] = [];
 
-    setUserList(users);
-    setProjectList(projects);
-
-    // Query Supabase Cloud Database live!
+    // Query Supabase Cloud Database live as SINGLE SOURCE OF TRUTH!
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data: dbUsers, error } = await supabase.from('users').select('*');
-        if (!error && dbUsers && dbUsers.length > 0) {
-          const mappedUsers: UserProfile[] = dbUsers.map((u: any) => ({
+        const { data: dbUsers, error: uErr } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+        if (!uErr && dbUsers) {
+          users = dbUsers.map((u: any) => ({
             id: u.id || `usr-${u.employee_id}`,
             employee_id: u.employee_id,
             full_name: u.full_name,
             email: u.email,
             phone: u.phone,
-            password: u.password_hash || u.password || 'desire@2026',
+            password: u.password_hash || u.password || '••••••••',
             role: u.role || 'User',
             department: u.department || 'Tender Team',
             status: u.status || 'Pending',
@@ -124,21 +120,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             registered_at: u.created_at || new Date().toISOString(),
             last_login: u.updated_at || new Date().toISOString()
           }));
+        }
 
-          const mergedMap = new Map<string, UserProfile>();
-          users.forEach(u => mergedMap.set(u.employee_id, u));
-          mappedUsers.forEach(u => mergedMap.set(u.employee_id, u));
-
-          const finalUsers = Array.from(mergedMap.values());
-          setUserList(finalUsers);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(finalUsers));
-          }
-
-          users = finalUsers;
+        const { data: dbProjects, error: pErr } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+        if (!pErr && dbProjects) {
+          projects = dbProjects;
         }
       } catch (err) {}
+    } else {
+      users = getStoredUsers();
+      projects = getStoredProjects();
     }
+
+    setUserList(users);
+    setProjectList(projects);
 
     setMetrics({
       total_users: users.length,
@@ -152,7 +147,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
     });
   };
 
-  // Handle Admin Login — FAILSAFE WITH LIVE DB SYNC!
+  // Handle Admin Login — STRICT BACKEND API VALIDATION!
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null);
@@ -165,51 +160,29 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
       return;
     }
 
-    const currentAdminPwd = getAdminPassword();
-    const mustChange = getAdminMustChangePassword();
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/admin-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_id: aId, password: aPass })
+      });
 
-    // Query Supabase Cloud DB live for updated Admin Password if available
-    let dbAdminPwd = currentAdminPwd;
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data: cred } = await supabase.from('credentials').select('*').eq('provider', 'ADMIN_ACCOUNT').single();
-        if (cred && cred.encrypted_key) {
-          dbAdminPwd = cred.encrypted_key;
-        }
-      } catch (err) {}
-    }
+      const data = await res.json();
+      if (!res.ok) {
+        setLoginError(data.detail || 'Access Denied: Invalid Admin Credentials.');
+        return;
+      }
 
-    const isValidAdminId = (
-      aId === 'admin' || 
-      aId === 'administrator' || 
-      aId === 'emp001' || 
-      aId === 'emp999' || 
-      aId.includes('ankit') || 
-      aId.includes('admin')
-    );
-
-    const isValidPassword = (
-      aPass === dbAdminPwd || 
-      aPass === currentAdminPwd || 
-      aPass === 'admin' || 
-      aPass === 'AquaAdmin@2026#DES' || 
-      aPass === 'desire@2026' || 
-      aPass === 'desire@2026#BD' || 
-      aPass.length >= 4
-    );
-
-    if (isValidAdminId && isValidPassword) {
       setIsAdminAuthenticated(true);
-      if (mustChange && (aPass === 'AquaAdmin@2026#DES' || aPass === 'admin')) {
+      if (data.must_change_password) {
         setMustChangePassword(true);
       }
-      return;
+    } catch (err: any) {
+      setLoginError('Authentication server connection error. Please try again.');
     }
-
-    setLoginError('Access Denied: Invalid Admin Credentials.');
   };
 
-  // Handle Forced Password Change — ACTIVELY PERSIST NEW PASSWORD!
+  // Handle Forced Password Change — ACTIVELY PERSIST NEW PASSWORD TO SUPABASE DB & INVALIDATE OLD PASSWORD!
   const handleForcePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPwdChangeError(null);
@@ -223,12 +196,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
       return;
     }
 
-    // SAVE NEW ADMIN PASSWORD TO PERSISTENT STORAGE!
-    saveAdminPassword(newAdminPassword.trim());
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/admin-change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_password: newAdminPassword.trim() })
+      });
 
-    setMustChangePassword(false);
-    setToast('Admin Password updated successfully! Sub-sequent logins will require your new password.');
-    setTimeout(() => setToast(null), 4000);
+      const data = await res.json();
+      if (!res.ok) {
+        setPwdChangeError(data.detail || 'Failed to update Admin Password.');
+        return;
+      }
+
+      saveAdminPassword(newAdminPassword.trim());
+      setMustChangePassword(false);
+      setToast('Admin Password updated successfully in Supabase Database! Old password is now invalid.');
+      setTimeout(() => setToast(null), 4000);
+    } catch (err: any) {
+      setPwdChangeError('Server error while saving new password.');
+    }
   };
 
   // Admin Action: Approve / Reject / Deactivate User — ACTIVELY UPDATE STORE & PERMISSIONS!

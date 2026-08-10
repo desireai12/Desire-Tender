@@ -6,71 +6,6 @@ const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
-// Fallback in-memory cache if database is initializing
-let FALLBACK_ADMIN = {
-  admin_id: 'admin',
-  password: 'AquaAdmin@2026#DES',
-  must_change_password: true
-};
-
-let FALLBACK_USERS: any[] = [
-  {
-    id: 'usr-101',
-    employee_id: 'EMP001',
-    full_name: 'Ankit Purohit',
-    email: 'ankit.purohit@desireenergy.com',
-    phone: '9829012345',
-    password: 'desire@2026',
-    role: 'Administrator',
-    department: 'Admin',
-    status: 'Active',
-    permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
-    assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-    registered_at: '2026-08-01 09:00:00',
-    last_login: '2026-08-08 10:15:00'
-  },
-  {
-    id: 'usr-102',
-    employee_id: 'EMP002',
-    full_name: 'Deepak Khandelwal',
-    email: 'deepak.khandelwal@desireenergy.com',
-    phone: '9829023456',
-    password: 'desire@2026',
-    role: 'Sr Estimator',
-    department: 'Estimation Team',
-    status: 'Active',
-    permissions: ['eligibility', 'cost_estimation'],
-    assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC'],
-    registered_at: '2026-08-02 11:30:00',
-    last_login: '2026-08-08 09:45:00'
-  }
-];
-
-let FALLBACK_PROJECTS: any[] = [
-  {
-    id: 'proj-1',
-    name: 'Jal Jeevan Mission (JJM) Rural Water Supply',
-    type: 'RHDS',
-    client: 'PHED Rajasthan',
-    description: 'Rural water supply distribution schemes across 100,000+ villages under Jal Jeevan Mission.',
-    ai_instructions: 'Focus on HDPE/DI pipeline specs (PN-10/16), OHSR reservoir capacity, and 10-year O&M compliance.',
-    knowledge_sources: ['Company Profile', 'PHED Certificates', 'Water Historical BOQs', 'SOPs'],
-    status: 'Active',
-    created_at: '2026-08-01 10:00:00'
-  },
-  {
-    id: 'proj-2',
-    name: 'PM-Kusum Component-B Solar Pump Scheme',
-    type: 'KUSUM',
-    client: 'REDA / RRECL',
-    description: 'Implementation of off-grid solar water pumping systems for agricultural electrification.',
-    ai_instructions: 'Verify REDA empanelment, Sunaquator RMS 4G telemetry controllers, and solar pump specs.',
-    knowledge_sources: ['Company Profile', 'Solar Certificates', 'REDA Guidelines', 'Solar Historical BOQs'],
-    status: 'Active',
-    created_at: '2026-08-02 11:30:00'
-  }
-];
-
 // Helper to handle GET & POST for Vercel Serverless
 async function handleRequest(req: NextRequest, params: { path: string[] }) {
   const subPath = params.path.join('/');
@@ -90,67 +25,65 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     if (subPath === 'auth/register' && method === 'POST') {
       const empId = (body.employee_id || '').trim().toUpperCase();
       const email = (body.email || '').trim().toLowerCase();
-      const pass = (body.password || 'desire@2026').trim();
+      const pass = (body.password || '').trim();
 
       if (!empId) return NextResponse.json({ detail: 'Employee ID is required.' }, { status: 400 });
+      if (!email) return NextResponse.json({ detail: 'Email address is required.' }, { status: 400 });
+      if (!pass) return NextResponse.json({ detail: 'Password is required.' }, { status: 400 });
 
-      // Check Supabase Cloud Database first if connected
-      if (supabase) {
-        try {
-          const { data: existing } = await supabase.from('users').select('*').or(`employee_id.eq.${empId},email.eq.${email}`);
-          if (existing && existing.length > 0) {
-            return NextResponse.json({ detail: `Employee ID '${empId}' or Email is already registered.` }, { status: 400 });
-          }
-
-          const newUserRecord = {
-            employee_id: empId,
-            full_name: (body.full_name || '').trim(),
-            email: email,
-            phone: (body.phone || '').trim(),
-            password_hash: pass,
-            role: 'User',
-            department: 'Tender Team',
-            status: 'Pending',
-            permissions: ['eligibility'],
-            assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP']
-          };
-
-          const { data: created, error } = await supabase.from('users').insert(newUserRecord).select('*').single();
-          if (created && !error) {
-            return NextResponse.json({
-              status: 'success',
-              message: 'Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.',
-              user: created
-            });
-          }
-        } catch (e) {}
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
 
-      // Fallback local memory array
-      const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-      const newUser = {
-        id: `usr-${Date.now()}`,
+      console.log(`[AUTH REGISTER] Attempting registration for Employee ID: ${empId}, Email: ${email}`);
+
+      // Check if user already exists in Supabase
+      const { data: existing, error: checkError } = await supabase
+        .from('users')
+        .select('employee_id, email')
+        .or(`employee_id.eq.${empId},email.eq.${email}`);
+
+      if (checkError) {
+        console.error('[AUTH REGISTER ERROR]', checkError);
+        return NextResponse.json({ detail: `Database Query Error: ${checkError.message}` }, { status: 500 });
+      }
+
+      if (existing && existing.length > 0) {
+        return NextResponse.json({ detail: `Employee ID '${empId}' or Email '${email}' is already registered.` }, { status: 400 });
+      }
+
+      // Insert new user into Supabase Cloud Database
+      const newUserRecord = {
         employee_id: empId,
-        full_name: (body.full_name || '').trim(),
+        full_name: (body.full_name || '').trim() || empId,
         email: email,
         phone: (body.phone || '').trim(),
-        password: pass,
+        password_hash: pass,
         role: 'User',
         department: 'Tender Team',
         status: 'Pending',
         permissions: ['eligibility'],
-        assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-        registered_at: timestamp,
-        last_login: 'Never'
+        assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP']
       };
 
-      FALLBACK_USERS.unshift(newUser);
+      const { data: created, error: insertError } = await supabase
+        .from('users')
+        .insert(newUserRecord)
+        .select('*')
+        .single();
+
+      if (insertError) {
+        console.error('[AUTH REGISTER INSERT ERROR]', insertError);
+        return NextResponse.json({ detail: `Database Insert Error: ${insertError.message}` }, { status: 500 });
+      }
+
+      console.log(`[AUTH REGISTER SUCCESS] User created with ID: ${created.id}, Status: ${created.status}`);
 
       return NextResponse.json({
         status: 'success',
         message: 'Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.',
-        user: newUser
-      });
+        user: created
+      }, { status: 201 });
     }
 
     // 2. AUTH: USER LOGIN
@@ -158,66 +91,68 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const empId = (body.employee_id || '').trim().toUpperCase();
       const pass = (body.password || '').trim();
 
-      if (supabase) {
-        try {
-          const { data: dbUser } = await supabase.from('users').select('*').or(`employee_id.eq.${empId},email.eq.${empId.toLowerCase()}`).single();
-          if (dbUser) {
-            if (dbUser.password_hash === pass || pass === 'desire@2026' || pass === 'admin') {
-              let notice = null;
-              if (dbUser.status === 'Pending') {
-                notice = 'Your account is currently Pending Admin Approval. You can access Eligibility Checking.';
-              }
-              return NextResponse.json({
-                status: 'success',
-                message: `Welcome back, ${dbUser.full_name}!`,
-                notice: notice,
-                user: dbUser
-              });
-            } else {
-              return NextResponse.json({ detail: 'Access Denied: Incorrect password.' }, { status: 401 });
-            }
-          }
-        } catch (e) {}
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
 
-      // Local Fallback
-      const user = FALLBACK_USERS.find(u => u.employee_id === empId || u.email === empId.toLowerCase());
-      if (user) {
-        if (user.password === pass || pass === 'desire@2026' || pass === 'admin') {
-          return NextResponse.json({
-            status: 'success',
-            message: `Welcome back, ${user.full_name}!`,
-            user: user
-          });
-        }
+      const { data: dbUser, error: loginErr } = await supabase
+        .from('users')
+        .select('*')
+        .or(`employee_id.eq.${empId},email.eq.${empId.toLowerCase()}`)
+        .single();
+
+      if (loginErr || !dbUser) {
+        return NextResponse.json({ detail: 'Access Denied: Invalid Employee ID or Password.' }, { status: 401 });
       }
 
-      return NextResponse.json({ detail: 'Access Denied: Invalid Employee ID or Password.' }, { status: 401 });
+      if (dbUser.password_hash !== pass) {
+        return NextResponse.json({ detail: 'Access Denied: Incorrect Password.' }, { status: 401 });
+      }
+
+      let notice = null;
+      if (dbUser.status === 'Pending') {
+        notice = 'Your account is currently Pending Admin Approval. You can access Eligibility Checking.';
+      }
+
+      return NextResponse.json({
+        status: 'success',
+        message: `Welcome back, ${dbUser.full_name}!`,
+        notice: notice,
+        user: dbUser
+      });
     }
 
-    // 3. AUTH: ADMIN LOGIN (Queries Supabase DB for updated Admin Password!)
+    // 3. AUTH: ADMIN LOGIN (Strict backend validation against Supabase credentials)
     if (subPath === 'auth/admin-login' && method === 'POST') {
-      const adminId = (body.admin_id || '').trim();
+      const adminId = (body.admin_id || '').trim().toLowerCase();
       const pass = (body.password || '').trim();
 
-      if (adminId.toLowerCase() !== 'admin' && adminId.toLowerCase() !== 'emp999') {
+      if (adminId !== 'admin' && adminId !== 'emp999' && !adminId.includes('admin')) {
         return NextResponse.json({ detail: 'Access Denied: Invalid Admin ID.' }, { status: 401 });
       }
 
-      let currentAdminPwd = FALLBACK_ADMIN.password;
-      let mustChange = FALLBACK_ADMIN.must_change_password;
-
-      if (supabase) {
-        try {
-          const { data: adminCred } = await supabase.from('credentials').select('*').eq('provider', 'ADMIN_ACCOUNT').single();
-          if (adminCred) {
-            currentAdminPwd = adminCred.encrypted_key;
-            mustChange = adminCred.status === 'MUST_CHANGE';
-          }
-        } catch (e) {}
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
 
-      if (pass !== currentAdminPwd && pass !== 'AquaAdmin@2026#DES' && pass !== 'admin') {
+      // Fetch stored Admin Password from Supabase credentials table
+      let activeAdminPwd = 'AquaAdmin@2026#DES';
+      let mustChange = true;
+
+      const { data: adminCred } = await supabase
+        .from('credentials')
+        .select('*')
+        .eq('provider', 'ADMIN_ACCOUNT')
+        .single();
+
+      if (adminCred && adminCred.encrypted_key) {
+        activeAdminPwd = adminCred.encrypted_key;
+        mustChange = adminCred.status === 'MUST_CHANGE';
+      }
+
+      // STRICT VALIDATION: OLD PASSWORDS OR INCORRECT PASSWORDS ARE FULLY REJECTED!
+      if (pass !== activeAdminPwd) {
+        console.log(`[ADMIN LOGIN REJECTED] Provided password does not match active Admin password in Supabase DB.`);
         return NextResponse.json({ detail: 'Access Denied: Invalid Admin Password.' }, { status: 401 });
       }
 
@@ -233,63 +168,80 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       });
     }
 
-    // 4. AUTH: ADMIN CHANGE PASSWORD (PERSISTS TO SUPABASE DB!)
+    // 4. AUTH: ADMIN CHANGE PASSWORD (UPDATES SUPABASE DB & INVALIDATES OLD PASSWORDS)
     if (subPath === 'auth/admin-change-password' && method === 'POST') {
       const newPwd = (body.new_password || '').trim();
+      const currentPwd = (body.current_password || '').trim();
+
       if (!newPwd || newPwd.length < 8) {
         return NextResponse.json({ detail: 'Admin Password must be at least 8 characters long.' }, { status: 400 });
       }
 
-      FALLBACK_ADMIN.password = newPwd;
-      FALLBACK_ADMIN.must_change_password = false;
-
-      if (supabase) {
-        try {
-          await supabase.from('credentials').upsert({
-            provider: 'ADMIN_ACCOUNT',
-            key_type: 'Admin Dashboard Password',
-            encrypted_key: newPwd,
-            status: 'ACTIVE',
-            updated_at: new Date().toISOString()
-          });
-        } catch (e) {}
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
+
+      // Update Supabase Cloud Database credentials table
+      const { error: updateErr } = await supabase
+        .from('credentials')
+        .upsert({
+          provider: 'ADMIN_ACCOUNT',
+          key_type: 'Admin Dashboard Password',
+          encrypted_key: newPwd,
+          status: 'ACTIVE',
+          updated_at: new Date().toISOString()
+        });
+
+      if (updateErr) {
+        console.error('[ADMIN CHANGE PWD ERROR]', updateErr);
+        return NextResponse.json({ detail: `Failed to update password in database: ${updateErr.message}` }, { status: 500 });
+      }
+
+      console.log(`[ADMIN PWD UPDATED] New Admin Password saved to Supabase DB. Old password invalidated.`);
 
       return NextResponse.json({
         status: 'success',
-        message: 'Admin password updated successfully and saved to Supabase Database!'
+        message: 'Admin password updated successfully in Supabase Database. Old password is now invalid.'
       });
     }
 
-    // 5. AUTH: USERS LIST (Queries Supabase DB & includes User Passwords for Admin!)
+    // 5. AUTH: USERS LIST (Queries Supabase DB Directly — No Merging Mock Data)
     if (subPath === 'auth/users' && method === 'GET') {
-      if (supabase) {
-        try {
-          const { data: dbUsers } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-          if (dbUsers && dbUsers.length > 0) {
-            const mapped = dbUsers.map((u: any) => ({
-              id: u.id || `usr-${u.employee_id}`,
-              employee_id: u.employee_id,
-              full_name: u.full_name,
-              email: u.email,
-              phone: u.phone,
-              password: u.password_hash || 'desire@2026',
-              role: u.role || 'User',
-              department: u.department || 'Tender Team',
-              status: u.status || 'Pending',
-              permissions: Array.isArray(u.permissions) ? u.permissions : ['eligibility'],
-              assigned_projects: Array.isArray(u.assigned_projects) ? u.assigned_projects : ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-              registered_at: u.created_at || new Date().toISOString()
-            }));
-            return NextResponse.json({ status: 'success', total_users: mapped.length, users: mapped });
-          }
-        } catch (e) {}
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
+
+      const { data: dbUsers, error: usersErr } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (usersErr) {
+        console.error('[FETCH USERS ERROR]', usersErr);
+        return NextResponse.json({ detail: `Database Error: ${usersErr.message}` }, { status: 500 });
+      }
+
+      const mappedUsers = (dbUsers || []).map((u: any) => ({
+        id: u.id,
+        employee_id: u.employee_id,
+        full_name: u.full_name,
+        email: u.email,
+        phone: u.phone,
+        password: u.password_hash || '••••••••',
+        role: u.role || 'User',
+        department: u.department || 'Tender Team',
+        status: u.status || 'Pending',
+        permissions: Array.isArray(u.permissions) ? u.permissions : ['eligibility'],
+        assigned_projects: Array.isArray(u.assigned_projects) ? u.assigned_projects : ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+        registered_at: u.created_at || new Date().toISOString()
+      }));
+
+      console.log(`[FETCH USERS SUCCESS] Database returned ${mappedUsers.length} records.`);
 
       return NextResponse.json({
         status: 'success',
-        total_users: FALLBACK_USERS.length,
-        users: FALLBACK_USERS
+        total_users: mappedUsers.length,
+        users: mappedUsers
       });
     }
 
@@ -298,24 +250,27 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const { user_id, employee_id, department, is_approved, new_password, permissions } = body;
       const empId = employee_id || user_id;
 
-      let targetUser = FALLBACK_USERS.find(u => u.id === empId || u.employee_id === empId);
-      if (targetUser) {
-        if (department) targetUser.department = department;
-        if (is_approved !== undefined) targetUser.status = is_approved ? 'Active' : 'Pending';
-        if (new_password) targetUser.password = new_password;
-        if (permissions) targetUser.permissions = permissions;
+      if (!empId) return NextResponse.json({ detail: 'Employee ID is required.' }, { status: 400 });
+
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
 
-      if (supabase) {
-        try {
-          const updateData: any = {};
-          if (department) updateData.department = department;
-          if (is_approved !== undefined) updateData.status = is_approved ? 'Active' : 'Pending';
-          if (new_password) updateData.password_hash = new_password;
-          if (permissions) updateData.permissions = permissions;
+      const updateData: any = {};
+      if (department) updateData.department = department;
+      if (is_approved !== undefined) updateData.status = is_approved ? 'Active' : 'Pending';
+      if (new_password) updateData.password_hash = new_password;
+      if (permissions) updateData.permissions = permissions;
+      updateData.updated_at = new Date().toISOString();
 
-          await supabase.from('users').update(updateData).or(`employee_id.eq.${empId},id.eq.${empId}`);
-        } catch (e) {}
+      const { error: updateErr } = await supabase
+        .from('users')
+        .update(updateData)
+        .or(`employee_id.eq.${empId},id.eq.${empId}`);
+
+      if (updateErr) {
+        console.error('[UPDATE USER ERROR]', updateErr);
+        return NextResponse.json({ detail: `Database Update Error: ${updateErr.message}` }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -326,20 +281,21 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
     // 7. ADMIN METRICS & PROJECTS
     if (subPath === 'admin/metrics' && method === 'GET') {
-      let totalU = FALLBACK_USERS.length;
-      let pendingU = FALLBACK_USERS.filter(u => u.status === 'Pending').length;
-      let activeU = FALLBACK_USERS.filter(u => u.status === 'Active').length;
-
-      if (supabase) {
-        try {
-          const { data: dbU } = await supabase.from('users').select('status');
-          if (dbU) {
-            totalU = dbU.length;
-            pendingU = dbU.filter(u => u.status === 'Pending').length;
-            activeU = dbU.filter(u => u.status === 'Active').length;
-          }
-        } catch (e) {}
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
+
+      const { data: dbU, error: uErr } = await supabase.from('users').select('status');
+      const { data: dbP } = await supabase.from('projects').select('id');
+
+      if (uErr) {
+        return NextResponse.json({ detail: `Database Error: ${uErr.message}` }, { status: 500 });
+      }
+
+      const totalU = dbU ? dbU.length : 0;
+      const pendingU = dbU ? dbU.filter(u => u.status === 'Pending').length : 0;
+      const activeU = dbU ? dbU.filter(u => u.status === 'Active').length : 0;
+      const totalP = dbP ? dbP.length : 0;
 
       return NextResponse.json({
         status: 'success',
@@ -347,8 +303,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           total_users: totalU,
           pending_users: pendingU,
           active_users: activeU,
-          inactive_users: 0,
-          total_projects: FALLBACK_PROJECTS.length,
+          inactive_users: totalU - (pendingU + activeU),
+          total_projects: totalP,
           active_tenders: 8,
           pending_approvals: pendingU,
           completed_tenders: 14
@@ -357,15 +313,15 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     }
 
     if (subPath === 'admin/projects') {
-      if (method === 'GET') {
-        if (supabase) {
-          try {
-            const { data: dbP } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-            if (dbP && dbP.length > 0) return NextResponse.json({ status: 'success', projects: dbP });
-          } catch (e) {}
-        }
-        return NextResponse.json({ status: 'success', projects: FALLBACK_PROJECTS });
+      if (!supabase) {
+        return NextResponse.json({ detail: 'Supabase Database client is not configured on server.' }, { status: 500 });
       }
+
+      if (method === 'GET') {
+        const { data: dbP } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+        return NextResponse.json({ status: 'success', projects: dbP || [] });
+      }
+
       if (method === 'POST') {
         const newP = {
           id: `proj-${Date.now()}`,
@@ -379,16 +335,15 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           created_at: new Date().toISOString()
         };
 
-        if (supabase) {
-          try { await supabase.from('projects').insert(newP); } catch (e) {}
+        const { data: createdP, error: pErr } = await supabase.from('projects').insert(newP).select('*').single();
+        if (pErr) {
+          return NextResponse.json({ detail: `Project Creation Error: ${pErr.message}` }, { status: 500 });
         }
 
-        FALLBACK_PROJECTS.unshift(newP);
-        return NextResponse.json({ status: 'success', project: newP });
+        return NextResponse.json({ status: 'success', project: createdP }, { status: 201 });
       }
     }
 
-    // Fallback JSON for all other paths
     return NextResponse.json({
       status: 'success',
       message: 'Desire Tender Vercel Cloud Serverless API Service Online.'

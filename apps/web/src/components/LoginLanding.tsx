@@ -175,9 +175,9 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       last_login: new Date().toISOString()
     };
 
-    // PERSIST USER IMMEDIATELY IN SUPABASE CLOUD DATABASE & VERCEL API!
+    // PERSIST USER SYNCHRONOUSLY IN SUPABASE CLOUD DATABASE VIA VERCEL BACKEND API!
     try {
-      await fetch(`${API_BASE_URL}/auth/register`, {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -188,13 +188,37 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
           password: pass
         })
       });
-    } catch (e) {}
 
-    saveUser(newRegisteredUser);
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data.detail || 'Registration failed on server. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
 
-    setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
-    onLoginSuccess(newRegisteredUser);
-    setIsSubmitting(false);
+      const createdUser: UserProfile = data.user ? {
+        id: data.user.id || newRegisteredUser.id,
+        employee_id: data.user.employee_id,
+        full_name: data.user.full_name,
+        email: data.user.email,
+        phone: data.user.phone,
+        role: data.user.role || 'User',
+        department: data.user.department || 'Tender Team',
+        status: data.user.status || 'Pending',
+        permissions: data.user.permissions || ['eligibility'],
+        assigned_projects: data.user.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+        registered_at: data.user.created_at || newRegisteredUser.registered_at,
+        last_login: new Date().toISOString()
+      } : newRegisteredUser;
+
+      saveUser(createdUser);
+      setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
+      onLoginSuccess(createdUser);
+    } catch (e: any) {
+      setErrorMsg('Network error connecting to registration server.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

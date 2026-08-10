@@ -1,115 +1,21 @@
 import { UserProfile, Project, PermissionType, UserStatus, DepartmentRole } from './types';
 import { supabase, isSupabaseConfigured } from './supabase';
 
-// Default initial users
-const INITIAL_USERS: UserProfile[] = [
-  {
-    id: 'usr-101',
-    employee_id: 'EMP001',
-    full_name: 'Ankit Purohit',
-    email: 'ankit.purohit@desireenergy.com',
-    phone: '9829012345',
-    role: 'Administrator',
-    department: 'Admin',
-    status: 'Active',
-    permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
-    assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-    registered_at: '2026-08-01 09:00:00',
-    last_login: '2026-08-08 10:15:00'
-  },
-  {
-    id: 'usr-102',
-    employee_id: 'EMP002',
-    full_name: 'Deepak Khandelwal',
-    email: 'deepak.khandelwal@desireenergy.com',
-    phone: '9829023456',
-    role: 'Sr Estimator',
-    department: 'Estimation Team',
-    status: 'Active',
-    permissions: ['eligibility', 'cost_estimation'],
-    assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC'],
-    registered_at: '2026-08-02 11:30:00',
-    last_login: '2026-08-08 09:45:00'
-  },
-  {
-    id: 'usr-103',
-    employee_id: 'EMP003',
-    full_name: 'Suresh Sharma',
-    email: 'suresh.sharma@desireenergy.com',
-    phone: '9829034567',
-    role: 'Chief Engineer',
-    department: 'Engineering',
-    status: 'Active',
-    permissions: ['eligibility', 'ai_analysis'],
-    assigned_projects: ['SOLAR', 'RHDS', 'STP'],
-    registered_at: '2026-08-03 14:00:00',
-    last_login: '2026-08-07 16:20:00'
-  },
-  {
-    id: 'usr-104',
-    employee_id: 'EMP004',
-    full_name: 'Vikas Verma',
-    email: 'vikas.verma@desireenergy.com',
-    phone: '9829045678',
-    role: 'Tender Head',
-    department: 'Tender Team',
-    status: 'Active',
-    permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result'],
-    assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-    registered_at: '2026-08-04 10:10:00',
-    last_login: '2026-08-08 08:30:00'
-  }
-];
+// Initial seed accounts (Only used as fallback if local storage is completely uninitialized and database is offline)
+const INITIAL_USERS: UserProfile[] = [];
 
-const INITIAL_PROJECTS: Project[] = [
-  {
-    id: 'proj-1',
-    name: 'Jal Jeevan Mission (JJM) Rural Water Supply',
-    type: 'RHDS',
-    client: 'PHED Rajasthan',
-    description: 'Rural water supply distribution schemes across 100,000+ villages under Jal Jeevan Mission.',
-    ai_instructions: 'Focus on HDPE/DI pipeline specs (PN-10/16), OHSR reservoir capacity, and 10-year O&M compliance.',
-    knowledge_sources: ['Company Profile', 'PHED Certificates', 'Water Historical BOQs', 'SOPs'],
-    status: 'Active',
-    created_at: '2026-08-01 10:00:00'
-  },
-  {
-    id: 'proj-2',
-    name: 'PM-Kusum Component-B Solar Pump Scheme',
-    type: 'KUSUM',
-    client: 'REDA / RRECL',
-    description: 'Implementation of off-grid solar water pumping systems for agricultural electrification.',
-    ai_instructions: 'Verify REDA empanelment, Sunaquator RMS 4G telemetry controllers, and solar pump specs.',
-    knowledge_sources: ['Company Profile', 'Solar Certificates', 'REDA Guidelines', 'Solar Historical BOQs'],
-    status: 'Active',
-    created_at: '2026-08-02 11:30:00'
-  },
-  {
-    id: 'proj-3',
-    name: 'Solar Utility Scale Photovoltaic EPC Projects',
-    type: 'SOLAR',
-    client: 'NTPC / SECI',
-    description: 'Utility scale ground-mounted solar power plants and grid interconnection infrastructure.',
-    ai_instructions: 'Verify PV module wattages, inverter efficiency (>98.5%), and Class-A electrical license.',
-    knowledge_sources: ['Company Profile', 'Solar Certificates', 'Solar Historical BOQs', 'Competitor Data'],
-    status: 'Active',
-    created_at: '2026-08-03 14:15:00'
-  }
-];
+const INITIAL_PROJECTS: Project[] = [];
 
 // --- STORAGE HELPER FUNCTIONS ---
 
 export function getStoredUsers(): UserProfile[] {
-  if (typeof window === 'undefined') return INITIAL_USERS;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem('DESIRE_SYSTEM_USERS');
-    if (!raw) {
-      localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(INITIAL_USERS));
-      return INITIAL_USERS;
-    }
+    if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
-    return INITIAL_USERS;
+    return [];
   }
 }
 
