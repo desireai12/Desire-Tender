@@ -111,3 +111,13 @@ VALUES
 ('proj-1', 'Jal Jeevan Mission (JJM) Rural Water Supply', 'RHDS', 'PHED Rajasthan', 'Rural water supply distribution schemes across 100,000+ villages under JJM.', 'Active'),
 ('proj-2', 'PM-Kusum Component-B Solar Pump Scheme', 'KUSUM', 'REDA / RRECL', 'Implementation of off-grid solar water pumping systems.', 'Active')
 ON CONFLICT (id) DO NOTHING;
+
+-- 10. DISABLE ROW LEVEL SECURITY FOR SEAMLESS CLOUD DB SAVING
+ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tenders DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.boq_items DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.projects DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ai_configs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.credentials DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
+

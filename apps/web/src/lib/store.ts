@@ -135,7 +135,7 @@ export function saveUser(user: UserProfile): UserProfile[] {
       full_name: user.full_name,
       email: user.email,
       phone: user.phone,
-      password_hash: 'desire@2026',
+      password_hash: user.password || 'desire@2026',
       role: user.role,
       department: user.department,
       status: user.status,

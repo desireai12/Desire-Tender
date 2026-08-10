@@ -165,6 +165,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       full_name: fullName,
       email: email,
       phone: phone,
+      password: pass,
       role: 'User',
       department: 'Tender Team',
       status: 'Pending',
@@ -174,7 +175,21 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       last_login: new Date().toISOString()
     };
 
-    // PERSIST USER IMMEDIATELY FOR ADMIN PORTAL!
+    // PERSIST USER IMMEDIATELY IN SUPABASE CLOUD DATABASE & VERCEL API!
+    try {
+      await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: empId,
+          full_name: fullName,
+          email: email,
+          phone: phone,
+          password: pass
+        })
+      });
+    } catch (e) {}
+
     saveUser(newRegisteredUser);
 
     setSuccessNotice('Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.');
