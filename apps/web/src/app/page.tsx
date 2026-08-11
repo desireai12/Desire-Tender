@@ -159,9 +159,9 @@ export default function Home() {
           stage_status: newProcess.stage_status || 'In Progress',
           eligibility_result: newProcess.eligibility_result || null,
           ai_report: newProcess.ai_report || null,
-          bid_decision: newProcess.bid_decision || null,
-          bid_submission: newProcess.bid_submission || null,
-          tender_result: newProcess.tender_result || null,
+          bid_decision: (newProcess as any).bid_decision || (newProcess.did_apply !== undefined ? { did_apply: newProcess.did_apply, reason: newProcess.apply_decision_reason } : null),
+          bid_submission: (newProcess as any).bid_submission || newProcess.bid_details || null,
+          tender_result: (newProcess as any).tender_result || (newProcess.result_status ? { result_status: newProcess.result_status, lost_details: newProcess.lost_reason_details } : null),
           audit_trail: newProcess.audit_trail || [],
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
@@ -195,9 +195,9 @@ export default function Home() {
           stage_status: updatedProcess.stage_status || 'In Progress',
           eligibility_result: updatedProcess.eligibility_result || null,
           ai_report: updatedProcess.ai_report || null,
-          bid_decision: updatedProcess.bid_decision || null,
-          bid_submission: updatedProcess.bid_submission || null,
-          tender_result: updatedProcess.tender_result || null,
+          bid_decision: (updatedProcess as any).bid_decision || (updatedProcess.did_apply !== undefined ? { did_apply: updatedProcess.did_apply, reason: updatedProcess.apply_decision_reason } : null),
+          bid_submission: (updatedProcess as any).bid_submission || updatedProcess.bid_details || null,
+          tender_result: (updatedProcess as any).tender_result || (updatedProcess.result_status ? { result_status: updatedProcess.result_status, lost_details: updatedProcess.lost_reason_details } : null),
           audit_trail: updatedProcess.audit_trail || [],
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });

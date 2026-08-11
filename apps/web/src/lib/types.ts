@@ -142,6 +142,10 @@ export interface TenderProcess {
     lessons_learned: string;
   };
 
+  bid_decision?: any;
+  bid_submission?: any;
+  tender_result?: any;
+
   audit_trail: AuditLog[];
 }
 
