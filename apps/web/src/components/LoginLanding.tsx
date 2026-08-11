@@ -49,6 +49,19 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Helper for client-side SHA-256 password hashing
+  const hashPasswordClient = async (pass: string): Promise<string> => {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pass.trim());
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      return pass.trim();
+    }
+  };
+
   // Execute User Authentication (Sign In) — STRICT DATABASE AUTHENTICATION
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,14 +122,20 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
     // 2. Client-side Supabase direct query fallback if API endpoint is unreachable
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data: dbUser, error: sErr } = await supabase
+        const { data: dbUsers } = await supabase
           .from('users')
-          .select('*')
-          .or(`employee_id.eq.${targetEmp},email.eq.${targetEmp.toLowerCase()}`)
-          .single();
+          .select('*');
 
-        if (!sErr && dbUser) {
-          if (dbUser.password_hash === targetPass || targetPass === 'desire@2026') {
+        const dbUser = dbUsers?.find((u: any) =>
+          (u.employee_id && u.employee_id.trim().toLowerCase() === targetEmp.toLowerCase()) ||
+          (u.email && u.email.trim().toLowerCase() === targetEmp.toLowerCase())
+        );
+
+        if (dbUser) {
+          const clientHash = await hashPasswordClient(targetPass);
+          const isPasswordMatch = (dbUser.password_hash === targetPass || dbUser.password_hash === clientHash);
+
+          if (isPasswordMatch) {
             const authenticatedUser: UserProfile = {
               id: dbUser.id || `usr-${dbUser.employee_id}`,
               employee_id: dbUser.employee_id,
@@ -258,6 +277,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
     // Direct Supabase Write Fallback if API serverless route is initializing
     if (isSupabaseConfigured && supabase) {
       try {
+        const passHash = await hashPasswordClient(pass);
         const { data: dbCreated, error: insertError } = await supabase
           .from('users')
           .upsert({
@@ -265,7 +285,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             full_name: fullName,
             email: email,
             phone: phone,
-            password_hash: pass,
+            password_hash: passHash,
             role: 'User',
             department: 'Tender Team',
             status: 'Pending',
@@ -282,7 +302,6 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             full_name: dbCreated.full_name,
             email: dbCreated.email,
             phone: dbCreated.phone,
-            password: pass,
             role: dbCreated.role || 'User',
             department: dbCreated.department || 'Tender Team',
             status: dbCreated.status || 'Pending',

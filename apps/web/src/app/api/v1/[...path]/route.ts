@@ -1,10 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 // Initialize Supabase Client for Vercel Serverless API
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
+
+// Secure SHA-256 password hash generator
+function hashPassword(pass: string): string {
+  if (!pass) return '';
+  return crypto.createHash('sha256').update(pass.trim()).digest('hex');
+}
+
+// Secure password verification helper (matches exact string or SHA-256 hash)
+function verifyPassword(inputPass: string, storedHash: string): boolean {
+  if (!inputPass || !storedHash) return false;
+  const cleanInput = inputPass.trim();
+  const cleanStored = storedHash.trim();
+  return cleanStored === cleanInput || cleanStored === hashPassword(cleanInput);
+}
+
+// Helper to strip sensitive password data from user object before sending to frontend
+function sanitizeUser(user: any) {
+  if (!user) return user;
+  const { password, password_hash, ...safeUser } = user;
+  return safeUser;
+}
 
 // Global In-Memory Persistent Server User Store (Guarantees multi-device real-time sync across all Vercel URLs)
 let GLOBAL_SERVER_USERS: any[] = [
@@ -14,8 +36,7 @@ let GLOBAL_SERVER_USERS: any[] = [
     full_name: 'Ankit Purohit',
     email: 'ankit.purohit@desireenergy.com',
     phone: '9829012345',
-    password: 'desire@2026',
-    password_hash: 'desire@2026',
+    password_hash: hashPassword('Ankit@EMP001#2026'),
     role: 'Administrator',
     department: 'Admin',
     status: 'Active',
@@ -30,8 +51,7 @@ let GLOBAL_SERVER_USERS: any[] = [
     full_name: 'Deepak Khandelwal',
     email: 'deepak.khandelwal@desireenergy.com',
     phone: '9829023456',
-    password: 'desire@2026',
-    password_hash: 'desire@2026',
+    password_hash: hashPassword('Deepak@EMP002#2026'),
     role: 'Sr Estimator',
     department: 'Estimation Team',
     status: 'Active',
@@ -46,8 +66,7 @@ let GLOBAL_SERVER_USERS: any[] = [
     full_name: 'Suresh Sharma',
     email: 'suresh.sharma@desireenergy.com',
     phone: '9829034567',
-    password: 'desire@2026',
-    password_hash: 'desire@2026',
+    password_hash: hashPassword('Suresh@EMP003#2026'),
     role: 'Chief Engineer',
     department: 'Engineering',
     status: 'Active',
@@ -62,6 +81,7 @@ let GLOBAL_SERVER_USERS: any[] = [
     full_name: 'Vikas Verma',
     email: 'vikas.verma@desireenergy.com',
     phone: '9829045678',
+    password_hash: hashPassword('Vikas@EMP004#2026'),
     role: 'Tender Head',
     department: 'Tender Team',
     status: 'Active',
@@ -107,14 +127,15 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         return NextResponse.json({ detail: `Employee ID '${empId}' or Email '${email}' is already registered.` }, { status: 400 });
       }
 
+      const passHash = hashPassword(pass);
+
       let createdUserRecord: any = {
         id: `usr-${Date.now()}`,
         employee_id: empId,
         full_name: (body.full_name || '').trim() || empId,
         email: email,
         phone: (body.phone || '').trim(),
-        password: pass,
-        password_hash: pass,
+        password_hash: passHash,
         role: 'User',
         department: 'Tender Team',
         status: 'Pending',
@@ -142,7 +163,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
               full_name: createdUserRecord.full_name,
               email: email,
               phone: createdUserRecord.phone,
-              password_hash: pass,
+              password_hash: passHash,
               role: 'User',
               department: 'Tender Team',
               status: 'Pending',
@@ -172,7 +193,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       return NextResponse.json({
         status: 'success',
         message: 'Your account has been created successfully. You can currently access Eligibility Checking. Additional modules will become available after Admin approval.',
-        user: createdUserRecord
+        user: sanitizeUser(createdUserRecord)
       }, { status: 201 });
     }
 
@@ -180,6 +201,10 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     if (subPath === 'auth/login' && method === 'POST') {
       const empId = (body.employee_id || '').trim().toUpperCase();
       const pass = (body.password || '').trim();
+
+      if (!empId || !pass) {
+        return NextResponse.json({ detail: 'Employee ID and Password are required.' }, { status: 400 });
+      }
 
       // Check Server In-Memory Store first
       let targetUser = GLOBAL_SERVER_USERS.find(
@@ -189,14 +214,15 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       // Check Supabase if available
       if (supabase && !targetUser) {
         try {
-          const { data: dbUser } = await supabase
+          const { data: dbUsers } = await supabase
             .from('users')
-            .select('*')
-            .or(`employee_id.eq.${empId},email.eq.${empId.toLowerCase()}`)
-            .single();
+            .select('*');
 
-          if (dbUser) {
-            targetUser = dbUser;
+          if (dbUsers && dbUsers.length > 0) {
+            targetUser = dbUsers.find((u: any) =>
+              (u.employee_id && u.employee_id.trim().toLowerCase() === empId.toLowerCase()) ||
+              (u.email && u.email.trim().toLowerCase() === empId.toLowerCase())
+            );
           }
         } catch (e) {}
       }
@@ -205,8 +231,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         return NextResponse.json({ detail: 'Access Denied: Invalid Employee ID or Password. Please register a new account.' }, { status: 401 });
       }
 
-      const matchPass = targetUser.password_hash || targetUser.password || 'desire@2026';
-      if (matchPass !== pass && pass !== 'desire@2026') {
+      const storedHash = targetUser.password_hash || targetUser.password || '';
+      if (!verifyPassword(pass, storedHash)) {
         return NextResponse.json({ detail: 'Access Denied: Incorrect Password.' }, { status: 401 });
       }
 
@@ -219,7 +245,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         status: 'success',
         message: `Welcome back, ${targetUser.full_name}!`,
         notice: notice,
-        user: targetUser
+        user: sanitizeUser(targetUser)
       });
     }
 
@@ -233,6 +259,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
 
       let activeAdminPwd = 'admin@1234';
+      let isCustomAdminPwd = false;
       let mustChange = false;
 
       if (supabase) {
@@ -245,13 +272,21 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
           if (adminCred && adminCred.encrypted_key) {
             activeAdminPwd = adminCred.encrypted_key;
+            isCustomAdminPwd = true;
             mustChange = adminCred.status === 'MUST_CHANGE';
           }
         } catch (e) {}
       }
 
-      const isMasterRecoveryPwd = (pass === 'admin@1234' || pass === 'AquaAdmin@2026#DES' || pass === 'desire@2026' || pass === 'admin');
-      const isMatch = (pass === activeAdminPwd || isMasterRecoveryPwd);
+      const cleanPass = pass.trim();
+      let isMatch = false;
+      if (isCustomAdminPwd) {
+        // Strict match when custom password is configured
+        isMatch = (cleanPass === activeAdminPwd);
+      } else {
+        // Initial setup fallback only
+        isMatch = (cleanPass === activeAdminPwd || cleanPass === 'AquaAdmin@2026#DES');
+      }
 
       if (!isMatch) {
         return NextResponse.json({ detail: 'Access Denied: Invalid Admin Password.' }, { status: 401 });
@@ -333,11 +368,21 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       // 2. Merge Server In-Memory Store so NO account registered on any device is ever lost
       GLOBAL_SERVER_USERS.forEach((u: any) => {
         if (!combinedMap.has(u.employee_id)) {
-          combinedMap.set(u.employee_id, u);
+          combinedMap.set(u.employee_id, {
+            ...u,
+            password: '••••••••',
+            password_hash: undefined
+          });
         }
       });
 
-      const finalUsers = Array.from(combinedMap.values());
+      const finalUsers = Array.from(combinedMap.values()).map(u => {
+        const { password_hash, password, ...safeU } = u;
+        return {
+          ...safeU,
+          password: '••••••••'
+        };
+      });
 
       return NextResponse.json({
         status: 'success',
@@ -353,16 +398,21 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
       if (!empId) return NextResponse.json({ detail: 'Employee ID is required.' }, { status: 400 });
 
+      const newPassHash = new_password && new_password.trim() !== '' ? hashPassword(new_password.trim()) : null;
+
       // Update Server In-Memory Store
       GLOBAL_SERVER_USERS = GLOBAL_SERVER_USERS.map(u => {
         if (u.employee_id === empId || u.id === empId) {
-          return {
+          const updated: any = {
             ...u,
             department: department || u.department,
             status: is_approved !== undefined ? (is_approved ? 'Active' : 'Pending') : u.status,
-            permissions: permissions || u.permissions,
-            password: new_password || u.password
+            permissions: permissions || u.permissions
           };
+          if (newPassHash) {
+            updated.password_hash = newPassHash;
+          }
+          return updated;
         }
         return u;
       });
@@ -373,7 +423,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           const updateData: any = {};
           if (department) updateData.department = department;
           if (is_approved !== undefined) updateData.status = is_approved ? 'Active' : 'Pending';
-          if (new_password) updateData.password_hash = new_password;
+          if (newPassHash) updateData.password_hash = newPassHash;
           if (permissions) updateData.permissions = permissions;
           updateData.updated_at = new Date().toISOString();
 
@@ -417,6 +467,178 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           completed_tenders: 14
         }
       });
+    }
+
+    // 8. DATA: TENDERS GET & POST
+    if (subPath === 'tenders') {
+      if (method === 'GET') {
+        if (supabase) {
+          try {
+            const { data: dbTenders, error } = await supabase
+              .from('tenders')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (!error && dbTenders) {
+              return NextResponse.json({ status: 'success', tenders: dbTenders });
+            }
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', tenders: [] });
+      }
+
+      if (method === 'POST') {
+        const tenderRecord = body;
+        if (!tenderRecord || !tenderRecord.id) {
+          return NextResponse.json({ detail: 'Tender ID and details required.' }, { status: 400 });
+        }
+
+        if (supabase) {
+          try {
+            await supabase.from('tenders').upsert({
+              id: tenderRecord.id,
+              tender_name: tenderRecord.tender_name,
+              project_category: tenderRecord.project_category,
+              project_locked: tenderRecord.project_locked || false,
+              department_assigned: tenderRecord.department_assigned,
+              current_stage: tenderRecord.current_stage || '1_ELIGIBILITY',
+              stage_status: tenderRecord.stage_status || 'In Progress',
+              eligibility_result: tenderRecord.eligibility_result || null,
+              ai_report: tenderRecord.ai_report || null,
+              bid_decision: tenderRecord.bid_decision || null,
+              bid_submission: tenderRecord.bid_submission || null,
+              tender_result: tenderRecord.tender_result || null,
+              audit_trail: tenderRecord.audit_trail || [],
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          } catch (e) {}
+        }
+
+        return NextResponse.json({ status: 'success', message: 'Tender saved successfully', tender: tenderRecord });
+      }
+    }
+
+    // 9. DATA: PROJECTS GET & POST
+    if (subPath === 'projects') {
+      if (method === 'GET') {
+        if (supabase) {
+          try {
+            const { data: dbProjects, error } = await supabase
+              .from('projects')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (!error && dbProjects && dbProjects.length > 0) {
+              return NextResponse.json({ status: 'success', projects: dbProjects });
+            }
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', projects: [] });
+      }
+
+      if (method === 'POST') {
+        const projectRecord = body;
+        if (!projectRecord || !projectRecord.id) {
+          return NextResponse.json({ detail: 'Project ID and details required.' }, { status: 400 });
+        }
+
+        if (supabase) {
+          try {
+            await supabase.from('projects').upsert({
+              id: projectRecord.id,
+              name: projectRecord.name,
+              type: projectRecord.type,
+              client: projectRecord.client,
+              description: projectRecord.description,
+              ai_instructions: projectRecord.ai_instructions,
+              knowledge_sources: projectRecord.knowledge_sources || [],
+              status: projectRecord.status || 'Active'
+            }, { onConflict: 'id' });
+          } catch (e) {}
+        }
+
+        return NextResponse.json({ status: 'success', message: 'Project saved successfully', project: projectRecord });
+      }
+    }
+
+    // 10. DATA: KNOWLEDGE BASE GET & POST
+    if (subPath === 'knowledge') {
+      if (method === 'GET') {
+        if (supabase) {
+          try {
+            const { data: dbKb, error } = await supabase
+              .from('knowledge_base')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (!error && dbKb) {
+              return NextResponse.json({ status: 'success', knowledge: dbKb });
+            }
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', knowledge: [] });
+      }
+
+      if (method === 'POST') {
+        const kbRecord = body;
+        if (supabase) {
+          try {
+            await supabase.from('knowledge_base').upsert({
+              id: kbRecord.id || `kb-${Date.now()}`,
+              title: kbRecord.title,
+              category: kbRecord.category,
+              file_name: kbRecord.file_name,
+              file_url: kbRecord.file_url,
+              description: kbRecord.description,
+              issue_date: kbRecord.issue_date,
+              expiry_date: kbRecord.expiry_date,
+              status: kbRecord.status || 'Active',
+              uploaded_by: kbRecord.uploaded_by
+            }, { onConflict: 'id' });
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', message: 'Knowledge record saved successfully' });
+      }
+    }
+
+    // 11. DATA: COMPETITORS GET & POST
+    if (subPath === 'competitors') {
+      if (method === 'GET') {
+        if (supabase) {
+          try {
+            const { data: dbComp, error } = await supabase
+              .from('competitors')
+              .select('*')
+              .order('updated_at', { ascending: false });
+
+            if (!error && dbComp) {
+              return NextResponse.json({ status: 'success', competitors: dbComp });
+            }
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', competitors: [] });
+      }
+
+      if (method === 'POST') {
+        const compRecord = body;
+        if (supabase) {
+          try {
+            await supabase.from('competitors').upsert({
+              id: compRecord.id || `comp-${Date.now()}`,
+              name: compRecord.name,
+              category: compRecord.category,
+              win_rate: compRecord.win_rate || 0,
+              total_bids: compRecord.total_bids || 0,
+              historical_bids: compRecord.historical_bids || [],
+              strengths: compRecord.strengths || [],
+              weaknesses: compRecord.weaknesses || [],
+              winning_strategies: compRecord.winning_strategies || [],
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', message: 'Competitor battlecard saved successfully' });
+      }
     }
 
     return NextResponse.json({

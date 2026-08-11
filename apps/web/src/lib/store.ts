@@ -137,18 +137,21 @@ export function saveUser(user: UserProfile): UserProfile[] {
 
   // Supabase Sync — Match on employee_id to prevent UUID primary key type errors
   if (isSupabaseConfigured && supabase) {
-    Promise.resolve(supabase.from('users').upsert({
+    const payload: any = {
       employee_id: user.employee_id,
       full_name: user.full_name,
       email: user.email,
       phone: user.phone,
-      password_hash: user.password || 'desire@2026',
       role: user.role || 'User',
       department: user.department || 'Tender Team',
       status: user.status || 'Pending',
       permissions: user.permissions || ['eligibility'],
       assigned_projects: user.assigned_projects || ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP']
-    }, { onConflict: 'employee_id' })).catch(() => null);
+    };
+    if (user.password && user.password.trim() !== '') {
+      payload.password_hash = user.password.trim();
+    }
+    Promise.resolve(supabase.from('users').upsert(payload, { onConflict: 'employee_id' })).catch(() => null);
   }
 
   return updatedUsers;
@@ -278,4 +281,82 @@ export function saveProject(project: Project): Project[] {
     localStorage.setItem('DESIRE_SYSTEM_PROJECTS', JSON.stringify(updated));
   }
   return updated;
+}
+
+// --- PERSISTENT AUTHENTICATION SESSION MANAGEMENT ---
+
+export function saveUserSession(user: UserProfile): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const sessionData = {
+      user,
+      login_time: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+    };
+    localStorage.setItem('DESIRE_ACTIVE_USER_SESSION', JSON.stringify(sessionData));
+    document.cookie = `desire_user_session=${encodeURIComponent(user.employee_id)}; path=/; max-age=604800; SameSite=Lax`;
+  } catch (e) {}
+}
+
+export function getActiveUserSession(): UserProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('DESIRE_ACTIVE_USER_SESSION');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.user) return null;
+    if (parsed.expires_at && new Date(parsed.expires_at) < new Date()) {
+      clearUserSession();
+      return null;
+    }
+    return parsed.user;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function clearUserSession(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('DESIRE_ACTIVE_USER_SESSION');
+    document.cookie = `desire_user_session=; path=/; max-age=0`;
+  } catch (e) {}
+}
+
+export function saveAdminSession(adminData: any): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const sessionData = {
+      admin: adminData,
+      login_time: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+    };
+    localStorage.setItem('DESIRE_ACTIVE_ADMIN_SESSION', JSON.stringify(sessionData));
+    document.cookie = `desire_admin_session=true; path=/; max-age=86400; SameSite=Lax`;
+  } catch (e) {}
+}
+
+export function getActiveAdminSession(): any | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('DESIRE_ACTIVE_ADMIN_SESSION');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.admin) return null;
+    if (parsed.expires_at && new Date(parsed.expires_at) < new Date()) {
+      clearAdminSession();
+      return null;
+    }
+    return parsed.admin;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function clearAdminSession(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('DESIRE_ACTIVE_ADMIN_SESSION');
+    document.cookie = `desire_admin_session=; path=/; max-age=0`;
+  } catch (e) {}
 }

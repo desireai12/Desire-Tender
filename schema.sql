@@ -99,11 +99,40 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 9. SEED INITIAL DEMO DATA
+-- 9. COMPANY KNOWLEDGE & CERTIFICATES TABLE
+CREATE TABLE IF NOT EXISTS public.knowledge_base (
+    id VARCHAR(100) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    file_name VARCHAR(255),
+    file_url TEXT,
+    description TEXT,
+    issue_date VARCHAR(50),
+    expiry_date VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'Active',
+    uploaded_by VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 10. COMPETITOR BATTLECARDS TABLE
+CREATE TABLE IF NOT EXISTS public.competitors (
+    id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    win_rate NUMERIC DEFAULT 0,
+    total_bids INTEGER DEFAULT 0,
+    historical_bids JSONB DEFAULT '[]'::jsonb,
+    strengths JSONB DEFAULT '[]'::jsonb,
+    weaknesses JSONB DEFAULT '[]'::jsonb,
+    winning_strategies JSONB DEFAULT '[]'::jsonb,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 11. SEED INITIAL DEMO DATA
 INSERT INTO public.users (employee_id, full_name, email, phone, password_hash, role, department, status, permissions)
 VALUES 
-('EMP001', 'Ankit Purohit', 'ankit.purohit@desireenergy.com', '9829012345', 'desire@2026', 'Administrator', 'Admin', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb),
-('EMP002', 'Deepak Khandelwal', 'deepak.khandelwal@desireenergy.com', '9829023456', 'desire@2026', 'Sr Estimator', 'Estimation Team', 'Active', '["eligibility", "cost_estimation"]'::jsonb)
+('EMP001', 'Ankit Purohit', 'ankit.purohit@desireenergy.com', '9829012345', 'Ankit@EMP001#2026', 'Administrator', 'Admin', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb),
+('EMP002', 'Deepak Khandelwal', 'deepak.khandelwal@desireenergy.com', '9829023456', 'Deepak@EMP002#2026', 'Sr Estimator', 'Estimation Team', 'Active', '["eligibility", "cost_estimation"]'::jsonb)
 ON CONFLICT (employee_id) DO NOTHING;
 
 INSERT INTO public.projects (id, name, type, client, description, status)
@@ -112,7 +141,7 @@ VALUES
 ('proj-2', 'PM-Kusum Component-B Solar Pump Scheme', 'KUSUM', 'REDA / RRECL', 'Implementation of off-grid solar water pumping systems.', 'Active')
 ON CONFLICT (id) DO NOTHING;
 
--- 10. DISABLE ROW LEVEL SECURITY FOR SEAMLESS CLOUD DB SAVING
+-- 12. DISABLE ROW LEVEL SECURITY FOR SEAMLESS CLOUD DB SAVING
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenders DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.boq_items DISABLE ROW LEVEL SECURITY;
@@ -120,4 +149,7 @@ ALTER TABLE public.projects DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_configs DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.credentials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.knowledge_base DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.competitors DISABLE ROW LEVEL SECURITY;
+
 

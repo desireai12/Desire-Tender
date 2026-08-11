@@ -1,6 +1,5 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/lib/api';
 import { 
   Swords, 
   TrendingDown, 
@@ -29,7 +28,7 @@ interface CompetitorData {
 export const CompetitorBattleCardsView: React.FC = () => {
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('ALL');
 
-  const [competitors] = useState<CompetitorData[]>([
+  const [competitors, setCompetitors] = useState<CompetitorData[]>([
     {
       id: 'comp-1',
       name: 'Larsen & Toubro (L&T Water & Effluent IC)',
@@ -137,6 +136,21 @@ export const CompetitorBattleCardsView: React.FC = () => {
   const filteredCompetitors = competitors.filter(
     (c) => activeCategoryFilter === 'ALL' || c.category === activeCategoryFilter
   );
+
+  useEffect(() => {
+    const fetchCompetitors = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/competitors`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.competitors && Array.isArray(data.competitors) && data.competitors.length > 0) {
+            setCompetitors(data.competitors);
+          }
+        }
+      } catch (e) {}
+    };
+    fetchCompetitors();
+  }, []);
 
   const activeCompetitor =
     filteredCompetitors.find((c) => c.id === selectedCompetitorId) || filteredCompetitors[0] || competitors[0];

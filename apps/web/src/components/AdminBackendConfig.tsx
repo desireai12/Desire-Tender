@@ -483,7 +483,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   <label className="text-[11px] font-mono text-slate-300 block mb-1">Account Password *</label>
                   <input
                     type="text"
-                    placeholder="e.g. desire@2026#Ramesh"
+                    placeholder="Enter unique password for user"
                     value={newUserPassword}
                     onChange={(e) => setNewUserPassword(e.target.value)}
                     className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-white text-xs font-mono focus:border-cyan-400 focus:outline-none"

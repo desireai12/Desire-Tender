@@ -38,7 +38,10 @@ import {
   getAdminMustChangePassword, 
   saveAdminPassword, 
   getStoredProjects, 
-  saveProject 
+  saveProject,
+  getActiveAdminSession,
+  saveAdminSession,
+  clearAdminSession
 } from '@/lib/store';
 
 interface AdminPortalProps {
@@ -92,6 +95,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
   // Toast
   const [toast, setToast] = useState<string | null>(null);
 
+  // Restore Admin Session on Mount
+  useEffect(() => {
+    try {
+      const activeAdminSession = getActiveAdminSession();
+      if (activeAdminSession) {
+        setIsAdminAuthenticated(true);
+      }
+    } catch (e) {}
+  }, []);
+
   useEffect(() => {
     fetchAdminData();
     const interval = setInterval(() => {
@@ -116,7 +129,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             full_name: u.full_name,
             email: u.email,
             phone: u.phone,
-            password: u.password || u.password_hash || '••••••••',
+            password: '••••••••',
             role: u.role || 'User',
             department: u.department || 'Tender Team',
             status: u.status || 'Pending',
@@ -140,7 +153,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             full_name: u.full_name,
             email: u.email,
             phone: u.phone,
-            password: u.password_hash || u.password || '••••••••',
+            password: '••••••••',
             role: u.role || 'User',
             department: u.department || 'Tender Team',
             status: u.status || 'Pending',
@@ -212,6 +225,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
       if (res.ok) {
         const data = await res.json();
         setIsAdminAuthenticated(true);
+        saveAdminSession({ admin_id: aId, role: 'Admin' });
         if (data.must_change_password) {
           setMustChangePassword(true);
         }
@@ -228,11 +242,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
     // Failsafe Fallback Check
     const isDefaultAdminId = (aId === 'admin' || aId === 'emp001' || aId === 'emp999' || aId.includes('admin'));
-    const isDefaultPassword = (aPass === 'admin@1234' || aPass === 'AquaAdmin@2026#DES' || aPass === 'desire@2026' || aPass === 'admin' || aPass === getAdminPassword());
+    const isDefaultPassword = (aPass === 'admin@1234' || aPass === 'AquaAdmin@2026#DES' || aPass === getAdminPassword());
 
     if (isDefaultAdminId && isDefaultPassword) {
       setIsAdminAuthenticated(true);
-      if (getAdminMustChangePassword() && (aPass === 'AquaAdmin@2026#DES' || aPass === 'admin')) {
+      saveAdminSession({ admin_id: aId, role: 'Admin' });
+      if (getAdminMustChangePassword() && (aPass === 'AquaAdmin@2026#DES')) {
         setMustChangePassword(true);
       } else {
         setMustChangePassword(false);
@@ -340,34 +355,66 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
   // Admin Action: Save Credentials, Password & Rights — SAVES TO SUPABASE DATABASE LIVE!
   const handleSaveFullUserAccount = async (usr: UserProfile, newPassword?: string) => {
-    const finalPassword = newPassword !== undefined && newPassword.trim() !== '' ? newPassword.trim() : (usr.password || 'desire@2026');
-    const updatedUser: UserProfile = {
-      ...usr,
-      password: finalPassword
-    };
+    const cleanNewPass = newPassword && newPassword.trim() !== '' ? newPassword.trim() : undefined;
 
     const currentUsers = getStoredUsers();
-    const nextUsers = currentUsers.map(u => u.employee_id === usr.employee_id || u.id === usr.id ? updatedUser : u);
+    const nextUsers = currentUsers.map(u => {
+      if (u.employee_id === usr.employee_id || u.id === usr.id) {
+        return {
+          ...usr,
+          ...(cleanNewPass ? { password: cleanNewPass } : {})
+        };
+      }
+      return u;
+    });
     setUserList(nextUsers);
     if (typeof window !== 'undefined') {
       localStorage.setItem('DESIRE_SYSTEM_USERS', JSON.stringify(nextUsers));
     }
 
+    // Live update to Backend API Endpoint (Serverless)
+    try {
+      await fetch(`${API_BASE_URL}/auth/users/assign-role`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: usr.employee_id,
+          user_id: usr.id,
+          is_approved: usr.status === 'Active',
+          department: usr.department,
+          new_password: cleanNewPass,
+          permissions: usr.permissions
+        })
+      });
+    } catch (err: any) {}
+
     // Live update to Supabase Cloud Database!
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.from('users').update({
-          password_hash: finalPassword,
+        const updatePayload: any = {
           department: usr.department,
           status: usr.status,
-          permissions: usr.permissions
-        }).or(`employee_id.eq.${usr.employee_id},id.eq.${usr.id}`);
+          permissions: usr.permissions,
+          updated_at: new Date().toISOString()
+        };
+        if (cleanNewPass) {
+          try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(cleanNewPass);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            updatePayload.password_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          } catch (hErr) {
+            updatePayload.password_hash = cleanNewPass;
+          }
+        }
+        await supabase.from('users').update(updatePayload).or(`employee_id.eq.${usr.employee_id},id.eq.${usr.id}`);
       } catch (e) {}
     }
 
     setSelectedUserModal(null);
     setModalEditPassword('');
-    setToast(`User credentials and password for ${usr.full_name || usr.employee_id} saved to Supabase Database!`);
+    setToast(`User credentials ${cleanNewPass ? '& new password ' : ''}for ${usr.full_name || usr.employee_id} saved to Supabase Database!`);
     setTimeout(() => setToast(null), 4000);
   };
 
@@ -610,7 +657,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             <span>User Portal</span>
           </button>
           <button
-            onClick={() => setIsAdminAuthenticated(false)}
+            onClick={() => {
+              clearAdminSession();
+              setIsAdminAuthenticated(false);
+            }}
             className="px-3.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition"
           >
             Exit Admin
@@ -777,7 +827,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                         <div className="flex items-center space-x-1.5 bg-black/40 px-2.5 py-1 rounded-lg border border-white/10 w-fit">
                           <Lock className="w-3 h-3 text-amber-400" />
                           <span className="text-amber-200 font-bold">
-                            {showPasswordMap[usr.id || usr.employee_id] ? (usr.password || 'desire@2026') : '••••••••'}
+                            {showPasswordMap[usr.id || usr.employee_id] ? '[Encrypted]' : '••••••••'}
                           </span>
                           <button
                             onClick={() => setShowPasswordMap(prev => ({ ...prev, [usr.id || usr.employee_id]: !prev[usr.id || usr.employee_id] }))}
@@ -1025,9 +1075,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                   <span>User Login Password</span>
                 </label>
                 <input
-                  type="text"
-                  placeholder={selectedUserModal.password || 'desire@2026'}
-                  value={modalEditPassword || selectedUserModal.password || ''}
+                  type="password"
+                  placeholder="Leave blank to keep existing password"
+                  value={modalEditPassword}
                   onChange={(e) => setModalEditPassword(e.target.value)}
                   className="w-full p-2.5 rounded-xl bg-[#101415] border border-amber-500/40 text-amber-200 font-mono font-bold text-sm focus:outline-none focus:border-amber-400"
                 />
