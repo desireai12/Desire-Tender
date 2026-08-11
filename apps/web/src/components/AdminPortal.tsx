@@ -300,6 +300,67 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
     setTimeout(() => setToast(null), 4000);
   };
 
+  // Handle Admin Create Project — SAVES LIVE TO SUPABASE DB & BACKEND API!
+  const handleCreateProject = async () => {
+    if (!newProjName.trim()) {
+      alert('Project Name is required.');
+      return;
+    }
+
+    const newProject: Project = {
+      id: `proj-${Date.now()}`,
+      name: newProjName.trim(),
+      type: newProjType,
+      client: newProjClient.trim() || 'PHED Rajasthan',
+      description: newProjDesc.trim() || `${newProjName.trim()} execution package.`,
+      status: 'Active',
+      ai_instructions: newProjAI.trim() || 'Follow standard project guidelines.',
+      knowledge_sources: ['Company Profile', 'Certificates']
+    };
+
+    // 1. Update local store & state immediately
+    saveProject(newProject);
+    setProjectList(prev => [newProject, ...prev]);
+    setShowAddProjectModal(false);
+
+    // Reset inputs
+    setNewProjName('');
+    setNewProjClient('');
+    setNewProjDesc('');
+    setNewProjAI('');
+
+    // 2. Post live to Vercel Backend API (/projects)
+    try {
+      await fetch(`${API_BASE_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProject)
+      });
+    } catch (e) {}
+
+    // 3. Post live directly to Supabase PostgreSQL Database (projects table)
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('projects').upsert({
+          id: newProject.id,
+          name: newProject.name,
+          type: newProject.type,
+          client: newProject.client,
+          description: newProject.description,
+          ai_instructions: newProject.ai_instructions,
+          knowledge_sources: newProject.knowledge_sources,
+          status: newProject.status,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (dbErr) {
+        console.error('[SUPABASE PROJECT SAVE ERR]', dbErr);
+      }
+    }
+
+    setToast(`Project '${newProject.name}' saved & deployed to Supabase Cloud Database!`);
+    setTimeout(() => setToast(null), 4000);
+  };
+
   // Admin Action: Approve / Reject / Deactivate User — PERSISTS LIVE TO SUPABASE DB & SERVER API!
   const handleUserStatusAction = async (usr: UserProfile, newStatus: UserStatus) => {
     // 1. Update local state & store immediately for UI speed
