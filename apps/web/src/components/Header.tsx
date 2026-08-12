@@ -128,16 +128,15 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* Admin Backend Config Quick CTA */}
-            {onNavigateSettings && (
-              <button
-                onClick={onNavigateSettings}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-cyan-400 text-aqua-950 font-bold text-xs hover:bg-cyan-300 transition shadow-lg shadow-cyan-400/20"
-                title="Open Admin AI & Credentials Vault"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span className="hidden sm:inline">Admin AI & Keys Vault</span>
-              </button>
+        {/* Admin Backend & AI Instructions Button */}
+        <button
+          onClick={() => window.location.href = '/admin'}
+          className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs transition shadow-lg shadow-purple-500/20"
+          title="Open Admin Console (/admin) to view & edit Project AI Instructions"
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>Admin Portal &amp; AI Instructions</span>
+        </button>
             )}
           </>
         )}
