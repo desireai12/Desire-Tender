@@ -30,21 +30,6 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
   const [newFilename, setNewFilename] = useState<string>('');
   const [newDesc, setNewDesc] = useState<string>('');
 
-  if (activeRole !== 'Admin') {
-    return (
-      <div className="glass-card p-12 rounded-2xl text-center space-y-4 border-2 border-rose-500/40">
-        <ShieldAlert className="w-12 h-12 text-rose-400 mx-auto animate-bounce" />
-        <h3 className="text-xl font-display font-bold text-white">ACCESS DENIED — ADMIN BACKEND PORTAL ONLY</h3>
-        <p className="text-xs text-slate-300 max-w-md mx-auto">
-          Knowledge Base management is restricted exclusively to System Administrators. Normal department accounts cannot directly touch or modify AI training knowledge assets.
-        </p>
-        <div className="text-xs font-mono text-cyan-400 pt-2">
-          Current Role: {activeRole} (Switch role to 'Admin' in the top header to access).
-        </div>
-      </div>
-    );
-  }
-
   const [documents, setDocuments] = useState<Array<{
     id: string;
     module: KnowledgeModuleType;
@@ -225,6 +210,21 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
   const handleDelete = (id: string) => {
     setDocuments((prev) => prev.filter((doc) => doc.id !== id));
   };
+
+  if (activeRole !== 'Admin') {
+    return (
+      <div className="glass-card p-12 rounded-2xl text-center space-y-4 border-2 border-rose-500/40">
+        <ShieldAlert className="w-12 h-12 text-rose-400 mx-auto animate-bounce" />
+        <h3 className="text-xl font-display font-bold text-white">ACCESS DENIED — ADMIN BACKEND PORTAL ONLY</h3>
+        <p className="text-xs text-slate-300 max-w-md mx-auto">
+          Knowledge Base management is restricted exclusively to System Administrators. Normal department accounts cannot directly touch or modify AI training knowledge assets.
+        </p>
+        <div className="text-xs font-mono text-cyan-400 pt-2">
+          Current Role: {activeRole} (Switch role to 'Admin' in the top header to access).
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fadeIn">
