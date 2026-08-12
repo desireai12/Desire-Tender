@@ -6,7 +6,7 @@ import { BOQLineItem, TenderProcess } from './types';
  * Generates an XML-formatted multi-sheet Excel (.xls) file that downloads directly in browser.
  * Guaranteed to open in MS Excel, LibreOffice, and Google Sheets without dependencies or corruption.
  */
-export function generateBOQExcelReport(process: TenderProcess, items: BOQLineItem[], manualOverrides?: any[]) {
+export function generateBOQExcelReport(process: TenderProcess, items: BOQLineItem[], _manualOverrides?: any[]) {
   const tenderName = process.tender_name || 'Tender BOQ Report';
   const category = process.project_category || 'RHDS';
   const createdDate = new Date().toISOString().split('T')[0];
