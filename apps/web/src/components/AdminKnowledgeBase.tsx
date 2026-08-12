@@ -111,6 +111,7 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
       chunk_count: 15,
       tags: ['BOQ Rates', 'Unit Pricing', 'HDPE Pipe Cost'],
       summary: 'Itemized BOQ historical rates for HDPE pipelines, solar pump controllers, and SCADA sensors.'
+    }
   ]);
 
   // FETCH LIVE KNOWLEDGE DOCUMENTS FROM DATABASE ON MOUNT
