@@ -63,7 +63,7 @@ const DEFAULT_GUEST_USER: UserProfile = {
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
-  const [currentUser, setCurrentUser] = useState<UserProfile>(DEFAULT_GUEST_USER);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(DEFAULT_GUEST_USER);
   const [isInitializingSession, setIsInitializingSession] = useState<boolean>(false);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
@@ -141,9 +141,9 @@ export default function Home() {
   // Handle Logout — CLEAR SESSION
   const handleLogout = () => {
     clearUserSession();
-    setCurrentUser(null);
+    setCurrentUser(DEFAULT_GUEST_USER);
     setViewMode('user');
-    setActiveRole('Business Development');
+    setActiveRole('Tender Team');
     setActiveTab('dashboard');
   };
 
