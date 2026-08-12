@@ -97,6 +97,7 @@ export interface TenderProcess {
     score: number;
     status_verdict?: 'Eligible' | 'Partially Eligible' | 'Not Eligible';
   };
+  three_level_eligibility?: ThreeLevelEligibility;
 
   // Step 2 & Stage 2: AI Report
   uploaded_files?: {
@@ -196,6 +197,73 @@ export interface UserProfile {
   assigned_projects: ProjectCategory[];
   registered_at: string;
   last_login: string;
+}
+
+export interface EligibilityRequirementRow {
+  requirement: string;
+  tender_req: string;
+  company_record: string;
+  verdict: 'Eligible' | 'Partially Eligible' | 'Not Eligible' | 'Potentially Eligible';
+  explanation: string;
+  source_page?: string;
+}
+
+export interface ThreeLevelEligibility {
+  desire_alone: {
+    status: 'Eligible' | 'Partially Eligible' | 'Not Eligible';
+    summary: string;
+    matrix: EligibilityRequirementRow[];
+  };
+  desire_partner: {
+    status: 'Eligible' | 'Potentially Eligible' | 'Not Eligible';
+    summary: string;
+    jv_rules_extracted: string;
+    missing_capabilities: string;
+    required_partner_profile: string;
+    matrix: EligibilityRequirementRow[];
+  };
+  ga_alone: {
+    status: 'Eligible' | 'Partially Eligible' | 'Not Eligible';
+    summary: string;
+    matrix: EligibilityRequirementRow[];
+  };
+}
+
+export interface BOQHistoricalItem {
+  id: string;
+  project_category: ProjectCategory;
+  project_name: string;
+  tender_id?: string;
+  client: string;
+  boq_date: string;
+  work_category: string;
+  item_name: string;
+  unit_of_measure: string;
+  historical_rate: number;
+  boq_version: string;
+}
+
+export interface BOQRateOverrideLog {
+  id: string;
+  tender_id: string;
+  boq_item_id: string;
+  item_name: string;
+  original_ai_rate: number;
+  user_override_rate: number;
+  difference: number;
+  reason: string;
+  project_category: ProjectCategory;
+  created_at: string;
+}
+
+export interface AIPromptVersionItem {
+  id: string;
+  project_category: ProjectCategory;
+  version: string;
+  previous_instruction: string;
+  new_instruction: string;
+  changed_by: string;
+  changed_at: string;
 }
 
 export interface Project {

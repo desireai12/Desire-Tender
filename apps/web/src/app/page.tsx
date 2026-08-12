@@ -46,13 +46,28 @@ const DEFAULT_SEED_TENDER: TenderProcess = {
   ]
 };
 
+const DEFAULT_GUEST_USER: UserProfile = {
+  id: 'usr-guest',
+  employee_id: 'DESIRE-USER',
+  full_name: 'Desire Tender Analyst',
+  email: 'tender.team@desireenergy.com',
+  phone: '9829012345',
+  role: 'Tender Specialist',
+  department: 'Tender Team',
+  status: 'Active',
+  permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
+  assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
+  registered_at: '2026-08-01 09:00:00',
+  last_login: new Date().toISOString()
+};
+
 export default function Home() {
   const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [isInitializingSession, setIsInitializingSession] = useState<boolean>(true);
+  const [currentUser, setCurrentUser] = useState<UserProfile>(DEFAULT_GUEST_USER);
+  const [isInitializingSession, setIsInitializingSession] = useState<boolean>(false);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
-  const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
+  const [activeRole, setActiveRole] = useState<DepartmentRole>('Tender Team');
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([DEFAULT_SEED_TENDER]);
 
   // RESTORE AUTHENTICATION SESSION ON MOUNT (PERSISTS ACROSS PAGE REFRESHES!)

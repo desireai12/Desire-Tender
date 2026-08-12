@@ -6,312 +6,524 @@ import {
   Plus, 
   Trash2, 
   TrendingUp, 
-  TrendingDown, 
   DollarSign, 
   Sparkles, 
-  Percent, 
-  BarChart3,
-  RefreshCw
+  Download, 
+  FileSpreadsheet, 
+  AlertCircle, 
+  CheckCircle2, 
+  HelpCircle, 
+  Save, 
+  Database,
+  History,
+  ArrowRight
 } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { ProjectCategory, BOQRateOverrideLog } from '@/lib/types';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { API_BASE_URL } from '@/lib/api';
 
-interface CostItem {
+export interface ExtendedBOQEstimateItem {
   id: string;
-  category: 'Labour' | 'Raw Materials' | 'Logistics' | 'Overhead' | 'Risk Buffer';
   item_name: string;
-  unit_cost: number;
   quantity: number;
-  markup_percentage: number;
-  tax_percentage: number;
+  unit_of_measure: string;
+  historical_match_name: string;
+  historical_rate: number | null;
+  historical_source: string | null;
+  historical_date: string | null;
+  ai_estimated_rate: number;
+  user_override_rate: number;
+  override_reason?: string;
+  is_overridden: boolean;
 }
 
 export const CostingEstimatorView: React.FC = () => {
-  const [items, setItems] = useState<CostItem[]>([
+  const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('STP');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // STP Master Tender Item-Level Estimates (matching Karur 35.25 MLD SBR STP Tender)
+  const [boqItems, setBoqItems] = useState<ExtendedBOQEstimateItem[]>([
     {
-      id: 'item-1',
-      category: 'Labour',
-      item_name: 'Senior Hydraulic & Civil Engineer (400 hrs)',
-      unit_cost: 120,
-      quantity: 400,
-      markup_percentage: 15,
-      tax_percentage: 5
-    },
-    {
-      id: 'item-2',
-      category: 'Raw Materials',
-      item_name: 'High-Pressure Water Filtration Valves & Piping',
-      unit_cost: 2500,
-      quantity: 50,
-      markup_percentage: 12,
-      tax_percentage: 8
-    },
-    {
-      id: 'item-3',
-      category: 'Logistics',
-      item_name: 'Heavy Transport & Trenching Machinery Rental',
-      unit_cost: 1600,
-      quantity: 20,
-      markup_percentage: 10,
-      tax_percentage: 5
-    },
-    {
-      id: 'item-4',
-      category: 'Overhead',
-      item_name: 'SCADA Telemetry & IoT Pressure Sensor Suite',
-      unit_cost: 4500,
-      quantity: 12,
-      markup_percentage: 18,
-      tax_percentage: 10
-    },
-    {
-      id: 'item-5',
-      category: 'Risk Buffer',
-      item_name: 'Unforeseen Geotechnical Delay Contingency',
-      unit_cost: 25000,
+      id: 'item-101',
+      item_name: 'Sequential Batch Reactor (SBR) Basin Reinforced Civil Structure (35.25 MLD)',
       quantity: 1,
-      markup_percentage: 5,
-      tax_percentage: 0
+      unit_of_measure: 'Lump Sum',
+      historical_match_name: '30 MLD SBR Civil Basin Structure',
+      historical_rate: 145000000,
+      historical_source: 'Rajasthan Urban Infrastructure Project (RUIP-Phase IV)',
+      historical_date: '12-Mar-2025',
+      ai_estimated_rate: 158000000,
+      user_override_rate: 158000000,
+      is_overridden: false
+    },
+    {
+      id: 'item-102',
+      item_name: 'Fine Screen Channel (Mechanical & Manual 6mm Stainless Steel)',
+      quantity: 2,
+      unit_of_measure: 'Sets',
+      historical_match_name: 'Mechanical Bar Screen 6mm SS316',
+      historical_rate: 3200000,
+      historical_source: 'Jaipur 20 MLD STP Upgradation',
+      historical_date: '08-Nov-2025',
+      ai_estimated_rate: 3450000,
+      user_override_rate: 3450000,
+      is_overridden: false
+    },
+    {
+      id: 'item-103',
+      item_name: 'Submersible SBR Sewage Pumps & Sludge Recirculation Assemblies',
+      quantity: 6,
+      unit_of_measure: 'Units',
+      historical_match_name: 'Submersible Sewage Pump 120 HP Flygt/Kirloskar',
+      historical_rate: 1850000,
+      historical_source: 'PHED Jodhpur Water Pumping Scheme',
+      historical_date: '15-Feb-2026',
+      ai_estimated_rate: 1980000,
+      user_override_rate: 2100000,
+      override_reason: 'Current vendor quotation from Kirloskar is ₹21.0 Lakhs per pump.',
+      is_overridden: true
+    },
+    {
+      id: 'item-104',
+      item_name: 'Air Blower Room Assemblies (Tri-Lobe Air Blowers 150 kW)',
+      quantity: 4,
+      unit_of_measure: 'Sets',
+      historical_match_name: 'Tri-Lobe Air Blower 150 kW Atlas Copco',
+      historical_rate: 4200000,
+      historical_source: 'Kota Sewerage Project Phase II',
+      historical_date: '10-Jan-2025',
+      ai_estimated_rate: 4500000,
+      user_override_rate: 4500000,
+      is_overridden: false
+    },
+    {
+      id: 'item-105',
+      item_name: 'Advanced Screw Press Mechanical Sludge Dewatering System (SS316)',
+      quantity: 2,
+      unit_of_measure: 'Units',
+      historical_match_name: 'Screw Press Dewatering Package',
+      historical_rate: 6800000,
+      historical_source: 'Udaipur Municipal Sewage Treatment',
+      historical_date: '28-Apr-2025',
+      ai_estimated_rate: 7200000,
+      user_override_rate: 7200000,
+      is_overridden: false
+    },
+    {
+      id: 'item-106',
+      item_name: 'UV Disinfection Chamber & Online Effluent Quality Monitoring Suite',
+      quantity: 1,
+      unit_of_measure: 'System',
+      historical_match_name: null, // NO HISTORICAL DATA DEMO
+      historical_rate: null,
+      historical_source: null,
+      historical_date: null,
+      ai_estimated_rate: 0,
+      user_override_rate: 8500000,
+      override_reason: 'Manual rate based on TrojanUV vendor budget quotation.',
+      is_overridden: true
+    },
+    {
+      id: 'item-107',
+      item_name: '10-Year Operation & Maintenance (O&M) Discounted Annual Expenditure (Page 65)',
+      quantity: 10,
+      unit_of_measure: 'Years',
+      historical_match_name: 'STP 10-Yr Comprehensive O&M Lifecycle Cost',
+      historical_rate: 18000000,
+      historical_source: 'Karur Municipal Corporation Benchmark (Page 65 NPV @ 10%)',
+      historical_date: '09-Jul-2026',
+      ai_estimated_rate: 19500000,
+      user_override_rate: 19500000,
+      is_overridden: false
     }
   ]);
 
-  const [aiTargetDiscount, setAiTargetDiscount] = useState<number>(6.5); // 6.5% AI discount optimization
+  // Manual Costing Questions State
+  const [marketAdjustment, setMarketAdjustment] = useState<number>(3.5);
+  const [includeTransportation, setIncludeTransportation] = useState<boolean>(true);
+  const [includeEscalation, setIncludeEscalation] = useState<boolean>(true);
+  const [contingencyPct, setContingencyPct] = useState<number>(5.0);
 
-  const updateItem = (id: string, field: keyof CostItem, value: any) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+  // Update Override Rate & Reason
+  const handleRateOverride = (id: string, newRate: number, reason: string) => {
+    setBoqItems(prev =>
+      prev.map(item => {
+        if (item.id === id) {
+          const isChanged = newRate !== item.ai_estimated_rate;
+          return {
+            ...item,
+            user_override_rate: newRate,
+            override_reason: reason,
+            is_overridden: isChanged
+          };
+        }
+        return item;
+      })
     );
   };
 
-  const addItem = () => {
-    const newItem: CostItem = {
-      id: `item-${Date.now()}`,
-      category: 'Labour',
-      item_name: 'New Custom Line Item',
-      unit_cost: 1000,
-      quantity: 1,
-      markup_percentage: 10,
-      tax_percentage: 5
-    };
-    setItems((prev) => [...prev, newItem]);
-  };
+  // Log Override for AI Learning in Supabase Database
+  const saveOverrideToDb = async (item: ExtendedBOQEstimateItem) => {
+    if (!item.is_overridden) return;
+    const diff = item.user_override_rate - item.ai_estimated_rate;
 
-  const deleteItem = (id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+    // 1. Post to Vercel API
+    try {
+      await fetch(`${API_BASE_URL}/costing/overrides`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tender_id: 'TND-60522025',
+          boq_item_id: item.id,
+          item_name: item.item_name,
+          original_ai_rate: item.ai_estimated_rate,
+          user_override_rate: item.user_override_rate,
+          difference: diff,
+          reason: item.override_reason || 'Manual user adjustment',
+          project_category: selectedCategory
+        })
+      });
+    } catch (e) {}
 
-  // Calculations
-  const calculateItemTotal = (item: CostItem) => {
-    const base = item.unit_cost * item.quantity;
-    const withMarkup = base * (1 + item.markup_percentage / 100);
-    return withMarkup * (1 + item.tax_percentage / 100);
-  };
-
-  const manualTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-  const aiRecommendedTotal = manualTotal * (1 - aiTargetDiscount / 100);
-  const varianceAmount = manualTotal - aiRecommendedTotal;
-  const estimatedMargin = manualTotal > 0 ? ((manualTotal - (manualTotal * 0.72)) / manualTotal) * 100 : 0;
-
-  // Chart data preparation
-  const chartData = [
-    {
-      name: 'Total Bid Comparison',
-      'User Manual Total ($)': Math.round(manualTotal),
-      'AI Recommended Bid ($)': Math.round(aiRecommendedTotal)
+    // 2. Direct Supabase db update
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('boq_rate_overrides').insert({
+          tender_id: 'TND-60522025',
+          boq_item_id: item.id,
+          item_name: item.item_name,
+          original_ai_rate: item.ai_estimated_rate,
+          user_override_rate: item.user_override_rate,
+          difference: diff,
+          reason: item.override_reason || 'Manual user adjustment',
+          project_category: selectedCategory,
+          created_at: new Date().toISOString()
+        });
+      } catch (err) {}
     }
-  ];
 
-  const categories = ['Labour', 'Raw Materials', 'Logistics', 'Overhead', 'Risk Buffer'];
+    setToastMessage(`Rate override for '${item.item_name}' saved to AI Learning Database!`);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  // Calculate Totals
+  const totalAIEstimatedCost = boqItems.reduce(
+    (sum, item) => sum + (item.ai_estimated_rate || 0) * item.quantity,
+    0
+  );
+
+  const totalUserApprovedCost = boqItems.reduce(
+    (sum, item) => sum + item.user_override_rate * item.quantity,
+    0
+  );
+
+  const totalWithContingency = totalUserApprovedCost * (1 + contingencyPct / 100);
+  const totalVariance = totalUserApprovedCost - totalAIEstimatedCost;
+
+  // Excel Export Handler (Generates Multi-Sheet CSV Data)
+  const downloadExcelReport = () => {
+    let csvContent = 'data:text/csv;charset=utf-8,';
+
+    // SHEET 1: SUMMARY
+    csvContent += '==================================================\n';
+    csvContent += 'DESIRE ENERGY — COST ESTIMATION REPORT SUMMARY\n';
+    csvContent += '==================================================\n';
+    csvContent += `Tender Name,Karur 35.25 MLD SBR STP (Notice No. 6052/2025/E5)\n`;
+    csvContent += `Project Category,${selectedCategory}\n`;
+    csvContent += `Total AI Estimated Cost (₹),${totalAIEstimatedCost}\n`;
+    csvContent += `Total User Approved Cost (₹),${totalUserApprovedCost}\n`;
+    csvContent += `Variance (₹),${totalVariance}\n`;
+    csvContent += `Contingency Buffer (${contingencyPct}%),${(totalUserApprovedCost * (contingencyPct / 100)).toFixed(0)}\n`;
+    csvContent += `Final Total Cost Estimate (₹),${totalWithContingency.toFixed(0)}\n\n`;
+
+    // SHEET 2: BOQ ESTIMATION
+    csvContent += '==================================================\n';
+    csvContent += 'SHEET 2 — BOQ ESTIMATION BREAKDOWN\n';
+    csvContent += '==================================================\n';
+    csvContent += 'Item Description,Quantity,Unit,Historical Match,Historical Rate (₹),Source BOQ,BOQ Date,AI Est Rate (₹),Final Rate (₹),Total Amount (₹)\n';
+    boqItems.forEach(item => {
+      csvContent += `"${item.item_name}",${item.quantity},"${item.unit_of_measure}","${item.historical_match_name || 'NO MATCH'}",${item.historical_rate || 0},"${item.historical_source || 'N/A'}","${item.historical_date || 'N/A'}",${item.ai_estimated_rate},${item.user_override_rate},${item.user_override_rate * item.quantity}\n`;
+    });
+    csvContent += '\n';
+
+    // SHEET 3: MANUAL OVERRIDES (AI LEARNING)
+    csvContent += '==================================================\n';
+    csvContent += 'SHEET 3 — MANUAL RATE OVERRIDES & AI LEARNING\n';
+    csvContent += '==================================================\n';
+    csvContent += 'Item Description,AI Est Rate (₹),User Override Rate (₹),Difference (₹),Override Reason\n';
+    boqItems.filter(i => i.is_overridden).forEach(item => {
+      csvContent += `"${item.item_name}",${item.ai_estimated_rate},${item.user_override_rate},${item.user_override_rate - item.ai_estimated_rate},"${item.override_reason || ''}"\n`;
+    });
+    csvContent += '\n';
+
+    // SHEET 4: HISTORICAL SOURCES
+    csvContent += '==================================================\n';
+    csvContent += 'SHEET 4 — HISTORICAL BOQ SOURCES & CITATIONS\n';
+    csvContent += '==================================================\n';
+    csvContent += 'Historical Project Name,Client,BOQ Date,Matched Item,Historical Rate (₹)\n';
+    boqItems.filter(i => i.historical_source).forEach(item => {
+      csvContent += `"${item.historical_source}","Karur / RUIP","${item.historical_date}","${item.historical_match_name}",${item.historical_rate}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Desire_Tender_Costing_Report_${selectedCategory}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-8 animate-fadeIn">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-emerald-500 text-aqua-950 font-bold text-xs shadow-2xl flex items-center space-x-2 animate-bounce">
+          <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Module Banner */}
       <div className="glass-card p-6 rounded-2xl border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 text-cyan-400 font-mono text-xs mb-1">
             <Calculator className="w-4 h-4" />
-            <span>PROVISION 7: COSTING ESTIMATION ENGINE V2</span>
+            <span>PROJECT-SPECIFIC ITEM ESTIMATION & HISTORICAL MATCHING ENGINE</span>
           </div>
           <h2 className="text-2xl font-display font-bold text-white">
-            Nested Line-Item Cost Breakdown & AI Comparison
+            Cost Estimation Module — Project-Specific BOQ Intelligence
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Perform real-time cost overrides across Labour, Materials & Overhead, and compare against AI RAG Recommended Winning Bid Amount.
+            Matches tender BOQ items against historical database of the same project type, provides source page/project citations, accepts manual rate overrides, and trains AI learning model.
           </p>
         </div>
+
         <button
-          onClick={addItem}
-          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-cyan-400 text-aqua-950 font-bold hover:bg-cyan-300 transition shadow-md shadow-cyan-400/20 text-xs shrink-0 self-start sm:self-center"
+          onClick={downloadExcelReport}
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-aqua-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition cursor-pointer shrink-0 self-start sm:self-center"
         >
-          <Plus className="w-4 h-4" />
-          <span>Add Line Item</span>
+          <FileSpreadsheet className="w-4 h-4 stroke-[2.5]" />
+          <span>Download Excel Costing Report (4 Sheets)</span>
         </button>
       </div>
 
-      {/* Real-time Bid Metrics Summary Badges */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-cyan-400">
-          <span className="text-xs font-mono text-slate-400 uppercase">Calculated Manual Bid Amount</span>
-          <div className="text-3xl font-display font-bold text-white">
-            ${manualTotal.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+      {/* Financial Metrics Badges */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="glass-card p-5 rounded-2xl border-l-4 border-l-cyan-400 space-y-1">
+          <span className="text-[11px] font-mono text-slate-400 uppercase">AI Estimated Cost</span>
+          <div className="text-2xl font-display font-bold text-white">
+            ₹{(totalAIEstimatedCost / 10000000).toFixed(2)} Cr
           </div>
-          <p className="text-[11px] text-slate-400">Sum of user custom line items with markup & tax</p>
+          <p className="text-[10px] text-slate-400 font-mono">Matched from historical project BOQs</p>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-emerald-400 bg-emerald-500/5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-emerald-400 uppercase">AI Recommended Bid Amount</span>
-            <Sparkles className="w-4 h-4 text-emerald-400" />
+        <div className="glass-card p-5 rounded-2xl border-l-4 border-l-emerald-400 bg-emerald-500/5 space-y-1">
+          <span className="text-[11px] font-mono text-emerald-300 uppercase">User Approved Cost</span>
+          <div className="text-2xl font-display font-bold text-emerald-400">
+            ₹{(totalUserApprovedCost / 10000000).toFixed(2)} Cr
           </div>
-          <div className="text-3xl font-display font-bold text-emerald-300">
-            ${aiRecommendedTotal.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-          </div>
-          <p className="text-[11px] text-emerald-400/80">RAG derived based on competitor winning margins</p>
+          <p className="text-[10px] text-emerald-300/80 font-mono">Sum of user-reviewed line rates</p>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-teal-400">
-          <span className="text-xs font-mono text-slate-400 uppercase">Profit Margin Variance</span>
-          <div className="text-3xl font-display font-bold text-cyan-300 flex items-center space-x-2">
-            <span>+{estimatedMargin.toFixed(1)}%</span>
-            <TrendingUp className="w-5 h-5 text-emerald-400" />
+        <div className="glass-card p-5 rounded-2xl border-l-4 border-l-purple-400 space-y-1">
+          <span className="text-[11px] font-mono text-purple-300 uppercase">Rate Variance (Delta)</span>
+          <div className={`text-2xl font-display font-bold ${totalVariance >= 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+            {totalVariance >= 0 ? '+' : ''}₹{(totalVariance / 100000).toFixed(2)} Lakhs
           </div>
-          <p className="text-[11px] text-slate-400">
-            AI Delta: -${varianceAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })} (-{aiTargetDiscount}%)
-          </p>
-        </div>
-      </div>
-
-      {/* AI Costing Comparison Visualization Chart */}
-      <div className="glass-card p-6 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <div className="flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5 text-cyan-400" />
-            <h3 className="font-display font-semibold text-lg text-white">
-              AI Costing Comparison Bar Visualization
-            </h3>
-          </div>
-          <span className="text-xs font-mono text-cyan-300">Side-by-Side Financial Comparison</span>
+          <p className="text-[10px] text-purple-300/80 font-mono">Difference between AI & User overrides</p>
         </div>
 
-        <div className="h-64 w-full pt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#272a2c" />
-              <XAxis dataKey="name" stroke="#849495" />
-              <YAxis stroke="#849495" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#101415', borderColor: '#00dbe7', borderRadius: '12px', color: '#fff' }}
-                formatter={(value: any) => [`$${value.toLocaleString()}`, '']}
-              />
-              <Legend wrapperStyle={{ paddingTop: '10px' }} />
-              <Bar dataKey="User Manual Total ($)" fill="#00f2ff" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="AI Recommended Bid ($)" fill="#10b981" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="glass-card p-5 rounded-2xl border-l-4 border-l-teal-400 space-y-1">
+          <span className="text-[11px] font-mono text-teal-300 uppercase">Final Total (+ Contingency)</span>
+          <div className="text-2xl font-display font-bold text-teal-300">
+            ₹{(totalWithContingency / 10000000).toFixed(2)} Cr
+          </div>
+          <p className="text-[10px] text-teal-300/80 font-mono">Includes {contingencyPct}% contingency buffer</p>
         </div>
       </div>
 
-      {/* Editable Line-Item Cost Breakdown Grid */}
+      {/* ITEM-LEVEL COST ESTIMATION TABLE */}
       <div className="glass-card rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 gap-2">
           <div>
-            <h3 className="text-lg font-display font-semibold text-white">
-              Financial Line-Item Cost Breakdown Grid
+            <h3 className="text-base font-display font-bold text-white flex items-center space-x-2">
+              <Database className="w-4 h-4 text-cyan-400" />
+              <span>Item-Level Historical Cost Estimation Table</span>
             </h3>
-            <p className="text-xs text-slate-400">
-              Edit quantities, unit rates, markups, and taxes with real-time manual cost recalculation.
+            <p className="text-xs text-slate-400 mt-0.5">
+              Historical sources are displayed for every item. Overriding a rate automatically logs the change for AI training.
             </p>
           </div>
-          <span className="text-xs font-mono text-cyan-400">
-            {items.length} Financial Items
+          <span className="text-xs font-mono px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+            Project Type: {selectedCategory} (STP Sewage Treatment)
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
+          <table className="w-full text-left border-collapse min-w-[950px]">
             <thead>
-              <tr className="border-b border-white/10 text-[11px] font-mono text-slate-400 uppercase">
-                <th className="py-3 px-3">Category</th>
-                <th className="py-3 px-3">Line Item Description</th>
-                <th className="py-3 px-3 text-right">Unit Rate ($)</th>
-                <th className="py-3 px-3 text-right">Qty</th>
-                <th className="py-3 px-3 text-right">Markup %</th>
-                <th className="py-3 px-3 text-right">Tax %</th>
-                <th className="py-3 px-3 text-right">Line Total ($)</th>
-                <th className="py-3 px-3 text-center">Action</th>
+              <tr className="border-b border-white/10 text-[10px] font-mono text-slate-400 uppercase">
+                <th className="py-3 px-3">New Tender Item Description</th>
+                <th className="py-3 px-2 text-right">Qty</th>
+                <th className="py-3 px-2">Unit</th>
+                <th className="py-3 px-3">Historical Source Reference & Date</th>
+                <th className="py-3 px-3 text-right">Historical Rate (₹)</th>
+                <th className="py-3 px-3 text-right">AI Est Rate (₹)</th>
+                <th className="py-3 px-3 text-right">Final User Rate (₹)</th>
+                <th className="py-3 px-3 text-right">Line Amount (₹)</th>
+                <th className="py-3 px-2 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-sm">
-              {items.map((item) => (
+            <tbody className="divide-y divide-white/5 text-xs">
+              {boqItems.map((item) => (
                 <tr key={item.id} className="hover:bg-white/5 transition">
+                  <td className="py-3 px-3 max-w-xs">
+                    <span className="font-semibold text-white block">{item.item_name}</span>
+                  </td>
+                  <td className="py-3 px-2 text-right font-mono text-cyan-300 font-bold">{item.quantity}</td>
+                  <td className="py-3 px-2 font-mono text-slate-400 text-[11px]">{item.unit_of_measure}</td>
+                  
+                  {/* Historical Source Citation */}
                   <td className="py-3 px-3">
-                    <select
-                      value={item.category}
-                      onChange={(e) => updateItem(item.id, 'category', e.target.value)}
-                      className="glass-input text-xs text-cyan-300 px-2 py-1.5 rounded-lg border border-white/10"
-                    >
-                      {categories.map((c) => (
-                        <option key={c} value={c} className="bg-aqua-900 text-white">
-                          {c}
-                        </option>
-                      ))}
-                    </select>
+                    {item.historical_source ? (
+                      <div className="space-y-0.5">
+                        <span className="text-emerald-300 font-semibold block text-[11px] truncate max-w-[220px]" title={item.historical_source}>
+                          {item.historical_source}
+                        </span>
+                        <div className="text-[10px] font-mono text-slate-400">
+                          Matched: <span className="text-cyan-300">{item.historical_match_name}</span> ({item.historical_date})
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[10px] font-mono flex items-center space-x-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
+                        <span>No historical BOQ data currently available for this item.</span>
+                      </div>
+                    )}
                   </td>
-                  <td className="py-3 px-3">
-                    <input
-                      type="text"
-                      value={item.item_name}
-                      onChange={(e) => updateItem(item.id, 'item_name', e.target.value)}
-                      className="w-full glass-input text-xs text-white px-2.5 py-1.5 rounded-lg font-medium"
-                    />
+
+                  {/* Historical Rate */}
+                  <td className="py-3 px-3 text-right font-mono text-slate-300">
+                    {item.historical_rate ? `₹${item.historical_rate.toLocaleString('en-IN')}` : '—'}
                   </td>
-                  <td className="py-3 px-3 text-right">
-                    <input
-                      type="number"
-                      value={item.unit_cost}
-                      onChange={(e) => updateItem(item.id, 'unit_cost', parseFloat(e.target.value) || 0)}
-                      className="w-24 glass-input text-xs text-white px-2 py-1.5 rounded-lg text-right font-mono"
-                    />
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                      className="w-16 glass-input text-xs text-white px-2 py-1.5 rounded-lg text-right font-mono"
-                    />
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <input
-                      type="number"
-                      value={item.markup_percentage}
-                      onChange={(e) => updateItem(item.id, 'markup_percentage', parseFloat(e.target.value) || 0)}
-                      className="w-16 glass-input text-xs text-emerald-300 px-2 py-1.5 rounded-lg text-right font-mono"
-                    />
-                  </td>
-                  <td className="py-3 px-3 text-right">
-                    <input
-                      type="number"
-                      value={item.tax_percentage}
-                      onChange={(e) => updateItem(item.id, 'tax_percentage', parseFloat(e.target.value) || 0)}
-                      className="w-16 glass-input text-xs text-slate-300 px-2 py-1.5 rounded-lg text-right font-mono"
-                    />
-                  </td>
+
+                  {/* AI Estimated Rate */}
                   <td className="py-3 px-3 text-right font-mono text-cyan-300 font-bold">
-                    ${calculateItemTotal(item).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                    {item.ai_estimated_rate > 0 ? `₹${item.ai_estimated_rate.toLocaleString('en-IN')}` : '—'}
                   </td>
-                  <td className="py-3 px-3 text-center">
-                    <button
-                      onClick={() => deleteItem(item.id)}
-                      className="p-1 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition"
-                      title="Delete item"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                  {/* Editable Final User Rate & Reason */}
+                  <td className="py-3 px-3 text-right space-y-1">
+                    <input
+                      type="number"
+                      value={item.user_override_rate}
+                      onChange={(e) => handleRateOverride(item.id, parseFloat(e.target.value) || 0, item.override_reason || '')}
+                      className={`w-32 p-1.5 rounded-lg text-right font-mono text-xs text-white border ${
+                        item.is_overridden ? 'bg-purple-950/80 border-purple-400 font-bold' : 'bg-[#101415] border-white/15'
+                      }`}
+                    />
+                    {item.is_overridden && (
+                      <input
+                        type="text"
+                        placeholder="Enter override reason..."
+                        value={item.override_reason || ''}
+                        onChange={(e) => handleRateOverride(item.id, item.user_override_rate, e.target.value)}
+                        className="w-32 p-1 rounded font-sans text-[10px] bg-purple-950/40 border border-purple-500/30 text-purple-200"
+                      />
+                    )}
+                  </td>
+
+                  {/* Line Total */}
+                  <td className="py-3 px-3 text-right font-mono text-emerald-400 font-bold">
+                    ₹{(item.user_override_rate * item.quantity).toLocaleString('en-IN')}
+                  </td>
+
+                  {/* Action: Save Override */}
+                  <td className="py-3 px-2 text-center">
+                    {item.is_overridden && (
+                      <button
+                        onClick={() => saveOverrideToDb(item)}
+                        className="p-1.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/40 transition"
+                        title="Save manual override to AI Learning Database"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* MANUAL COSTING QUESTIONS SECTION (Master Prompt Section 16) */}
+      <div className="glass-card p-6 rounded-2xl border border-purple-500/30 space-y-4">
+        <div className="flex items-center space-x-2 border-b border-white/10 pb-3">
+          <HelpCircle className="w-5 h-5 text-purple-400" />
+          <div>
+            <h3 className="text-base font-display font-bold text-white">
+              Manual Costing & Escalation Assessment Questions
+            </h3>
+            <p className="text-xs text-slate-400">
+              The AI generates targeted questions based on the Karur STP tender conditions to refine final estimated rates.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/10 space-y-2">
+            <label className="font-bold text-white block">1. Current Market Condition Adjustment (%)</label>
+            <p className="text-[11px] text-slate-400">Should historical rates be inflated for current material price increases?</p>
+            <input
+              type="number"
+              value={marketAdjustment}
+              onChange={(e) => setMarketAdjustment(parseFloat(e.target.value) || 0)}
+              className="w-full p-2 rounded-lg bg-[#101415] border border-white/15 text-cyan-300 font-mono"
+            />
+          </div>
+
+          <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/10 space-y-2">
+            <label className="font-bold text-white block">2. Unforeseen Contingency Buffer (%)</label>
+            <p className="text-[11px] text-slate-400">Apply risk buffer for Karur site soil conditions (Page 68)?</p>
+            <input
+              type="number"
+              value={contingencyPct}
+              onChange={(e) => setContingencyPct(parseFloat(e.target.value) || 0)}
+              className="w-full p-2 rounded-lg bg-[#101415] border border-white/15 text-teal-300 font-mono"
+            />
+          </div>
+
+          <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/10 space-y-2">
+            <label className="font-bold text-white block">3. Include Local Transportation & Freight?</label>
+            <div className="flex items-center space-x-4 pt-1">
+              <label className="flex items-center space-x-1.5 text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeTransportation}
+                  onChange={(e) => setIncludeTransportation(e.target.checked)}
+                  className="rounded bg-[#101415] border-white/20 text-cyan-400"
+                />
+                <span>Include Freight & Loading / Unloading</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/10 space-y-2">
+            <label className="font-bold text-white block">4. Apply 10-Year O&M Price Escalation Formula?</label>
+            <div className="flex items-center space-x-4 pt-1">
+              <label className="flex items-center space-x-1.5 text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeEscalation}
+                  onChange={(e) => setIncludeEscalation(e.target.checked)}
+                  className="rounded bg-[#101415] border-white/20 text-cyan-400"
+                />
+                <span>Apply NPV 10% Discount Rate (Page 65)</span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -89,33 +89,123 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         clearInterval(interval);
 
         const isStp = selectedCategory === 'STP';
-        const generatedScore = isStp ? 45 : 94;
-        const generatedHealth = isStp ? 'Red' : 'Green';
-        const generatedRec = isStp ? 'DO NOT BID' : 'BID';
+        const generatedScore = isStp ? 72 : 94;
+        const generatedHealth = isStp ? 'Yellow' : 'Green';
+        const generatedRec = isStp ? 'REVIEW REQUIRED' : 'BID';
+
+        const generatedThreeLevelEligibility: ThreeLevelEligibility = {
+          desire_alone: {
+            status: isStp ? 'Partially Eligible' : 'Eligible',
+            summary: isStp
+              ? 'Desire Energy meets the ₹78 Cr turnover requirement (verified ₹285 Cr) but lacks 20+ MLD SBR STP operational reference.'
+              : 'Desire Energy independently meets all financial, technical, and licensing criteria.',
+            matrix: [
+              {
+                requirement: 'Average Annual Construction Turnover (> ₹78 Cr)',
+                tender_req: 'Minimum ₹78 Cr turnover over last 5 years (Section III 3.4)',
+                company_record: '₹285 Cr average annual turnover verified',
+                verdict: 'Eligible',
+                explanation: 'Desire Energy turnover significantly exceeds the ₹78 Cr threshold.',
+                source_page: 'Page 76 (Section III 3.4)'
+              },
+              {
+                requirement: 'Class-A PHED Contractor License',
+                tender_req: 'Active Class-A Contractor registration in Public Health Engineering Dept',
+                company_record: 'Class-A License No. PHED/A/2024 active till 2028',
+                verdict: 'Eligible',
+                explanation: 'Active Class-A license verified from company certificate repository.',
+                source_page: 'Page 55 (ITB 11.1)'
+              },
+              {
+                requirement: 'STP Key Activity Construction Experience',
+                tender_req: 'Execution & 1-yr O&M of minimum 1 STP of 20 MLD capacity (Section III 4.2b)',
+                company_record: 'Rural water supply & solar pumping (1,00,000+ villages); 5 MLD STP completed',
+                verdict: isStp ? 'Partially Eligible' : 'Eligible',
+                explanation: isStp ? 'Desire Energy has 5 MLD STP experience; 20 MLD requirement requires JV partner.' : 'Full technical experience verified.',
+                source_page: 'Page 79 (Section III 4.2b)'
+              }
+            ]
+          },
+          desire_partner: {
+            status: 'Potentially Eligible',
+            summary: 'Joint Venture is explicitly permitted under Section III 2.1 & ITB 4.7 (max 3 partners). Applying with an SBR STP technology partner grants 100% eligibility.',
+            jv_rules_extracted: 'Maximum 3 JV members allowed. Lead partner must meet min 40% turnover (₹31.2 Cr); other members min 25% (₹19.5 Cr). Joint & several liability.',
+            missing_capabilities: 'Design & operational reference for 20+ MLD SBR Sewage Treatment Plant.',
+            required_partner_profile: 'STP Technology Provider with operational reference of at least 1 STP of 20 MLD+ capacity based on SBR technology in India (Section III Notes Page 80).',
+            matrix: [
+              {
+                requirement: 'Joint Venture Permissibility',
+                tender_req: 'JV/Consortium allowed (Max 3 members) as per ITB 4.7',
+                company_record: 'Desire Energy (Lead Partner) + SBR Technology Specialist',
+                verdict: 'Eligible',
+                explanation: 'Tender explicitly permits up to 3 JV members under ITB 4.7.',
+                source_page: 'Page 53 (ITB 4.7)'
+              },
+              {
+                requirement: 'SBR Technology Provider Tie-Up',
+                tender_req: 'Operational reference of 20 MLD+ SBR STP in India (Notes Page 80)',
+                company_record: 'Partner profile to be attached during bid preparation',
+                verdict: 'Potentially Eligible',
+                explanation: 'Partner brings required 20 MLD SBR tech reference; Desire brings turnover & civil execution.',
+                source_page: 'Page 80 (Notes iii)'
+              }
+            ]
+          },
+          ga_alone: {
+            status: isStp ? 'Not Eligible' : 'Eligible',
+            summary: 'GA Infra independently satisfies general EPC criteria but lacks Class-A PHED registration in Tamil Nadu for municipal Karur execution.',
+            matrix: [
+              {
+                requirement: 'Financial Turnover (> ₹78 Cr)',
+                tender_req: 'Minimum ₹78 Cr turnover over last 5 years',
+                company_record: 'GA Infra ₹180 Cr turnover verified',
+                verdict: 'Eligible',
+                explanation: 'GA Infra turnover satisfies financial requirement.',
+                source_page: 'Page 76 (Section III 3.4)'
+              },
+              {
+                requirement: 'State Licensing & Registration',
+                tender_req: 'Class-A License in Karur Municipal / Tamil Nadu PHED',
+                company_record: 'GA Infra registered in MP/UP; pending TN registration',
+                verdict: 'Not Eligible',
+                explanation: 'GA Infra requires local contractor registration or Desire Energy JV.',
+                source_page: 'Page 9 (IFB 1)'
+              }
+            ]
+          }
+        };
 
         setAssessmentReport({
           overall_health: generatedHealth,
           tender_score: generatedScore,
           recommendation: generatedRec,
-          executive_summary: `Desire Energy Solutions Pvt. Ltd. evaluated for ${selectedCategory} tender '${tenderTitle}' using uploaded document '${uploadedTenderFile.name}'. Company records confirm ₹285 Cr financial turnover, 1,00,000+ village JJM track record, and active Class-A PHED licenses.`,
+          executive_summary: `Desire Energy Solutions Pvt. Ltd. evaluated for ${selectedCategory} tender '${tenderTitle}' using uploaded document '${uploadedTenderFile.name}'. Three eligibility routes evaluated: Desire Alone (Partially Eligible), Desire + Partner JV (Potentially Eligible), GA Alone (Not Eligible).`,
           clauses: [
             {
-              clause_no: 'Sec 4.2.1',
-              title: 'Turnkey Distribution Pipeline Execution',
+              clause_no: 'ITB 4.7 Page 53',
+              title: 'Joint Venture & Consortium Provisions',
               status: 'Matched',
               risk_level: 'Low',
-              explanation: 'Requires 50km HDPE/DI pipeline experience; Desire Energy has executed 1,500+ km.',
-              action_required: 'Attach completion certificates.'
+              explanation: 'Permits max 3 JV members. Desire meets 40% lead partner turnover requirement (₹285 Cr vs ₹31.2 Cr).',
+              action_required: 'Finalize MoU with SBR technology partner.'
+            },
+            {
+              clause_no: 'Sec III 4.2b Page 79',
+              title: 'STP Key Activity Capacity Criterion',
+              status: 'Partially Matched',
+              risk_level: 'Medium',
+              explanation: 'Requires 20 MLD SBR STP operational reference; Desire has 5 MLD reference.',
+              action_required: 'Include Partner experience certificate in Volume I Envelope A.'
             }
           ],
           eligibility_matrix: [
-            { requirement: 'Annual Financial Turnover (> ₹150 Cr)', status: 'Green', notes: 'Verified: ₹285 Cr' },
-            { requirement: 'Class-A License', status: 'Green', notes: 'Verified: Active' },
-            { requirement: 'Relevant Experience', status: 'Green', notes: 'Verified: 1,00,000+ villages' }
+            { requirement: 'Annual Financial Turnover (> ₹78 Cr)', status: 'Green', notes: 'Verified: ₹285 Cr (Page 76)' },
+            { requirement: 'Class-A Contractor License', status: 'Green', notes: 'Verified: Active (Page 55)' },
+            { requirement: '20 MLD SBR STP Key Experience', status: 'Yellow', notes: 'Requires JV Partner (Page 79)' }
           ],
           missing_documents: [],
-          risks: { technical: [], commercial: [], legal: [], execution: [], financial: [] },
-          ai_recommendations: [],
+          risks: { technical: ['SBR process automation testing'], commercial: ['10-year O&M escalation cap'], legal: [], execution: [], financial: [] },
+          ai_recommendations: ['Form JV with SBR technology specialist to achieve 100% qualification.'],
           client_clarifications: []
         });
 
@@ -126,6 +216,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
   // Submit Finalized Tender to Process Queue
   const handleSubmitToQueue = () => {
+    const isStp = selectedCategory === 'STP';
     const newProcess: TenderProcess = {
       id: `TND-${Date.now().toString().slice(-6)}`,
       tender_name: tenderTitle,
@@ -139,10 +230,38 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       eligibility_result: {
         is_eligible: assessmentReport?.recommendation !== 'DO NOT BID',
         score: assessmentReport?.tender_score || 94,
-        reasoning: 'Verified against company records.'
+        reasoning: 'Evaluated across 3 eligibility routes: Desire Alone, Desire + Partner, GA Alone.'
+      },
+      three_level_eligibility: {
+        desire_alone: {
+          status: isStp ? 'Partially Eligible' : 'Eligible',
+          summary: isStp ? 'Meets ₹78 Cr turnover (₹285 Cr verified) & Class-A license; needs 20 MLD SBR STP experience.' : 'Independently qualified.',
+          matrix: [
+            { requirement: 'Annual Turnover (> ₹78 Cr)', tender_req: '₹78 Cr min', company_record: '₹285 Cr', verdict: 'Eligible', explanation: 'Exceeds financial threshold.', source_page: 'Page 76' },
+            { requirement: 'STP 20 MLD Experience', tender_req: '1 STP of 20 MLD+', company_record: '5 MLD completed', verdict: isStp ? 'Partially Eligible' : 'Eligible', explanation: 'Requires JV partner for 20 MLD capacity.', source_page: 'Page 79' }
+          ]
+        },
+        desire_partner: {
+          status: 'Potentially Eligible',
+          summary: 'JV permitted (Max 3 members, ITB 4.7). Applying with SBR technology partner fulfills 20 MLD requirement.',
+          jv_rules_extracted: 'Max 3 JV members. Lead partner min 40% turnover; other members min 25%.',
+          missing_capabilities: '20+ MLD SBR STP operational reference.',
+          required_partner_profile: 'SBR Technology Specialist with 20 MLD+ STP reference in India (Page 80).',
+          matrix: [
+            { requirement: 'JV Permissibility', tender_req: 'Allowed max 3 members', company_record: 'Desire (Lead) + SBR Partner', verdict: 'Eligible', explanation: 'Fully permitted under ITB 4.7.', source_page: 'Page 53' }
+          ]
+        },
+        ga_alone: {
+          status: isStp ? 'Not Eligible' : 'Eligible',
+          summary: 'GA Infra meets turnover (₹180 Cr) but lacks Tamil Nadu local Class-A contractor license.',
+          matrix: [
+            { requirement: 'Annual Turnover', tender_req: '₹78 Cr min', company_record: '₹180 Cr', verdict: 'Eligible', explanation: 'Meets turnover.', source_page: 'Page 76' },
+            { requirement: 'TN State License', tender_req: 'Karur/TN PHED Class-A', company_record: 'Registered in MP/UP', verdict: 'Not Eligible', explanation: 'Lacks TN registration.', source_page: 'Page 9' }
+          ]
+        }
       },
       uploaded_files: {
-        tender_pdf: uploadedTenderFile?.name || 'Tender.pdf'
+        tender_pdf: uploadedTenderFile?.name || 'STPBIDDocVol1part1.pdf'
       },
       ai_report: assessmentReport || undefined,
       audit_trail: [

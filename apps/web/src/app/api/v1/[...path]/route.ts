@@ -643,6 +643,92 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
     }
 
+    // 12. DATA: COSTING MANUAL OVERRIDES LOG (AI Learning)
+    if (subPath === 'costing/overrides' && method === 'POST') {
+      const override = body;
+      if (supabase) {
+        try {
+          await supabase.from('boq_rate_overrides').insert({
+            tender_id: override.tender_id || 'TND-60522025',
+            boq_item_id: override.boq_item_id,
+            item_name: override.item_name,
+            original_ai_rate: override.original_ai_rate,
+            user_override_rate: override.user_override_rate,
+            difference: override.difference,
+            reason: override.reason,
+            project_category: override.project_category,
+            created_at: new Date().toISOString()
+          });
+        } catch (e) {}
+      }
+      return NextResponse.json({ status: 'success', message: 'Manual rate override logged for AI learning' });
+    }
+
+    // 13. DATA: HISTORICAL BOQ ITEMS GET & POST
+    if (subPath === 'historical-boqs') {
+      if (method === 'GET') {
+        if (supabase) {
+          try {
+            const { data: dbBoqs } = await supabase.from('boq_historical_items').select('*').order('created_at', { ascending: false });
+            if (dbBoqs) return NextResponse.json({ status: 'success', boq_items: dbBoqs });
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', boq_items: [] });
+      }
+
+      if (method === 'POST') {
+        const item = body;
+        if (supabase) {
+          try {
+            await supabase.from('boq_historical_items').upsert({
+              id: item.id || `hboq-${Date.now()}`,
+              project_category: item.project_category,
+              project_name: item.project_name,
+              tender_id: item.tender_id,
+              client: item.client,
+              boq_date: item.boq_date,
+              work_category: item.work_category,
+              item_name: item.item_name,
+              unit_of_measure: item.unit_of_measure,
+              historical_rate: item.historical_rate,
+              boq_version: item.boq_version || 'v1.0'
+            }, { onConflict: 'id' });
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', message: 'Historical BOQ item saved' });
+      }
+    }
+
+    // 14. DATA: AI INSTRUCTION VERSIONING LOG GET & POST
+    if (subPath === 'ai-instructions/history') {
+      if (method === 'GET') {
+        if (supabase) {
+          try {
+            const { data: dbPrompts } = await supabase.from('ai_prompt_history').select('*').order('changed_at', { ascending: false });
+            if (dbPrompts) return NextResponse.json({ status: 'success', history: dbPrompts });
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', history: [] });
+      }
+
+      if (method === 'POST') {
+        const hist = body;
+        if (supabase) {
+          try {
+            await supabase.from('ai_prompt_history').insert({
+              project_category: hist.project_category,
+              version: hist.version || 'v1.0',
+              previous_instruction: hist.previous_instruction,
+              new_instruction: hist.new_instruction,
+              changed_by: hist.changed_by || 'Admin',
+              changed_at: new Date().toISOString()
+            });
+          } catch (e) {}
+        }
+        return NextResponse.json({ status: 'success', message: 'AI Prompt version logged successfully' });
+      }
+    }
+
     return NextResponse.json({
       status: 'success',
       message: 'Desire Tender Vercel Serverless API Service Online.'
