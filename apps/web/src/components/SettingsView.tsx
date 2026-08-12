@@ -56,7 +56,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
 
   // Load existing config on mount
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/v1/settings/config`)
+    fetch(`${API_BASE_URL}/settings/config`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === 'success') {
@@ -90,7 +90,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/settings/test-key`, {
+      const response = await fetch(`${API_BASE_URL}/settings/test-key`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +132,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/settings/config`, {
+      const response = await fetch(`${API_BASE_URL}/settings/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

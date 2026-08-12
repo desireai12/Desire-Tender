@@ -21,7 +21,8 @@ import {
   Plus,
   Trash2,
   Edit3,
-  AlertTriangle
+  AlertTriangle,
+  Download
 } from 'lucide-react';
 import { 
   TenderProcess, 
@@ -30,6 +31,7 @@ import {
   BOQLineItem, 
   AuditLog 
 } from '@/lib/types';
+import { generateBOQExcelReport } from '@/lib/excelExport';
 
 interface TenderLifecycleTrackerProps {
   tenders: TenderProcess[];
@@ -686,13 +688,23 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
 
           {/* Editable BOQ Table */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h4 className="text-xs font-mono uppercase text-white">BOQ Unit Rate Breakdown Table</h4>
-              <div className="text-right">
-                <span className="text-xs font-mono text-slate-400">Total Estimated Cost: </span>
-                <strong className="text-base font-display font-bold text-cyan-300">
-                  ₹{(totalBOQCost / 10000000).toFixed(2)} Cr
-                </strong>
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={() => generateBOQExcelReport(activeTender, boqItems)}
+                  className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold transition cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" />
+                  <span>Export Costing Excel (.xls)</span>
+                </button>
+                <div className="text-right">
+                  <span className="text-xs font-mono text-slate-400">Total Estimated Cost: </span>
+                  <strong className="text-base font-display font-bold text-cyan-300">
+                    ₹{(totalBOQCost / 10000000).toFixed(2)} Cr
+                  </strong>
+                </div>
               </div>
             </div>
 

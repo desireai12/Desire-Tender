@@ -304,7 +304,7 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ currentP
     formData.append('project_category', selectedCategory);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/tender/analyze?provider=${currentProvider}`, {
+      const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
         method: 'POST',
         body: formData,
       });
@@ -440,106 +440,14 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ currentP
         </div>
       </div>
 
-      {/* THREE-LEVEL ELIGIBILITY DECISION DASHBOARD */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <div>
-            <h3 className="text-base font-display font-bold text-white flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span>Three-Level Eligibility Decision Engine</span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Evaluates 3 distinct participation routes independently with clause-by-clause evidence.
-            </p>
-          </div>
-          <span className="text-[11px] font-mono text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">
-            Tender: Karur 35.25 MLD SBR STP (6052/2025/E5)
-          </span>
-        </div>
+      {/* Verdict & Match Score Badge */}
+      <EligibilityCard
+        verdict={analysisReport.verdict}
+        score={analysisReport.eligibility_score}
+        executiveSummary={analysisReport.executive_summary}
+      />
 
-        {/* 3 Prominent Eligibility Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* CARD 1: DESIRE ALONE */}
-          <div className="p-5 rounded-2xl bg-gradient-to-b from-aqua-950/90 to-[#101415] border border-cyan-500/40 space-y-3 relative overflow-hidden shadow-xl">
-            <div className="absolute top-0 right-0 px-3 py-1 bg-cyan-500/20 text-cyan-300 font-mono text-[10px] rounded-bl-xl border-l border-b border-cyan-500/30 font-bold uppercase">
-              Route 1
-            </div>
-            <div className="flex items-center space-x-2 text-cyan-300 font-display font-bold text-sm">
-              <CheckCircle2 className="w-5 h-5 text-cyan-400" />
-              <span>DESIRE ALONE</span>
-            </div>
-            <div className="flex items-baseline space-x-2">
-              <span className={`text-xl font-display font-extrabold ${
-                selectedCategory === 'STP' ? 'text-amber-400' : 'text-emerald-400'
-              }`}>
-                {selectedCategory === 'STP' ? 'Partially Eligible' : '100% Eligible'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {selectedCategory === 'STP' 
-                ? 'Meets ₹78 Cr turnover requirement (verified ₹285 Cr) & Class-A license; requires 20 MLD SBR STP key experience.' 
-                : 'Independently satisfies all financial, technical, and licensing mandates.'}
-            </p>
-            <div className="pt-2 border-t border-white/10 text-[11px] font-mono text-slate-400">
-              Reference: <span className="text-cyan-300">Page 76 (Sec III 3.4), Page 79 (Sec III 4.2b)</span>
-            </div>
-          </div>
-
-          {/* CARD 2: DESIRE + PARTNER / JV */}
-          <div className="p-5 rounded-2xl bg-gradient-to-b from-purple-950/90 to-[#101415] border border-purple-500/40 space-y-3 relative overflow-hidden shadow-xl">
-            <div className="absolute top-0 right-0 px-3 py-1 bg-purple-500/20 text-purple-300 font-mono text-[10px] rounded-bl-xl border-l border-b border-purple-500/30 font-bold uppercase">
-              Route 2
-            </div>
-            <div className="flex items-center space-x-2 text-purple-300 font-display font-bold text-sm">
-              <Layers className="w-5 h-5 text-purple-400" />
-              <span>DESIRE + PARTNER / JV</span>
-            </div>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-xl font-display font-extrabold text-emerald-400">
-                Potentially Eligible
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              JV permitted under ITB 4.7 (Max 3 members). Applying with an SBR STP technology partner grants 100% qualification.
-            </p>
-            <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-200">
-              <span className="font-bold block text-purple-300 mb-0.5">Missing Capability:</span>
-              20+ MLD SBR Technology Specialist Operational Reference.
-            </div>
-            <div className="pt-2 border-t border-white/10 text-[11px] font-mono text-slate-400">
-              Reference: <span className="text-purple-300">Page 53 (ITB 4.7), Page 80 (Notes iii)</span>
-            </div>
-          </div>
-
-          {/* CARD 3: GA ALONE */}
-          <div className="p-5 rounded-2xl bg-gradient-to-b from-slate-900 to-[#101415] border border-white/15 space-y-3 relative overflow-hidden shadow-xl">
-            <div className="absolute top-0 right-0 px-3 py-1 bg-white/10 text-slate-300 font-mono text-[10px] rounded-bl-xl border-l border-b border-white/10 font-bold uppercase">
-              Route 3
-            </div>
-            <div className="flex items-center space-x-2 text-slate-300 font-display font-bold text-sm">
-              <FileText className="w-5 h-5 text-slate-400" />
-              <span>GA ALONE</span>
-            </div>
-            <div className="flex items-baseline space-x-2">
-              <span className={`text-xl font-display font-extrabold ${
-                selectedCategory === 'STP' ? 'text-rose-400' : 'text-emerald-400'
-              }`}>
-                {selectedCategory === 'STP' ? 'Not Eligible' : 'Eligible'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {selectedCategory === 'STP'
-                ? 'GA Infra satisfies ₹180 Cr turnover requirement but lacks Tamil Nadu local Class-A contractor license.'
-                : 'Meets standalone general contractor requirements.'}
-            </p>
-            <div className="pt-2 border-t border-white/10 text-[11px] font-mono text-slate-400">
-              Reference: <span className="text-cyan-300">Page 9 (IFB 1), Page 76 (Sec III 3.4)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Critical Parameters & Clause Evidence Table */}
+      {/* Critical Parameters Checklist Table */}
       <MatrixTable parameters={analysisReport.parameter_matrix} />
     </div>
   );

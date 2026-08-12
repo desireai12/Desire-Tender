@@ -110,7 +110,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users`);
+      const res = await fetch(`${API_BASE_URL}/auth/users`);
       const data = await res.json();
       if (data.status === 'success') {
         setUserList(data.users);
@@ -123,7 +123,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   const handleAssignUserRole = async (userId: string, newDept: DepartmentRole) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users/assign-role`, {
+      const res = await fetch(`${API_BASE_URL}/auth/users/assign-role`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, department: newDept })
@@ -149,7 +149,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/users/create`, {
+      const res = await fetch(`${API_BASE_URL}/auth/users/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -262,7 +262,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
         changelog_notes: changelogNotes || `Updated ${selectedCategory} system prompt via Admin Console`
       };
 
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/ai-config`, {
+      const res = await fetch(`${API_BASE_URL}/admin/ai-config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -296,7 +296,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
         notes: newKeyNotes || 'Added via Admin Key Vault'
       };
 
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/credentials`, {
+      const res = await fetch(`${API_BASE_URL}/admin/credentials`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -321,7 +321,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
     setTestStatus((prev) => ({ ...prev, [cred.id]: { status: 'testing', message: 'Pinging endpoint...' } }));
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/test-credentials`, {
+      const res = await fetch(`${API_BASE_URL}/admin/test-credentials`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: cred.provider, api_key: 'test_key_sample' })

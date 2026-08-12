@@ -128,48 +128,7 @@ CREATE TABLE IF NOT EXISTS public.competitors (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 11. HISTORICAL BOQ ITEMS DATABASE TABLE (Project-Specific Rate Matching)
-CREATE TABLE IF NOT EXISTS public.boq_historical_items (
-    id VARCHAR(100) PRIMARY KEY,
-    project_category VARCHAR(50) NOT NULL,
-    project_name VARCHAR(255) NOT NULL,
-    tender_id VARCHAR(100),
-    client VARCHAR(255),
-    boq_date VARCHAR(50),
-    work_category VARCHAR(100),
-    item_name TEXT NOT NULL,
-    unit_of_measure VARCHAR(50) NOT NULL,
-    historical_rate NUMERIC NOT NULL DEFAULT 0,
-    boq_version VARCHAR(50) DEFAULT 'v1.0',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 12. MANUAL RATE OVERRIDE LOG TABLE (AI Learning Engine)
-CREATE TABLE IF NOT EXISTS public.boq_rate_overrides (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tender_id VARCHAR(100) NOT NULL,
-    boq_item_id VARCHAR(100) NOT NULL,
-    item_name TEXT NOT NULL,
-    original_ai_rate NUMERIC NOT NULL,
-    user_override_rate NUMERIC NOT NULL,
-    difference NUMERIC NOT NULL,
-    reason TEXT NOT NULL,
-    project_category VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 13. AI INSTRUCTION VERSIONING LOG TABLE
-CREATE TABLE IF NOT EXISTS public.ai_prompt_history (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    project_category VARCHAR(50) NOT NULL,
-    version VARCHAR(50) NOT NULL,
-    previous_instruction TEXT,
-    new_instruction TEXT NOT NULL,
-    changed_by VARCHAR(100) DEFAULT 'Admin',
-    changed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 14. SEED INITIAL DEMO DATA
+-- 11. SEED INITIAL DEMO DATA
 INSERT INTO public.users (employee_id, full_name, email, phone, password_hash, role, department, status, permissions)
 VALUES 
 ('EMP001', 'Ankit Purohit', 'ankit.purohit@desireenergy.com', '9829012345', 'Ankit@EMP001#2026', 'Administrator', 'Admin', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb),
@@ -179,11 +138,10 @@ ON CONFLICT (employee_id) DO NOTHING;
 INSERT INTO public.projects (id, name, type, client, description, status)
 VALUES 
 ('proj-1', 'Jal Jeevan Mission (JJM) Rural Water Supply', 'RHDS', 'PHED Rajasthan', 'Rural water supply distribution schemes across 100,000+ villages under JJM.', 'Active'),
-('proj-2', 'PM-Kusum Component-B Solar Pump Scheme', 'KUSUM', 'REDA / RRECL', 'Implementation of off-grid solar water pumping systems.', 'Active'),
-('proj-3', 'Sewage Treatment Plant (STP) SBR Infrastructure', 'STP', 'Karur Municipal Corporation', '35.25 MLD SBR Sewage Treatment Plant and 10-year O&M.', 'Active')
+('proj-2', 'PM-Kusum Component-B Solar Pump Scheme', 'KUSUM', 'REDA / RRECL', 'Implementation of off-grid solar water pumping systems.', 'Active')
 ON CONFLICT (id) DO NOTHING;
 
--- 15. DISABLE ROW LEVEL SECURITY FOR SEAMLESS CLOUD DB SAVING
+-- 12. DISABLE ROW LEVEL SECURITY FOR SEAMLESS CLOUD DB SAVING
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tenders DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.boq_items DISABLE ROW LEVEL SECURITY;
@@ -193,9 +151,5 @@ ALTER TABLE public.credentials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.knowledge_base DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.competitors DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.boq_historical_items DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.boq_rate_overrides DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.ai_prompt_history DISABLE ROW LEVEL SECURITY;
-
 
 

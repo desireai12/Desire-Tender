@@ -153,16 +153,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">Sign Out</span>
           </button>
         )}
-
-        {/* Admin Portal Gateway Button */}
-        <a
-          href="/admin"
-          className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-500/20 transition cursor-pointer"
-          title="Open Admin Security Control Center"
-        >
-          <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
-          <span>Admin Portal (`/admin`)</span>
-        </a>
       </div>
     </header>
   );

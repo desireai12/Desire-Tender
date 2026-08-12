@@ -33,7 +33,7 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
 
     try {
       const res = await fetch(
-        `${API_BASE_URL}/api/v1/tender/analyze?provider=${currentProvider}`,
+        `${API_BASE_URL}/tender/analyze?provider=${currentProvider}`,
         { method: 'POST', body: formData }
       );
       if (res.ok) {

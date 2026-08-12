@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import { DepartmentRole, KnowledgeModuleType } from '@/lib/types';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 interface AdminKnowledgeBaseProps {
   activeRole: DepartmentRole;
@@ -24,6 +25,10 @@ interface AdminKnowledgeBaseProps {
 
 export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRole }) => {
   const [activeModule, setActiveModule] = useState<KnowledgeModuleType>('company');
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [newTitle, setNewTitle] = useState<string>('');
+  const [newFilename, setNewFilename] = useState<string>('');
+  const [newDesc, setNewDesc] = useState<string>('');
 
   if (activeRole !== 'Admin') {
     return (
@@ -106,8 +111,115 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
       chunk_count: 15,
       tags: ['BOQ Rates', 'Unit Pricing', 'HDPE Pipe Cost'],
       summary: 'Itemized BOQ historical rates for HDPE pipelines, solar pump controllers, and SCADA sensors.'
-    }
   ]);
+
+  // FETCH LIVE KNOWLEDGE DOCUMENTS FROM DATABASE ON MOUNT
+  useEffect(() => {
+    const fetchKnowledgeDocs = async () => {
+      let loaded: any[] = [];
+      try {
+        const res = await fetch(`${API_BASE_URL}/knowledge`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.knowledge && Array.isArray(data.knowledge) && data.knowledge.length > 0) {
+            loaded = data.knowledge;
+          }
+        }
+      } catch (e) {}
+
+      if (loaded.length === 0 && isSupabaseConfigured && supabase) {
+        try {
+          const { data: dbKb, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+          if (!error && dbKb && dbKb.length > 0) {
+            loaded = dbKb.map((k: any) => ({
+              id: k.id,
+              module: (k.category || 'company').toLowerCase(),
+              title: k.title,
+              filename: k.file_name || 'Document.pdf',
+              version: 'v1.0',
+              uploaded_by: k.uploaded_by || 'Admin',
+              uploaded_at: k.created_at ? k.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+              approval_status: 'Approved',
+              chunk_count: 8,
+              tags: [k.category || 'Company Record'],
+              summary: k.description || k.title
+            }));
+          }
+        } catch (dbErr) {}
+      }
+
+      if (loaded.length > 0) {
+        setDocuments(prev => {
+          const idMap = new Map();
+          prev.forEach(d => idMap.set(d.id, d));
+          loaded.forEach(d => idMap.set(d.id, d));
+          return Array.from(idMap.values());
+        });
+      }
+    };
+
+    fetchKnowledgeDocs();
+  }, []);
+
+  const handleAddKnowledgeAsset = async () => {
+    if (!newTitle.trim()) {
+      alert('Document Title is required.');
+      return;
+    }
+
+    const newDoc = {
+      id: `kb-${Date.now()}`,
+      module: activeModule,
+      title: newTitle.trim(),
+      filename: newFilename.trim() || `${newTitle.trim().replace(/\s+/g, '_')}.pdf`,
+      version: 'v1.0',
+      uploaded_by: 'MD Office (Admin)',
+      uploaded_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      approval_status: 'Approved' as const,
+      chunk_count: 8,
+      tags: [activeModule.toUpperCase(), 'Company Record'],
+      summary: newDesc.trim() || `${newTitle.trim()} uploaded and indexed.`
+    };
+
+    setDocuments(prev => [newDoc, ...prev]);
+    setShowAddModal(false);
+    setNewTitle('');
+    setNewFilename('');
+    setNewDesc('');
+
+    // Post to API
+    try {
+      await fetch(`${API_BASE_URL}/knowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: newDoc.id,
+          title: newDoc.title,
+          category: activeModule,
+          file_name: newDoc.filename,
+          description: newDoc.summary,
+          status: 'Active',
+          uploaded_by: newDoc.uploaded_by
+        })
+      });
+    } catch (e) {}
+
+    // Direct Supabase Write
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('knowledge_base').upsert({
+          id: newDoc.id,
+          title: newDoc.title,
+          category: activeModule,
+          file_name: newDoc.filename,
+          description: newDoc.summary,
+          status: 'Active',
+          uploaded_by: newDoc.uploaded_by,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (dbErr) {}
+    }
+  };
 
   const handleDelete = (id: string) => {
     setDocuments((prev) => prev.filter((doc) => doc.id !== id));
@@ -129,10 +241,75 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
             Manage company credentials, certificate registries, competitor intelligence, and historical BOQ repositories.
           </p>
         </div>
-        <div className="px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center shrink-0">
-          Total Chunks: {documents.reduce((acc, d) => acc + d.chunk_count, 0)}
+        <div className="flex items-center space-x-3 shrink-0">
+          <div className="px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center">
+            Total Chunks: {documents.reduce((acc, d) => acc + d.chunk_count, 0)}
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>+ Add Asset</span>
+          </button>
         </div>
       </div>
+
+      {/* Add Knowledge Asset Modal */}
+      {showAddModal && (
+        <div className="glass-card p-6 rounded-2xl border border-cyan-500/40 space-y-4">
+          <h4 className="text-sm font-display font-bold text-white flex items-center space-x-2">
+            <Upload className="w-4 h-4 text-cyan-400" />
+            <span>Register New Knowledge Asset for [{activeModule.toUpperCase()}]</span>
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="text-[11px] font-mono text-slate-300 block mb-1">Document Title *</label>
+              <input
+                type="text"
+                placeholder="e.g. ISO 9001:2015 Quality Certificate 2026"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-white"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-mono text-slate-300 block mb-1">File Name</label>
+              <input
+                type="text"
+                placeholder="e.g. ISO_Cert_2026.pdf"
+                value={newFilename}
+                onChange={(e) => setNewFilename(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[11px] font-mono text-slate-300 block mb-1">Summary / Description</label>
+            <textarea
+              rows={2}
+              placeholder="Record details and key credentials..."
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+              className="w-full p-2.5 rounded-xl bg-[#101415] border border-white/15 text-xs text-white"
+            />
+          </div>
+          <div className="flex justify-end space-x-2 pt-2">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="px-4 py-2 rounded-xl bg-white/5 text-slate-400 text-xs hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddKnowledgeAsset}
+              className="px-6 py-2 rounded-xl bg-cyan-500 text-aqua-950 font-bold text-xs hover:bg-cyan-400"
+            >
+              Save to Database
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 5 Backend Knowledge Module Tabs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
