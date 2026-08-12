@@ -55,7 +55,7 @@ export default function Home() {
   const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([DEFAULT_SEED_TENDER]);
 
-  // RESTORE AUTHENTICATION SESSION ON MOUNT (PERSISTS ACROSS PAGE REFRESHES!)
+  // RESTORE AUTHENTICATION SESSION ON MOUNT (AUTO-LOAD WORKSPACE WITHOUT USER LOGIN)
   useEffect(() => {
     try {
       const activeSessionUser = getActiveUserSession();
@@ -67,6 +67,24 @@ export default function Home() {
         } else {
           setViewMode('user');
         }
+      } else {
+        // Direct access to Tender Workspace without requiring login
+        const defaultUser: UserProfile = {
+          id: 'usr-default',
+          employee_id: 'EMP001',
+          full_name: 'Desire Tender Specialist',
+          email: 'tender@desireenergy.com',
+          phone: '9999999999',
+          role: 'Tender Specialist',
+          department: 'Business Development',
+          status: 'Active',
+          permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result'],
+          assigned_projects: ['RHDS', 'STP', 'SOLAR', 'KUSUM', 'EPC', 'ESCO'],
+          registered_at: '2026-08-01',
+          last_login: new Date().toISOString()
+        };
+        setCurrentUser(defaultUser);
+        setActiveRole('Business Development');
       }
     } catch (e) {} finally {
       setIsInitializingSession(false);

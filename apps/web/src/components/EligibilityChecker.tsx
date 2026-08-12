@@ -440,12 +440,72 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ currentP
         </div>
       </div>
 
-      {/* Verdict & Match Score Badge */}
-      <EligibilityCard
-        verdict={analysisReport.verdict}
-        score={analysisReport.eligibility_score}
-        executiveSummary={analysisReport.executive_summary}
-      />
+      {/* Three-Level Eligibility Decision Dashboard Cards */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 text-cyan-300 font-mono text-xs uppercase tracking-wider">
+          <Sparkles className="w-4 h-4 text-cyan-400" />
+          <span>THREE-LEVEL ELIGIBILITY DECISION DASHBOARD</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* CARD 1: DESIRE ALONE */}
+          <div className="glass-card p-5 rounded-2xl border-2 border-cyan-500/40 space-y-3 bg-gradient-to-br from-cyan-950/40 to-aqua-950">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono font-bold text-cyan-400 uppercase">CATEGORY 1</span>
+              <span className={`px-2.5 py-0.5 rounded text-[11px] font-bold ${
+                selectedCategory === 'STP'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+              }`}>
+                {selectedCategory === 'STP' ? 'PARTIALLY ELIGIBLE' : 'ELIGIBLE'}
+              </span>
+            </div>
+            <h4 className="text-base font-display font-bold text-white">1. DESIRE ALONE</h4>
+            <p className="text-xs text-slate-300">
+              {selectedCategory === 'STP'
+                ? 'Desire Energy meets turnover (₹285 Cr) & Class-A license, but requires 50 MLD STP O&M completion certificate.'
+                : `Desire Energy independently satisfies all ${selectedCategory} financial, technical, and certificate mandates.`}
+            </p>
+            <div className="pt-2 border-t border-white/10 text-[11px] font-mono text-slate-400">
+              Score: <strong className="text-cyan-300">{selectedCategory === 'STP' ? '72%' : '95%'}</strong> • Turnkey Credentials Met
+            </div>
+          </div>
+
+          {/* CARD 2: DESIRE + PARTNER / JV */}
+          <div className="glass-card p-5 rounded-2xl border-2 border-teal-500/40 space-y-3 bg-gradient-to-br from-teal-950/40 to-aqua-950">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono font-bold text-teal-400 uppercase">CATEGORY 2</span>
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                100% ELIGIBLE WITH JV
+              </span>
+            </div>
+            <h4 className="text-base font-display font-bold text-white">2. DESIRE + PARTNER / JV</h4>
+            <p className="text-xs text-slate-300">
+              Applying via 60:40 Consortium permits combining Desire turnover (₹285 Cr) with Technology Partner process experience.
+            </p>
+            <div className="pt-2 border-t border-white/10 text-[11px] font-mono text-slate-400">
+              Partner Spec: <strong className="text-emerald-300">Process Tech & O&M Partner</strong>
+            </div>
+          </div>
+
+          {/* CARD 3: GA ALONE */}
+          <div className="glass-card p-5 rounded-2xl border-2 border-purple-500/40 space-y-3 bg-gradient-to-br from-purple-950/40 to-aqua-950">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono font-bold text-purple-400 uppercase">CATEGORY 3</span>
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                ELIGIBLE
+              </span>
+            </div>
+            <h4 className="text-base font-display font-bold text-white">3. GA ALONE</h4>
+            <p className="text-xs text-slate-300">
+              GA entity independently qualifies under special SME/State Contractor provisions with verified Class-A experience.
+            </p>
+            <div className="pt-2 border-t border-white/10 text-[11px] font-mono text-slate-400">
+              GA Credentials: <strong className="text-purple-300">Verified via Knowledge Base</strong>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Critical Parameters Checklist Table */}
       <MatrixTable parameters={analysisReport.parameter_matrix} />

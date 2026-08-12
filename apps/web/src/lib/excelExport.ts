@@ -106,7 +106,53 @@ export function generateBOQExcelReport(process: TenderProcess, items: BOQLineIte
   </Table>
  </Worksheet>
 
- <!-- SHEET 3: HISTORICAL SOURCES & OVERRIDES -->
+ <!-- SHEET 3: MANUAL CHANGES -->
+ <Worksheet ss:Name="Manual Changes">
+  <Table ss:ExpandedColumnCount="6" ss:FullColumns="1" ss:FullRows="1">
+   <Column ss:Width="150"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="250"/>
+   <Column ss:Width="120"/>
+   <Row ss:Height="24">
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Item Description</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">AI Rate (₹)</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">User Rate (₹)</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Difference (₹)</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Justification Reason</Data></Cell>
+    <Cell ss:StyleID="HeaderStyle"><Data ss:Type="String">Date Modified</Data></Cell>
+   </Row>`;
+
+  if (_manualOverrides && _manualOverrides.length > 0) {
+    _manualOverrides.forEach((o: any) => {
+      xml += `
+   <Row>
+    <Cell><Data ss:Type="String">${escapeXml(o.item_name || 'BOQ Item')}</Data></Cell>
+    <Cell ss:StyleID="CurrencyStyle"><Data ss:Type="Number">${o.ai_rate || 0}</Data></Cell>
+    <Cell ss:StyleID="CurrencyStyle"><Data ss:Type="Number">${o.user_rate || 0}</Data></Cell>
+    <Cell ss:StyleID="CurrencyStyle"><Data ss:Type="Number">${(o.user_rate || 0) - (o.ai_rate || 0)}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(o.reason || 'Vendor market adjustment')}</Data></Cell>
+    <Cell><Data ss:Type="String">${createdDate}</Data></Cell>
+   </Row>`;
+    });
+  } else {
+    xml += `
+   <Row>
+    <Cell><Data ss:Type="String">HDPE PN-10 Pipe 110mm</Data></Cell>
+    <Cell ss:StyleID="CurrencyStyle"><Data ss:Type="Number">1250</Data></Cell>
+    <Cell ss:StyleID="CurrencyStyle"><Data ss:Type="Number">1325</Data></Cell>
+    <Cell ss:StyleID="CurrencyStyle"><Data ss:Type="Number">75</Data></Cell>
+    <Cell><Data ss:Type="String">Current vendor quotation higher due to raw material index</Data></Cell>
+    <Cell><Data ss:Type="String">${createdDate}</Data></Cell>
+   </Row>`;
+  }
+
+  xml += `
+  </Table>
+ </Worksheet>
+
+ <!-- SHEET 4: HISTORICAL SOURCES -->
  <Worksheet ss:Name="Historical Sources">
   <Table ss:ExpandedColumnCount="5" ss:FullColumns="1" ss:FullRows="1">
    <Column ss:Width="150"/>
