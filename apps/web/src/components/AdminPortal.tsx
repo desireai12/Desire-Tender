@@ -315,7 +315,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
       description: newProjDesc.trim() || `${newProjName.trim()} execution package.`,
       status: 'Active',
       ai_instructions: newProjAI.trim() || 'Follow standard project guidelines.',
-      knowledge_sources: ['Company Profile', 'Certificates']
+      knowledge_sources: ['Company Profile', 'Certificates'],
+      created_at: new Date().toISOString()
     };
 
     // 1. Update local store & state immediately

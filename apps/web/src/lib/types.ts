@@ -207,5 +207,5 @@ export interface Project {
   ai_instructions?: string;
   knowledge_sources: string[];
   status: 'Active' | 'Archived';
-  created_at: string;
+  created_at?: string;
 }
