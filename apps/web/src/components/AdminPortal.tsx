@@ -479,37 +479,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Admin Action: Create Project — ACTIVELY SAVE PROJECT!
-  const handleCreateProject = async () => {
-    if (!newProjName.trim() || !newProjClient.trim()) {
-      setToast('Project Name and Client Authority are required.');
-      setTimeout(() => setToast(null), 4000);
-      return;
-    }
-
-    const newP: Project = {
-      id: `proj-${Date.now()}`,
-      name: newProjName.trim(),
-      type: newProjType,
-      client: newProjClient.trim(),
-      description: newProjDesc.trim(),
-      ai_instructions: newProjAI.trim(),
-      knowledge_sources: ['Company Profile', 'Certificates'],
-      status: 'Active',
-      created_at: new Date().toISOString()
-    };
-
-    const updatedProjects = saveProject(newP);
-    setProjectList(updatedProjects);
-    setShowAddProjectModal(false);
-    setNewProjName('');
-    setNewProjClient('');
-    setNewProjDesc('');
-    setNewProjAI('');
-    setToast(`Project '${newProjName}' created!`);
-    setTimeout(() => setToast(null), 4000);
-  };
-
   // -------------------------------------------------------------
   // 1. ADMIN LOGIN GATE (If not authenticated)
   // -------------------------------------------------------------
