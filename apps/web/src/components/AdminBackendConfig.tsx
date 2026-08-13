@@ -82,11 +82,17 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
   const [testStatus, setTestStatus] = useState<Record<string, { status: 'testing' | 'success' | 'error'; message: string }>>({});
 
   // Project AI Config State
-  const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('SOLAR');
+  const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('STP');
   const [projectConfigs, setProjectConfigs] = useState<Record<string, ProjectAIConfig>>({});
-  const [systemInstruction, setSystemInstruction] = useState<string>('');
-  const [eligibilityLogic, setEligibilityLogic] = useState<string>('');
-  const [costingMethodology, setCostingMethodology] = useState<string>('');
+  const [systemInstruction, setSystemInstruction] = useState<string>(
+    'STP Project Tender Instruction: Analyze Sewage Treatment Plant (STP) tenders (e.g. Karur 35.25 MLD SBR STP Tender No: 6052/2025/E5). Evaluate 35.25 MLD SBR technology, 10-Year O&M terms, and NGT effluent standards (BOD ≤ 10 mg/l, COD ≤ 50 mg/l, TSS ≤ 10 mg/l, TN ≤ 10 mg/l, TP ≤ 1 mg/l, Ammonia ≤ 5 mg/l). Match extracted BOQ items against historical STP rates for SBR basins, screw press sludge dewatering, fine bubble diffusers, blowers, and SCADA telemetry.'
+  );
+  const [eligibilityLogic, setEligibilityLogic] = useState<string>(
+    'Category 1 (Desire Alone): Requires ₹78 Cr average turnover & 20+ MLD SBR STP execution. Category 2 (Desire + Partner/JV): Desire provides ₹285 Cr turnover & Class-A license; 40% JV partner provides 20+ MLD SBR process completion & O&M certificate. Category 3 (GA Alone): Evaluates GA under State Class-A contractor provisions.'
+  );
+  const [costingMethodology, setCostingMethodology] = useState<string>(
+    'Item-level matching against 35.25 MLD Karur STP & PHED Rajasthan historical BOQ databases. Display historical item name, rate (₹), date of BOQ, estimated unit rate, and total cost. Allow manual rate overrides with reason logging for continuous AI learning.'
+  );
   const [changelogNotes, setChangelogNotes] = useState<string>('');
   const [isSavingConfig, setIsSavingConfig] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
