@@ -219,6 +219,23 @@ export default function Home() {
           audit_trail: updatedProcess.audit_trail || [],
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
+
+        // Stream BOQ items to Supabase boq_items table for historical learning!
+        if (updatedProcess.boq_items && updatedProcess.boq_items.length > 0) {
+          const boqRows = updatedProcess.boq_items.map(b => ({
+            id: b.id,
+            tender_id: updatedProcess.id,
+            category: b.category,
+            item_name: b.item_name,
+            quantity: b.quantity,
+            unit_of_measure: b.unit_of_measure,
+            unit_cost: b.unit_cost,
+            markup_percentage: b.markup_percentage,
+            tax_percentage: b.tax_percentage,
+            created_at: new Date().toISOString()
+          }));
+          await supabase.from('boq_items').upsert(boqRows, { onConflict: 'id' });
+        }
       } catch (e) {}
     }
   };
