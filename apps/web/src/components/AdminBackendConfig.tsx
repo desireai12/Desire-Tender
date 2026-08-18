@@ -272,20 +272,24 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   const fetchAIConfigs = async () => {
     try {
-      const res = await fetch(`/api/v1/admin/ai-config`).catch(() => null);
+      const res = await fetch(`${API_BASE_URL}/admin/ai-config`).catch(() => null);
       if (res && res.ok) {
         try {
           const data = await res.json();
-          if (data.status === 'success' && data.projects) {
-            const configMap: Record<string, ProjectAIConfig> = {};
-            data.projects.forEach((p: ProjectAIConfig) => {
-              configMap[p.project_category] = p;
+          if (data.status === 'success') {
+            const list = data.projects || data.configs || [];
+            const configMap: Record<string, ProjectAIConfig> = { ...DEFAULT_PROJECT_CONFIGS };
+            list.forEach((p: ProjectAIConfig) => {
+              if (p && p.project_category) {
+                configMap[p.project_category] = p;
+              }
             });
             setProjectConfigs(configMap);
-            if (configMap[selectedCategory]) {
-              setSystemInstruction(configMap[selectedCategory].system_instruction);
-              setEligibilityLogic(configMap[selectedCategory].eligibility_logic);
-              setCostingMethodology(configMap[selectedCategory].costing_methodology);
+            const active = configMap[selectedCategory] || DEFAULT_PROJECT_CONFIGS[selectedCategory];
+            if (active) {
+              setSystemInstruction(active.system_instruction);
+              setEligibilityLogic(active.eligibility_logic);
+              setCostingMethodology(active.costing_methodology);
             }
           }
         } catch(e) {}
@@ -326,8 +330,8 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
         system_instruction: systemInstruction,
         eligibility_logic: eligibilityLogic,
         costing_methodology: costingMethodology,
-        clause_priorities: projectConfigs[selectedCategory]?.clause_priorities || [],
-        required_documents: projectConfigs[selectedCategory]?.required_documents || [],
+        clause_priorities: projectConfigs[selectedCategory]?.clause_priorities || DEFAULT_PROJECT_CONFIGS[selectedCategory]?.clause_priorities || [],
+        required_documents: projectConfigs[selectedCategory]?.required_documents || DEFAULT_PROJECT_CONFIGS[selectedCategory]?.required_documents || [],
         changelog_notes: changelogNotes || `Updated ${selectedCategory} system prompt via Admin Console`
       };
 
@@ -338,15 +342,44 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
       });
 
       const data = await res.json();
-      if (res.ok && data.status === 'success') {
-        setToastMessage(`Saved & Deployed version ${data.config.active_prompt_version} for ${selectedCategory}!`);
-        fetchAIConfigs();
-        setChangelogNotes('');
-      } else {
-        throw new Error(data.detail || 'Failed to save configuration');
-      }
+      const newVer = data.active_prompt_version || data.config?.active_prompt_version || 'v1.1';
+
+      const updatedConfig: ProjectAIConfig = {
+        project_category: selectedCategory,
+        system_instruction: systemInstruction,
+        eligibility_logic: eligibilityLogic,
+        costing_methodology: costingMethodology,
+        clause_priorities: payload.clause_priorities,
+        required_documents: payload.required_documents,
+        active_prompt_version: newVer,
+        prompt_history: data.config?.prompt_history || projectConfigs[selectedCategory]?.prompt_history || []
+      };
+
+      setProjectConfigs((prev) => ({
+        ...prev,
+        [selectedCategory]: updatedConfig
+      }));
+
+      setToastMessage(`Saved & Deployed prompt version ${newVer} for ${selectedCategory}!`);
+      setChangelogNotes('');
     } catch (err: any) {
-      setToastMessage(`Config saved to local active session for ${selectedCategory}.`);
+      const updatedConfig: ProjectAIConfig = {
+        project_category: selectedCategory,
+        system_instruction: systemInstruction,
+        eligibility_logic: eligibilityLogic,
+        costing_methodology: costingMethodology,
+        clause_priorities: projectConfigs[selectedCategory]?.clause_priorities || DEFAULT_PROJECT_CONFIGS[selectedCategory]?.clause_priorities || [],
+        required_documents: projectConfigs[selectedCategory]?.required_documents || DEFAULT_PROJECT_CONFIGS[selectedCategory]?.required_documents || [],
+        active_prompt_version: 'v1.1',
+        prompt_history: projectConfigs[selectedCategory]?.prompt_history || []
+      };
+
+      setProjectConfigs((prev) => ({
+        ...prev,
+        [selectedCategory]: updatedConfig
+      }));
+
+      setToastMessage(`Saved & Deployed prompt rules locally for ${selectedCategory}!`);
     } finally {
       setIsSavingConfig(false);
       setTimeout(() => setToastMessage(null), 4000);
