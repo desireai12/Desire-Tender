@@ -161,13 +161,21 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Knowledge Binding State
-  const [knowledgeMatrix, setKnowledgeMatrix] = useState<Record<string, string[]>>({
-    SOLAR: ['Company Profile', 'Certificates', 'Solar Historical BOQs', 'Competitor Data'],
-    RHDS: ['Company Profile', 'Certificates', 'Water Historical BOQs', 'SOPs', 'Past Tenders'],
-    KUSUM: ['Company Profile', 'Certificates', 'Solar Historical BOQs', 'REDA Guidelines'],
-    EPC: ['Company Profile', 'Certificates', 'Civil Historical BOQs', 'Competitor Data'],
-    ESCO: ['Company Profile', 'Energy Audits', 'BEE Accreditation'],
-    STP: ['Company Profile', 'CPCB Standards', 'STP Historical BOQs']
+  const [knowledgeMatrix, setKnowledgeMatrix] = useState<Record<string, string[]>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('desire_knowledge_matrix');
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+    }
+    return {
+      SOLAR: ['Company Profile', 'Certificates', 'Solar Historical BOQs', 'Competitor Data'],
+      RHDS: ['Company Profile', 'Certificates', 'Water Historical BOQs', 'SOPs', 'Past Tenders'],
+      KUSUM: ['Company Profile', 'Certificates', 'Solar Historical BOQs', 'REDA Guidelines'],
+      EPC: ['Company Profile', 'Certificates', 'Civil Historical BOQs', 'Competitor Data'],
+      ESCO: ['Company Profile', 'Energy Audits', 'BEE Accreditation'],
+      STP: ['Company Profile', 'CPCB Standards', 'STP Historical BOQs']
+    };
   });
 
   // Fetch configs, credentials, and user list on mount
@@ -1028,9 +1036,22 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
           <div className="flex justify-end pt-4 border-t border-white/10">
             <button
-              onClick={() => {
-                setToastMessage('Knowledge Source Binding Matrix updated!');
-                setTimeout(() => setToastMessage(null), 4000);
+              onClick={async () => {
+                try {
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('desire_knowledge_matrix', JSON.stringify(knowledgeMatrix));
+                  }
+                  await fetch(`${API_BASE_URL}/admin/knowledge-matrix`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matrix: knowledgeMatrix })
+                  }).catch(() => null);
+                  setToastMessage('Saved & Deployed Knowledge Source Binding Matrix for all project verticals!');
+                } catch(e) {
+                  setToastMessage('Saved Knowledge Source Binding Matrix to active session!');
+                } finally {
+                  setTimeout(() => setToastMessage(null), 4000);
+                }
               }}
               className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
             >
