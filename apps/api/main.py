@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
+from core.db import init_db
 from routers import knowledge_base, tender, admin_config, auth
 from routers import settings as settings_router
 
@@ -26,6 +27,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def on_startup():
+    """Trigger database table initialization on API server launch."""
+    init_db()
 
 # Register Router Modules
 app.include_router(knowledge_base.router, prefix=settings.API_V1_STR)

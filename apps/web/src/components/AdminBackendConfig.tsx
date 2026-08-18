@@ -61,6 +61,69 @@ interface ProjectAIConfig {
   prompt_history: PromptHistoryItem[];
 }
 
+export const DEFAULT_PROJECT_CONFIGS: Record<ProjectCategory, ProjectAIConfig> = {
+  SOLAR: {
+    project_category: 'SOLAR',
+    system_instruction: 'SOLAR Project Tender Instruction: Analyze solar photovoltaic power plant tenders (e.g. Ground Mounted & Rooftop Solar PV projects). Evaluate PV module efficiency, tier-1 ALMM compliance, central/string inverter specifications, solar irradiation yield modeling, net-metering norms, and 5 to 25-Year Comprehensive O&M terms. Match extracted BOQ items against historical solar rates for PV modules, mounting structures (MMS), inverters, transformers, and SCADA monitoring.',
+    eligibility_logic: 'Category 1 (Desire Alone): Requires ₹50 Cr average turnover & 10+ MW Solar PV execution. Category 2 (Desire + Partner/JV): Desire provides turnover & Class-A electrical license; JV partner provides solar project completion & O&M certificate. Category 3 (GA Alone): Evaluates GA under MNRE/State Solar policy provisions.',
+    costing_methodology: 'Item-level matching against solar PV BOQ databases. Display historical item name, rate per Wp (₹), date of BOQ, estimated unit rate, and total cost. Allow manual rate overrides with reason logging.',
+    clause_priorities: ['Sec 3.1 PV Module Specs', 'Sec 4.5 Inverter Efficiency (>98.5%)', 'Sec 7.2 Net Metering & Grid Interconnection'],
+    required_documents: ['MNRE Vendor Empanelment', 'Class-A Electrical License', 'Solar Performance Guarantee Certificate'],
+    active_prompt_version: 'v1.0',
+    prompt_history: []
+  },
+  RHDS: {
+    project_category: 'RHDS',
+    system_instruction: 'RHDS Project Tender Instruction: Analyze Rural High Density & Drinking Water Supply tenders (e.g. Jal Jeevan Mission RHDS Pipe Networks & Intake Works). Evaluate HDPE/DI pipeline pressure ratings (PN-10/16), Overhead Service Reservoir (OHSR) capacities, pump house electromechanical equipment, raw water intake structures, and 10-Year O&M terms. Match extracted BOQ items against historical water supply rates.',
+    eligibility_logic: 'Category 1 (Desire Alone): Requires ₹60 Cr average turnover & execution of rural water supply scheme (>15 MLD / 50+ villages covered). Category 2 (Desire + Partner/JV): Class-A contractor license with JV technical experience. Category 3 (GA Alone): Evaluates GA under PHED Rajasthan contractor registration.',
+    costing_methodology: 'Item-level matching against PHED Rajasthan & JJM historical BOQ databases for DI K9 / HDPE pipes, OHSR, pumping machinery, and chlorination units.',
+    clause_priorities: ['Sec 4.2 Distribution Pipeline Specs', 'Sec 5.1 OHSR RCC Grade & Staging', 'Sec 8.0 10-Year O&M Commitment'],
+    required_documents: ['PHED Class-A License', 'JJM Completed Project Certificate', '3-Year Audited Balance Sheet'],
+    active_prompt_version: 'v1.0',
+    prompt_history: []
+  },
+  KUSUM: {
+    project_category: 'KUSUM',
+    system_instruction: 'KUSUM Project Tender Instruction: Analyze PM-KUSUM (Component A/B/C) solar pumping & grid-connected agricultural solarization tenders. Evaluate solar pump capacities (3 HP to 10 HP AC/DC), Sunaquator RMS telemetry controllers with 4G IoT integration, MNRE technical specs, and 5-Year mandatory warranty/O&M compliance.',
+    eligibility_logic: 'Category 1 (Desire Alone): Requires REDA / State Nodal Agency empanelment & ₹25 Cr turnover with 500+ solar pump installations. Category 2 (Desire + Partner/JV): Desire provides financial eligibility; partner provides MNRE pump test certificates.',
+    costing_methodology: 'Item-level matching against REDA / RRECL PM-KUSUM benchmark costs per HP. Display controller, solar module, pump motor, and RMS telemetry line items with rate override tracking.',
+    clause_priorities: ['Sec 2.1 RMS Telemetry Specification', 'Sec 3.4 BIS Pump Efficiency', 'Sec 5.0 5-Year Comprehensive Warranty'],
+    required_documents: ['REDA Empanelment Certificate', 'MNRE Test Report', 'Service Center Location List'],
+    active_prompt_version: 'v1.0',
+    prompt_history: []
+  },
+  EPC: {
+    project_category: 'EPC',
+    system_instruction: 'EPC Project Tender Instruction: Analyze turnkey EPC civil and electromechanical tenders. Evaluate general civil construction, structural steel, electrical sub-station (33kV/132kV), instrumentation, and multi-disciplinary project execution schedules with milestone timelines.',
+    eligibility_logic: 'Category 1 (Desire Alone): Requires ₹100 Cr average turnover & completion of major turnkey EPC project. Category 2 (Desire + Partner/JV): Financial lead with technical JV partner.',
+    costing_methodology: 'Item-level matching against state PWD / CPWD DSR (District Schedule of Rates) and market rates for civil, structural, and electrical turnkey items.',
+    clause_priorities: ['Sec 1.5 Turnkey Milestone Schedules', 'Sec 3.2 Civil Structural Design', 'Sec 6.0 Defect Liability Period'],
+    required_documents: ['Class-A General EPC Registration', 'Turnkey Completion Certificates', 'Bank Solvency Certificate'],
+    active_prompt_version: 'v1.0',
+    prompt_history: []
+  },
+  ESCO: {
+    project_category: 'ESCO',
+    system_instruction: 'ESCO Project Tender Instruction: Analyze Energy Service Company (ESCO) tenders for municipal street lighting, building HVAC energy auditing, and industrial energy conservation. Evaluate guaranteed energy savings percentage, BEE accreditation, baseline energy audit metrics, shared-savings revenue models, and performance-based O&M contracts.',
+    eligibility_logic: 'Category 1 (Desire Alone): Requires Grade-1 / Grade-2 BEE ESCO accreditation & proven performance contract of >20% energy savings. Category 2 (Desire + Partner/JV): Joint bidding with certified energy auditing firm.',
+    costing_methodology: 'Shared-savings & annuity pay-back model calculation. Match LED fixture rates, smart feeder panels, IoT energy meters, and baseline kWh cost savings against historical ESCO contracts.',
+    clause_priorities: ['Sec 2.0 Baseline Energy Audit Standards', 'Sec 4.1 Guaranteed Savings SLA', 'Sec 5.3 Shared Revenue Terms'],
+    required_documents: ['BEE ESCO Accreditation Certificate', 'Energy Savings Verification Certificate', 'Certified Energy Auditor License'],
+    active_prompt_version: 'v1.0',
+    prompt_history: []
+  },
+  STP: {
+    project_category: 'STP',
+    system_instruction: 'STP Project Tender Instruction: Analyze Sewage Treatment Plant (STP) tenders (e.g. Karur 35.25 MLD SBR STP Tender No: 6052/2025/E5). Evaluate 35.25 MLD SBR technology, 10-Year O&M terms, and NGT effluent standards (BOD ≤ 10 mg/l, COD ≤ 50 mg/l, TSS ≤ 10 mg/l, TN ≤ 10 mg/l, TP ≤ 1 mg/l, Ammonia ≤ 5 mg/l). Match extracted BOQ items against historical STP rates for SBR basins, screw press sludge dewatering, fine bubble diffusers, blowers, and SCADA telemetry.',
+    eligibility_logic: 'Category 1 (Desire Alone): Requires ₹78 Cr average turnover & 20+ MLD SBR STP execution. Category 2 (Desire + Partner/JV): Desire provides ₹285 Cr turnover & Class-A license; 40% JV partner provides 20+ MLD SBR process completion & O&M certificate. Category 3 (GA Alone): Evaluates GA under State Class-A contractor provisions.',
+    costing_methodology: 'Item-level matching against 35.25 MLD Karur STP & PHED Rajasthan historical BOQ databases. Display historical item name, rate (₹), date of BOQ, estimated unit rate, and total cost. Allow manual rate overrides with reason logging for continuous AI learning.',
+    clause_priorities: ['Sec 3.0 Influent/Effluent Quality Specs', 'Sec 4.2 SBR Tank Design', 'Sec 6.1 PLC SCADA Automation'],
+    required_documents: ['CPCB Approval Certificate', '10 MLD Completed Plant Certificate', 'ISO 14001 Certification'],
+    active_prompt_version: 'v1.0',
+    prompt_history: []
+  }
+};
+
 export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRole }) => {
   const [activeTab, setActiveTab] = useState<'credentials' | 'prompts' | 'knowledge_binding' | 'users' | 'audit'>('users');
 
@@ -83,15 +146,15 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   // Project AI Config State
   const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('STP');
-  const [projectConfigs, setProjectConfigs] = useState<Record<string, ProjectAIConfig>>({});
+  const [projectConfigs, setProjectConfigs] = useState<Record<string, ProjectAIConfig>>(DEFAULT_PROJECT_CONFIGS);
   const [systemInstruction, setSystemInstruction] = useState<string>(
-    'STP Project Tender Instruction: Analyze Sewage Treatment Plant (STP) tenders (e.g. Karur 35.25 MLD SBR STP Tender No: 6052/2025/E5). Evaluate 35.25 MLD SBR technology, 10-Year O&M terms, and NGT effluent standards (BOD ≤ 10 mg/l, COD ≤ 50 mg/l, TSS ≤ 10 mg/l, TN ≤ 10 mg/l, TP ≤ 1 mg/l, Ammonia ≤ 5 mg/l). Match extracted BOQ items against historical STP rates for SBR basins, screw press sludge dewatering, fine bubble diffusers, blowers, and SCADA telemetry.'
+    DEFAULT_PROJECT_CONFIGS.STP.system_instruction
   );
   const [eligibilityLogic, setEligibilityLogic] = useState<string>(
-    'Category 1 (Desire Alone): Requires ₹78 Cr average turnover & 20+ MLD SBR STP execution. Category 2 (Desire + Partner/JV): Desire provides ₹285 Cr turnover & Class-A license; 40% JV partner provides 20+ MLD SBR process completion & O&M certificate. Category 3 (GA Alone): Evaluates GA under State Class-A contractor provisions.'
+    DEFAULT_PROJECT_CONFIGS.STP.eligibility_logic
   );
   const [costingMethodology, setCostingMethodology] = useState<string>(
-    'Item-level matching against 35.25 MLD Karur STP & PHED Rajasthan historical BOQ databases. Display historical item name, rate (₹), date of BOQ, estimated unit rate, and total cost. Allow manual rate overrides with reason logging for continuous AI learning.'
+    DEFAULT_PROJECT_CONFIGS.STP.costing_methodology
   );
   const [changelogNotes, setChangelogNotes] = useState<string>('');
   const [isSavingConfig, setIsSavingConfig] = useState<boolean>(false);
@@ -188,7 +251,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   // Update form fields when selected project changes
   useEffect(() => {
-    const cfg = projectConfigs[selectedCategory];
+    const cfg = projectConfigs[selectedCategory] || DEFAULT_PROJECT_CONFIGS[selectedCategory];
     if (cfg) {
       setSystemInstruction(cfg.system_instruction);
       setEligibilityLogic(cfg.eligibility_logic);

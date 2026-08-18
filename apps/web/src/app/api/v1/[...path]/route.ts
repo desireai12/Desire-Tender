@@ -698,22 +698,67 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
     // 14. DATA: ADMIN AI CONFIG & CREDENTIALS
     if (subPath === 'admin/ai-config') {
-      if (method === 'POST') {
-        const configRecord = body;
+      if (method === 'GET') {
         if (supabase) {
           try {
+            const { data, error } = await supabase.from('ai_configs').select('*');
+            if (data && data.length > 0) {
+              return NextResponse.json({
+                status: 'success',
+                projects: data,
+                configs: data
+              });
+            }
+          } catch (e) {}
+        }
+        return NextResponse.json({
+          status: 'success',
+          projects: [],
+          configs: []
+        });
+      }
+      if (method === 'POST') {
+        const configRecord = body;
+        const cat = configRecord.project_category?.toUpperCase() || 'STP';
+        let newVersion = 'v1.1';
+        let history: any[] = [];
+
+        if (supabase) {
+          try {
+            const { data: existing } = await supabase.from('ai_configs').select('*').eq('project_category', cat).single();
+            if (existing) {
+              const curr = existing.active_prompt_version || 'v1.0';
+              try {
+                const parts = curr.replace('v', '').split('.');
+                newVersion = `v${parts[0]}.${parseInt(parts[1]) + 1}`;
+              } catch (e) {
+                newVersion = 'v1.1';
+              }
+              history = Array.isArray(existing.prompt_history) ? existing.prompt_history : [];
+            }
+            history.unshift({
+              version: newVersion,
+              updated_at: new Date().toISOString(),
+              author: 'Admin User',
+              notes: configRecord.changelog_notes || 'Updated system prompt',
+              system_instruction: configRecord.system_instruction
+            });
+
             await supabase.from('ai_configs').upsert({
-              project_category: configRecord.project_category,
+              project_category: cat,
               system_instruction: configRecord.system_instruction,
               eligibility_logic: configRecord.eligibility_logic || 'Standard eligibility rules',
               costing_methodology: configRecord.costing_methodology || 'Historical BOQ matching',
+              active_prompt_version: newVersion,
+              prompt_history: history,
               updated_at: new Date().toISOString()
             }, { onConflict: 'project_category' });
           } catch (e) {}
         }
         return NextResponse.json({
           status: 'success',
-          config: { active_prompt_version: 'v2.1' }
+          active_prompt_version: newVersion,
+          config: { active_prompt_version: newVersion, prompt_history: history }
         });
       }
     }
