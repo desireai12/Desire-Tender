@@ -127,7 +127,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {
             clause_no: 'Sec 4.1',
             title: 'Annual Financial Turnover',
-            status: isDisqualified ? 'Disqualified' : 'Matched',
+            status: isDisqualified ? 'Not Matched' : 'Matched',
             risk_level: isDisqualified ? 'High' : 'Low',
             explanation: isDisqualified ? 'Requires ₹500 Cr average turnover (Single Entity); Desire Energy has ₹285 Cr.' : 'Requires ₹78 Cr 5-year average turnover; Desire Energy has ₹285 Cr.',
             action_required: isDisqualified ? 'Disqualified under custom prompt rule.' : 'Attach 5-year audited balance sheet.'
@@ -135,7 +135,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {
             clause_no: 'Sec 4.2',
             title: 'Plant Execution Capacity',
-            status: isDisqualified ? 'Disqualified' : 'Matched',
+            status: isDisqualified ? 'Not Matched' : 'Matched',
             risk_level: isDisqualified ? 'High' : 'Low',
             explanation: isDisqualified ? 'Requires execution of single 50+ MLD SBR plant as Prime Contractor.' : 'Requires 20+ MLD SBR STP execution; Desire Energy has executed 20 MLD & 15 MLD plants.',
             action_required: isDisqualified ? 'Capacity constraint under custom rule.' : 'Attach work completion certificates.'
@@ -170,7 +170,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {
             clause_no: 'Sec 4.1',
             title: 'Annual Financial Turnover',
-            status: isDisqualified ? 'Disqualified' : 'Matched',
+            status: isDisqualified ? 'Not Matched' : 'Matched',
             risk_level: isDisqualified ? 'High' : 'Low',
             explanation: isDisqualified ? 'Requires ₹500 Cr average turnover (Single Entity); Desire Energy has ₹285 Cr.' : 'Requires ₹78 Cr 5-year average turnover; Desire Energy has ₹285 Cr.',
             action_required: isDisqualified ? 'Disqualified under custom prompt rule.' : 'Attach 5-year audited balance sheet.'
@@ -178,7 +178,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {
             clause_no: 'Sec 4.2',
             title: 'Plant Execution Capacity',
-            status: isDisqualified ? 'Disqualified' : 'Matched',
+            status: isDisqualified ? 'Not Matched' : 'Matched',
             risk_level: isDisqualified ? 'High' : 'Low',
             explanation: isDisqualified ? 'Requires execution of single 50+ MLD SBR plant as Prime Contractor.' : 'Requires 20+ MLD SBR STP execution; Desire Energy has executed 20 MLD & 15 MLD plants.',
             action_required: isDisqualified ? 'Capacity constraint under custom rule.' : 'Attach work completion certificates.'
