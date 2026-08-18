@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { 
-  LayoutDashboard, 
+  LayoutDashboard,
+  Calculator, 
   Wand2, 
   Workflow, 
   Swords, 
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 import { DepartmentRole, PermissionType, UserStatus } from '@/lib/types';
 
-export type NavTab = 'dashboard' | 'wizard' | 'lifecycle' | 'competitors' | 'settings' | 'admin' | 'admin_config';
+export type NavTab = 'dashboard' | 'wizard' | 'lifecycle' | 'costing' | 'competitors' | 'settings' | 'admin' | 'admin_config';
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -31,9 +32,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userStatus = 'Active'
 }) => {
   const allNavItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, perm: 'eligibility', adminOnly: false },
+    { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard,
+  Calculator, badge: null, perm: 'eligibility', adminOnly: false },
     { id: 'wizard' as NavTab, label: 'Eligibility Check & Wizard', icon: Wand2, badge: 'Guided', perm: 'eligibility', adminOnly: false },
     { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Workflow, badge: 'Workflow', perm: 'ai_analysis', adminOnly: false },
+    { id: 'costing' as NavTab, label: 'BidMaster Costing Engine', icon: Calculator, badge: '164 Rates', perm: 'cost_estimation', adminOnly: false },
     { id: 'competitors' as NavTab, label: 'Competitor Analysis', icon: Swords, badge: 'Intel', perm: 'ai_analysis', adminOnly: false },
     { id: 'admin' as NavTab, label: 'Company Records (Admin)', icon: ShieldCheck, badge: 'Admin Only', perm: 'admin', adminOnly: true },
     { id: 'admin_config' as NavTab, label: 'AI System & Keys (Admin)', icon: FileCode, badge: 'Encrypted', perm: 'admin', adminOnly: true },

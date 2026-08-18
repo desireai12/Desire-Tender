@@ -71,7 +71,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Key Action Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Card 1: Guided Tender Wizard */}
         <div 
           onClick={() => onNavigate('wizard')}
@@ -137,10 +137,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
+        {/* Card 3.5: BidMaster Costing Engine & 164 Rates */}
+        <div 
+          onClick={() => onNavigate('costing')}
+          className="glass-card rounded-xl p-6 hover:border-cyan-400/50 transition-all cursor-pointer group space-y-4"
+        >
+          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+            <Calculator className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-display font-semibold text-lg text-white group-hover:text-cyan-300 transition-colors">
+              BidMaster Costing Engine
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">
+              Area-wise rates for Rajasthan, Gujarat & UP from Service Price Database.
+            </p>
+          </div>
+          <div className="flex items-center text-xs font-mono text-cyan-400 pt-2">
+            <span>Access 164 Rates</span>
+            <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
         {/* Card 4: Admin Knowledge Base Status Indicator */}
         <div 
           onClick={() => onNavigate('admin')}
-          className="glass-card rounded-xl p-6 hover:border-teal-400/50 transition-all cursor-pointer group space-y-4 md:col-span-3"
+          className="glass-card rounded-xl p-6 hover:border-teal-400/50 transition-all cursor-pointer group space-y-4 md:col-span-4"
         >
           <div className="flex items-center justify-between">
             <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
