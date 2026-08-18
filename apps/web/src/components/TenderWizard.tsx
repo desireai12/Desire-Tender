@@ -521,11 +521,11 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-white">{item.requirement}</span>
                     <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                      (item.status === 'Green' || item.status === 'Met')
+                      item.status === 'Green'
                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                         : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
                     }`}>
-                      {(item.status === 'Green' || item.status === 'Met') ? 'MATCHED' : 'NOT MET'}
+                      {item.status === 'Green' ? 'MATCHED' : 'NOT MET'}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400">{item.notes}</p>
