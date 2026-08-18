@@ -820,7 +820,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
             avg_discount_margin: '5-8% below engineering estimate',
             key_strengths: ['Pan-India EPC brand equity', 'Massive balance sheet'],
             vulnerabilities: ['High overhead cost on small/medium rural packages (<₹100 Cr)'],
-            recommended_counter_strategy: 'Leverage Desire Energy's agile operations and 15% lower overhead to undercut L&T on mid-sized municipal packages.'
+            recommended_counter_strategy: "Leverage Desire Energy's agile operations and 15% lower overhead to undercut L&T on mid-sized municipal packages."
           }
         ],
         cost_structure_placeholder: [
