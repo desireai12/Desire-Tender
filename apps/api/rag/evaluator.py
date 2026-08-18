@@ -5,6 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document
 
 from core.llm_factory import LLMFactory
+from core.db import fetch_one
 
 
 class ParameterComparison(BaseModel):
@@ -95,35 +96,57 @@ class TenderEvaluator:
 
         base_score = min(98, max(20, base_score))
 
-        prompt_template = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert Enterprise Bid & Tender Evaluation Consultant for Water Infrastructure & Civil Engineering in India.
-Strictly analyze the provided Tender Document details against Desire Energy Solutions Pvt. Ltd. (Jaipur HQ) for the target Project Category: '{project_category}'.
+        # Fetch project-specific AI system rules from database (ai_configs)
+        cat_upper = project_category.upper()
+        custom_cfg = None
+        try:
+            custom_cfg = fetch_one("SELECT system_instruction, eligibility_logic, costing_methodology FROM public.ai_configs WHERE UPPER(project_category) = %s", (cat_upper,))
+        except Exception:
+            pass
 
-Evaluate whether the uploaded document actually matches '{project_category}' scope. If the document is unrelated or missing required technical mandates for '{project_category}', score it LOW (under 50%) and set Verdict to 'Ineligible'.
+        sys_inst = custom_cfg.get("system_instruction") if (custom_cfg and custom_cfg.get("system_instruction")) else f"Analyze {project_category} tenders."
+        elig_rules = custom_cfg.get("eligibility_logic") if (custom_cfg and custom_cfg.get("eligibility_logic")) else "Verify company qualifications and turnover."
+        cost_rules = custom_cfg.get("costing_methodology") if (custom_cfg and custom_cfg.get("costing_methodology")) else "Use historical BOQ unit rates."
+
+        prompt_template = ChatPromptTemplate.from_messages([
+            ("system", f"""You are an expert Enterprise Bid & Tender Evaluation Consultant for Water Infrastructure & Civil Engineering in India.
+Strictly analyze the provided Tender Document details against Desire Energy Solutions Pvt. Ltd. (Jaipur HQ) for target Project Category: '{{project_category}}'.
+
+=== PROJECT-SPECIFIC EVALUATION INSTRUCTIONS & SYSTEM PROMPT ===
+{sys_inst}
+
+=== MANDATORY ELIGIBILITY & COMPLIANCE RULES ===
+{elig_rules}
+
+=== COST ESTIMATION & BOQ METHODOLOGY ===
+{cost_rules}
+
+STRICT EVALUATION MANDATE:
+Evaluate whether the tender document and company capabilities satisfy the custom rules above. If the document/company violates any explicit disqualification rule (e.g. required turnover, single-entity mandate, minimum plant capacity, or state licensing), score it LOW and set Verdict to 'Ineligible'.
 
 Deliver a comprehensive JSON evaluation report:
 1. Verdict: 'Eligible', 'Conditional', or 'Ineligible'
-2. Eligibility Score: 0-100 integer (Strictly penalized if document scope mismatches '{project_category}')
+2. Eligibility Score: 0-100 integer (Strictly penalized if eligibility rules or technical mandates fail)
 3. Executive Summary (in INR / ₹ Crore)
 4. Parameter Matrix comparing Tender Requirements vs Company Capabilities
 5. Competitor Intelligence Analysis
 6. Baseline Cost Component Breakdown in INR (₹).
 
 Return ONLY valid JSON matching this schema:
-{{
+{{{{
   "verdict": "Eligible" | "Conditional" | "Ineligible",
   "eligibility_score": 88,
   "executive_summary": "...",
   "parameter_matrix": [
-     {{"parameter": "...", "tender_requirement": "...", "company_capability": "...", "status": "Met" | "Partially Met" | "Not Met", "gap_notes": "..."}}
+     {{{{"parameter": "...", "tender_requirement": "...", "company_capability": "...", "status": "Met" | "Partially Met" | "Not Met", "gap_notes": "..."}}}}
   ],
   "competitor_intelligence": [
-     {{"competitor_name": "...", "historical_win_rate": "65%", "bidding_pattern": "...", "avg_discount_margin": "12-15% below estimate", "key_strengths": ["..."], "vulnerabilities": ["..."], "recommended_counter_strategy": "..."}}
+     {{{{"competitor_name": "...", "historical_win_rate": "65%", "bidding_pattern": "...", "avg_discount_margin": "12-15% below estimate", "key_strengths": ["..."], "vulnerabilities": ["..."], "recommended_counter_strategy": "..."}}}}
   ],
   "cost_structure_placeholder": [
-     {{"category": "Labour", "item_name": "...", "estimated_cost": 450000.0, "recommended_markup": 15.0}}
+     {{{{"category": "Labour", "item_name": "...", "estimated_cost": 450000.0, "recommended_markup": 15.0}}}}
   ]
-}}
+}}}}
 """),
             ("user", """
 ### TARGET PROJECT CATEGORY: {project_category}
