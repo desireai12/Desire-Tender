@@ -6,11 +6,13 @@ import { Upload, RefreshCw, CheckCircle2, FileText } from 'lucide-react';
 
 interface TenderUploadModalProps {
   currentProvider: 'gemini' | 'openai';
+  projectCategory?: string;
   onAnalysisComplete: (data: any) => void;
 }
 
 export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
   currentProvider,
+  projectCategory = 'STP',
   onAnalysisComplete,
 }) => {
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
@@ -30,6 +32,7 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('project_category', projectCategory);
 
     try {
       const res = await fetch(

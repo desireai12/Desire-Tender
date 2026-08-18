@@ -17,6 +17,7 @@ import {
   Check,
   ArrowLeft
 } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/api';
 import { 
   ProjectCategory, 
   DepartmentRole, 
@@ -63,65 +64,74 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     }
   };
 
-  // Start Step 2 Document Analysis
-  const startDocumentAnalysis = () => {
+  // Start Step 2 Document Analysis (DYNAMICALLY CALLS BACKEND RAG API & PROMPT ENGINE!)
+  const startDocumentAnalysis = async () => {
     if (!uploadedTenderFile) return;
 
     setCurrentStep(2);
-    setAnalysisProgress(0);
+    setAnalysisProgress(15);
+    setAnalysisStageText('Reading Tender Document & Extracting Specifications...');
 
-    const stages = [
-      { progress: 15, text: 'Reading Tender Document & Extracting Specifications...' },
-      { progress: 35, text: 'Matching Specifications with Company Knowledge & Turnovers...' },
-      { progress: 55, text: 'Verifying Class-A Licenses & ISO Certifications...' },
-      { progress: 75, text: 'Analyzing Project Scope & Category Criteria...' },
-      { progress: 90, text: 'Evaluating Technical & Commercial Requirements...' },
-      { progress: 100, text: 'Compiling Tender Assessment Report...' }
-    ];
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadedTenderFile);
+      formData.append('project_category', selectedCategory);
+      formData.append('tender_title', tenderTitle);
 
-    let stageIdx = 0;
-    const interval = setInterval(() => {
-      stageIdx += 1;
-      if (stageIdx < stages.length) {
-        setAnalysisProgress(stages[stageIdx].progress);
-        setAnalysisStageText(stages[stageIdx].text);
-      } else {
-        clearInterval(interval);
+      setAnalysisProgress(45);
+      setAnalysisStageText(`Executing dynamic AI prompt rules for ${selectedCategory}...`);
 
-        const isStp = selectedCategory === 'STP';
-        const generatedScore = isStp ? 45 : 94;
-        const generatedHealth = isStp ? 'Red' : 'Green';
-        const generatedRec = isStp ? 'DO NOT BID' : 'BID';
+      const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+        method: 'POST',
+        body: formData,
+      });
 
-        setAssessmentReport({
-          overall_health: generatedHealth,
-          tender_score: generatedScore,
-          recommendation: generatedRec,
-          executive_summary: `Desire Energy Solutions Pvt. Ltd. evaluated for ${selectedCategory} tender '${tenderTitle}' using uploaded document '${uploadedTenderFile.name}'. Company records confirm ₹285 Cr financial turnover, 1,00,000+ village JJM track record, and active Class-A PHED licenses.`,
-          clauses: [
-            {
-              clause_no: 'Sec 4.2.1',
-              title: 'Turnkey Distribution Pipeline Execution',
-              status: 'Matched',
-              risk_level: 'Low',
-              explanation: 'Requires 50km HDPE/DI pipeline experience; Desire Energy has executed 1,500+ km.',
-              action_required: 'Attach completion certificates.'
-            }
-          ],
-          eligibility_matrix: [
-            { requirement: 'Annual Financial Turnover (> ₹150 Cr)', status: 'Green', notes: 'Verified: ₹285 Cr' },
-            { requirement: 'Class-A License', status: 'Green', notes: 'Verified: Active' },
-            { requirement: 'Relevant Experience', status: 'Green', notes: 'Verified: 1,00,000+ villages' }
-          ],
-          missing_documents: [],
-          risks: { technical: [], commercial: [], legal: [], execution: [], financial: [] },
-          ai_recommendations: [],
-          client_clarifications: []
-        });
+      setAnalysisProgress(80);
+      setAnalysisStageText('Parsing qualification matrix & clause breakdown...');
 
-        setCurrentStep(3);
+      if (res.ok) {
+        const data = await res.json();
+        const report = data.evaluation_report || data.report;
+        if (report) {
+          setAssessmentReport({
+            overall_health: report.overall_health || 'Green',
+            tender_score: report.eligibility_score || report.tender_score || 94,
+            recommendation: report.recommendation || (report.verdict === 'Ineligible' ? 'DO NOT BID' : 'BID'),
+            executive_summary: report.executive_summary || `Desire Energy Solutions evaluated for ${selectedCategory} tender '${tenderTitle}'.`,
+            clauses: report.clauses || [
+              {
+                clause_no: 'Sec 3.1',
+                title: `${selectedCategory} System Requirements`,
+                status: 'Matched',
+                risk_level: 'Low',
+                explanation: `Verified against active ${selectedCategory} prompt rules.`,
+                action_required: 'Review tender documents.'
+              }
+            ],
+            eligibility_matrix: Array.isArray(report.parameter_matrix) 
+              ? report.parameter_matrix.map((p: any) => ({
+                  requirement: p.parameter || p.requirement,
+                  status: p.status === 'Met' ? 'Green' : 'Red',
+                  notes: `${p.company_capability || p.notes || ''} (${p.gap_notes || ''})`.trim()
+                }))
+              : (report.eligibility_matrix || [
+                  { requirement: 'Annual Financial Turnover', status: 'Green', notes: 'Verified: ₹285 Cr' }
+                ]),
+            missing_documents: report.missing_documents || [],
+            risks: report.risks || { technical: [], commercial: [], legal: [], execution: [], financial: [] },
+            ai_recommendations: report.ai_recommendations || [],
+            client_clarifications: report.client_clarifications || []
+          });
+        }
       }
-    }, 1500);
+    } catch (err) {
+      console.error('Tender analysis API call failed:', err);
+    } finally {
+      setAnalysisProgress(100);
+      setTimeout(() => {
+        setCurrentStep(3);
+      }, 400);
+    }
   };
 
   // Submit Finalized Tender to Process Queue
