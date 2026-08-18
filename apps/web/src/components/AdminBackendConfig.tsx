@@ -146,7 +146,18 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   // Project AI Config State
   const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('STP');
-  const [projectConfigs, setProjectConfigs] = useState<Record<string, ProjectAIConfig>>(DEFAULT_PROJECT_CONFIGS);
+  const [projectConfigs, setProjectConfigs] = useState<Record<string, ProjectAIConfig>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('desire_ai_configs');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return { ...DEFAULT_PROJECT_CONFIGS, ...parsed };
+        }
+      } catch (e) {}
+    }
+    return DEFAULT_PROJECT_CONFIGS;
+  });
   const [systemInstruction, setSystemInstruction] = useState<string>(
     DEFAULT_PROJECT_CONFIGS.STP.system_instruction
   );
@@ -363,10 +374,13 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
         prompt_history: data.config?.prompt_history || projectConfigs[selectedCategory]?.prompt_history || []
       };
 
-      setProjectConfigs((prev) => ({
-        ...prev,
-        [selectedCategory]: updatedConfig
-      }));
+      setProjectConfigs((prev) => {
+        const next = { ...prev, [selectedCategory]: updatedConfig };
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('desire_ai_configs', JSON.stringify(next)); } catch (e) {}
+        }
+        return next;
+      });
 
       setToastMessage(`Saved & Deployed prompt version ${newVer} for ${selectedCategory}!`);
       setChangelogNotes('');
@@ -382,10 +396,13 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
         prompt_history: projectConfigs[selectedCategory]?.prompt_history || []
       };
 
-      setProjectConfigs((prev) => ({
-        ...prev,
-        [selectedCategory]: updatedConfig
-      }));
+      setProjectConfigs((prev) => {
+        const next = { ...prev, [selectedCategory]: updatedConfig };
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('desire_ai_configs', JSON.stringify(next)); } catch (e) {}
+        }
+        return next;
+      });
 
       setToastMessage(`Saved & Deployed prompt rules locally for ${selectedCategory}!`);
     } finally {
