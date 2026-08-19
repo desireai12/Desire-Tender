@@ -274,22 +274,11 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ currentP
   
   const currentDataset = CATEGORY_DATASETS[selectedCategory];
 
-  const [analysisReport, setAnalysisReport] = useState<any>({
-    verdict: currentDataset.verdict,
-    eligibility_score: currentDataset.eligibility_score,
-    executive_summary: currentDataset.executive_summary,
-    parameter_matrix: currentDataset.parameter_matrix
-  });
+  const [analysisReport, setAnalysisReport] = useState<any>(null);
 
   const handleCategoryChange = (cat: ProjectCategory) => {
     setSelectedCategory(cat);
-    const data = CATEGORY_DATASETS[cat];
-    setAnalysisReport({
-      verdict: data.verdict,
-      eligibility_score: data.eligibility_score,
-      executive_summary: data.executive_summary,
-      parameter_matrix: data.parameter_matrix
-    });
+    setAnalysisReport(null);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -508,7 +497,13 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ currentP
       </div>
 
       {/* Critical Parameters Checklist Table */}
-      <MatrixTable parameters={analysisReport.parameter_matrix} />
+      {analysisReport ? (
+        <MatrixTable parameters={analysisReport.parameter_matrix} />
+      ) : (
+        <div className="p-6 rounded-2xl glass-card text-center text-slate-400 font-mono text-xs border border-white/10">
+          No tender analyzed yet. Please select your project category above and upload a tender PDF to execute live AI eligibility analysis.
+        </div>
+      )}
     </div>
   );
 };
