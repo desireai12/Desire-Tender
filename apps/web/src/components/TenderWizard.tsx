@@ -118,7 +118,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     if (fetchedReport) {
       const reportScore = isDisqualified ? 18 : (fetchedReport.eligibility_score || fetchedReport.tender_score || 85);
       setAssessmentReport({
-        overall_health: fetchedReport.overall_health || (isDisqualified ? 'Red' : (reportScore >= 82 ? 'Green' : 'Amber')),
+        overall_health: fetchedReport.overall_health || (isDisqualified ? 'Red' : (reportScore >= 82 ? 'Green' : 'Yellow')),
         tender_score: reportScore,
         recommendation: isDisqualified ? 'DO NOT BID' : (fetchedReport.recommendation || (fetchedReport.verdict === 'Ineligible' ? 'DO NOT BID' : 'BID')),
         executive_summary: fetchedReport.executive_summary || (isDisqualified 
@@ -168,7 +168,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const dynScore = isDisqualified ? 18 : Math.min(97, Math.max(68, baseVal + ((hash % 21) - 10)));
       
       setAssessmentReport({
-        overall_health: isDisqualified ? 'Red' : (dynScore >= 82 ? 'Green' : 'Amber'),
+        overall_health: isDisqualified ? 'Red' : (dynScore >= 82 ? 'Green' : 'Yellow'),
         tender_score: dynScore,
         recommendation: isDisqualified ? 'DO NOT BID' : (dynScore >= 82 ? 'BID' : 'CONDITIONAL BID'),
         executive_summary: isDisqualified 

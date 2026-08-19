@@ -719,7 +719,9 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
     // 12. DATA: TENDER ANALYZE (DYNAMICALLY EXECUTES CUSTOM SYSTEM PROMPT RULES & FULL PER-CATEGORY AI ANALYSIS!)
     if (subPath === 'tender/analyze' && method === 'POST') {
-      const category = (formCategory || body.project_category || 'STP').toUpperCase();
+      const urlObj = new URL(req.url);
+      const queryCat = urlObj.searchParams.get('project_category') || urlObj.searchParams.get('category');
+      const category = (queryCat || formCategory || body.project_category || 'EPC').toUpperCase();
       const filename = formFilename || body.filename || 'uploaded_tender_document.pdf';
       const cfg = GLOBAL_SERVER_AI_CONFIGS[category] || {};
       const sysPrompt = (cfg.system_instruction || '').toLowerCase();
@@ -776,7 +778,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       let recommendation = isDisqualified 
         ? `DO NOT BID (Disqualified under Custom System Rules — Score: ${score}%)` 
         : `BID (${verdict.toUpperCase()} — AI Dynamic Confidence Score: ${score}%)`;
-      let health = isDisqualified ? 'Red' : (score >= 82 ? 'Green' : 'Amber');
+      let health = isDisqualified ? 'Red' : (score >= 82 ? 'Green' : 'Yellow');
 
       let summary = '';
       let matrix: any[] = [];
