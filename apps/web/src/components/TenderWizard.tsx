@@ -170,7 +170,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       setAssessmentReport({
         overall_health: isDisqualified ? 'Red' : (dynScore >= 82 ? 'Green' : 'Yellow'),
         tender_score: dynScore,
-        recommendation: isDisqualified ? 'DO NOT BID' : (dynScore >= 82 ? 'BID' : 'CONDITIONAL BID'),
+        recommendation: isDisqualified ? 'DO NOT BID' : (dynScore >= 82 ? 'BID' : 'REVIEW REQUIRED'),
         executive_summary: isDisqualified 
           ? `STRICT DISQUALIFICATION: Evaluation engine executed active prompt rules for ${selectedCategory}. Company failed mandatory parameters configured in Admin Console: Turnover required ₹500 Cr (vs Desire ₹285 Cr), Single Plant execution required 50 MLD (vs Desire 20 MLD), and Joint Ventures are explicitly BANNED.`
           : `AI DYNAMIC EVALUATION (${dynScore}% Match): Document '${docName}' analyzed for ${selectedCategory} category. Verified financial turnover (₹285 Cr vs requirements), ${selectedCategory} execution track record, and active state contractor licenses.`,
