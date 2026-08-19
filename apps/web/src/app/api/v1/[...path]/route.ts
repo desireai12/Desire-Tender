@@ -166,12 +166,15 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
   try {
     let body: any = {};
     let formCategory = '';
+    let formFilename = '';
     if (method === 'POST') {
       try {
         const contentType = req.headers.get('content-type') || '';
         if (contentType.includes('multipart/form-data')) {
           const formData = await req.formData();
           formCategory = (formData.get('project_category') as string || '').toUpperCase();
+          const fileObj = formData.get('file') as File | null;
+          formFilename = fileObj?.name || (formData.get('filename') as string || '');
         } else {
           body = await req.json();
         }
@@ -717,7 +720,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     // 12. DATA: TENDER ANALYZE (DYNAMICALLY EXECUTES CUSTOM SYSTEM PROMPT RULES & FULL PER-CATEGORY AI ANALYSIS!)
     if (subPath === 'tender/analyze' && method === 'POST') {
       const category = (formCategory || body.project_category || 'STP').toUpperCase();
-      const filename = body.filename || formFilename || 'uploaded_tender_document.pdf';
+      const filename = formFilename || body.filename || 'uploaded_tender_document.pdf';
       const cfg = GLOBAL_SERVER_AI_CONFIGS[category] || {};
       const sysPrompt = (cfg.system_instruction || '').toLowerCase();
       const eligPrompt = (cfg.eligibility_logic || '').toLowerCase();
