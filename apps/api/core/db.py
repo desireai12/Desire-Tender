@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS public.projects (
     status VARCHAR(50) DEFAULT 'Active',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS ai_instructions TEXT;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS knowledge_sources JSONB DEFAULT '["Company Profile", "Certificates"]'::jsonb;
 
 -- 3. AI SYSTEM RULES & PROMPTS TABLE
 CREATE TABLE IF NOT EXISTS public.ai_configs (
@@ -178,13 +180,21 @@ VALUES
 ('c1c2c3c4-0002-4000-8000-000000000002', 'OpenAI GPT-4o', 'Fallback / High-Precision Engine', 'sk-proj-••••••••••••••••48b2', 'sk-proj-••••••••••••••••48b2', 'Active (Encrypted AES-256)', '2026-08-04 14:20:00', TRUE, 'Fallback reasoning engine for complex legal clauses')
 ON CONFLICT (id) DO NOTHING;
 
--- Seed Knowledge Base
+-- Seed Knowledge Base with Full Desire Energy Credentials
 INSERT INTO public.knowledge_base (id, title, category, file_name, file_url, description, status, uploaded_by, chunks_count)
 VALUES 
-('kb-01', 'Desire Energy Company Profile & Audited Balance Sheets (2022-2025)', 'Financial', 'Desire_Financial_Turnover_2025.pdf', '/documents/Desire_Financial_Turnover_2025.pdf', 'Audited annual financial turnovers (₹185 Cr average) and net worth certificates.', 'Active', 'System Admin', 14),
-('kb-02', 'PHED Rajasthan Class-A Special Category Contractor License', 'Technical Capability', 'PHED_ClassA_Contractor_License.pdf', '/documents/PHED_ClassA_Contractor_License.pdf', 'Class-A Registration for water supply pipeline works in Rajasthan.', 'Active', 'System Admin', 6),
-('kb-03', 'Jal Jeevan Mission Work Completion Certificates (120km Distribution)', 'Past Experience', 'JJM_Completed_Projects_Certificate.pdf', '/documents/JJM_Completed_Projects_Certificate.pdf', 'Work completion certificates for 120+ km HDPE distribution pipelines & 5 OHSRs.', 'Active', 'System Admin', 9)
-ON CONFLICT (id) DO NOTHING;
+('kb-01', 'Desire Energy Audited Financial Balance Sheets & Turnover Certificates (2022-2025)', 'Financial', 'Desire_Financial_Turnover_2025.pdf', '/documents/Desire_Financial_Turnover_2025.pdf', 'Audited annual financial turnover (₹285 Cr average over 3 years), Net Worth Certificate (₹95 Cr), and Bank Solvency Certificate (₹50 Cr).', 'Active', 'System Admin', 14),
+('kb-02', 'PHED Rajasthan Class-A Special Category Contractor License', 'Technical Capability', 'PHED_ClassA_Contractor_License.pdf', '/documents/PHED_ClassA_Contractor_License.pdf', 'Class-A Special Category Registration for Municipal & Rural Water Supply Pipeline Infrastructure in Rajasthan.', 'Active', 'System Admin', 6),
+('kb-03', 'Jal Jeevan Mission (JJM) Work Completion Certificates (120+ km HDPE Pipeline & 5 OHSRs)', 'Past Experience', 'JJM_Completed_Projects_Certificate.pdf', '/documents/JJM_Completed_Projects_Certificate.pdf', 'Work completion & 10-year O&M commitment certificates for 120+ km HDPE (PN-10/16) distribution pipelines and 5 Overhead Reservoirs.', 'Active', 'System Admin', 9),
+('kb-04', 'Class-A Electrical Contractor License (Government of Rajasthan)', 'Technical Capability', 'Rajasthan_Electrical_ClassA_License.pdf', '/documents/Rajasthan_Electrical_ClassA_License.pdf', 'Class-A Electrical Contractor License issued by Chief Electrical Inspector for Sub-Station, Solar Grid & High Tension Line works.', 'Active', 'System Admin', 5),
+('kb-05', 'MNRE & REDA Empanelment Certificate for Solar Water Pumping (PM-KUSUM)', 'Technical Capability', 'MNRE_REDA_Solar_Empanelment.pdf', '/documents/MNRE_REDA_Solar_Empanelment.pdf', 'Official empanelment under REDA / RRECL for PM-Kusum Component-B off-grid solar pumps with Sunaquator 4G RMS telemetry controllers.', 'Active', 'System Admin', 8),
+('kb-06', 'Solar Utility Scale (50+ MW) Project Execution & Commissioning Certificates', 'Past Experience', 'Solar_50MW_Commissioning_Certificates.pdf', '/documents/Solar_50MW_Commissioning_Certificates.pdf', 'Commissioning certificates for 50+ MW ground-mounted solar PV power plants with grid interconnection & transformer substations.', 'Active', 'System Admin', 11),
+('kb-07', 'WTP / STP Plant Construction & CPCB Compliance Certificates (10+ MLD Flow)', 'Past Experience', 'WTP_STP_CPCB_Compliance_Certificate.pdf', '/documents/WTP_STP_CPCB_Compliance_Certificate.pdf', 'Completion certificates for Water Treatment Plants (WTP) & Sewage Treatment Plants (STP) using SBR/MBBR technology with SCADA PLC control.', 'Active', 'System Admin', 10),
+('kb-08', 'ISO Integrated Management System Certificates (ISO 9001:2015, ISO 14001:2015, ISO 45001:2018)', 'Quality & Safety', 'ISO_Integrated_Certificates.pdf', '/documents/ISO_Integrated_Certificates.pdf', 'Certified quality management (QMS), environmental safety (EMS), and occupational health & safety management systems.', 'Active', 'System Admin', 4)
+ON CONFLICT (id) DO UPDATE SET
+    title = EXCLUDED.title,
+    description = EXCLUDED.description,
+    category = EXCLUDED.category;
 
 -- Seed Competitor Battlecards
 INSERT INTO public.competitors (id, name, category, win_rate, total_bids, historical_bids, strengths, weaknesses, winning_strategies)

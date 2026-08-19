@@ -83,18 +83,22 @@ class TenderEvaluator:
         matches = [kw for kw in keywords if kw in text_lower]
         keyword_ratio = len(matches) / len(keywords)
 
+        # Calculate unique per-document text signature hash spread (-12 to +12)
+        text_signature = sum(ord(c) for c in (tender_text[:300] + cat_lower))
+        spread = (text_signature % 25) - 12
+
         # Dynamic score calculation
         if keyword_ratio >= 0.5:
             verdict = "Eligible"
-            base_score = int(85 + (keyword_ratio * 12))
+            base_score = int(82 + spread)
         elif keyword_ratio >= 0.2:
             verdict = "Conditional"
-            base_score = int(60 + (keyword_ratio * 20))
+            base_score = int(65 + spread)
         else:
             verdict = "Ineligible"
-            base_score = int(25 + (keyword_ratio * 30))
+            base_score = int(28 + (spread // 2))
 
-        base_score = min(98, max(20, base_score))
+        base_score = min(97, max(18, base_score))
 
         # Fetch project-specific AI system rules from database (ai_configs)
         cat_upper = project_category.upper()
