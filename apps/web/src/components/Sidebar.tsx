@@ -36,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const allNavItems = [
     { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, perm: 'eligibility', adminOnly: false },
-    { id: 'wizard' as NavTab, label: 'Eligibility Analysis', icon: Wand2, badge: 'RHDS Live', perm: 'eligibility', adminOnly: false },
+    { id: 'wizard' as NavTab, label: 'Eligibility Analysis', icon: Wand2, badge: 'AI Dynamic', perm: 'eligibility', adminOnly: false },
     { id: 'combine' as NavTab, label: 'JV / Combine Analysis', icon: GitMerge, badge: 'Engine', perm: 'eligibility', adminOnly: false },
     { id: 'companies' as NavTab, label: 'Company Details (Master)', icon: Building2, badge: 'Master DB', perm: 'eligibility', adminOnly: false },
     { id: 'competitors' as NavTab, label: 'Competitors Profile', icon: Swords, badge: 'Intel', perm: 'ai_analysis', adminOnly: false },
