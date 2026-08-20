@@ -305,58 +305,94 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     onTenderCreated(newProcess);
   };
 
-  // Perspective Data helper (CLEAN PERSPECTIVE VIEW)
+  // Perspective Data helper (DYNAMIC MATHEMATICAL CLAUSE AGGREGATOR)
   const getPerspectiveData = () => {
-    const reportObj = evaluationReport || {
-      tender_title: tenderTitle,
-      executive_summary: 'Processing AI Report...',
-      desire_alone: { score: 100, status: 'Eligible', fulfilled_pct: '100.0%' },
-      jv_alone: { score: 62, status: 'Partially Eligible', fulfilled_pct: '61.7%' },
-      combined_jv: { score: 100, status: 'Eligible Through JV', fulfilled_pct: '100%' },
-      clauses_breakdown: []
-    };
-
-    const desireTurnover = desireComp.average_turnover || 300.93;
-    const desireSolvency = (desireComp as any).solvency_amount || (desireComp as any).solvency || 72.18;
-    const jvTurnover = jvComp.average_turnover || 37.01;
-    const isJunagadh = tenderTitle.toLowerCase().includes('junagadh') || selectedCategory === 'ESCO';
-    const isSewerage = !isJunagadh && (selectedCategory === 'STP' || tenderTitle.toLowerCase().includes('sewer') || tenderTitle.toLowerCase().includes('alwar'));
-
-    if (activeAnalysisOption === 'desire') {
+    if (!evaluationReport) {
       return {
         badge: 'OPTION 1 — DESIRE ENERGY ALONE',
-        verdict: isJunagadh ? 'FULLY ELIGIBLE (STANDALONE QUALIFIED)' : (isSewerage ? 'PARTIALLY ELIGIBLE' : 'ELIGIBLE'),
-        score: isJunagadh ? 100 : (isSewerage ? 75 : 100),
-        fulfilled_pct: isJunagadh ? '100.0%' : (isSewerage ? '75.0%' : '100.0%'),
-        recommendation: isJunagadh 
-          ? `BID INDEPENDENTLY (Desire Alone 100% Qualified with ₹${desireSolvency} Cr Kotak Solvency & 14 Yrs ESCO)`
-          : (isSewerage ? `DESIRE ALONE INSUFFICIENT FOR SEWERAGE (Lacks STP Work Experience)` : `DESIRE STANDALONE QUALIFIED (Turnover: ₹${desireTurnover} Cr)`),
-        executive_summary: isJunagadh
-          ? `Desire Energy Standalone AI Analysis: Desire Energy satisfies 100% of Junagadh ESCO criteria independently. Holds ₹${desireTurnover} Cr turnover, ₹${desireSolvency} Cr Kotak Mahindra Solvency, and 14 years of ESCO pumping operations experience (since 2011). Can bid standalone without a JV partner.`
-          : (isSewerage 
-            ? `Desire Energy Standalone AI Analysis: Desire Energy provides ₹${desireTurnover} Cr turnover, PHED Class-A License, and ₹${desireSolvency} Cr Solvency (75.0% Criteria Met), but LACKS mandatory Sewage Treatment Plant (STP) / Sewer line work experience certificates. Requires JV Partner Divija Construction for technical qualification.`
-            : `Desire Energy Standalone AI Analysis: Evaluated extracted tender clauses for '${tenderTitle}' against Desire Energy master credentials (₹${desireTurnover} Cr 3-yr avg turnover, ₹${desireComp.net_worth} Cr net worth). Desire Energy alone meets technical execution and Class-A PHED contractor license criteria.`),
+        verdict: 'PROCESSING',
+        score: 0,
+        fulfilled_pct: '0%',
+        recommendation: 'Analyzing tender clauses...',
+        executive_summary: 'Processing AI Report...'
+      };
+    }
+
+    const clauses = evaluationReport.clauses_breakdown || [];
+    const desireSolvency = (desireComp as any).solvency_amount || (desireComp as any).solvency || 72.18;
+
+    if (activeAnalysisOption === 'desire') {
+      let totalPctSum = 0;
+      let clauseCount = clauses.length || 1;
+
+      clauses.forEach(c => {
+        if (c.desire_value.includes('No Prior') || c.desire_value.includes('(0%)') || c.desire_value.includes('DATA NOT')) {
+          totalPctSum += 0;
+        } else if (c.desire_value.includes('100%') || c.status === 'MATCH') {
+          totalPctSum += 100;
+        } else {
+          const pctMatch = c.desire_value.match(/(\d+(\.\d+)?)%/);
+          if (pctMatch) totalPctSum += parseFloat(pctMatch[1]);
+          else totalPctSum += 75;
+        }
+      });
+
+      const avgScore = Math.round(totalPctSum / clauseCount);
+      const isFull = avgScore >= 100;
+      const desireVerd = isFull ? 'ELIGIBLE' : 'PARTIALLY ELIGIBLE';
+      const desireRec = isFull 
+        ? `DESIRE STANDALONE QUALIFIED (100% Criteria Satisfied)` 
+        : `TECHNICAL/FINANCIAL GAP IDENTIFIED — REQUIRES JV PARTNER (Satisfies ${avgScore}% of Criteria)`;
+
+      return {
+        badge: 'OPTION 1 — DESIRE ENERGY ALONE',
+        verdict: desireVerd,
+        score: avgScore,
+        fulfilled_pct: `${avgScore}.0%`,
+        recommendation: desireRec,
+        executive_summary: `Desire Energy Standalone AI Analysis: Evaluated extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy master records (₹${desireComp.average_turnover} Cr turnover, ₹${desireSolvency} Cr Kotak Solvency). Standalone capability satisfies ${avgScore}.0% of tender requirements. ${isFull ? 'Can bid independently without a JV partner.' : 'Requires JV partner for missing technical/financial criteria.'}`
       };
     }
 
     if (activeAnalysisOption === 'jv') {
+      let totalPctSum = 0;
+      let clauseCount = clauses.length || 1;
+
+      clauses.forEach(c => {
+        if (c.jv_value.includes('No Prior') || c.jv_value.includes('(0%)') || c.jv_value.includes('Requires Lead')) {
+          totalPctSum += 0;
+        } else if (c.jv_value.includes('100%')) {
+          totalPctSum += 100;
+        } else {
+          const pctMatch = c.jv_value.match(/(\d+(\.\d+)?)%/);
+          if (pctMatch) totalPctSum += parseFloat(pctMatch[1]);
+          else totalPctSum += 61.7;
+        }
+      });
+
+      const avgScore = Math.round(totalPctSum / clauseCount);
+      const jvVerd = avgScore >= 100 ? 'ELIGIBLE' : 'PARTIALLY ELIGIBLE';
+
       return {
         badge: `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`,
-        verdict: 'PARTIALLY ELIGIBLE',
-        score: 62,
-        fulfilled_pct: '61.7%',
-        recommendation: `DIVIJA ALONE INSUFFICIENT (Lacks Lead Member License, Solvency & Capacity)`,
-        executive_summary: `${jvComp.name} Standalone AI Analysis: Divija Construction holds mandatory Sewerage work credentials (136 km sewer line), but satisfies 61.7% of overall bid criteria. Divija alone LACKS PHED Class-A Special Registration, ₹${desireSolvency} Cr Bank Solvency, and ₹120 Cr Bid Capacity required for Lead Member. Cannot bid without Desire Energy.`,
+        verdict: jvVerd,
+        score: avgScore,
+        fulfilled_pct: `${avgScore.toFixed(1)}%`,
+        recommendation: `DIVIJA ALONE INSUFFICIENT (${jvComp.name} Satisfies ${avgScore.toFixed(1)}% of Criteria)`,
+        executive_summary: `${jvComp.name} Standalone AI Analysis: Evaluated extracted tender clauses against ${jvComp.name} master data. Partner alone satisfies ${avgScore.toFixed(1)}% of bid criteria. Lacks Lead Member license, solvency & bid capacity; cannot bid without Desire Energy.`
       };
     }
 
+    const combinedScore = evaluationReport.combined_jv?.score || 100;
+    const combinedVerd = combinedScore >= 100 ? 'ELIGIBLE THROUGH JV' : 'CONDITIONAL';
+
     return {
       badge: 'OPTION 3 — DESIRE + JV COMBINED CONSORTIUM',
-      verdict: 'ELIGIBLE THROUGH JV',
-      score: 100,
-      fulfilled_pct: '100%',
+      verdict: combinedVerd,
+      score: combinedScore,
+      fulfilled_pct: `${combinedScore}%`,
       recommendation: 'BID (Fully Eligible Through Joint Venture)',
-      executive_summary: `Combined Consortium AI Analysis: Desire Energy provides ₹300.93 Cr Turnover + Class-A License + ₹${desireSolvency} Cr Kotak Solvency (Lead 51%), and ${jvComp.name} provides mandatory Sewerage/STP Work Experience (Partner 49%). Combined consortium achieves 100% full eligibility across all financial, technical, and licensing criteria.`,
+      executive_summary: `Combined Consortium AI Analysis: Desire Energy provides ₹${desireComp.average_turnover} Cr Turnover + Class-A License + ₹${desireSolvency} Cr Solvency (Lead 51%), and ${jvComp.name} provides mandatory Sewerage/STP Work Experience (Partner 49%). Combined consortium achieves ${combinedScore}% full eligibility.`
     };
   };
 
