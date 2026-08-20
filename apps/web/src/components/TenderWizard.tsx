@@ -266,7 +266,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     onTenderCreated(newProcess);
   };
 
-  // Perspective Data helper (PERFECTLY SYNCHRONIZED ACROSS ALL 8 CLAUSES)
+  // Perspective Data helper (UNRESTRICTED DYNAMIC CLAUSE AGGREGATOR)
   const getPerspectiveData = () => {
     if (!evaluationReport) {
       return {
@@ -284,12 +284,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
     const clauses = evaluationReport.clauses_breakdown || [];
     const desireSolvency = (desireComp as any).solvency_amount || (desireComp as any).solvency || 72.18;
-    const clauseCount = clauses.length || 8;
+    const clauseCount = clauses.length || 10;
 
     // 1. Calculate Option 1 (Desire Alone) Pct
     let opt1Sum = 0;
     clauses.forEach(c => {
-      if (c.desire_value.includes('No Prior') || c.desire_value.includes('(0%)') || c.desire_value.includes('DATA NOT')) {
+      if (c.desire_value.includes('No Prior') || c.desire_value.includes('(0%)') || c.status === 'NOT MATCHING') {
         opt1Sum += 0;
       } else if (c.desire_value.includes('100%') || c.status === 'MATCH') {
         opt1Sum += 100;
@@ -311,7 +311,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       } else {
         const pctMatch = c.jv_value.match(/(\d+(\.\d+)?)%/);
         if (pctMatch) opt2Sum += parseFloat(pctMatch[1]);
-        else opt2Sum += 61.7;
+        else opt2Sum += 60;
       }
     });
     const opt2Score = Math.round(opt2Sum / clauseCount);
@@ -339,7 +339,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         option2_pct: opt2PctStr,
         option3_pct: opt3PctStr,
         recommendation: desireRec,
-        executive_summary: `Desire Energy Standalone AI Analysis: Evaluated extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy master records (₹${desireComp.average_turnover} Cr turnover, ₹${desireSolvency} Cr Kotak Solvency). Standalone capability satisfies ${opt1PctStr} of tender requirements across ${clauseCount} extracted clauses. ${isFull ? 'Can bid independently without a JV partner.' : 'Requires JV partner for missing technical/financial criteria.'}`
+        executive_summary: `Desire Energy Standalone AI Analysis: Evaluated extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy master records (₹${desireComp.average_turnover} Cr turnover, ₹${desireSolvency} Cr Kotak Solvency). Standalone capability satisfies ${opt1PctStr} of tender requirements across all ${clauseCount} extracted clauses. ${isFull ? 'Can bid independently without a JV partner.' : 'Requires JV partner for missing technical/financial criteria.'}`
       };
     }
 
@@ -356,7 +356,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         option2_pct: opt2PctStr,
         option3_pct: opt3PctStr,
         recommendation: `DIVIJA ALONE INSUFFICIENT (${jvComp.name} Satisfies ${opt2PctStr} of Criteria)`,
-        executive_summary: `${jvComp.name} Standalone AI Analysis: Evaluated extracted tender clauses against ${jvComp.name} master data. Partner alone satisfies ${opt2PctStr} of bid criteria across ${clauseCount} extracted clauses. Lacks Lead Member license, solvency & bid capacity; cannot bid without Desire Energy.`
+        executive_summary: `${jvComp.name} Standalone AI Analysis: Evaluated extracted tender clauses against ${jvComp.name} master data. Partner alone satisfies ${opt2PctStr} of bid criteria across all ${clauseCount} extracted clauses. Lacks Lead Member license, solvency & bid capacity; cannot bid without Desire Energy.`
       };
     }
 
