@@ -253,6 +253,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     let body: any = {};
     let formCategory = '';
     let formFilename = '';
+    let formTenderTitle = '';
     if (method === 'POST') {
       try {
         const contentType = req.headers.get('content-type') || '';
@@ -261,6 +262,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           formCategory = (formData.get('project_category') as string || '').toUpperCase();
           const fileObj = formData.get('file') as File | null;
           formFilename = fileObj?.name || (formData.get('filename') as string || '');
+          formTenderTitle = (formData.get('tender_title') as string || '');
         } else {
           body = await req.json();
         }
