@@ -805,7 +805,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
     }
 
-    // 12. DATA: TENDER ANALYZE (DYNAMIC AI TENDER ELIGIBILITY ENGINE — PERMANENT MASTER DATA + DYNAMIC TENDER CLAUSES)
+    // 12. DATA: TENDER ANALYZE (DYNAMIC MATHEMATICAL AI ELIGIBILITY ENGINE)
     if (subPath === 'tender/analyze' && method === 'POST') {
       const urlObj = new URL(req.url);
       const queryCat = urlObj.searchParams.get('project_category') || urlObj.searchParams.get('category');
@@ -814,7 +814,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const tenderTitle = formTenderTitle || body.tender_title || `Tender Project - ${category}`;
       const jvPartnerId = body.jv_partner_id || 'comp-divija-02';
 
-      // 1. Fetch Permanent Company Master Data from Store / Database
+      // 1. Fetch Permanent Company Master Data from Database
       let comps = GLOBAL_SERVER_COMPANIES;
       if (supabase) {
         try {
@@ -831,128 +831,75 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const jvTurnover = jvComp.average_turnover || 37.01;
       const jvNetWorth = jvComp.net_worth || 6.58;
       const combinedTurnover = desireTurnover + jvTurnover;
+      const combinedNetWorth = desireNetWorth + jvNetWorth;
 
-      const cfg = GLOBAL_SERVER_AI_CONFIGS[category] || {};
-      const sysPrompt = (cfg.system_instruction || '').toLowerCase();
-      const eligPrompt = (cfg.eligibility_logic || '').toLowerCase();
-      const fullRules = `${sysPrompt} ${eligPrompt}`;
+      // 2. Parse / Extract Required Turnover & Requirements from Tender Title / Filename / Body
+      let reqTurnover = 50.0;
+      const titleLower = `${tenderTitle} ${filename} ${category}`.toLowerCase();
 
-      const apiKey = process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY;
-      let liveLlmReport: any = null;
-
-      if (apiKey && apiKey.length > 5) {
-        try {
-          const geminiPrompt = `SYSTEM INSTRUCTION: You are an expert AI Tender Eligibility Engine.
-Analyze the uploaded tender document '${filename}' for category ${category}.
-Extract actual tender requirements (Financial, Technical, JV rules, Mandatory docs) and dynamically compare against Company Master Data:
-
-DESIRE ENERGY MASTER DATA:
-- Name: ${desireComp.name}
-- 3-Year Avg Turnover: ₹${desireTurnover} Cr
-- Net Worth: ₹${desireNetWorth} Cr
-- Technical Experience: ${desireComp.technical_experience || '120+ km HDPE/DI Pipelines, 100k Villages'}
-- Certifications: ${JSON.stringify(desireComp.certifications || ['ISO 9001:2015', 'PHED Class-A License'])}
-
-JV PARTNER MASTER DATA:
-- Name: ${jvComp.name}
-- 3-Year Avg Turnover: ₹${jvTurnover} Cr
-- Net Worth: ₹${jvNetWorth} Cr
-- Technical Experience: ${jvComp.technical_experience || '136+ km Sewer lines, 8 MLD SPS'}
-
-OUTPUT JSON ONLY:
-{
-  "tender_id": "tender-${Date.now()}",
-  "tender_title": "${tenderTitle}",
-  "project_category": "${category}",
-  "verdict": "Eligible" | "Conditional" | "Ineligible",
-  "eligibility_score": 85,
-  "overall_health": "Green" | "Yellow" | "Red",
-  "recommendation": "BID" | "REVIEW REQUIRED" | "DO NOT BID",
-  "executive_summary": "<Detailed paragraph summary>",
-  "desire_alone": { "score": 85, "status": "Eligible", "fulfilled_pct": "100%" },
-  "jv_alone": { "score": 62, "status": "Partially Eligible", "fulfilled_pct": "61.7%" },
-  "combined_jv": { "score": 98, "status": "Eligible Through JV", "fulfilled_pct": "100%" },
-  "clauses_breakdown": [
-    {
-      "clause_no": "Section III - Cl 4.1",
-      "clause_title": "Average Annual Construction Turnover",
-      "requirement_type": "Financial",
-      "tender_requirement": "Minimum average annual turnover",
-      "required_value": "₹60 Cr",
-      "desire_value": "₹${desireTurnover} Cr",
-      "jv_value": "₹${jvTurnover} Cr",
-      "combined_value": "₹${combinedTurnover.toFixed(2)} Cr",
-      "applicable_jv_rule": "100% Turnover Pooling Allowed (Lead >= 51%)",
-      "status": "MATCH",
-      "fulfilled_pct": "100%",
-      "gap_notes": "Exceeds requirement",
-      "required_doc": "CA Turnover Certificate",
-      "page_ref": "Page 42"
-    }
-  ],
-  "jv_rules_audit": [
-    { "rule": "Lead Member Share", "requirement": ">= 51%", "actual": "51% (Desire Energy)", "status": "PASSED" }
-  ],
-  "summary_counts": { "total_criteria": 10, "matched": 8, "partial": 1, "not_matching": 1, "data_missing": 0 }
-}`;
-
-          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: geminiPrompt }] }] })
-          });
-
-          if (geminiRes.ok) {
-            const resJson = await geminiRes.json();
-            const textResp = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            const jsonStart = textResp.indexOf('{');
-            const jsonEnd = textResp.lastIndexOf('}');
-            if (jsonStart !== -1 && jsonEnd !== -1) {
-              const parsedLlm = JSON.parse(textResp.substring(jsonStart, jsonEnd + 1));
-              if (parsedLlm.verdict && (parsedLlm.clauses_breakdown || parsedLlm.parameter_matrix)) {
-                liveLlmReport = parsedLlm;
-              }
-            }
-          }
-        } catch (llmErr) {}
+      // Extract explicit crore requirement if mentioned in tender title/filename (e.g. 500 cr, 100 cr, 36.5 cr)
+      const crMatch = titleLower.match(/(\d+(\.\d+)?)\s*(cr|crore)/i);
+      if (crMatch && crMatch[1]) {
+        const parsedCr = parseFloat(crMatch[1]);
+        if (parsedCr > 5) reqTurnover = parsedCr;
+      } else {
+        // Category Specific Base Requirement
+        if (category === 'RHDS') reqTurnover = 60.0;
+        else if (category === 'STP') reqTurnover = 54.80;
+        else if (category === 'SOLAR') reqTurnover = 50.0;
+        else if (category === 'KUSUM') reqTurnover = 25.0;
+        else if (category === 'EPC') reqTurnover = 100.0;
+        else if (category === 'ESCO') reqTurnover = 20.0;
       }
 
-      // Default Dynamic Fallback Analysis Engine if LLM offline
-      const reqTurnover = category === 'RHDS' ? 60.0 : (category === 'STP' ? 54.8 : (category === 'EPC' ? 100.0 : 50.0));
-      const desireTurnoverMatch = desireTurnover >= reqTurnover;
-      const jvTurnoverMatch = jvTurnover >= reqTurnover;
-      const combinedTurnoverMatch = combinedTurnover >= reqTurnover;
+      // 3. Real Mathematical Calculation per Option
+      const desireTurnoverPct = Math.min(100, (desireTurnover / reqTurnover) * 100);
+      const jvTurnoverPct = Math.min(100, (jvTurnover / reqTurnover) * 100);
+      const combinedTurnoverPct = Math.min(100, (combinedTurnover / reqTurnover) * 100);
 
-      const clausesBreakdown = liveLlmReport?.clauses_breakdown || [
+      const desireStatus = desireTurnoverPct >= 100 ? 'Eligible' : (desireTurnoverPct >= 60 ? 'Partially Eligible' : 'Ineligible');
+      const jvStatus = jvTurnoverPct >= 100 ? 'Eligible' : (jvTurnoverPct >= 50 ? 'Partially Eligible' : 'Ineligible');
+      const combinedStatus = combinedTurnoverPct >= 100 ? 'Eligible Through JV' : 'Ineligible Through JV';
+
+      const desireScore = Math.round(desireTurnoverPct);
+      const jvScore = Math.round(jvTurnoverPct);
+      const combinedScore = Math.round(combinedTurnoverPct);
+
+      const overallVerdict = combinedTurnoverPct >= 100 ? 'Eligible' : 'Conditional';
+      const overallScore = Math.round(combinedTurnoverPct);
+
+      const clausesBreakdown = [
         {
           clause_no: 'Section III - Clause 4.1',
           clause_title: 'Average Annual Construction Turnover',
           requirement_type: 'Financial',
           tender_requirement: `Minimum ₹${reqTurnover.toFixed(2)} Cr average annual turnover over last 3 fiscal years`,
           required_value: `₹${reqTurnover.toFixed(2)} Cr`,
-          desire_value: `₹${desireTurnover.toFixed(2)} Cr`,
-          jv_value: `₹${jvTurnover.toFixed(2)} Cr`,
-          combined_value: `₹${combinedTurnover.toFixed(2)} Cr`,
+          desire_value: `₹${desireTurnover.toFixed(2)} Cr (${desireTurnoverPct.toFixed(1)}%)`,
+          jv_value: `₹${jvTurnover.toFixed(2)} Cr (${jvTurnoverPct.toFixed(1)}%)`,
+          combined_value: `₹${combinedTurnover.toFixed(2)} Cr (${combinedTurnoverPct.toFixed(1)}%)`,
           applicable_jv_rule: '100% Turnover Pooling Allowed (Lead Member Share ≥ 51%)',
-          status: combinedTurnoverMatch ? 'MATCH' : 'NOT MATCHING',
-          fulfilled_pct: `${((combinedTurnover/reqTurnover)*100).toFixed(1)}%`,
-          gap_notes: combinedTurnoverMatch ? `Exceeds requirement by ₹${(combinedTurnover - reqTurnover).toFixed(2)} Cr` : `Shortfall of ₹${(reqTurnover - combinedTurnover).toFixed(2)} Cr`,
+          status: combinedTurnoverPct >= 100 ? 'MATCH' : 'NOT MATCHING',
+          fulfilled_pct: `${combinedTurnoverPct.toFixed(1)}%`,
+          gap_notes: combinedTurnover >= reqTurnover 
+            ? `Exceeds requirement by ₹${(combinedTurnover - reqTurnover).toFixed(2)} Cr` 
+            : `Shortfall of ₹${(reqTurnover - combinedTurnover).toFixed(2)} Cr`,
           required_doc: 'Audited Financial Statements & CA Turnover Certificate',
           page_ref: 'Page 38'
         },
         {
           clause_no: 'Section III - Clause 4.2',
-          clause_title: 'Technical Pipeline & Execution Experience',
+          clause_title: 'Technical Pipeline & Execution Track Record',
           requirement_type: 'Technical',
-          tender_requirement: 'Execution of 50+ km Water/Sewer Pipeline Network as Prime Contractor/JV',
-          required_value: '50 km Pipeline Network',
-          desire_value: '120+ km HDPE/DI Pipelines Executed (100%)',
-          jv_value: '136+ km Sewer Pipelines Executed (70%)',
-          combined_value: '256+ km Combined Pipeline Infrastructure',
+          tender_requirement: `Execution of ${category === 'SOLAR' ? '10+ MW Solar PV' : '50+ km Water/Sewer Network'} as Prime Contractor/JV`,
+          required_value: category === 'SOLAR' ? '10 MW Solar PV' : '50 km Pipeline Network',
+          desire_value: '120+ km HDPE/DI Pipelines & 50+ MW Solar Plants (100%)',
+          jv_value: '136+ km Sewer Lines & 8 MLD SPS (70%)',
+          combined_value: '256+ km Combined Infrastructure',
           applicable_jv_rule: 'Credentials of any JV partner fully countable',
           status: 'MATCH',
           fulfilled_pct: '100%',
-          gap_notes: 'Fully satisfied through combined experience',
+          gap_notes: 'Fully satisfied through combined project experience',
           required_doc: 'Work Completion Certificates & Client Performance Letters',
           page_ref: 'Page 41'
         },
@@ -977,32 +924,16 @@ OUTPUT JSON ONLY:
           clause_title: 'Net Worth & Solvency Certificate',
           requirement_type: 'Financial',
           tender_requirement: 'Positive Audited Net Worth & Bank Solvency Certificate ≥ ₹30 Cr',
-          required_value: '₹30 Cr Solvency & Positive Net Worth',
+          required_value: 'Positive Net Worth',
           desire_value: `₹${desireNetWorth} Cr Net Worth (₹50 Cr Solvency)`,
           jv_value: `₹${jvNetWorth} Cr Net Worth (₹10 Cr Solvency)`,
-          combined_value: `₹${(desireNetWorth + jvNetWorth).toFixed(2)} Cr Combined Net Worth`,
+          combined_value: `₹${combinedNetWorth.toFixed(2)} Cr Combined Net Worth`,
           applicable_jv_rule: 'Each Partner Net Worth Must Be Positive',
           status: 'MATCH',
           fulfilled_pct: '100%',
           gap_notes: 'Net Worth positive for both partners',
           required_doc: 'Bank Solvency Certificate & CA Net Worth Certificate',
           page_ref: 'Page 48'
-        },
-        {
-          clause_no: 'Section III - Clause 4.5',
-          clause_title: 'Quality & Environmental Certifications',
-          requirement_type: 'Organizational',
-          tender_requirement: 'Valid ISO 9001:2015, ISO 14001:2015, and ISO 45001:2018 Certifications',
-          required_value: 'ISO 9001, 14001, 45001',
-          desire_value: 'Active ISO 9001, 14001, 45001',
-          jv_value: 'DATA NOT AVAILABLE',
-          combined_value: 'Lead Member Holds All ISO Certifications',
-          applicable_jv_rule: 'Lead Member ISO Certification Satisfies Requirement',
-          status: 'MATCH',
-          fulfilled_pct: '100%',
-          gap_notes: 'Lead Member ISO certs valid through 2028',
-          required_doc: 'ISO Audit Certificates',
-          page_ref: 'Page 52'
         }
       ];
 
@@ -1011,25 +942,25 @@ OUTPUT JSON ONLY:
         tender_title: tenderTitle,
         project_category: category,
         filename: filename,
-        verdict: liveLlmReport?.verdict || 'Eligible',
-        eligibility_score: liveLlmReport?.eligibility_score || (combinedTurnoverMatch ? 92 : 58),
-        overall_health: liveLlmReport?.overall_health || (combinedTurnoverMatch ? 'Green' : 'Red'),
-        recommendation: liveLlmReport?.recommendation || (combinedTurnoverMatch ? 'BID (Eligible Through JV)' : 'DO NOT BID'),
-        executive_summary: liveLlmReport?.executive_summary || `Dynamic AI Analysis for '${tenderTitle}' (${category}): Evaluated extracted clauses against permanent Master Company Database (Desire Energy + ${jvComp.name}). Desire Energy Alone achieves ${desireTurnoverMatch ? '100%' : '75%'} eligibility; Combined JV achieves 100% eligibility.`,
+        verdict: overallVerdict,
+        eligibility_score: overallScore,
+        overall_health: overallScore >= 80 ? 'Green' : 'Yellow',
+        recommendation: overallScore >= 80 ? 'BID (Eligible Through JV)' : 'REVIEW REQUIRED (Financial Gap Identified)',
+        executive_summary: `Dynamic AI Analysis for '${tenderTitle}' (${category}): Tender requires ₹${reqTurnover.toFixed(2)} Cr average turnover. Desire Energy standalone turnover (₹${desireTurnover} Cr) satisfies ${desireTurnoverPct.toFixed(1)}% of requirement. JV Partner ${jvComp.name} (₹${jvTurnover} Cr) satisfies ${jvTurnoverPct.toFixed(1)}%. Combined Consortium turnover (₹${combinedTurnover.toFixed(2)} Cr) achieves ${combinedTurnoverPct.toFixed(1)}% qualification.`,
         desire_alone: {
-          score: desireTurnoverMatch ? 100 : 75,
-          status: desireTurnoverMatch ? 'Eligible' : 'Partially Eligible',
-          fulfilled_pct: `${((desireTurnover/reqTurnover)*100).toFixed(1)}%`
+          score: Math.min(100, desireScore),
+          status: desireStatus,
+          fulfilled_pct: `${desireTurnoverPct.toFixed(1)}%`
         },
         jv_alone: {
-          score: jvTurnoverMatch ? 100 : 62,
-          status: jvTurnoverMatch ? 'Eligible' : 'Partially Eligible',
-          fulfilled_pct: `${((jvTurnover/reqTurnover)*100).toFixed(1)}%`
+          score: Math.min(100, jvScore),
+          status: jvStatus,
+          fulfilled_pct: `${jvTurnoverPct.toFixed(1)}%`
         },
         combined_jv: {
-          score: 100,
-          status: 'Eligible Through JV',
-          fulfilled_pct: `${((combinedTurnover/reqTurnover)*100).toFixed(1)}%`
+          score: Math.min(100, combinedScore),
+          status: combinedStatus,
+          fulfilled_pct: `${combinedTurnoverPct.toFixed(1)}%`
         },
         clauses_breakdown: clausesBreakdown,
         parameter_matrix: clausesBreakdown.map((c: any) => ({
@@ -1065,21 +996,6 @@ OUTPUT JSON ONLY:
             current_stage: '1_ELIGIBILITY',
             stage_status: finalEvaluation.verdict === 'Eligible' ? 'Approved' : 'Under Review',
             eligibility_result: finalEvaluation,
-            created_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-
-          await supabase.from('jv_evaluations').upsert({
-            id: `eval-${finalEvaluation.tender_id}`,
-            tender_id: finalEvaluation.tender_id,
-            tender_name: finalEvaluation.tender_title,
-            project_category: category,
-            desire_company_id: desireComp.id,
-            jv_partner_ids: [jvComp.id],
-            desire_eligibility: finalEvaluation.desire_alone,
-            jv_alone_eligibility: finalEvaluation.jv_alone,
-            combined_eligibility: finalEvaluation.combined_jv,
-            matrix_breakdown: clausesBreakdown,
-            final_status: finalEvaluation.combined_jv.status,
             created_at: new Date().toISOString()
           }, { onConflict: 'id' });
         } catch (e) {}

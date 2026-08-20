@@ -207,7 +207,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   Jal Jeevan Mission (JJM) Rural Water Supply (Tender #JJM-RJ-2026-44)
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Category: RHDS • Stage 2 Complete • Verified ₹285 Cr turnover & 1,00,000+ villages
+                  Category: RHDS • Stage 2 Complete • Verified ₹300.93 Cr turnover & 1,00,000+ villages
                 </p>
               </div>
             </div>
