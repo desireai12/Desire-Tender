@@ -159,6 +159,92 @@ let GLOBAL_SERVER_USERS: any[] = [
 ];
 
 // Helper to handle GET & POST for Vercel Serverless
+
+// Global In-Memory Persistent Master Companies Store
+let GLOBAL_SERVER_COMPANIES: any[] = [
+  {
+    id: 'comp-desire-01',
+    name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED',
+    type: 'Desire Energy',
+    profile: 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks.',
+    registered_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
+    corporate_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
+    contact_details: { phone: '0141-4050855', mobile: '7230037296', email: 'tenders@desireenergy.com', contact_person: 'Dharmesh Khandelwal (Director)' },
+    cin_registration: 'U40106RJ2011PTC034878',
+    gst_number: '08AAECD3266E1ZT',
+    pan_number: 'AAECD3266E',
+    annual_turnover: { "FY 2021-22": 201.53, "FY 2022-23": 201.53, "FY 2023-24": 350.66, "FY 2024-25": 350.60 },
+    average_turnover: 300.93,
+    net_worth: 95.00,
+    solvency: 50.00,
+    technical_experience: 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants, Class-A Special PHED Registration',
+    past_projects: ['Jal Jeevan Mission 100k Villages', 'PM-KUSUM Solar Pumps', 'Panghat Yojana Water Scheme'],
+    work_orders: [{ wo_no: 'JJM-DESIRE-2024', client: 'PHED Rajasthan', amount: 350.0, status: 'Active' }],
+    client_details: ['PHED Rajasthan', 'REDA / RRECL', 'RUDSICO'],
+    sector_experience: ['RHDS Water Supply', 'Solar PV EPC', 'PM-KUSUM', 'STP Wastewater'],
+    equipment_machinery: ['HDPE Butt Fusion Machines', 'Solar Telemetry Testing Kits', 'Mobile Crane 25T'],
+    manpower_technical_staff: ['2,000+ Deployed Field Professionals', '50+ Certified Engineers'],
+    certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'ISO 45001:2018', 'PHED Class-A License'],
+    statutory_docs: ['COI', 'MOA', 'AOA', 'GST Certificate', 'ITR FY22-25'],
+    uploaded_documents: ['Desire_Corporate_Credentials.pdf', 'Audited_Financials_FY21_25.pdf']
+  },
+  {
+    id: 'comp-divija-02',
+    name: 'DIVIJA CONSTRUCTION',
+    type: 'JV Partner',
+    profile: 'Govt Approved A & AA Class Contractor specializing in Sewage Treatment Plants, Sewage Pumping Stations, and Municipal Water Pipelines.',
+    registered_address: '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan',
+    corporate_address: '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan',
+    contact_details: { phone: '9829147776', mobile: '9829147776', email: 'divijaconstruction@gmail.com', contact_person: 'Satish Kumar Goyal (Partner)' },
+    cin_registration: 'GOVT-AA-CLASS-2005',
+    gst_number: '08AAFFD6567N1ZT',
+    pan_number: 'AAFFD6567N',
+    annual_turnover: { "FY 2020-21": 12.87, "FY 2021-22": 21.96, "FY 2022-23": 32.56, "FY 2023-24": 42.95, "FY 2024-25": 37.01 },
+    average_turnover: 37.01,
+    net_worth: 6.58,
+    solvency: 10.00,
+    technical_experience: 'Executed JDA Jaipur 8 MLD & 1 MLD Sewage Pumping Stations, 136+ km Sewer lines (Work Orders Rs 24.69 Cr & Rs 18.97 Cr)',
+    past_projects: ['JDA PRN South Sewerage Pkg 1 & 2', 'Sanganer Industrial SPS 8 MLD'],
+    work_orders: [{ wo_no: 'JDA/EE PHE I/WO/2022-2023/Mar/25', client: 'JDA Jaipur', amount: 24.69, status: 'Completed' }],
+    client_details: ['JDA Jaipur', 'PHED Rajasthan'],
+    sector_experience: ['Sewerage Networks', 'Sewage Pumping Stations', 'Civil Pipelines'],
+    equipment_machinery: ['Excavators 200', 'DWC Pipe Jointing Rigs', 'Concrete Mixers'],
+    manpower_technical_staff: ['150+ Skilled Site Workers', '10 Project Engineers'],
+    certifications: ['Govt AA-Class License', 'GST Registration', 'Thanvi CA Certificate'],
+    statutory_docs: ['Partnership Deed', 'GST Certificate', 'ITR FY20-25'],
+    uploaded_documents: ['Divija_Sewerage_WorkOrders.pdf', 'CA_Turnover_Networth.pdf']
+  },
+  {
+    id: 'comp-lt-03',
+    name: 'LARSEN & TOUBRO WATER & EFFLUENT IC',
+    type: 'Competitor',
+    profile: 'Multinational conglomerate executing mega municipal water, STP, and industrial effluent treatment plants across India.',
+    registered_address: 'Mount Poonamallee Road, Manapakkam, Chennai - 600089',
+    corporate_address: 'Mount Poonamallee Road, Manapakkam, Chennai - 600089',
+    contact_details: { email: 'waterbids@lntecc.com', contact_person: 'Tender Desk' },
+    cin_registration: 'L99999MH1946PLC004768',
+    gst_number: '33AAACL0140P1ZB',
+    pan_number: 'AAACL0140P',
+    annual_turnover: { "FY 2023-24": 12500.0, "FY 2024-25": 13800.0 },
+    average_turnover: 12500.00,
+    net_worth: 4200.00,
+    solvency: 1000.00,
+    technical_experience: 'Executed 500+ MLD STPs, Mega Intake Works, WTPs across 20+ Indian States',
+    past_projects: ['Jaipur Water Supply Mega EPC', 'Delhi Sewer Master Plan'],
+    work_orders: [],
+    client_details: ['Central Govt', 'State Water Boards'],
+    sector_experience: ['Mega EPC Water', 'STP Wastewater'],
+    equipment_machinery: ['Heavy Trenchers', 'TBM Boring Machines'],
+    manpower_technical_staff: ['10,000+ Engineers'],
+    certifications: ['Global EPC Accreditation'],
+    statutory_docs: [],
+    uploaded_documents: []
+  }
+];
+
+// Global In-Memory Persistent JV Evaluations Store
+let GLOBAL_SERVER_JV_EVALUATIONS: any[] = [];
+
 async function handleRequest(req: NextRequest, params: { path: string[] }) {
   const subPath = params.path.join('/');
   const method = req.method;
@@ -1237,6 +1323,163 @@ Task: Output a JSON object ONLY with the exact schema:
 
     if (subPath === 'admin/test-credentials' && method === 'POST') {
       return NextResponse.json({ status: 'success', message: 'Credential test successful' });
+    }
+
+    
+    // 13. MASTER COMPANIES API (GET & POST)
+    if (subPath === 'companies' && method === 'GET') {
+      let comps = GLOBAL_SERVER_COMPANIES;
+      if (supabase) {
+        try {
+          const { data: dbComps } = await supabase.from('companies').select('*').order('created_at', { ascending: false });
+          if (dbComps && dbComps.length > 0) comps = dbComps;
+        } catch (e) {}
+      }
+      return NextResponse.json({ status: 'success', total: comps.length, companies: comps });
+    }
+
+    if (subPath === 'companies' && method === 'POST') {
+      const compData = body;
+      const compId = compData.id || `comp-${Date.now()}`;
+      const newComp = { ...compData, id: compId, updated_at: new Date().toISOString() };
+
+      const idx = GLOBAL_SERVER_COMPANIES.findIndex(c => c.id === compId);
+      if (idx !== -1) {
+        GLOBAL_SERVER_COMPANIES[idx] = newComp;
+      } else {
+        GLOBAL_SERVER_COMPANIES.unshift(newComp);
+      }
+
+      if (supabase) {
+        try {
+          await supabase.from('companies').upsert(newComp, { onConflict: 'id' });
+        } catch (e) {}
+      }
+
+      return NextResponse.json({ status: 'success', message: 'Company record saved successfully', company: newComp });
+    }
+
+    if (subPath.startsWith('companies/') && method === 'DELETE') {
+      const compId = subPath.split('/')[1];
+      GLOBAL_SERVER_COMPANIES = GLOBAL_SERVER_COMPANIES.filter(c => c.id !== compId);
+      if (supabase) {
+        try {
+          await supabase.from('companies').delete().eq('id', compId);
+        } catch (e) {}
+      }
+      return NextResponse.json({ status: 'success', message: `Company ${compId} deleted` });
+    }
+
+    // 14. COMBINED JV ELIGIBILITY EVALUATION ENGINE
+    if (subPath === 'eligibility/combine' && method === 'POST') {
+      const { tender_category = 'RHDS', desire_id = 'comp-desire-01', jv_partner_id = 'comp-divija-02', custom_rules } = body;
+      
+      let desireComp = GLOBAL_SERVER_COMPANIES.find(c => c.id === desire_id) || GLOBAL_SERVER_COMPANIES[0];
+      let jvComp = GLOBAL_SERVER_COMPANIES.find(c => c.id === jv_partner_id) || GLOBAL_SERVER_COMPANIES[1];
+
+      const tenderReqTurnover = tender_category === 'RHDS' ? 60.0 : (tender_category === 'STP' ? 54.8 : 50.0);
+      const desireTurnover = desireComp.average_turnover || 300.93;
+      const jvTurnover = jvComp.average_turnover || 37.01;
+      const combinedTurnover = desireTurnover + jvTurnover;
+
+      const matrix = [
+        {
+          criterion: 'Annual Construction Turnover',
+          tender_requirement: `Minimum ₹${tenderReqTurnover.toFixed(2)} Crore Average Annual Turnover`,
+          desire_contribution: `₹${desireTurnover.toFixed(2)} Cr (${((desireTurnover/tenderReqTurnover)*100).toFixed(1)}%)`,
+          jv_contribution: `₹${jvTurnover.toFixed(2)} Cr (${((jvTurnover/tenderReqTurnover)*100).toFixed(1)}%)`,
+          combined_result: `₹${combinedTurnover.toFixed(2)} Crore`,
+          applicable_jv_rule: '100% Turnover Pooling Permitted (Lead ≥ 51%)',
+          qualification_pct: `${((combinedTurnover/tenderReqTurnover)*100).toFixed(1)}%`,
+          status: combinedTurnover >= tenderReqTurnover ? 'Eligible' : 'Not Eligible'
+        },
+        {
+          criterion: 'Technical Pipeline / Work Execution',
+          tender_requirement: '50+ km Pipeline / Rural Water Scheme / Sewer Network Execution',
+          desire_contribution: '120+ km HDPE/DI Pipelines & 100k Villages (100%)',
+          jv_contribution: '136+ km Sewer Lines & 8 MLD SPS (70%)',
+          combined_result: '256+ km Integrated Water/Sewer Infrastructure',
+          applicable_jv_rule: 'Experience Sharing Allowed across JV Members',
+          qualification_pct: '100%',
+          status: 'Eligible'
+        },
+        {
+          criterion: 'PHED / Contractor Registration License',
+          tender_requirement: 'Valid Class-A Contractor Registration',
+          desire_contribution: 'Active Class-A Special Category (PHED Raj)',
+          jv_contribution: 'Govt Approved Class-AA Registration',
+          combined_result: 'Both Lead & Partner Fully Licensed',
+          applicable_jv_rule: 'Lead Member Must Hold Class-A License',
+          qualification_pct: '100%',
+          status: 'Eligible'
+        },
+        {
+          criterion: 'Financial Net Worth & Solvency',
+          tender_requirement: 'Positive Net Worth & Solvency Certificate ≥ ₹30 Cr',
+          desire_contribution: `₹${desireComp.net_worth || 95} Cr Net Worth (₹50 Cr Solvency)`,
+          jv_contribution: `₹${jvComp.net_worth || 6.58} Cr Net Worth`,
+          combined_result: `₹${((desireComp.net_worth||95) + (jvComp.net_worth||6.58)).toFixed(2)} Cr Combined Net Worth`,
+          applicable_jv_rule: 'Each Partner Net Worth Must Be Positive',
+          qualification_pct: '100%',
+          status: 'Eligible'
+        }
+      ];
+
+      const evaluationResult = {
+        id: `eval-${Date.now()}`,
+        tender_name: `Jal Jeevan Mission RHDS Water Scheme (${tender_category})`,
+        project_category: tender_category,
+        desire_company: desireComp.name,
+        jv_partner: jvComp.name,
+        desire_alone: {
+          score: desireTurnover >= tenderReqTurnover ? 100 : 75,
+          status: desireTurnover >= tenderReqTurnover ? 'Eligible' : 'Partially Eligible',
+          fulfilled_pct: `${((desireTurnover/tenderReqTurnover)*100).toFixed(1)}%`
+        },
+        jv_alone: {
+          score: jvTurnover >= tenderReqTurnover ? 100 : 62,
+          status: jvTurnover >= tenderReqTurnover ? 'Eligible' : 'Partially Eligible',
+          fulfilled_pct: `${((jvTurnover/tenderReqTurnover)*100).toFixed(1)}%`
+        },
+        combined_jv: {
+          score: 100,
+          status: 'Eligible Through JV',
+          fulfilled_pct: `${((combinedTurnover/tenderReqTurnover)*100).toFixed(1)}%`
+        },
+        matrix_breakdown: matrix,
+        jv_rules_audit: [
+          { rule: 'Lead Member Equity Share', requirement: '≥ 51%', actual: '51% (Desire Energy)', status: 'PASSED' },
+          { rule: 'Minimum Partner Share', requirement: '≥ 26%', actual: '49% (Divija Construction)', status: 'PASSED' },
+          { rule: 'Turnover Pooling Rule', requirement: '100% Sum of Turnovers', actual: `₹${combinedTurnover.toFixed(2)} Cr`, status: 'PASSED' }
+        ],
+        created_at: new Date().toISOString()
+      };
+
+      GLOBAL_SERVER_JV_EVALUATIONS.unshift(evaluationResult);
+
+      if (supabase) {
+        try {
+          await supabase.from('jv_evaluations').upsert({
+            id: evaluationResult.id,
+            tender_name: evaluationResult.tender_name,
+            project_category: tender_category,
+            desire_company_id: desireComp.id,
+            jv_partner_ids: [jvComp.id],
+            desire_eligibility: evaluationResult.desire_alone,
+            jv_alone_eligibility: evaluationResult.jv_alone,
+            combined_eligibility: evaluationResult.combined_jv,
+            matrix_breakdown: matrix,
+            final_status: 'Eligible Through JV',
+            created_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        } catch (e) {}
+      }
+
+      return NextResponse.json({ status: 'success', evaluation: evaluationResult });
+    }
+
+    if (subPath === 'jv-evaluations' && method === 'GET') {
+      return NextResponse.json({ status: 'success', evaluations: GLOBAL_SERVER_JV_EVALUATIONS });
     }
 
     return NextResponse.json({

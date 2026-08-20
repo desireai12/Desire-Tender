@@ -168,3 +168,64 @@ VALUES
 ('kb-desire-fin-03', 'Desire Energy Solutions Pvt Ltd Audited Financials (FY 2021-2025)', 'Financial', 'Audited_Financials_DESPL_FY21_25.pdf', '/documents/Audited_Financials_DESPL_FY21_25.pdf', 'Audited Financial Statements (Average Turnover: Rs 300.93 Cr, Net Worth: Rs 95.0 Cr, Solvency: Rs 50.0 Cr)', 'Active', 10, CURRENT_TIMESTAMP),
 ('kb-divija-exp-04', 'Divija Construction Sewerage & Sewage Pumping Station Work Orders', 'Past Experience', 'Divija_Construction_Sewerage_WorkOrders.pdf', '/documents/Divija_Construction_Sewerage_WorkOrders.pdf', 'JDA Jaipur Work Orders for 8 MLD & 1 MLD Sewage Pumping Stations and 136+ km Sewer lines (Rs 24.69 Cr & Rs 18.97 Cr)', 'Active', 8, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
+
+-- 14. MASTER COMPANIES DATABASE TABLE
+CREATE TABLE IF NOT EXISTS public.companies (
+    id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100) NOT NULL DEFAULT 'JV Partner', -- 'Desire Energy', 'JV Partner', 'Competitor', 'Other'
+    profile TEXT,
+    registered_address TEXT,
+    corporate_address TEXT,
+    contact_details JSONB DEFAULT '{}'::jsonb,
+    cin_registration VARCHAR(100),
+    gst_number VARCHAR(50),
+    pan_number VARCHAR(50),
+    annual_turnover JSONB DEFAULT '{}'::jsonb,
+    average_turnover NUMERIC DEFAULT 0,
+    net_worth NUMERIC DEFAULT 0,
+    solvency NUMERIC DEFAULT 0,
+    technical_experience TEXT,
+    past_projects JSONB DEFAULT '[]'::jsonb,
+    work_orders JSONB DEFAULT '[]'::jsonb,
+    client_details JSONB DEFAULT '[]'::jsonb,
+    sector_experience JSONB DEFAULT '[]'::jsonb,
+    equipment_machinery JSONB DEFAULT '[]'::jsonb,
+    manpower_technical_staff JSONB DEFAULT '[]'::jsonb,
+    certifications JSONB DEFAULT '[]'::jsonb,
+    statutory_docs JSONB DEFAULT '[]'::jsonb,
+    tender_experience JSONB DEFAULT '[]'::jsonb,
+    uploaded_documents JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 15. JV & COMBINED ELIGIBILITY EVALUATIONS TABLE
+CREATE TABLE IF NOT EXISTS public.jv_evaluations (
+    id VARCHAR(100) PRIMARY KEY,
+    tender_id VARCHAR(100),
+    tender_name TEXT NOT NULL,
+    project_category VARCHAR(50) NOT NULL,
+    desire_company_id VARCHAR(100),
+    jv_partner_ids JSONB DEFAULT '[]'::jsonb,
+    tender_requirements JSONB DEFAULT '[]'::jsonb,
+    desire_eligibility JSONB DEFAULT '{}'::jsonb,
+    jv_alone_eligibility JSONB DEFAULT '{}'::jsonb,
+    combined_eligibility JSONB DEFAULT '{}'::jsonb,
+    matrix_breakdown JSONB DEFAULT '[]'::jsonb,
+    final_status VARCHAR(50) DEFAULT 'Eligible Through JV',
+    remarks TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.companies DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jv_evaluations DISABLE ROW LEVEL SECURITY;
+
+-- SEED MASTER COMPANIES DATA
+INSERT INTO public.companies (id, name, type, profile, registered_address, corporate_address, contact_details, cin_registration, gst_number, pan_number, average_turnover, net_worth, solvency, technical_experience)
+VALUES
+('comp-desire-01', 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', 'Desire Energy', 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks.', '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan', '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan', '{"phone": "0141-4050855", "mobile": "7230037296", "email": "tenders@desireenergy.com", "contact_person": "Dharmesh Khandelwal"}'::jsonb, 'U40106RJ2011PTC034878', '08AAECD3266E1ZT', 'AAECD3266E', 300.93, 95.00, 50.00, 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants, Class-A Special PHED Registration'),
+('comp-divija-02', 'DIVIJA CONSTRUCTION', 'JV Partner', 'Govt Approved A & AA Class Contractor specializing in Sewage Treatment Plants, Sewage Pumping Stations, and Municipal Water Pipelines.', '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan', '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan', '{"phone": "9829147776", "email": "divijaconstruction@gmail.com", "contact_person": "Satish Kumar Goyal"}'::jsonb, 'GOVT-AA-CLASS-2005', '08AAFFD6567N1ZT', 'AAFFD6567N', 37.01, 6.58, 10.00, 'Executed JDA Jaipur 8 MLD & 1 MLD Sewage Pumping Stations, 136+ km Sewer lines (Work Orders Rs 24.69 Cr & Rs 18.97 Cr)'),
+('comp-lt-03', 'LARSEN & TOUBRO WATER & EFFLUENT IC', 'Competitor', 'Multinational conglomerate executing mega municipal water, STP, and industrial effluent treatment plants across India.', 'Mount Poonamallee Road, Manapakkam, Chennai - 600089', 'Mount Poonamallee Road, Manapakkam, Chennai - 600089', '{"email": "waterbids@lntecc.com", "contact_person": "Tender Desk"}'::jsonb, 'L99999MH1946PLC004768', '33AAACL0140P1ZB', 'AAACL0140P', 12500.00, 4200.00, 1000.00, 'Executed 500+ MLD STPs, Mega Intake Works, WTPs across 20+ Indian States')
+ON CONFLICT (id) DO NOTHING;

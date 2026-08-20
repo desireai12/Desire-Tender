@@ -9,6 +9,8 @@ import { AdminBackendConfig } from '@/components/AdminBackendConfig';
 import { TenderWizard } from '@/components/TenderWizard';
 import { TenderLifecycleTracker } from '@/components/TenderLifecycleTracker';
 import { CompetitorBattleCardsView } from '@/components/CompetitorBattleCardsView';
+import { CompanyDetailsView } from '@/components/CompanyDetailsView';
+import { CombineAnalysisView } from '@/components/CombineAnalysisView';
 import { CostingEstimatorView } from '@/components/CostingEstimatorView';
 import { SettingsView } from '@/components/SettingsView';
 import { LoginLanding } from '@/components/LoginLanding';
@@ -329,6 +331,14 @@ export default function Home() {
               activeRole={activeRole}
               onUpdateTender={handleUpdateTender}
             />
+          )}
+
+                    {activeTab === 'companies' && (
+            <CompanyDetailsView />
+          )}
+
+          {activeTab === 'combine' && (
+            <CombineAnalysisView />
           )}
 
           {activeTab === 'costing' && (
