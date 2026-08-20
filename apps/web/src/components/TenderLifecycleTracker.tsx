@@ -158,7 +158,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
 
   // Check Department RBAC Permission for Active Stage
   const canUserEditStage = (stageDept: DepartmentRole) => {
-    if (activeRole === 'Admin') return true;
+    if ((activeRole as string) === 'Admin') return true;
     if (stageDept === 'Business Development' && (activeRole === 'Business Development' || activeRole === 'Management')) return true;
     if (stageDept === 'Tender Team' && (activeRole === 'Tender Team' || activeRole === 'Finance' || activeRole === 'Management')) return true;
     return activeRole === stageDept;

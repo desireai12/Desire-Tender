@@ -275,7 +275,7 @@ export default function Home() {
         onRoleChange={setActiveRole}
         currentUser={currentUser}
         onLogout={handleLogout}
-        onNavigateSettings={() => setActiveTab(activeRole === 'Admin' ? 'admin_config' : 'settings')}
+        onNavigateSettings={() => setActiveTab((activeRole as string) === 'Admin' ? 'admin_config' : 'settings')}
         onNavigateAdminPortal={() => window.location.href = '/admin'}
       />
 

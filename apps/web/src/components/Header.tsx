@@ -73,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({
         )}
 
         {/* Role Switcher (Visible to Admin Only for multi-department management) */}
-        {activeRole === 'Admin' && (
+        {(activeRole as string) === 'Admin' && (
           <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/40">
             <span className="text-xs font-mono text-purple-300 hidden md:inline">Admin Override:</span>
             <select
@@ -100,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Admin-Only Control Actions (Engine Provider Switcher & Admin Backend Config) */}
-        {activeRole === 'Admin' && (
+        {(activeRole as string) === 'Admin' && (
           <div className="flex items-center space-x-1.5 bg-aqua-950/80 p-1 rounded-lg border border-white/10">
             <button
               onClick={() => onProviderChange('gemini')}

@@ -49,11 +49,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Dynamic RBAC Navigation Filter
   const navItems = allNavItems.filter(item => {
-    if (activeRole === 'Admin') return true;
+    if ((activeRole as string) === 'Admin') return true;
     if (userStatus === 'Pending') {
       return item.id === 'dashboard' || item.id === 'wizard' || item.id === 'companies' || item.id === 'combine';
     }
-    return !item.adminOnly || activeRole === 'Admin';
+    return !item.adminOnly || (activeRole as string) === 'Admin';
   });
 
   return (
