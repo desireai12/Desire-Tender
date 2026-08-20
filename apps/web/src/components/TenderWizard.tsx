@@ -147,7 +147,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
     // DOCUMENT-ACCURATE DYNAMIC FALLBACK EVALUATOR
     const desireTurnover = desireComp.average_turnover || 300.93;
-    const desireSolvency = desireComp.solvency_amount || 72.18;
+    const desireSolvency = (desireComp as any).solvency_amount || (desireComp as any).solvency || 72.18;
     const jvTurnover = jvComp.average_turnover || 37.01;
 
     const titleLower = `${tenderTitle} ${uploadedTenderFile?.name || ''} ${selectedCategory}`.toLowerCase();
@@ -317,7 +317,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     };
 
     const desireTurnover = desireComp.average_turnover || 300.93;
-    const desireSolvency = desireComp.solvency_amount || 72.18;
+    const desireSolvency = (desireComp as any).solvency_amount || (desireComp as any).solvency || 72.18;
     const jvTurnover = jvComp.average_turnover || 37.01;
     const isJunagadh = tenderTitle.toLowerCase().includes('junagadh') || selectedCategory === 'ESCO';
     const isSewerage = !isJunagadh && (selectedCategory === 'STP' || tenderTitle.toLowerCase().includes('sewer') || tenderTitle.toLowerCase().includes('alwar'));

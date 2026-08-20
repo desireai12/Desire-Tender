@@ -47,6 +47,7 @@ export interface CompanyRecord {
   average_turnover: number;
   net_worth: number;
   solvency: number;
+  solvency_amount?: number;
   technical_experience: string;
   past_projects: string[];
   work_orders: any[];
