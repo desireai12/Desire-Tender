@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -15,15 +15,21 @@ import {
   ShieldAlert, 
   Wand2,
   Check,
-  ArrowLeft
+  ArrowLeft,
+  Building2,
+  GitMerge,
+  HelpCircle,
+  Loader2,
+  Users
 } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api';
 import { 
   ProjectCategory, 
   DepartmentRole, 
-  TenderProcess, 
-  AITenderReport 
+  TenderProcess 
 } from '@/lib/types';
+import { CompanyRecord } from './CompanyDetailsView';
+import { ClauseBreakdownItem, DynamicTenderEvaluationReport } from './EligibilityChecker';
 
 interface TenderWizardProps {
   currentProvider: 'gemini' | 'openai';
@@ -38,10 +44,15 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
 
+  // Master Companies State
+  const [companies, setCompanies] = useState<CompanyRecord[]>([]);
+  const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-divija-02');
+  const [desireCompanyId, setDesireCompanyId] = useState<string>('comp-desire-01');
+
   // Step 1 State
-  const [tenderTitle, setTenderTitle] = useState<string>('Jal Jeevan Mission Solar Pumping & Pipeline Expansion - Phase IV');
+  const [tenderTitle, setTenderTitle] = useState<string>('RUDSICO Alwar Town Sewerage Package 44 (NIT 01/2026-27)');
   const [initiatingDepartment, setInitiatingDepartment] = useState<DepartmentRole>(activeRole);
-  const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('EPC');
+  const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('RHDS');
   const [uploadedTenderFile, setUploadedTenderFile] = useState<File | null>(null);
   const [uploadedBOQFile, setUploadedBOQFile] = useState<File | null>(null);
 
@@ -49,8 +60,25 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
   const [analysisStageText, setAnalysisStageText] = useState<string>('Reading Tender Document & Extracting Specifications...');
 
-  // Step 3 Assessment Report State
-  const [assessmentReport, setAssessmentReport] = useState<AITenderReport | null>(null);
+  // Step 3 Dynamic Assessment Report State
+  const [evaluationReport, setEvaluationReport] = useState<DynamicTenderEvaluationReport | null>(null);
+  const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
+
+  // Fetch Companies on Mount
+  useEffect(() => {
+    const fetchMasterCompanies = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/companies`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.companies && Array.isArray(data.companies)) {
+            setCompanies(data.companies);
+          }
+        }
+      } catch (e) {}
+    };
+    fetchMasterCompanies();
+  }, []);
 
   // Handle File Upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'tender' | 'boq') => {
@@ -59,37 +87,39 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
     if (type === 'tender') {
       setUploadedTenderFile(file);
+      setTenderTitle(file.name.replace(/\.[^/.]+$/, ''));
     } else {
       setUploadedBOQFile(file);
     }
   };
 
-  // Start Step 2 Document Analysis (DYNAMICALLY CALLS BACKEND RAG API & PROMPT ENGINE!)
+  // Start Step 2 Document Analysis (DYNAMIC AI TENDER ELIGIBILITY ENGINE)
   const startDocumentAnalysis = async () => {
-    if (!uploadedTenderFile) return;
-
     setCurrentStep(2);
-    setAnalysisProgress(15);
-    setAnalysisStageText('Reading Tender Document & Extracting Specifications...');
+    setAnalysisProgress(20);
+    setAnalysisStageText('Reading Tender PDF & Extracting Financial/Technical Clauses...');
 
-    let fetchedReport: any = null;
+    let fetchedReport: DynamicTenderEvaluationReport | null = null;
 
     try {
       const formData = new FormData();
-      formData.append('file', uploadedTenderFile);
+      if (uploadedTenderFile) {
+        formData.append('file', uploadedTenderFile);
+      }
       formData.append('project_category', selectedCategory);
       formData.append('tender_title', tenderTitle);
+      formData.append('jv_partner_id', selectedJvPartnerId);
 
-      setAnalysisProgress(45);
-      setAnalysisStageText(`Executing dynamic AI prompt rules for ${selectedCategory}...`);
+      setAnalysisProgress(55);
+      setAnalysisStageText(`Fetching Master Data from Company Details & Analyzing Tender Clauses...`);
 
       const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
         method: 'POST',
         body: formData,
       });
 
-      setAnalysisProgress(80);
-      setAnalysisStageText('Parsing qualification matrix & clause breakdown...');
+      setAnalysisProgress(85);
+      setAnalysisStageText('Evaluating Desire Alone vs JV Alone vs Desire + JV Combined...');
 
       if (res.ok) {
         const data = await res.json();
@@ -99,109 +129,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       console.error('Tender analysis API call error:', err);
     }
 
-    // Check custom system instructions saved in localStorage/Admin for disqualification rules
-    let isDisqualified = false;
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('desire_ai_configs');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          const catCfg = parsed[selectedCategory] || {};
-          const fullText = `${catCfg.system_instruction || ''} ${catCfg.eligibility_logic || ''}`.toLowerCase();
-          if (fullText.includes('disqualification') || fullText.includes('ineligible') || fullText.includes('500 crore') || fullText.includes('50 mld') || fullText.includes('single-entity bidding only') || fullText.includes('ban joint ventures') || fullText.includes('twad')) {
-            isDisqualified = true;
-          }
-        }
-      } catch (e) {}
-    }
-
     if (fetchedReport) {
-      const reportScore = isDisqualified ? 18 : (fetchedReport.eligibility_score || fetchedReport.tender_score || 85);
-      setAssessmentReport({
-        overall_health: fetchedReport.overall_health || (isDisqualified ? 'Red' : (reportScore >= 82 ? 'Green' : 'Yellow')),
-        tender_score: reportScore,
-        recommendation: isDisqualified ? 'DO NOT BID' : (fetchedReport.recommendation || (fetchedReport.verdict === 'Ineligible' ? 'DO NOT BID' : 'BID')),
-        executive_summary: fetchedReport.executive_summary || (isDisqualified 
-          ? `STRICT DISQUALIFICATION: Evaluated ${selectedCategory} tender '${tenderTitle}' against active Admin rules. Company failed mandatory parameters: Turnover required ₹500 Cr (vs Desire ₹285 Cr), Single Plant execution required 50 MLD (vs Desire 20 MLD), and Joint Ventures are BANNED.`
-          : `AI EVALUATION (${reportScore}% Match): Evaluated ${selectedCategory} tender '${tenderTitle}'. Verified against Desire Energy Jaipur credentials, balance sheets (₹285 Cr turnover), and ${selectedCategory} completion certificates.`),
-        clauses: fetchedReport.clauses || [
-          {
-            clause_no: 'Sec 4.1',
-            title: 'Annual Financial Turnover',
-            status: isDisqualified ? 'Not Matched' : 'Matched',
-            risk_level: isDisqualified ? 'High' : 'Low',
-            explanation: isDisqualified ? 'Requires ₹500 Cr average turnover (Single Entity); Desire Energy has ₹285 Cr.' : 'Requires baseline turnover; Desire Energy audited balance sheet has ₹285 Cr.',
-            action_required: isDisqualified ? 'Disqualified under custom prompt rule.' : 'Attach 3-year audited balance sheet.'
-          },
-          {
-            clause_no: 'Sec 4.2',
-            title: `${selectedCategory} Execution Capacity`,
-            status: isDisqualified ? 'Not Matched' : 'Matched',
-            risk_level: isDisqualified ? 'High' : 'Low',
-            explanation: isDisqualified ? 'Capacity constraint under custom rule.' : `Verified completion certificates across Desire Energy ${selectedCategory} portfolio.`,
-            action_required: isDisqualified ? 'Capacity constraint under custom rule.' : 'Attach work completion certificates.'
-          }
-        ],
-        eligibility_matrix: Array.isArray(fetchedReport.parameter_matrix) 
-          ? fetchedReport.parameter_matrix.map((p: any) => ({
-              requirement: p.parameter || p.requirement,
-              status: (p.status === 'Met' && !isDisqualified) ? 'Green' : 'Red',
-              notes: `${p.company_capability || p.notes || ''} — ${p.gap_notes || ''}`.trim()
-            }))
-          : [
-              { requirement: 'Annual Financial Turnover', status: isDisqualified ? 'Red' : 'Green', notes: isDisqualified ? 'FAILED: ₹285 Cr vs ₹500 Cr required' : 'VERIFIED: ₹285 Cr Audited Turnover' },
-              { requirement: `${selectedCategory} Execution Capacity`, status: isDisqualified ? 'Red' : 'Green', notes: isDisqualified ? 'FAILED: Custom capacity requirement unmet' : `VERIFIED: ${selectedCategory} Completion Certificates Active` },
-              { requirement: 'Licensing & Certifications', status: isDisqualified ? 'Red' : 'Green', notes: isDisqualified ? 'FAILED: Missing state license' : 'VERIFIED: Class-A Contractor & ISO Certificates Active' }
-            ],
-        missing_documents: fetchedReport.missing_documents || [],
-        risks: fetchedReport.risks || { technical: [], commercial: [], legal: [], execution: [], financial: [] },
-        ai_recommendations: fetchedReport.ai_recommendations || [],
-        client_clarifications: fetchedReport.client_clarifications || []
-      });
-    } else {
-      // Guaranteed Dynamic Per-File Fallback Report based on Filename & Category
-      const docName = uploadedTenderFile ? uploadedTenderFile.name : tenderTitle;
-      let hash = 0;
-      for (let i = 0; i < docName.length; i++) hash += docName.charCodeAt(i);
-      const catBases: Record<string, number> = { SOLAR: 88, RHDS: 85, KUSUM: 86, STP: 82, EPC: 84, ESCO: 76 };
-      const baseVal = catBases[selectedCategory] || 83;
-      const dynScore = isDisqualified ? 18 : Math.min(97, Math.max(68, baseVal + ((hash % 21) - 10)));
-      
-      setAssessmentReport({
-        overall_health: isDisqualified ? 'Red' : (dynScore >= 82 ? 'Green' : 'Yellow'),
-        tender_score: dynScore,
-        recommendation: isDisqualified ? 'DO NOT BID' : (dynScore >= 82 ? 'BID' : 'REVIEW REQUIRED'),
-        executive_summary: isDisqualified 
-          ? `STRICT DISQUALIFICATION: Evaluation engine executed active prompt rules for ${selectedCategory}. Company failed mandatory parameters configured in Admin Console: Turnover required ₹500 Cr (vs Desire ₹285 Cr), Single Plant execution required 50 MLD (vs Desire 20 MLD), and Joint Ventures are explicitly BANNED.`
-          : `AI DYNAMIC EVALUATION (${dynScore}% Match): Document '${docName}' analyzed for ${selectedCategory} category. Verified financial turnover (₹285 Cr vs requirements), ${selectedCategory} execution track record, and active state contractor licenses.`,
-        clauses: [
-          {
-            clause_no: 'Sec 4.1',
-            title: 'Annual Financial Turnover',
-            status: isDisqualified ? 'Not Matched' : 'Matched',
-            risk_level: isDisqualified ? 'High' : 'Low',
-            explanation: isDisqualified ? 'Requires ₹500 Cr average turnover (Single Entity); Desire Energy has ₹285 Cr.' : 'Verified ₹285 Cr 3-year average turnover from audited balance sheets.',
-            action_required: isDisqualified ? 'Disqualified under custom prompt rule.' : 'Attach 3-year audited balance sheet.'
-          },
-          {
-            clause_no: 'Sec 4.2',
-            title: `${selectedCategory} Execution Capacity`,
-            status: isDisqualified ? 'Not Matched' : 'Matched',
-            risk_level: isDisqualified ? 'High' : 'Low',
-            explanation: isDisqualified ? 'Capacity constraint under custom prompt rule.' : `Verified work completion certificates across Desire Energy ${selectedCategory} portfolio.`,
-            action_required: isDisqualified ? 'Capacity constraint under custom rule.' : 'Attach work completion certificates.'
-          }
-        ],
-        eligibility_matrix: [
-          { requirement: 'Annual Financial Turnover', status: isDisqualified ? 'Red' : 'Green', notes: isDisqualified ? 'FAILED: ₹285 Cr vs ₹500 Cr required (Short by ₹215 Cr)' : 'VERIFIED: ₹285 Cr Audited Turnover' },
-          { requirement: `${selectedCategory} Technical Track Record`, status: isDisqualified ? 'Red' : 'Green', notes: isDisqualified ? 'FAILED: Custom capacity requirement unmet' : `VERIFIED: ${selectedCategory} Completion Certificates Active` },
-          { requirement: 'Licensing & Certifications', status: isDisqualified ? 'Red' : 'Green', notes: isDisqualified ? 'FAILED: Missing state license' : 'VERIFIED: Class-A Contractor & ISO Certificates Active' }
-        ],
-        missing_documents: [],
-        risks: { technical: [], commercial: [], legal: [], execution: [], financial: [] },
-        ai_recommendations: [],
-        client_clarifications: []
-      });
+      setEvaluationReport(fetchedReport);
     }
 
     setAnalysisProgress(100);
@@ -223,21 +152,20 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       eligibility_result: {
-        is_eligible: assessmentReport?.recommendation !== 'DO NOT BID',
-        score: assessmentReport?.tender_score || 94,
-        reasoning: 'Verified against company records.'
+        is_eligible: evaluationReport?.verdict !== 'Ineligible',
+        score: evaluationReport?.eligibility_score || 92,
+        reasoning: evaluationReport?.executive_summary || 'Verified against company records.'
       },
       uploaded_files: {
-        tender_pdf: uploadedTenderFile?.name || 'Tender.pdf'
+        tender_pdf: uploadedTenderFile?.name || 'Uploaded_Tender.pdf'
       },
-      ai_report: assessmentReport || undefined,
       audit_trail: [
         {
           id: `log-${Date.now()}`,
           user: `Officer (${activeRole})`,
           department: activeRole,
           timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-          action: 'Uploaded Tender Document & Completed Qualification Wizard',
+          action: `Uploaded Tender & Completed Dynamic AI Eligibility Analysis for ${selectedCategory}`,
           status: 'Completed',
           next_pending_action: 'Estimation Team to generate Stage 3 BOQ Costing'
         }
@@ -246,6 +174,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     onTenderCreated(newProcess);
   };
 
+  const desireComp = companies.find(c => c.type === 'Desire Energy' || c.id === desireCompanyId) || { name: 'Desire Energy Solutions Pvt. Ltd.', average_turnover: 300.93, net_worth: 95.0 };
+  const jvComp = companies.find(c => c.id === selectedJvPartnerId) || { name: 'Divija Construction', average_turnover: 37.01, net_worth: 6.58 };
+
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Module Banner */}
@@ -253,13 +184,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         <div>
           <div className="flex items-center space-x-2 text-cyan-400 font-mono text-xs mb-1">
             <Wand2 className="w-4 h-4" />
-            <span>ENTERPRISE TENDER ASSESSMENT WIZARD</span>
+            <span>DYNAMIC AI TENDER ELIGIBILITY ENGINE</span>
           </div>
           <h2 className="text-2xl font-display font-bold text-white">
             Tender Assessment & Qualification Wizard
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Upload the tender document to evaluate company eligibility, analyze specifications, and generate qualification reports.
+            Upload ANY tender PDF to dynamically extract requirements, compare against Company Master Data, and evaluate Desire Alone, JV Alone, and Desire + JV Combined.
           </p>
         </div>
         <div className="px-3.5 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono text-xs text-center shrink-0">
@@ -270,10 +201,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       {/* 4-Step Guided Stepper Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { num: 1, title: 'Step 1: Upload & Setup', desc: 'Upload Tender Document' },
-          { num: 2, title: 'Step 2: Document Analysis', desc: 'Specification Processing' },
-          { num: 3, title: 'Step 3: Assessment Report', desc: 'Eligibility & Risks' },
-          { num: 4, title: 'Step 4: Submit to Queue', desc: 'Lifecycle Entry' }
+          { num: 1, title: 'Step 1: Upload & Company Setup', desc: 'Select JV & Upload Tender' },
+          { num: 2, title: 'Step 2: AI Document Analysis', desc: 'Extract Specifications & Rules' },
+          { num: 3, title: 'Step 3: 3-Option AI Report', desc: 'Desire, JV & Combined Verdict' },
+          { num: 4, title: 'Step 4: Save & Process Entry', desc: 'Database Entry' }
         ].map((s) => {
           const isActive = currentStep === s.num;
           const isDone = currentStep > s.num;
@@ -298,11 +229,11 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                       : 'bg-white/10 text-slate-400'
                   }`}
                 >
-                  {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : s.num}
+                  {isDone ? <Check className="w-4 h-4" /> : s.num}
                 </div>
                 <div>
-                  <div className="font-display font-semibold text-xs text-white">{s.title}</div>
-                  <div className="text-[11px] text-slate-400 truncate">{s.desc}</div>
+                  <h4 className="text-xs font-semibold text-white">{s.title}</h4>
+                  <p className="text-[11px] text-slate-400">{s.desc}</p>
                 </div>
               </div>
             </div>
@@ -310,281 +241,303 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         })}
       </div>
 
-      {/* STEP 1: UPLOAD TENDER DOCUMENT & INITIAL SETUP */}
+      {/* STEP 1: UPLOAD & SETUP (INCLUDES COMPANY & JV PARTNER SELECTOR) */}
       {currentStep === 1 && (
-        <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
-          <div className="border-b border-white/10 pb-4">
-            <h3 className="text-lg font-display font-semibold text-white flex items-center space-x-2">
-              <Upload className="w-5 h-5 text-cyan-400" />
-              <span>Step 1 — Upload Tender Document & Configure Process</span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Select target project category and upload official tender PDF/DOCX. Document upload is required to unlock analysis.
-            </p>
+        <div className="glass-card p-6 md:p-8 rounded-2xl border border-white/10 space-y-6">
+          <h3 className="text-base font-bold text-white flex items-center space-x-2">
+            <Upload className="w-5 h-5 text-cyan-400" />
+            <span>Step 1: Tender Details, Document Upload & Master Company Selection</span>
+          </h3>
+
+          {/* Master Company Selection Section */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-white/10 space-y-4">
+            <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider font-mono flex items-center space-x-2">
+              <Building2 className="w-4 h-4" />
+              <span>Select Entities from Master Company Database</span>
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Desire Entity Display */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-mono text-slate-400 uppercase">Primary Bidding Entity</label>
+                <div className="p-3 rounded-xl bg-slate-900 border border-cyan-500/30 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">{desireComp.name}</span>
+                    <span className="text-[11px] text-slate-400 font-mono">Avg Turnover: ₹{desireComp.average_turnover} Cr | Net Worth: ₹{desireComp.net_worth} Cr</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    Lead
+                  </span>
+                </div>
+              </div>
+
+              {/* JV Partner Selector Dropdown */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-mono text-slate-400 uppercase">Select JV Partner (From Company Details DB)</label>
+                <select
+                  value={selectedJvPartnerId}
+                  onChange={(e) => setSelectedJvPartnerId(e.target.value)}
+                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                >
+                  {companies.filter(c => c.type !== 'Desire Energy').map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.type} - Avg ₹{c.average_turnover} Cr, Net Worth ₹{c.net_worth} Cr)
+                    </option>
+                  ))}
+                  {companies.length === 0 && (
+                    <option value="comp-divija-02">DIVIJA CONSTRUCTION (JV Partner - Avg ₹37.01 Cr)</option>
+                  )}
+                </select>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Tender Name Input */}
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase text-slate-300">Tender Title / Reference Code *</label>
+              <label className="text-xs font-mono text-slate-300">Tender Project Name / Title *</label>
               <input
                 type="text"
                 value={tenderTitle}
                 onChange={(e) => setTenderTitle(e.target.value)}
-                className="w-full glass-input text-sm text-white px-4 py-2.5 rounded-xl border border-white/10 focus:border-cyan-400"
-                placeholder="Enter Tender Title..."
+                className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
               />
             </div>
 
-            {/* Department Selector */}
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase text-slate-300">Initiating Department</label>
+              <label className="text-xs font-mono text-slate-300">Project Category Vertical *</label>
               <select
-                value={initiatingDepartment}
-                onChange={(e) => setInitiatingDepartment(e.target.value as DepartmentRole)}
-                className="w-full glass-input text-sm text-white px-4 py-2.5 rounded-xl border border-white/10 focus:border-cyan-400"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value as ProjectCategory)}
+                className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
               >
-                <option value="Business Development" className="bg-[#101415] text-white">Business Development</option>
-                <option value="Engineering" className="bg-[#101415] text-white">Engineering</option>
-                <option value="Estimation Team" className="bg-[#101415] text-white">Estimation Team</option>
-                <option value="Management" className="bg-[#101415] text-white">Management</option>
-                <option value="Tender Team" className="bg-[#101415] text-white">Tender Team</option>
+                <option value="RHDS">RHDS Jal Jeevan Mission Rural Water Scheme</option>
+                <option value="STP">STP & Sewerage Package (AMRUT 2.0)</option>
+                <option value="SOLAR">Solar PV EPC Project</option>
+                <option value="KUSUM">PM-Kusum Component-B Solar Pumps</option>
+                <option value="EPC">Turnkey Civil & Pipeline EPC</option>
+                <option value="ESCO">ESCO Energy Efficiency Pumping</option>
               </select>
             </div>
-          </div>
 
-          {/* Target Project Vertical Selector */}
-          <div className="space-y-3">
-            <label className="text-xs font-mono uppercase text-slate-300 block">Select Target Project Category *</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {(['EPC', 'ESCO', 'SOLAR', 'STP', 'KUSUM', 'RHDS'] as ProjectCategory[]).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`py-3 px-4 rounded-xl border font-mono font-bold text-xs text-center transition-all ${
-                    selectedCategory === cat
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 shadow-md shadow-cyan-500/20'
-                      : 'bg-aqua-950/40 text-slate-400 border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Mandatory Tender Document Upload Area */}
-          <div className="space-y-3">
-            <label className="text-xs font-mono uppercase text-slate-300 flex items-center justify-between">
-              <span>Official Tender Document (PDF / DOCX) *</span>
-              {uploadedTenderFile && (
-                <span className="text-emerald-400 font-bold text-[11px] flex items-center space-x-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>File Ready ({uploadedTenderFile.name})</span>
+            {/* Tender PDF Drag & Drop */}
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-xs font-mono text-slate-300">Upload Tender Specification PDF *</label>
+              <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-white/15 hover:border-cyan-400/50 bg-slate-900/40 hover:bg-cyan-950/20 cursor-pointer transition-all">
+                <Upload className="w-8 h-8 text-cyan-400 mb-2" />
+                <span className="text-xs font-semibold text-white">
+                  {uploadedTenderFile ? uploadedTenderFile.name : 'Drag & drop tender PDF here, or click to browse'}
                 </span>
-              )}
-            </label>
-
-            <div className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all ${
-              uploadedTenderFile 
-                ? 'border-emerald-500/50 bg-emerald-950/10' 
-                : 'border-cyan-500/30 hover:border-cyan-400 bg-aqua-950/30'
-            }`}>
-              <input
-                type="file"
-                accept=".pdf,.docx,.doc"
-                onChange={(e) => handleFileChange(e, 'tender')}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              />
-              <div className="flex flex-col items-center space-y-3">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform ${
-                  uploadedTenderFile ? 'bg-emerald-500/20 text-emerald-400' : 'bg-cyan-500/10 text-cyan-400'
-                }`}>
-                  {uploadedTenderFile ? <FileCheck2 className="w-8 h-8" /> : <Upload className="w-8 h-8" />}
-                </div>
-                {uploadedTenderFile ? (
-                  <div>
-                    <h4 className="font-semibold text-sm text-white">{uploadedTenderFile.name}</h4>
-                    <p className="text-xs text-emerald-300 mt-0.5">
-                      {(uploadedTenderFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for Document Analysis
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <h4 className="font-semibold text-sm text-white">Click or Drag & Drop Tender Document Here</h4>
-                    <p className="text-xs text-slate-400 mt-1">Supports PDF or DOCX up to 50 MB</p>
-                  </div>
-                )}
-              </div>
+                <span className="text-[11px] text-slate-400 mt-1">Supports official tender NIT, RFP, PQ guidelines PDF</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  className="hidden"
+                  onChange={(e) => handleFileChange(e, 'tender')}
+                />
+              </label>
             </div>
           </div>
 
-          {/* Clean Empty State Warning when No File is Uploaded */}
-          {!uploadedTenderFile && (
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start space-x-3 text-xs text-amber-300">
-              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <strong className="font-semibold block text-amber-200">No Tender Document Uploaded Yet</strong>
-                Upload the official tender document (PDF or DOCX) above to begin document analysis and eligibility evaluation. Placeholder scores are disabled until a file is selected.
-              </div>
-            </div>
-          )}
-
-          {/* Action Button */}
           <div className="flex justify-end pt-4 border-t border-white/10">
             <button
               onClick={startDocumentAnalysis}
-              disabled={!uploadedTenderFile}
-              className={`flex items-center space-x-2 px-8 py-3.5 rounded-xl font-bold text-sm transition-all ${
-                uploadedTenderFile
-                  ? 'bg-gradient-to-r from-cyan-400 to-teal-500 text-aqua-950 hover:from-cyan-300 hover:to-teal-400 shadow-lg shadow-cyan-400/25 cursor-pointer'
-                  : 'bg-white/5 text-slate-500 border border-white/10 cursor-not-allowed opacity-50'
-              }`}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2 transition-all"
             >
-              <span>Start Document Analysis</span>
+              <span>Analyze Tender & Run AI Qualification</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* STEP 2: STAGED DOCUMENT ANALYSIS (PROCESSING SCREEN) */}
+      {/* STEP 2: DOCUMENT PROCESSING STATE */}
       {currentStep === 2 && (
-        <div className="glass-card rounded-2xl p-8 sm:p-12 text-center space-y-8 max-w-2xl mx-auto">
-          <div className="relative w-24 h-24 mx-auto">
-            <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center text-cyan-300 font-mono font-bold text-lg">
-              {analysisProgress}%
-            </div>
+        <div className="glass-card p-12 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center space-y-6">
+          <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
+          <div className="space-y-2 max-w-md">
+            <h3 className="text-base font-bold text-white">Executing Dynamic AI Eligibility Engine</h3>
+            <p className="text-xs text-slate-400">{analysisStageText}</p>
           </div>
-
-          <div className="space-y-2">
-            <h3 className="text-xl font-display font-bold text-white">
-              Document Analysis in Progress
-            </h3>
-            <p className="text-xs font-mono text-cyan-300 animate-pulse">
-              {analysisStageText}
-            </p>
-            <p className="text-xs text-slate-400 pt-2">
-              Cross-referencing tender mandates with company financial records, ISO certs, and project experience...
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-aqua-950 rounded-full h-3 border border-white/10 overflow-hidden">
+          <div className="w-full max-w-md bg-slate-900 rounded-full h-2 overflow-hidden border border-white/10">
             <div
-              className="bg-gradient-to-r from-cyan-400 to-teal-400 h-full transition-all duration-500"
+              className="bg-gradient-to-r from-cyan-400 to-teal-400 h-full transition-all duration-300"
               style={{ width: `${analysisProgress}%` }}
             />
           </div>
         </div>
       )}
 
-      {/* STEP 3: TENDER ASSESSMENT REPORT */}
-      {currentStep === 3 && assessmentReport && (
-        <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
-          {/* Verdict Banner */}
-          <div className={`p-6 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-            assessmentReport.recommendation === 'BID'
-              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-              : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
-          }`}>
+      {/* STEP 3: DYNAMIC 3-OPTION ASSESSMENT REPORT */}
+      {currentStep === 3 && evaluationReport && (
+        <div className="space-y-6">
+          {/* Top Verdict Banner */}
+          <div className="glass-card p-6 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-slate-900 via-aqua-950/60 to-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-white/10 border border-white/20">
-                  VERDICT: {assessmentReport.recommendation}
+              <div className="flex items-center space-x-3">
+                <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
+                  evaluationReport.verdict === 'Eligible' 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                }`}>
+                  {evaluationReport.verdict}
                 </span>
-                <span className="text-xs font-mono text-slate-300">
-                  Category Locked: <strong className="text-white">{selectedCategory}</strong>
-                </span>
+                <span className="text-xs font-mono text-cyan-400">Score: {evaluationReport.eligibility_score}%</span>
               </div>
-              <h3 className="text-xl font-display font-bold text-white pt-1">
-                Tender Assessment & Qualification Summary
-              </h3>
-              <p className="text-xs text-slate-300 max-w-2xl">
-                {assessmentReport.executive_summary}
-              </p>
+              <h2 className="text-lg font-bold text-white">{evaluationReport.tender_title}</h2>
+              <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">{evaluationReport.executive_summary}</p>
             </div>
 
-            <div className="text-center sm:text-right shrink-0">
-              <div className="text-3xl font-display font-extrabold text-white">
-                {assessmentReport.tender_score}%
-              </div>
-              <div className="text-[11px] font-mono text-cyan-300">
-                Analysis Confidence
-              </div>
+            <div className="p-4 rounded-xl bg-slate-900/80 border border-white/10 shrink-0 text-center space-y-1">
+              <span className="text-[10px] font-mono text-slate-400 uppercase block">Recommendation</span>
+              <span className="text-xs font-bold text-cyan-300 block">{evaluationReport.recommendation}</span>
             </div>
           </div>
 
-          {/* Requirement & Qualification Matrix */}
-          <div className="space-y-3">
-            <h4 className="font-display font-semibold text-sm text-white uppercase tracking-wider flex items-center space-x-2">
-              <ShieldAlert className="w-4 h-4 text-cyan-400" />
-              <span>Requirement & Qualification Matrix</span>
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {assessmentReport.eligibility_matrix.map((item, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-aqua-950/60 border border-white/5 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-white">{item.requirement}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                      item.status === 'Green'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                    }`}>
-                      {item.status === 'Green' ? 'MATCHED' : 'NOT MET'}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">{item.notes}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Clause Analysis */}
-          <div className="space-y-3 pt-4 border-t border-white/10">
-            <h4 className="font-display font-semibold text-sm text-white uppercase tracking-wider flex items-center space-x-2">
-              <FileText className="w-4 h-4 text-cyan-400" />
-              <span>Specification & Clause Breakdown</span>
-            </h4>
-            <div className="space-y-2">
-              {assessmentReport.clauses.map((clause, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-aqua-950/60 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono text-cyan-300 font-bold">{clause.clause_no}</span>
-                      <h5 className="text-sm font-semibold text-white">{clause.title}</h5>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">{clause.explanation}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold ${
-                      clause.status === 'Matched'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                    }`}>
-                      {clause.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/10">
+          {/* 3 Dynamic Analysis Options Tabs (Section 4, 5, 6 Requirement) */}
+          <div className="flex items-center space-x-2 border-b border-white/10 pb-2 overflow-x-auto">
             <button
-              onClick={() => setCurrentStep(1)}
-              className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300 border border-white/10 transition"
+              onClick={() => setActiveAnalysisOption('desire')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
+                activeAnalysisOption === 'desire'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-lg shadow-cyan-500/10'
+                  : 'bg-white/5 text-slate-400 hover:text-white'
+              }`}
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Upload Different Tender</span>
+              <Building2 className="w-4 h-4" />
+              <span>OPTION 1 — DESIRE ALONE</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10">
+                {evaluationReport.desire_alone?.fulfilled_pct}
+              </span>
             </button>
 
             <button
+              onClick={() => setActiveAnalysisOption('jv')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
+                activeAnalysisOption === 'jv'
+                  ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-lg shadow-teal-500/10'
+                  : 'bg-white/5 text-slate-400 hover:text-white'
+              }`}
+            >
+              <Building2 className="w-4 h-4" />
+              <span>OPTION 2 — JV ALONE ({jvComp.name.slice(0, 18)})</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10">
+                {evaluationReport.jv_alone?.fulfilled_pct}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveAnalysisOption('combined')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
+                activeAnalysisOption === 'combined'
+                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold shadow-lg shadow-cyan-500/20'
+                  : 'bg-white/5 text-slate-400 hover:text-white'
+              }`}
+            >
+              <GitMerge className="w-4 h-4" />
+              <span>OPTION 3 — DESIRE + JV COMBINED</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/30 font-bold">
+                {evaluationReport.combined_jv?.fulfilled_pct}
+              </span>
+            </button>
+          </div>
+
+          {/* Dynamic Criteria Summary Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+            <div className="glass-card p-3 rounded-xl border border-white/10">
+              <span className="text-[10px] font-mono text-slate-400 uppercase block">Total Criteria</span>
+              <span className="text-sm font-bold text-white">{evaluationReport.summary_counts?.total_criteria || 5}</span>
+            </div>
+            <div className="glass-card p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+              <span className="text-[10px] font-mono text-emerald-400 uppercase block">Matched</span>
+              <span className="text-sm font-bold text-emerald-300">{evaluationReport.summary_counts?.matched || 4}</span>
+            </div>
+            <div className="glass-card p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
+              <span className="text-[10px] font-mono text-amber-400 uppercase block">Partial Match</span>
+              <span className="text-sm font-bold text-amber-300">{evaluationReport.summary_counts?.partial || 1}</span>
+            </div>
+            <div className="glass-card p-3 rounded-xl border border-rose-500/20 bg-rose-500/5">
+              <span className="text-[10px] font-mono text-rose-400 uppercase block">Not Matching</span>
+              <span className="text-sm font-bold text-rose-300">{evaluationReport.summary_counts?.not_matching || 0}</span>
+            </div>
+            <div className="glass-card p-3 rounded-xl border border-slate-500/20 bg-slate-500/5">
+              <span className="text-[10px] font-mono text-slate-400 uppercase block">Data Missing</span>
+              <span className="text-sm font-bold text-slate-300">{evaluationReport.summary_counts?.data_missing || 0}</span>
+            </div>
+          </div>
+
+          {/* Clause-Level AI Analysis Table */}
+          <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white">Extracted Tender Clause Analysis</h3>
+              <span className="text-xs text-slate-400 font-mono">Dynamic Comparison against Company Master Data</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 text-slate-400 font-mono text-[10px] uppercase tracking-wider bg-slate-900/60">
+                    <th className="p-3">Clause & Page</th>
+                    <th className="p-3">Tender Requirement</th>
+                    <th className="p-3 text-cyan-300">Desire Energy</th>
+                    <th className="p-3 text-teal-300">JV Partner</th>
+                    <th className="p-3 text-white">Combined Result</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Gap & Notes</th>
+                    <th className="p-3">Required Doc</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {evaluationReport.clauses_breakdown?.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3">
+                        <span className="font-mono text-[10px] text-cyan-400 block">{item.clause_no} ({item.page_ref})</span>
+                        <span className="font-semibold text-white">{item.clause_title}</span>
+                      </td>
+                      <td className="p-3 text-slate-300">{item.tender_requirement}</td>
+                      <td className="p-3 text-cyan-300 font-mono">{item.desire_value}</td>
+                      <td className="p-3 text-teal-300 font-mono">{item.jv_value}</td>
+                      <td className="p-3 text-white font-mono font-bold">{item.combined_value}</td>
+                      <td className="p-3">
+                        <span
+                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                            item.status === 'MATCH'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : item.status === 'PARTIAL MATCH'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : item.status === 'NOT MATCHING'
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              : item.status === 'DATA NOT AVAILABLE'
+                              ? 'bg-slate-500/20 text-slate-300 border border-slate-500/30'
+                              : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          }`}
+                        >
+                          {item.status === 'MATCH' && <CheckCircle2 className="w-3 h-3" />}
+                          {item.status === 'NOT MATCHING' && <XCircle className="w-3 h-3" />}
+                          {item.status === 'DATA NOT AVAILABLE' && <HelpCircle className="w-3 h-3" />}
+                          <span>{item.status}</span>
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-400 text-[11px]">{item.gap_notes}</td>
+                      <td className="p-3 text-slate-300 font-mono text-[11px]">{item.required_doc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Step 3 Navigation Actions */}
+          <div className="flex justify-between pt-4 border-t border-white/10">
+            <button
+              onClick={() => setCurrentStep(1)}
+              className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs flex items-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Step 1</span>
+            </button>
+            <button
               onClick={() => setCurrentStep(4)}
-              className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-cyan-400 text-aqua-950 font-bold text-sm hover:bg-cyan-300 transition shadow-lg shadow-cyan-400/20"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2"
             >
               <span>Proceed to Step 4: Submit to Queue</span>
               <ArrowRight className="w-4 h-4" />
@@ -593,53 +546,31 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         </div>
       )}
 
-      {/* STEP 4: CONFIRM & SUBMIT TO TENDER PROCESS QUEUE */}
+      {/* STEP 4: SUBMIT TO QUEUE */}
       {currentStep === 4 && (
-        <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6 max-w-3xl mx-auto">
-          <div className="text-center space-y-2 border-b border-white/10 pb-6">
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-            <h3 className="text-xl font-display font-bold text-white">
-              Ready to Submit to Tender Process Queue
-            </h3>
-            <p className="text-xs text-slate-300">
-              The tender document has been evaluated. Confirm details to launch into the 6-stage lifecycle pipeline.
+        <div className="glass-card p-8 rounded-2xl border border-white/10 space-y-6 text-center max-w-2xl mx-auto">
+          <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-bold text-white">Save Dynamic Assessment & Add to Process Queue</h3>
+            <p className="text-xs text-slate-400">
+              The dynamic AI evaluation report for '{tenderTitle}' has been generated and saved to the database. Submit to enter stage 1 of the tender process queue.
             </p>
           </div>
 
-          <div className="p-5 rounded-xl bg-aqua-950/80 border border-cyan-500/30 space-y-3 text-xs">
-            <div className="flex justify-between border-b border-white/10 pb-2">
-              <span className="text-slate-400 font-mono">Tender Title:</span>
-              <span className="font-semibold text-white">{tenderTitle}</span>
-            </div>
-            <div className="flex justify-between border-b border-white/10 pb-2">
-              <span className="text-slate-400 font-mono">Locked Category:</span>
-              <span className="font-bold text-cyan-300">{selectedCategory}</span>
-            </div>
-            <div className="flex justify-between border-b border-white/10 pb-2">
-              <span className="text-slate-400 font-mono">Assigned Department:</span>
-              <span className="text-white">{initiatingDepartment}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400 font-mono">Uploaded File:</span>
-              <span className="text-emerald-300 font-mono">{uploadedTenderFile?.name || 'Tender_Document.pdf'}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-4">
+          <div className="pt-4 flex justify-center space-x-4">
             <button
               onClick={() => setCurrentStep(3)}
-              className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-slate-300 border border-white/10 transition"
+              className="px-5 py-2.5 rounded-xl bg-white/5 text-slate-300 text-xs"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Assessment Report</span>
+              Review Report
             </button>
-
             <button
               onClick={handleSubmitToQueue}
-              className="flex items-center space-x-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-sm hover:from-cyan-300 hover:to-teal-300 transition shadow-xl shadow-cyan-400/25"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20"
             >
-              <span>Submit Tender to Active Process Queue</span>
-              <ArrowRight className="w-4 h-4" />
+              Submit to Queue
             </button>
           </div>
         </div>
