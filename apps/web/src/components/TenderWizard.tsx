@@ -494,49 +494,6 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             </div>
           </div>
 
-          {/* Master Company Selection Section */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-white/10 space-y-4">
-            <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider font-mono flex items-center space-x-2">
-              <Building2 className="w-4 h-4" />
-              <span>Select Entities from Master Company Database</span>
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Desire Entity Display */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-mono text-slate-400 uppercase">Primary Bidding Entity</label>
-                <div className="p-3 rounded-xl bg-slate-900 border border-cyan-500/30 flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-white block">{desireComp.name}</span>
-                    <span className="text-[11px] text-slate-400 font-mono">3-Yr Avg Turnover: ₹{desireComp.average_turnover} Cr | Net Worth: ₹{desireComp.net_worth} Cr</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                    Lead
-                  </span>
-                </div>
-              </div>
-
-              {/* JV Partner Selector Dropdown */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-mono text-slate-400 uppercase">Select JV Partner (From Company Details DB)</label>
-                <select
-                  value={selectedJvPartnerId}
-                  onChange={(e) => setSelectedJvPartnerId(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
-                >
-                  {companies.filter(c => c.type !== 'Desire Energy').map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.type} - Avg ₹{c.average_turnover} Cr, Net Worth ₹{c.net_worth} Cr)
-                    </option>
-                  ))}
-                  {companies.length === 0 && (
-                    <option value="comp-divija-02">DIVIJA CONSTRUCTION (JV Partner - Avg ₹37.01 Cr)</option>
-                  )}
-                </select>
-              </div>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-mono text-slate-300">Tender Project Name / Title *</label>
