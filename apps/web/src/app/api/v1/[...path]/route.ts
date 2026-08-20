@@ -823,8 +823,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         } catch (e) {}
       }
 
-      let desireComp = comps.find(c => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
-      let jvComp = comps.find(c => c.id === jvPartnerId || c.type === 'JV Partner') || comps[1] || comps[0];
+      let desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
+      let jvComp = comps.find((c: any) => c.id === jvPartnerId || c.type === 'JV Partner') || comps[1] || comps[0];
 
       const desireTurnover = desireComp.average_turnover || 300.93;
       const desireNetWorth = desireComp.net_worth || 95.0;
@@ -1032,7 +1032,7 @@ OUTPUT JSON ONLY:
           fulfilled_pct: `${((combinedTurnover/reqTurnover)*100).toFixed(1)}%`
         },
         clauses_breakdown: clausesBreakdown,
-        parameter_matrix: clausesBreakdown.map(c => ({
+        parameter_matrix: clausesBreakdown.map((c: any) => ({
           parameter: c.clause_title,
           tender_requirement: c.tender_requirement,
           company_capability: `Desire: ${c.desire_value} | JV: ${c.jv_value} | Combined: ${c.combined_value}`,
@@ -1046,10 +1046,10 @@ OUTPUT JSON ONLY:
         ],
         summary_counts: {
           total_criteria: clausesBreakdown.length,
-          matched: clausesBreakdown.filter(c => c.status === 'MATCH').length,
-          partial: clausesBreakdown.filter(c => c.status === 'PARTIAL MATCH').length,
-          not_matching: clausesBreakdown.filter(c => c.status === 'NOT MATCHING').length,
-          data_missing: clausesBreakdown.filter(c => c.status === 'DATA NOT AVAILABLE').length
+          matched: clausesBreakdown.filter((c: any) => c.status === 'MATCH').length,
+          partial: clausesBreakdown.filter((c: any) => c.status === 'PARTIAL MATCH').length,
+          not_matching: clausesBreakdown.filter((c: any) => c.status === 'NOT MATCHING').length,
+          data_missing: clausesBreakdown.filter((c: any) => c.status === 'DATA NOT AVAILABLE').length
         },
         created_at: new Date().toISOString()
       };
@@ -1110,7 +1110,7 @@ OUTPUT JSON ONLY:
       const compId = compData.id || `comp-${Date.now()}`;
       const newComp = { ...compData, id: compId, updated_at: new Date().toISOString() };
 
-      const idx = GLOBAL_SERVER_COMPANIES.findIndex(c => c.id === compId);
+      const idx = GLOBAL_SERVER_COMPANIES.findIndex((c: any) => c.id === compId);
       if (idx !== -1) {
         GLOBAL_SERVER_COMPANIES[idx] = newComp;
       } else {
@@ -1128,7 +1128,7 @@ OUTPUT JSON ONLY:
 
     if (subPath.startsWith('companies/') && method === 'DELETE') {
       const compId = subPath.split('/')[1];
-      GLOBAL_SERVER_COMPANIES = GLOBAL_SERVER_COMPANIES.filter(c => c.id !== compId);
+      GLOBAL_SERVER_COMPANIES = GLOBAL_SERVER_COMPANIES.filter((c: any) => c.id !== compId);
       if (supabase) {
         try {
           await supabase.from('companies').delete().eq('id', compId);
@@ -1141,8 +1141,8 @@ OUTPUT JSON ONLY:
     if (subPath === 'eligibility/combine' && method === 'POST') {
       const { tender_category = 'RHDS', desire_id = 'comp-desire-01', jv_partner_id = 'comp-divija-02', custom_rules } = body;
       
-      let desireComp = GLOBAL_SERVER_COMPANIES.find(c => c.id === desire_id) || GLOBAL_SERVER_COMPANIES[0];
-      let jvComp = GLOBAL_SERVER_COMPANIES.find(c => c.id === jv_partner_id) || GLOBAL_SERVER_COMPANIES[1];
+      let desireComp = GLOBAL_SERVER_COMPANIES.find((c: any) => c.id === desire_id) || GLOBAL_SERVER_COMPANIES[0];
+      let jvComp = GLOBAL_SERVER_COMPANIES.find((c: any) => c.id === jv_partner_id) || GLOBAL_SERVER_COMPANIES[1];
 
       const tenderReqTurnover = tender_category === 'RHDS' ? 60.0 : (tender_category === 'STP' ? 54.8 : 50.0);
       const desireTurnover = desireComp.average_turnover || 300.93;
