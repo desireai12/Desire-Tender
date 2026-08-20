@@ -153,3 +153,18 @@ ALTER TABLE public.knowledge_base DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.competitors DISABLE ROW LEVEL SECURITY;
 
 
+
+
+-- 13. SEED AUTHORITATIVE DESIRE ENERGY & JV TENDER KNOWLEDGE BASE
+INSERT INTO public.users (employee_id, full_name, email, phone, password_hash, role, department, status, permissions)
+VALUES 
+('EMP005', 'Dharmesh Khandelwal', 'dharmeshkhandelwal@desireenergy.com', '7230037296', 'Dharmesh@EMP005#2026', 'Director & JV Lead', 'Tender Team', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb)
+ON CONFLICT (employee_id) DO NOTHING;
+
+INSERT INTO public.knowledge_base (id, title, category, file_name, file_url, description, status, chunks_count, created_at)
+VALUES
+('kb-alwar-jv-01', 'M/s DESPL - DIVIJA CONSTRUCTIONS JV Technical Bid (Alwar Sewerage AMRUT 2.0)', 'Joint Venture & Technical Bid', 'PQ_Upload_Alwar.pdf', '/documents/PQ_Upload_Alwar.pdf', 'Authoritative Technical & PQ Bid for Alwar Package 44, RUDSICO NIT 01/2026-27 (Value: Rs 36.53 Cr)', 'Active', 15, CURRENT_TIMESTAMP),
+('kb-alwar-tender-02', 'RUDSICO Notice Inviting Bids - Alwar Town Sewerage Package 44', 'Tender Document', 'AlwarPKG44 (1).pdf', '/documents/AlwarPKG44 (1).pdf', 'Official Bidding Document for Sewerage Works Wards 39 & 61 in Alwar Town (Cost: Rs 36.53 Cr, EMD: Rs 73.06 Lakhs)', 'Active', 12, CURRENT_TIMESTAMP),
+('kb-desire-fin-03', 'Desire Energy Solutions Pvt Ltd Audited Financials (FY 2021-2025)', 'Financial', 'Audited_Financials_DESPL_FY21_25.pdf', '/documents/Audited_Financials_DESPL_FY21_25.pdf', 'Audited Financial Statements (Average Turnover: Rs 300.93 Cr, Net Worth: Rs 95.0 Cr, Solvency: Rs 50.0 Cr)', 'Active', 10, CURRENT_TIMESTAMP),
+('kb-divija-exp-04', 'Divija Construction Sewerage & Sewage Pumping Station Work Orders', 'Past Experience', 'Divija_Construction_Sewerage_WorkOrders.pdf', '/documents/Divija_Construction_Sewerage_WorkOrders.pdf', 'JDA Jaipur Work Orders for 8 MLD & 1 MLD Sewage Pumping Stations and 136+ km Sewer lines (Rs 24.69 Cr & Rs 18.97 Cr)', 'Active', 8, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;

@@ -9,55 +9,55 @@ from core.llm_factory import LLMFactory
 # In-Memory Store Fallback for Document Management
 _in_memory_docs_db: List[Dict[str, Any]] = [
     {
-        "id": "doc-desire-01",
-        "filename": "Desire_Energy_Corporate_Credentials_2026.pdf",
-        "doc_type": "company_credentials",
-        "category": "Company Profile",
-        "chunks_count": 8,
-        "uploaded_at": "2026-08-01 10:00:00"
+        "id": "doc-desire-jv-01",
+        "filename": "PQ_Upload_Alwar_DESPL_Divija_JV.pdf",
+        "doc_type": "joint_venture_pq_bid",
+        "category": "Joint Venture & Technical Bid",
+        "chunks_count": 15,
+        "uploaded_at": "2026-06-02 11:00:00"
     },
     {
-        "id": "doc-desire-02",
-        "filename": "Audited_Financials_Turnover_FY23_25.pdf",
+        "id": "doc-alwar-tender-02",
+        "filename": "AlwarPKG44_RUDSICO_AMRUT_2.0.pdf",
+        "doc_type": "tender_document",
+        "category": "Tender Document",
+        "chunks_count": 12,
+        "uploaded_at": "2026-05-11 10:00:00"
+    },
+    {
+        "id": "doc-desire-financials-03",
+        "filename": "Audited_Financials_DESPL_FY21_25.pdf",
         "doc_type": "company_credentials",
         "category": "Financial",
-        "chunks_count": 6,
-        "uploaded_at": "2026-08-02 11:30:00"
-    },
-    {
-        "id": "doc-desire-03",
-        "filename": "Jal_Jeevan_Mission_100k_Villages_Completion.pdf",
-        "doc_type": "company_credentials",
-        "category": "Past Experience",
-        "chunks_count": 12,
-        "uploaded_at": "2026-08-03 14:15:00"
-    },
-    {
-        "id": "doc-desire-04",
-        "filename": "AquaLogix_IoT_AI_Telemetry_Architecture.pdf",
-        "doc_type": "company_credentials",
-        "category": "Technical Capability",
         "chunks_count": 10,
-        "uploaded_at": "2026-08-04 09:45:00"
+        "uploaded_at": "2025-11-24 14:15:00"
+    },
+    {
+        "id": "doc-divija-experience-04",
+        "filename": "Divija_Construction_Sewerage_WorkOrders.pdf",
+        "doc_type": "jv_partner_credentials",
+        "category": "Past Experience",
+        "chunks_count": 8,
+        "uploaded_at": "2025-04-07 09:45:00"
     }
 ]
 
 _in_memory_chunks_db: List[Document] = [
     Document(
-        page_content="Desire Energy Solutions Pvt. Ltd., headquartered in Jaipur (Rajasthan), is a nationally recognized water infrastructure technology company managing water supply operations across 1,00,000+ villages and 14+ cities in India. Core models include ESCO energy efficiency, Smart EPC, Decentralized Water Management (DWM), Operations & Maintenance (O&M), and AquaLogix IoT/AI telemetry.",
-        metadata={"document_id": "doc-desire-01", "doc_type": "company_credentials", "category": "Company Profile"}
+        page_content="Bidder & Joint Venture Structure: M/s DESPL - DIVIJA CONSTRUCTIONS JV (Lead Partner: M/s Desire Energy Solutions Pvt. Ltd. - 51% financial share; Second Partner: M/s Divija Construction - 49% financial share). Registered Office: 401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan. Contact: Tel 0141-4050855, Mobile 7230037296, Email tenders@desireenergy.com / dharmeshkhandelwal@desireenergy.com. Authorized Representative: Mr. Dharmesh Khandelwal (Director). Second Partner: M/s Divija Construction (79/12 Shipra Path, Mansarovar, Jaipur 302020, Partner Mr. Satish Kumar Goyal, Mobile 9829147776, divijaconstruction@gmail.com).",
+        metadata={"document_id": "doc-desire-jv-01", "doc_type": "joint_venture_pq_bid", "category": "Joint Venture & Technical Bid"}
     ),
     Document(
-        page_content="Flagship Program Experience: Key aggregator and executor under Jal Jeevan Mission (JJM), PM-Kusum (Solar Pumping), and Panghat Yojana. Products: Aqualogix Smart Water Meter, Aqualogix Automation Solution, Sunaquator Solar Pump Controller. Workforce: 2,000+ deployed professionals.",
-        metadata={"document_id": "doc-desire-01", "doc_type": "company_credentials", "category": "Past Experience"}
+        page_content="Tender Procurement Details: Notice Inviting Online Bids NIB No. 01/2026-27 (Dated 11.05.2026 / Submitted 02.06.2026) issued by Executive Director, RUDSICO (Rajasthan Urban Drinking Water Sewerage and Infrastructure Corporation Limited), Govt of Rajasthan. Package: AMRUT-2.0/RAJ/SEWERAGE/44 in Alwar Town. Work Scope: Providing, laying, jointing, testing and commissioning of sewer line in ward 39 & 61 in Alwar town along with Design, construction, supply, installation, testing and commissioning including 1 year defect liability with 10 years O&M. Estimated Bid Cost: Rs. 3653.11 Lakh (₹36.5311 Crore). EMD / Bid Security: Rs. 73,06,220. Tender Fee: Rs. 10,000. Processing Fee: Rs. 2,500. Required Min Avg Annual Construction Turnover: Rs. 5479.67 Lakh (₹54.7967 Crore).",
+        metadata={"document_id": "doc-alwar-tender-02", "doc_type": "tender_document", "category": "Tender Document"}
     ),
     Document(
-        page_content="Executive Leadership & Operations: Gaurav Kumar Gupta (Founder & MD, 2011), Saurabh Gupta (Director, Solar & DWM), Suraj Khandelwal (Director, ESCO & EPC), Ruchi Gupta (Director, Strategy & Culture, CFA), Dharmesh Khandelwal (GM AquaLogix, Nirma/PennState), Honey Gupta (DGM RO/EPC), Ankit Purohit (COO, B.Tech IIT Roorkee, MBA SPJIMR), Sandesh Saxena (Sr Mgr PPC, MS Kingston London), Mohit Modi (AGM Purchase, TUV Auditor), Deepak Khandelwal (GM Finance), Prashant Mishra (CTO, B.Tech ECE).",
-        metadata={"document_id": "doc-desire-01", "doc_type": "company_credentials", "category": "Technical Capability"}
+        page_content="Desire Energy Solutions Pvt. Ltd. Standalone Financials (CIN: U40106RJ2011PTC034878, PAN: AAECD3266E, GST: 08AAECD3266E1ZT): Directors: Gaurav Kumar Gupta (MD, DIN 03505199), Saurabh Gupta (Director, DIN 03505198), Ruchi Khandelwal (Director), Dharmesh Khandelwal (Director). Audited Revenue/Turnover: FY 2021-22 ₹201.53 Crore, FY 2022-23 ₹201.53 Crore, FY 2023-24 ₹350.66 Crore, FY 2024-25 ₹350.60 Crore. 3-Year Average Annual Turnover: ₹300.93 Crore. Net Worth: ₹95.0+ Crore (FY 2024-25), ₹52.61 Crore (FY 2023-24). Bank Solvency: ₹50.0 Crore. Registrations: Class-A Special Category Contractor (PHED Rajasthan), Class-A Electrical License (Govt of Rajasthan), REDA/MNRE Empanelment for PM-KUSUM, ISO 9001:2015, ISO 14001:2015, ISO 45001:2018.",
+        metadata={"document_id": "doc-desire-financials-03", "doc_type": "company_credentials", "category": "Financial"}
     ),
     Document(
-        page_content="Desire Energy Financial Standing: Annual Turnover ₹285 Crore (FY 2024-2025), Net Worth ₹78 Crore, Solvency Certificate ₹50 Crore. Valid ISO 9001:2015, ISO 14001:2015, and ISO 45001:2018 certifications.",
-        metadata={"document_id": "doc-desire-02", "doc_type": "company_credentials", "category": "Financial"}
+        page_content="M/s Divija Construction JV Partner Standalone Credentials (PAN: AAFFD6567N, GST: 08AAFFD6567N1ZT): Govt Approved Class A & AA Contractor. Partner: Satish Kumar Goyal. Audited Turnover: FY 2020-21 ₹12.87 Cr, FY 2021-22 ₹21.96 Cr, FY 2022-23 ₹32.56 Cr, FY 2023-24 ₹42.95 Cr, FY 2024-25 ₹37.01 Cr. Net Worth: ₹6.58 Crore (FY 2024-25). Key Sewerage Work Orders: 1) JDA Jaipur WO JDA/EE PHE I/WO/2022-2023/Mar/25 (Completed 13.01.2025, Value ₹24.69 Cr): 65,514m DWC sewer pipe, 70,539m UPVC pipe, 2,805 precast manholes in PRN South Area Package-2; 2) JDA Jaipur WO JDA/EE PHE I/WO/2023-2024/Mar/18 (Awarded 16.03.2024, Value ₹18.97 Cr): 8 MLD SPS-01 & 1 MLD SPS-02 Sewage Pumping Stations & SEPD pipeline in Sanganer; 3) JDA Jaipur WO JDA/EE PHE I/WO/2021-2022/Jul/05 (Completed 06.03.2024, Value ₹14.46 Cr): Sewer lines in PRN South Area Package-1.",
+        metadata={"document_id": "doc-divija-experience-04", "doc_type": "jv_partner_credentials", "category": "Past Experience"}
     )
 ]
 
