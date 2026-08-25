@@ -75,10 +75,10 @@ html.dark .bg-blueprint-grid {
 }
 
 /* ------------------------------------------------------------- */
-/* 2. GLASS CARDS & CONTAINERS FOR LIGHT & DARK THEMES           */
+/* 2. GLASS CARDS & CONTAINERS FOR LIGHT THEME                    */
 /* ------------------------------------------------------------- */
 .glass-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid #cbd5e1;
@@ -102,7 +102,7 @@ html.dark .bg-blueprint-grid {
 }
 
 /* ------------------------------------------------------------- */
-/* 3. OBSIDIAN MIDNIGHT EMERALD DARK MODE OVERRIDES (html.dark)   */
+/* 3. UNIVERSAL COMPREHENSIVE DARK MODE SYSTEM (html.dark)        */
 /* ------------------------------------------------------------- */
 
 html.dark body {
@@ -115,20 +115,16 @@ html.dark body::before {
   filter: blur(90px) !important;
 }
 
-html.dark header {
-  background-color: rgba(11, 20, 38, 0.95) !important;
-  border-color: rgba(16, 185, 129, 0.25) !important;
-  color: #ffffff !important;
-}
-
+html.dark header, 
 html.dark aside {
-  background-color: rgba(11, 20, 38, 0.95) !important;
-  border-color: rgba(16, 185, 129, 0.25) !important;
+  background-color: #0b1426 !important;
+  border-color: #1e293b !important;
   color: #ffffff !important;
 }
 
+/* ALL CARDS & CONTAINERS IN DARK MODE */
 html.dark .glass-card {
-  background: rgba(15, 25, 48, 0.92) !important;
+  background: #0f1930 !important;
   border-color: #1e293b !important;
   color: #f8fafc !important;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6) !important;
@@ -139,7 +135,7 @@ html.dark .glass-card:hover {
   box-shadow: 0 8px 24px -2px rgba(52, 211, 153, 0.25) !important;
 }
 
-/* Dark Mode Typography Overrides (Except inside specific light containers) */
+/* ALL HEADINGS & TEXT IN DARK MODE */
 html.dark h1, 
 html.dark h2, 
 html.dark h3, 
@@ -149,17 +145,20 @@ html.dark h6 {
   color: #ffffff !important;
 }
 
-html.dark .text-slate-900 {
-  color: #ffffff !important;
+html.dark p, 
+html.dark span, 
+html.dark li, 
+html.dark label, 
+html.dark td, 
+html.dark th {
+  color: #e2e8f0;
 }
 
-html.dark .text-slate-800 {
-  color: #f1f5f9 !important;
-}
-
+html.dark .text-slate-900, 
+html.dark .text-slate-800, 
 html.dark .text-slate-700, 
 html.dark .text-slate-600 {
-  color: #cbd5e1 !important;
+  color: #e2e8f0 !important;
 }
 
 html.dark .text-slate-500, 
@@ -167,26 +166,53 @@ html.dark .text-slate-400 {
   color: #94a3b8 !important;
 }
 
-/* Specific Light Card Overrides inside Dark Mode */
-html.dark .bg-emerald-50 {
-  background-color: rgba(6, 78, 59, 0.85) !important;
-  border-color: rgba(52, 211, 153, 0.5) !important;
+/* ALL INNER BOXES & BADGES IN DARK MODE */
+html.dark .bg-slate-50, 
+html.dark .bg-slate-100, 
+html.dark .bg-slate-200, 
+html.dark .bg-white {
+  background-color: #162238 !important;
+  border-color: #27374d !important;
   color: #ffffff !important;
 }
 
-html.dark .bg-rose-50 {
-  background-color: rgba(136, 19, 55, 0.85) !important;
-  border-color: rgba(251, 113, 133, 0.5) !important;
+/* SPECIFIC COLOR HIGHLIGHT BOXES IN DARK MODE */
+html.dark .bg-emerald-50, 
+html.dark .bg-emerald-100 {
+  background-color: rgba(6, 78, 59, 0.65) !important;
+  border-color: rgba(52, 211, 153, 0.45) !important;
   color: #ffffff !important;
 }
 
-html.dark .bg-slate-100 {
-  background-color: rgba(30, 41, 59, 0.85) !important;
-  border-color: #334155 !important;
+html.dark .bg-rose-50, 
+html.dark .bg-rose-100 {
+  background-color: rgba(136, 19, 55, 0.65) !important;
+  border-color: rgba(251, 113, 133, 0.45) !important;
   color: #ffffff !important;
 }
 
-/* Dark Mode Active Button Accent */
+html.dark .bg-amber-50, 
+html.dark .bg-amber-100 {
+  background-color: rgba(120, 53, 15, 0.65) !important;
+  border-color: rgba(251, 191, 36, 0.45) !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-teal-50, 
+html.dark .bg-teal-100 {
+  background-color: rgba(19, 78, 74, 0.65) !important;
+  border-color: rgba(45, 212, 191, 0.45) !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-purple-50, 
+html.dark .bg-purple-100 {
+  background-color: rgba(88, 28, 135, 0.65) !important;
+  border-color: rgba(192, 132, 252, 0.45) !important;
+  color: #ffffff !important;
+}
+
+/* ACTIVE BOTTLE GREEN BUTTON ACCENT */
 html.dark .bg-\[\#064e3b\] {
   background-color: #059669 !important;
   color: #ffffff !important;
@@ -194,7 +220,7 @@ html.dark .bg-\[\#064e3b\] {
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
 }
 
-/* Dark Mode Floating Icon Glowing Tint */
+/* FLOATING ICON GLOWING TINT */
 html.dark .text-\[\#064e3b\],
 html.dark .text-\[\#047857\],
 html.dark .text-\[\#065f46\],
@@ -202,7 +228,39 @@ html.dark .text-\[\#0d9488\] {
   color: #34d399 !important;
 }
 
-/* Custom Scrollbar */
+/* INPUTS, SELECTS & TEXTAREAS IN DARK MODE */
+html.dark input, 
+html.dark select, 
+html.dark textarea {
+  background-color: #020617 !important;
+  color: #ffffff !important;
+  border-color: #334155 !important;
+}
+
+html.dark input:focus, 
+html.dark select:focus, 
+html.dark textarea:focus {
+  border-color: #34d399 !important;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25) !important;
+}
+
+/* TABLE HEADERS & ROWS IN DARK MODE */
+html.dark table th {
+  background-color: #0b1426 !important;
+  color: #34d399 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark table td {
+  border-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark tr:hover td {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+}
+
+/* CUSTOM SCROLLBAR */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
