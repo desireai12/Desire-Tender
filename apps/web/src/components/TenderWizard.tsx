@@ -485,7 +485,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   {isDone ? <Check className="w-4 h-4" /> : s.num}
                 </div>
                 <div>
-                  <h4 className={`text-xs font-bold ${isActive ? 'text-white' : 'text-slate-900'}`}>{s.title}</h4>
+                  <h4 className={`text-xs font-bold ${isActive ? 'text-white font-bold' : 'text-slate-900 font-bold'}`}>{s.title}</h4>
                   <p className={`text-[11px] font-medium ${isActive ? 'text-teal-100' : 'text-slate-600'}`}>{s.desc}</p>
                 </div>
               </div>
@@ -511,43 +511,49 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveAnalysisOption('desire')}
-                className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'desire' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
+                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
+                  activeAnalysisOption === 'desire'
+                    ? 'bg-[#064e3b] text-white border-2 border-emerald-400 shadow-md shadow-emerald-950/20 font-bold'
+                    : 'bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-medium'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Building2 className="w-4 h-4 text-teal-800 font-semibold" />
-                  <span className="text-xs font-bold">1. Desire Alone</span>
+                  <Building2 className={`w-4 h-4 ${activeAnalysisOption === 'desire' ? 'text-white' : 'text-slate-700'}`} />
+                  <span className={`text-xs font-bold ${activeAnalysisOption === 'desire' ? 'text-white' : 'text-slate-900'}`}>1. Desire Alone</span>
                 </div>
-                <span className="text-[11px] text-slate-700 font-medium">Evaluate Desire Energy standalone capability</span>
+                <span className={`text-[11px] font-medium ${activeAnalysisOption === 'desire' ? 'text-emerald-100 font-medium' : 'text-slate-600'}`}>Evaluate Desire Energy standalone capability</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveAnalysisOption('jv')}
-                className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'jv' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
+                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
+                  activeAnalysisOption === 'jv'
+                    ? 'bg-[#064e3b] text-white border-2 border-emerald-400 shadow-md shadow-emerald-950/20 font-bold'
+                    : 'bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-medium'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Building2 className="w-4 h-4 text-teal-800 font-bold" />
-                  <span className="text-xs font-bold">2. JV Partner Alone</span>
+                  <Building2 className={`w-4 h-4 ${activeAnalysisOption === 'jv' ? 'text-white' : 'text-slate-700'}`} />
+                  <span className={`text-xs font-bold ${activeAnalysisOption === 'jv' ? 'text-white' : 'text-slate-900'}`}>2. JV Partner Alone</span>
                 </div>
-                <span className="text-[11px] text-slate-700 font-medium">Evaluate chosen JV Partner standalone capability</span>
+                <span className={`text-[11px] font-medium ${activeAnalysisOption === 'jv' ? 'text-emerald-100 font-medium' : 'text-slate-600'}`}>Evaluate chosen JV Partner standalone capability</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveAnalysisOption('combined')}
-                className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'combined' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
+                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
+                  activeAnalysisOption === 'combined'
+                    ? 'bg-[#064e3b] text-white border-2 border-emerald-400 shadow-md shadow-emerald-950/20 font-bold'
+                    : 'bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-medium'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <GitMerge className="w-4 h-4 text-teal-800 font-semibold" />
-                  <span className="text-xs font-bold">3. Desire + JV Combined</span>
+                  <GitMerge className={`w-4 h-4 ${activeAnalysisOption === 'combined' ? 'text-white' : 'text-slate-700'}`} />
+                  <span className={`text-xs font-bold ${activeAnalysisOption === 'combined' ? 'text-white' : 'text-slate-900'}`}>3. Desire + JV Combined</span>
                 </div>
-                <span className="text-[11px] text-slate-700 font-medium">Evaluate combined consortium with JV rules</span>
+                <span className={`text-[11px] font-medium ${activeAnalysisOption === 'combined' ? 'text-emerald-100 font-medium' : 'text-slate-600'}`}>Evaluate combined consortium with JV rules</span>
               </button>
             </div>
           </div>
@@ -676,7 +682,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           <div className="glass-card p-6 rounded-2xl border border-teal-200 bg-gradient-to-r from-slate-900 via-aqua-950/60 to-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
@@ -733,7 +739,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <h3 className="text-sm font-bold text-slate-900">Extracted Tender Clause Analysis ({currentReport.clauses_breakdown?.length || 10} Clauses Extracted)</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
               </div>

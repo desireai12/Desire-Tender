@@ -176,7 +176,7 @@ export const EligibilityChecker: React.FC = () => {
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-teal-100 text-teal-900 border border-teal-300 font-bold font-semibold border border-teal-200">
+          <div className="p-2.5 rounded-xl bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold font-semibold border border-teal-200">
             <Sparkles className="w-6 h-6 animate-pulse" />
           </div>
           <div>
@@ -273,7 +273,7 @@ export const EligibilityChecker: React.FC = () => {
               onClick={() => setActiveAnalysisOption('desire')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'desire'
-                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-300 shadow-lg shadow-cyan-500/10 font-bold'
+                  ? 'bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-300 shadow-lg shadow-cyan-500/10 font-bold'
                   : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
@@ -288,7 +288,7 @@ export const EligibilityChecker: React.FC = () => {
               onClick={() => setActiveAnalysisOption('jv')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'jv'
-                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold font-bold border border-teal-500/40 shadow-lg shadow-teal-500/10 font-bold'
+                  ? 'bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold font-bold border border-teal-500/40 shadow-lg shadow-teal-500/10 font-bold'
                   : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
@@ -319,7 +319,7 @@ export const EligibilityChecker: React.FC = () => {
           <div className="glass-card p-6 rounded-2xl border border-teal-200 bg-gradient-to-r from-slate-900 via-aqua-950/60 to-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
@@ -370,7 +370,7 @@ export const EligibilityChecker: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <h3 className="text-sm font-bold text-slate-900">Extracted Tender Clause Analysis</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
               </div>
