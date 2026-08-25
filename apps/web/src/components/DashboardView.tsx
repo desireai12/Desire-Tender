@@ -52,7 +52,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex flex-wrap gap-4 pt-2">
             <button
               onClick={() => onNavigate('wizard')}
-              className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-teal-800 text-white font-bold font-bold hover:bg-teal-800 transition-all shadow-lg shadow-cyan-400/25 group"
+              className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-[#064e3b] text-white font-bold font-bold hover:bg-[#064e3b] transition-all shadow-lg shadow-cyan-400/25 group"
             >
               <FileCheck2 className="w-5 h-5" />
               <span>Start Tender Assessment</span>

@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   });
 
   return (
-    <aside className="w-64 glass-card border-r border-slate-200 p-4 flex flex-col justify-between hidden md:flex min-h-[calc(100vh-65px)]">
+    <aside className="w-64 glass-card bg-white/85 backdrop-blur-md border-r border-slate-200 p-4 flex flex-col justify-between hidden md:flex min-h-[calc(100vh-65px)]">
       <div className="space-y-6">
         {/* Navigation Category Label */}
         <div className="px-3 pt-2 flex items-center justify-between">
@@ -77,26 +77,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs transition-all group ${
                   isActive
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-teal-800 border border-teal-300 shadow-lg shadow-cyan-500/10'
-                    : 'text-slate-600 hover:bg-white/5 hover:text-slate-900'
+                    ? 'bg-[#064e3b] text-white font-bold shadow-md shadow-emerald-950/20 border-l-4 border-l-emerald-400'
+                    : 'text-slate-900 font-semibold hover:bg-emerald-50 hover:text-emerald-950'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
                   <Icon
                     className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-teal-800 font-semibold' : 'text-slate-700 font-medium group-hover:text-teal-800'
+                      isActive ? 'text-white' : 'text-slate-800 font-bold group-hover:text-emerald-900'
                     }`}
                   />
-                  <span>{item.label}</span>
+                  <span className={isActive ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
-                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${
+                    className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold ${
                       isActive
-                        ? 'bg-emerald-900 text-white font-bold font-bold'
-                        : 'bg-white/5 text-slate-700 font-medium group-hover:bg-white/10'
+                        ? 'bg-emerald-800 text-white border border-emerald-500'
+                        : 'bg-slate-100 text-slate-800 border border-slate-200 group-hover:bg-emerald-100 group-hover:text-emerald-900'
                     }`}
                   >
                     {item.badge}

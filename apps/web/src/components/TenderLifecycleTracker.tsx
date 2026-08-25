@@ -441,7 +441,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
               onClick={() => setViewingStage(s.stage)}
               className={`p-3.5 rounded-xl border text-left transition-all ${
                 isViewing
-                  ? 'bg-emerald-900 text-white border-2 border-emerald-500 shadow-md shadow-emerald-950/20 font-bold'
+                  ? 'bg-[#064e3b] text-white border-2 border-emerald-500 shadow-md shadow-emerald-950/20 font-bold'
                   : isPassed
                   ? 'bg-emerald-50 border border-emerald-300 text-emerald-950'
                   : isCurrentActive

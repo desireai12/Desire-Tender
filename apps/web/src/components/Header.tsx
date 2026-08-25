@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center space-x-3 flex-wrap gap-y-2">
         {/* User Profile / Employee ID Badge */}
         {currentUser && (
-          <div className="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-xl bg-slate-50/90 border border-teal-200">
+          <div className="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-xl bg-slate-50/80 backdrop-blur-md/90 border border-teal-200">
             <div className="w-6 h-6 rounded-full bg-emerald-800/20 flex items-center justify-center text-teal-800 font-mono text-xs">
               {currentUser.employee_id?.slice(0, 3) || 'EMP'}
             </div>
@@ -81,14 +81,14 @@ export const Header: React.FC<HeaderProps> = ({
               onChange={(e) => onRoleChange(e.target.value as DepartmentRole)}
               className="bg-transparent text-xs font-bold text-slate-900 focus:outline-none cursor-pointer"
             >
-              <option value="Admin" className="bg-slate-50 text-slate-900">Department: Admin (Full Access)</option>
-              <option value="Business Development" className="bg-slate-50 text-slate-900">View As: Business Development</option>
-              <option value="Engineering" className="bg-slate-50 text-slate-900">View As: Engineering</option>
-              <option value="Estimation Team" className="bg-slate-50 text-slate-900">View As: Estimation Team</option>
-              <option value="Management" className="bg-slate-50 text-slate-900">View As: Management</option>
-              <option value="Tender Team" className="bg-slate-50 text-slate-900">View As: Tender Team</option>
-              <option value="Procurement" className="bg-slate-50 text-slate-900">View As: Procurement</option>
-              <option value="Finance" className="bg-slate-50 text-slate-900">View As: Finance</option>
+              <option value="Admin" className="bg-slate-50/80 backdrop-blur-md text-slate-900">Department: Admin (Full Access)</option>
+              <option value="Business Development" className="bg-slate-50/80 backdrop-blur-md text-slate-900">View As: Business Development</option>
+              <option value="Engineering" className="bg-slate-50/80 backdrop-blur-md text-slate-900">View As: Engineering</option>
+              <option value="Estimation Team" className="bg-slate-50/80 backdrop-blur-md text-slate-900">View As: Estimation Team</option>
+              <option value="Management" className="bg-slate-50/80 backdrop-blur-md text-slate-900">View As: Management</option>
+              <option value="Tender Team" className="bg-slate-50/80 backdrop-blur-md text-slate-900">View As: Tender Team</option>
+              <option value="Procurement" className="bg-slate-50/80 backdrop-blur-md text-slate-900">View As: Procurement</option>
+              <option value="Finance" className="bg-slate-50/80 backdrop-blur-md text-slate-900">View As: Finance</option>
             </select>
           </div>
         )}
@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Admin-Only Control Actions (Engine Provider Switcher & Admin Backend Config) */}
         {(activeRole as string) === 'Admin' && (
-          <div className="flex items-center space-x-1.5 bg-slate-50/80 p-1 rounded-lg border border-slate-200">
+          <div className="flex items-center space-x-1.5 bg-slate-50/80 backdrop-blur-md/80 p-1 rounded-lg border border-slate-200">
             <button
               onClick={() => onProviderChange('gemini')}
               className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
