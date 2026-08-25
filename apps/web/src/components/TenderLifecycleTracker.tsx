@@ -441,22 +441,22 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
               onClick={() => setViewingStage(s.stage)}
               className={`p-3.5 rounded-xl border text-left transition-all ${
                 isViewing
-                  ? 'ring-2 ring-cyan-400 bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/20'
+                  ? 'bg-slate-900 text-white border-2 border-teal-500 shadow-md shadow-slate-900/10'
                   : isPassed
-                  ? 'bg-emerald-950/30 border-emerald-200 text-emerald-800'
+                  ? 'bg-emerald-50 border border-emerald-300 text-emerald-950'
                   : isCurrentActive
-                  ? 'bg-cyan-950/40 border-teal-300 text-cyan-200'
-                  : 'bg-slate-50/40 border-slate-200 opacity-50'
+                  ? 'bg-teal-50 border-2 border-teal-600 text-teal-950'
+                  : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
               }`}
             >
               <div className="flex items-center justify-between text-[10px] font-mono mb-1">
-                <span className={`font-bold ${isPassed ? 'text-emerald-800 font-bold' : isCurrentActive ? 'text-teal-800' : 'text-slate-700 font-medium'}`}>
+                <span className={`font-bold ${isViewing ? 'text-teal-300' : isPassed ? 'text-emerald-700' : isCurrentActive ? 'text-teal-800' : 'text-slate-500'}`}>
                   {isPassed ? '✅ DONE' : isCurrentActive ? '🔄 ACTIVE' : '⏳ PENDING'}
                 </span>
-                <span className="text-slate-700 font-medium">{s.dept.split(' ')[0]}</span>
+                <span className={`font-medium ${isViewing ? 'text-slate-400' : 'text-slate-500'}`}>{s.dept.split(' ')[0]}</span>
               </div>
-              <div className="font-display font-semibold text-xs text-slate-900 truncate">{s.label}</div>
-              <div className="text-[10px] text-slate-700 font-medium truncate mt-0.5">{s.desc}</div>
+              <div className={`font-bold text-xs truncate ${isViewing ? 'text-white' : 'text-slate-900'}`}>{s.label}</div>
+              <div className={`text-[10px] font-medium truncate mt-0.5 ${isViewing ? 'text-slate-300' : 'text-slate-600'}`}>{s.desc}</div>
             </button>
           );
         })}

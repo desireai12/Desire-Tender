@@ -34,7 +34,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased relative bg-grid-moving`}>
+      <body className={`${inter.variable} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased relative bg-blueprint-grid`}>
         <div className="relative z-10 min-h-screen flex flex-col">
           {children}
         </div>
