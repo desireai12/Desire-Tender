@@ -26,9 +26,37 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onNavigateSettings,
   onNavigateAdminPortal,
-  theme = 'light',
-  onToggleTheme,
+  theme: propTheme,
+  onToggleTheme: propToggleTheme,
 }) => {
+  const [internalTheme, setInternalTheme] = React.useState<'light' | 'dark'>('light');
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('DESIRE_THEME') as 'light' | 'dark' | null;
+      if (saved) {
+        setInternalTheme(saved);
+        document.documentElement.classList.add(saved);
+        document.documentElement.classList.remove(saved === 'dark' ? 'light' : 'dark');
+      }
+    } catch (e) {}
+  }, []);
+
+  const activeTheme = propTheme || internalTheme;
+
+  const handleToggle = () => {
+    if (propToggleTheme) {
+      propToggleTheme();
+    } else {
+      const next = activeTheme === 'light' ? 'dark' : 'light';
+      setInternalTheme(next);
+      try {
+        localStorage.setItem('DESIRE_THEME', next);
+        document.documentElement.classList.add(next);
+        document.documentElement.classList.remove(next === 'dark' ? 'light' : 'dark');
+      } catch (e) {}
+    }
+  };
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-5 py-2.5 flex items-center justify-between shadow-xs transition-colors duration-200">
       {/* Brand & Logo */}
@@ -54,14 +82,15 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Control Actions & User Badge */}
       <div className="flex items-center space-x-2.5 shrink-0">
         {/* Dark / Light Theme Switcher Button */}
-        {onToggleTheme && (
+        /* Always visible Theme Switcher Button */
+        {true && (
           <button
             type="button"
-            onClick={onToggleTheme}
+            onClick={handleToggle}
             className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-emerald-400"
             title="Switch between Light Mode and Dark Mode"
           >
-            {theme === 'dark' ? (
+            {activeTheme === 'dark' ? (
               <>
                 <Sun className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
                 <span className="hidden sm:inline">Light Mode</span>

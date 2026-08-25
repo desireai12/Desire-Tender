@@ -309,6 +309,8 @@ export default function Home() {
         onLogout={handleLogout}
         onNavigateSettings={() => setActiveTab((activeRole as string) === 'Admin' ? 'admin_config' : 'settings')}
         onNavigateAdminPortal={() => window.location.href = '/admin'}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Pending User Approval Banner */}
