@@ -6,30 +6,85 @@
   body {
     @apply bg-slate-50 text-slate-800 font-sans antialiased min-h-screen selection:bg-teal-500/20 selection:text-teal-900;
     background-color: #f8fafc;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(13, 148, 136, 0.04) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(2, 132, 199, 0.04) 0px, transparent 50%);
-    background-attachment: fixed;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -15%;
+    left: -10%;
+    width: 55vw;
+    height: 55vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.16) 0%, rgba(2, 132, 199, 0.08) 45%, transparent 75%);
+    filter: blur(80px);
+    animation: floatAura1 20s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -15%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, rgba(13, 148, 136, 0.09) 50%, transparent 75%);
+    filter: blur(90px);
+    animation: floatAura2 24s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
   }
 }
 
-/* Premium Light Enterprise Component Utilities */
+@keyframes floatAura1 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  100% { transform: translate(40px, -40px) scale(1.12); }
+}
+
+@keyframes floatAura2 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  100% { transform: translate(-50px, 30px) scale(1.15); }
+}
+
+@keyframes moveGrid {
+  0% { background-position: 0 0; }
+  100% { background-position: 36px 36px; }
+}
+
+/* Tender Bid Moving Grid Background Overlay */
+.bg-grid-moving {
+  background-size: 36px 36px;
+  background-image: 
+    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  animation: moveGrid 40s linear infinite;
+}
+
+/* Premium Light Glassmorphism Component Utilities */
 .glass-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  border-color: rgba(13, 148, 136, 0.4);
+  box-shadow: 0 12px 28px -4px rgba(13, 148, 136, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
 }
 
 .glass-card-glow {
-  background: #ffffff;
-  border: 1px solid #0d9488;
-  box-shadow: 0 0 16px rgba(13, 148, 136, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid #0d9488;
+  box-shadow: 0 0 24px rgba(13, 148, 136, 0.18), 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
 .glass-input {
@@ -41,7 +96,7 @@
 
 .glass-input:focus {
   border-color: #0d9488;
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18);
   outline: none;
 }
 
@@ -61,5 +116,5 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #0d9488;
 }

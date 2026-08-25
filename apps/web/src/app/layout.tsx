@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="light">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -34,8 +34,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased`}>
-        {children}
+      <body className={`${inter.variable} bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased relative bg-grid-moving`}>
+        <div className="relative z-10 min-h-screen flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );
