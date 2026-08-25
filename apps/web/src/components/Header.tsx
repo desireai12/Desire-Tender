@@ -32,14 +32,14 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Brand & Logo */}
       <div className="flex items-center space-x-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <Layers className="w-5 h-5 text-aqua-950 stroke-[2.5]" />
+          <Layers className="w-5 h-5 text-white stroke-[2.5]" />
         </div>
         <div>
           <div className="flex items-center space-x-2">
-            <h1 className="font-display text-lg font-bold tracking-tight text-white">
-              DESIRE <span className="text-teal-700">TENDER INTELLIGENCE SYSTEM</span>
+            <h1 className="font-display text-lg font-bold tracking-tight text-slate-900">
+              DESIRE <span className="text-teal-800 font-semibold">TENDER INTELLIGENCE SYSTEM</span>
             </h1>
-            <span className="px-2 py-0.5 text-[10px] font-mono uppercase bg-teal-50 text-teal-700 border border-teal-200 rounded-full">
+            <span className="px-2 py-0.5 text-[10px] font-mono uppercase bg-teal-50 text-teal-800 font-semibold border border-teal-200 rounded-full">
               ENTERPRISE LIFECYCLE
             </span>
           </div>
@@ -58,16 +58,16 @@ export const Header: React.FC<HeaderProps> = ({
               {currentUser.employee_id?.slice(0, 3) || 'EMP'}
             </div>
             <div>
-              <div className="text-xs font-bold text-white flex items-center space-x-1.5">
+              <div className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
                 <span>{currentUser.full_name || currentUser.employee_id}</span>
                 <span className="font-mono text-[10px] text-teal-800">({currentUser.employee_id})</span>
                 <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${
-                  currentUser.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  currentUser.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900 font-bold'
                 }`}>
                   {currentUser.status}
                 </span>
               </div>
-              <p className="text-[10px] font-mono text-slate-500">{currentUser.email}</p>
+              <p className="text-[10px] font-mono text-slate-700 font-medium">{currentUser.email}</p>
             </div>
           </div>
         )}
@@ -79,23 +79,23 @@ export const Header: React.FC<HeaderProps> = ({
             <select
               value={activeRole}
               onChange={(e) => onRoleChange(e.target.value as DepartmentRole)}
-              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-slate-900 focus:outline-none cursor-pointer"
             >
-              <option value="Admin" className="bg-slate-50 text-white">Department: Admin (Full Access)</option>
-              <option value="Business Development" className="bg-slate-50 text-white">View As: Business Development</option>
-              <option value="Engineering" className="bg-slate-50 text-white">View As: Engineering</option>
-              <option value="Estimation Team" className="bg-slate-50 text-white">View As: Estimation Team</option>
-              <option value="Management" className="bg-slate-50 text-white">View As: Management</option>
-              <option value="Tender Team" className="bg-slate-50 text-white">View As: Tender Team</option>
-              <option value="Procurement" className="bg-slate-50 text-white">View As: Procurement</option>
-              <option value="Finance" className="bg-slate-50 text-white">View As: Finance</option>
+              <option value="Admin" className="bg-slate-50 text-slate-900">Department: Admin (Full Access)</option>
+              <option value="Business Development" className="bg-slate-50 text-slate-900">View As: Business Development</option>
+              <option value="Engineering" className="bg-slate-50 text-slate-900">View As: Engineering</option>
+              <option value="Estimation Team" className="bg-slate-50 text-slate-900">View As: Estimation Team</option>
+              <option value="Management" className="bg-slate-50 text-slate-900">View As: Management</option>
+              <option value="Tender Team" className="bg-slate-50 text-slate-900">View As: Tender Team</option>
+              <option value="Procurement" className="bg-slate-50 text-slate-900">View As: Procurement</option>
+              <option value="Finance" className="bg-slate-50 text-slate-900">View As: Finance</option>
             </select>
           </div>
         )}
 
         {/* System Status Indicator */}
         <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-500/20">
-          <Activity className="w-3.5 h-3.5 text-emerald-700 animate-pulse" />
+          <Activity className="w-3.5 h-3.5 text-emerald-800 font-bold animate-pulse" />
           <span className="text-xs font-mono text-emerald-800">Company Knowledge: Connected</span>
         </div>
 
@@ -106,8 +106,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onProviderChange('gemini')}
               className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
                 currentProvider === 'gemini'
-                  ? 'bg-teal-700 text-aqua-950 font-bold shadow-md shadow-cyan-400/20'
-                  : 'text-slate-500 hover:text-white'
+                  ? 'bg-teal-800 text-white font-bold font-bold shadow-md shadow-cyan-400/20'
+                  : 'text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -117,8 +117,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onProviderChange('openai')}
               className={`flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-medium transition-all ${
                 currentProvider === 'openai'
-                  ? 'bg-teal-700 text-aqua-950 font-bold shadow-md shadow-cyan-400/20'
-                  : 'text-slate-500 hover:text-white'
+                  ? 'bg-teal-800 text-white font-bold font-bold shadow-md shadow-cyan-400/20'
+                  : 'text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <Cpu className="w-3.5 h-3.5" />
@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Admin Backend & AI Instructions Button */}
         <button
           onClick={() => window.location.href = '/admin'}
-          className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs transition shadow-lg shadow-purple-500/20"
+          className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-slate-900 font-bold text-xs transition shadow-lg shadow-purple-500/20"
           title="Open Admin Console (/admin) to view & edit Project AI Instructions"
         >
           <ShieldCheck className="w-4 h-4" />

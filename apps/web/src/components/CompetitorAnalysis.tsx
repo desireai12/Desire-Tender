@@ -23,10 +23,10 @@ export const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ competit
             <Swords className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-display font-semibold text-white">
+            <h3 className="text-lg font-display font-semibold text-slate-900">
               Competitor Intelligence Summary
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700 font-medium">
               Historical win rates & counter-bid strategies from RAG vector analysis
             </p>
           </div>
@@ -43,7 +43,7 @@ export const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ competit
             className="p-5 rounded-xl bg-slate-50/60 border border-white/8 hover:border-purple-400/30 transition-all space-y-4"
           >
             <div className="flex items-start justify-between gap-3">
-              <h4 className="font-display font-bold text-white text-base">{comp.competitor_name}</h4>
+              <h4 className="font-display font-bold text-slate-900 text-base">{comp.competitor_name}</h4>
               <span className="px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-800 text-xs font-mono shrink-0">
                 {comp.historical_win_rate} Win Rate
               </span>
@@ -51,7 +51,7 @@ export const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ competit
 
             {comp.key_strengths?.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-[11px] font-mono uppercase text-slate-500">Key Strengths</p>
+                <p className="text-[11px] font-mono uppercase text-slate-700 font-medium">Key Strengths</p>
                 <ul className="space-y-1">
                   {comp.key_strengths.slice(0, 3).map((s, i) => (
                     <li key={i} className="flex items-start space-x-2 text-xs text-slate-600">

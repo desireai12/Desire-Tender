@@ -246,9 +246,9 @@ export default function Home() {
   // Render Loading Splash Screen while checking persistent session on refresh
   if (isInitializingSession) {
     return (
-      <div className="min-h-screen bg-[#0d1112] flex flex-col items-center justify-center text-white space-y-4 font-mono">
+      <div className="min-h-screen bg-[#0d1112] flex flex-col items-center justify-center text-slate-900 space-y-4 font-mono">
         <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 flex items-center space-x-3">
-          <Loader2 className="w-6 h-6 text-teal-700 animate-spin" />
+          <Loader2 className="w-6 h-6 text-teal-800 font-semibold animate-spin" />
           <span className="text-sm font-bold tracking-wide">Checking authentication session...</span>
         </div>
       </div>
@@ -281,7 +281,7 @@ export default function Home() {
 
       {/* Pending User Approval Banner */}
       {currentUser.status === 'Pending' && (
-        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-800">
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900 font-bold">
           <div className="flex items-center space-x-2">
             <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
             <span>
@@ -290,7 +290,7 @@ export default function Home() {
           </div>
           <button
             onClick={() => setViewMode('admin')}
-            className="text-[11px] font-mono underline hover:text-white"
+            className="text-[11px] font-mono underline hover:text-slate-900"
           >
             Admin Portal (/admin)
           </button>

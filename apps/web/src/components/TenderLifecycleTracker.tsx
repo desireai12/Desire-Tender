@@ -130,9 +130,9 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
   if (!activeTender) {
     return (
       <div className="glass-card p-12 rounded-2xl text-center space-y-4">
-        <Workflow className="w-12 h-12 text-teal-700 mx-auto" />
-        <h3 className="text-xl font-display font-bold text-white">No Active Tenders in Process Queue</h3>
-        <p className="text-xs text-slate-500">Use the Tender Assessment Wizard to create a new tender entry.</p>
+        <Workflow className="w-12 h-12 text-teal-800 font-semibold mx-auto" />
+        <h3 className="text-xl font-display font-bold text-slate-900">No Active Tenders in Process Queue</h3>
+        <p className="text-xs text-slate-700 font-medium">Use the Tender Assessment Wizard to create a new tender entry.</p>
       </div>
     );
   }
@@ -384,7 +384,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
     <div className="space-y-8 animate-fadeIn">
       {/* Toast Notification for Knowledge Base Feedback Loop */}
       {feedbackToast && (
-        <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-aqua-950 font-bold text-xs flex items-center justify-between shadow-2xl animate-bounce">
+        <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-xs flex items-center justify-between shadow-2xl animate-bounce">
           <div className="flex items-center space-x-2">
             <Database className="w-5 h-5" />
             <span>{feedbackToast}</span>
@@ -398,28 +398,28 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* Module Banner */}
       <div className="glass-card p-6 rounded-2xl border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-teal-700 font-mono text-xs mb-1">
+          <div className="flex items-center space-x-2 text-teal-800 font-semibold font-mono text-xs mb-1">
             <Workflow className="w-4 h-4" />
             <span>ENTERPRISE TENDER PROCESS QUEUE • 6 STAGES</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-white">
+          <h2 className="text-2xl font-display font-bold text-slate-900">
             Tender Process Queue & Lifecycle Pipeline
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-700 font-medium mt-1">
             Progress tenders through 6 sequential stages. Current User Role: <strong className="text-teal-800">{activeRole}</strong>
           </p>
         </div>
 
         {/* Active Tender Selector */}
         <div className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-50/80 border border-slate-200 shrink-0">
-          <span className="text-xs font-mono text-slate-500">Select Tender:</span>
+          <span className="text-xs font-mono text-slate-700 font-medium">Select Tender:</span>
           <select
             value={selectedTenderId}
             onChange={(e) => setSelectedTenderId(e.target.value)}
-            className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+            className="bg-transparent text-xs font-bold text-slate-900 focus:outline-none cursor-pointer"
           >
             {tenders.map((t) => (
-              <option key={t.id} value={t.id} className="bg-slate-50 text-white">
+              <option key={t.id} value={t.id} className="bg-slate-50 text-slate-900">
                 #{t.id} — {t.tender_name.slice(0, 35)}... ({t.project_category})
               </option>
             ))}
@@ -450,13 +450,13 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
               }`}
             >
               <div className="flex items-center justify-between text-[10px] font-mono mb-1">
-                <span className={`font-bold ${isPassed ? 'text-emerald-700' : isCurrentActive ? 'text-teal-800' : 'text-slate-500'}`}>
+                <span className={`font-bold ${isPassed ? 'text-emerald-800 font-bold' : isCurrentActive ? 'text-teal-800' : 'text-slate-700 font-medium'}`}>
                   {isPassed ? '✅ DONE' : isCurrentActive ? '🔄 ACTIVE' : '⏳ PENDING'}
                 </span>
-                <span className="text-slate-500">{s.dept.split(' ')[0]}</span>
+                <span className="text-slate-700 font-medium">{s.dept.split(' ')[0]}</span>
               </div>
-              <div className="font-display font-semibold text-xs text-white truncate">{s.label}</div>
-              <div className="text-[10px] text-slate-500 truncate mt-0.5">{s.desc}</div>
+              <div className="font-display font-semibold text-xs text-slate-900 truncate">{s.label}</div>
+              <div className="text-[10px] text-slate-700 font-medium truncate mt-0.5">{s.desc}</div>
             </button>
           );
         })}
@@ -465,11 +465,11 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* Viewing Stage Detail Banner */}
       <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="flex items-center space-x-2 text-slate-600">
-          <span className="font-mono text-teal-700 font-bold">STAGE VIEW:</span>
-          <span className="font-semibold text-white">
+          <span className="font-mono text-teal-800 font-semibold font-bold">STAGE VIEW:</span>
+          <span className="font-semibold text-slate-900">
             {stagesList.find(s => s.stage === viewingStage)?.label}
           </span>
-          <span className="text-slate-500">• Assigned Department:</span>
+          <span className="text-slate-700 font-medium">• Assigned Department:</span>
           <strong className="text-teal-800">
             {stagesList.find(s => s.stage === viewingStage)?.dept}
           </strong>
@@ -477,13 +477,13 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
 
         {/* RBAC Badge */}
         {!canUserEditStage(stagesList.find(s => s.stage === viewingStage)?.dept || 'Admin') ? (
-          <div className="px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 font-mono text-[11px] flex items-center space-x-1">
+          <div className="px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-bold font-mono text-[11px] flex items-center space-x-1">
             <Lock className="w-3 h-3 text-amber-700" />
             <span>View-Only Mode (Switch Role to {stagesList.find(s => s.stage === viewingStage)?.dept} to edit)</span>
           </div>
         ) : (
           <div className="px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] flex items-center space-x-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-800 font-bold" />
             <span>Role Authorized ({activeRole})</span>
           </div>
         )}
@@ -496,8 +496,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-teal-300">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Building2 className="w-5 h-5 text-teal-700" />
-              <h3 className="text-lg font-display font-bold text-white">
+              <Building2 className="w-5 h-5 text-teal-800 font-semibold" />
+              <h3 className="text-lg font-display font-bold text-slate-900">
                 Stage 1 — Company Qualification & Eligibility Assessment
               </h3>
             </div>
@@ -509,19 +509,19 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
           {/* Qualification Summary Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">
-              <span className="text-[11px] font-mono uppercase text-slate-500">Financial Turnover</span>
-              <div className="text-sm font-bold text-white">₹300.93 Cr Verified</div>
-              <p className="text-[11px] text-emerald-700">Exceeds ₹150 Cr requirement</p>
+              <span className="text-[11px] font-mono uppercase text-slate-700 font-medium">Financial Turnover</span>
+              <div className="text-sm font-bold text-slate-900">₹300.93 Cr Verified</div>
+              <p className="text-[11px] text-emerald-800 font-bold">Exceeds ₹150 Cr requirement</p>
             </div>
             <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">
-              <span className="text-[11px] font-mono uppercase text-slate-500">Track Record</span>
-              <div className="text-sm font-bold text-white">1,00,000+ Villages</div>
-              <p className="text-[11px] text-emerald-700">JJM / ESCO / Solar pumps</p>
+              <span className="text-[11px] font-mono uppercase text-slate-700 font-medium">Track Record</span>
+              <div className="text-sm font-bold text-slate-900">1,00,000+ Villages</div>
+              <p className="text-[11px] text-emerald-800 font-bold">JJM / ESCO / Solar pumps</p>
             </div>
             <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">
-              <span className="text-[11px] font-mono uppercase text-slate-500">Licenses & ISO</span>
-              <div className="text-sm font-bold text-white">Class-A PHED License</div>
-              <p className="text-[11px] text-emerald-700">Active & Valid in Rajasthan</p>
+              <span className="text-[11px] font-mono uppercase text-slate-700 font-medium">Licenses & ISO</span>
+              <div className="text-sm font-bold text-slate-900">Class-A PHED License</div>
+              <p className="text-[11px] text-emerald-800 font-bold">Active & Valid in Rajasthan</p>
             </div>
           </div>
 
@@ -538,11 +538,11 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition border ${
                     stage1Verdict === v
                       ? v === 'Eligible'
-                        ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-md shadow-emerald-400/20'
+                        ? 'bg-emerald-400 text-white border-emerald-300 shadow-md shadow-emerald-400/20'
                         : v === 'Partially Eligible'
-                        ? 'bg-amber-400 text-aqua-950 border-amber-300'
-                        : 'bg-rose-500 text-white border-rose-400'
-                      : 'bg-slate-50 text-slate-500 border-slate-200'
+                        ? 'bg-amber-400 text-white border-amber-300'
+                        : 'bg-rose-500 text-slate-900 border-rose-400'
+                      : 'bg-slate-50 text-slate-700 font-medium border-slate-200'
                   }`}
                 >
                   {v}
@@ -557,7 +557,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 disabled={!canUserEditStage('Business Development')}
                 onChange={(e) => setStage1Remarks(e.target.value)}
                 rows={2}
-                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:outline-none"
               />
             </div>
           </div>
@@ -567,7 +567,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleCompleteStage1}
-                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
               >
                 <span>Approve Stage 1 Eligibility & Unlock Stage 2 (Tender Analysis)</span>
                 <ArrowRight className="w-4 h-4" />
@@ -584,8 +584,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-teal-300">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-teal-700" />
-              <h3 className="text-lg font-display font-bold text-white">
+              <FileText className="w-5 h-5 text-teal-800 font-semibold" />
+              <h3 className="text-lg font-display font-bold text-slate-900">
                 Stage 2 — Tender Specification & Clause Breakdown Analysis
               </h3>
             </div>
@@ -597,17 +597,17 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
           {/* Uploaded File Info */}
           <div className="p-4 rounded-xl bg-slate-50/80 border border-teal-200 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <FileText className="w-6 h-6 text-teal-700" />
+              <FileText className="w-6 h-6 text-teal-800 font-semibold" />
               <div>
-                <h4 className="text-xs font-bold text-white">
+                <h4 className="text-xs font-bold text-slate-900">
                   Uploaded Document: {activeTender.uploaded_files?.tender_pdf || 'Tender_Specification_Package.pdf'}
                 </h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-slate-700 font-medium mt-0.5">
                   Analyzed against Company Knowledge Base & Technical Standards
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-md font-mono text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="px-2.5 py-1 rounded-md font-mono text-[10px] bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
               Analyzed
             </span>
           </div>
@@ -618,17 +618,17 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div className="space-y-2 text-xs">
               <div className="p-3 rounded-lg bg-slate-50/60 border border-slate-200 flex items-center justify-between">
                 <div>
-                  <strong className="text-white">Sec 4.2 — HDPE Pipeline Pressure Rating (PN-10)</strong>
-                  <p className="text-[11px] text-slate-500">Compliant with ISO 4427 standards.</p>
+                  <strong className="text-slate-900">Sec 4.2 — HDPE Pipeline Pressure Rating (PN-10)</strong>
+                  <p className="text-[11px] text-slate-700 font-medium">Compliant with ISO 4427 standards.</p>
                 </div>
-                <span className="text-emerald-700 font-mono text-[10px]">Pass</span>
+                <span className="text-emerald-800 font-bold font-mono text-[10px]">Pass</span>
               </div>
               <div className="p-3 rounded-lg bg-slate-50/60 border border-slate-200 flex items-center justify-between">
                 <div>
-                  <strong className="text-white">Sec 6.1 — Solar Inverter Efficiency (&gt; 98.5%)</strong>
-                  <p className="text-[11px] text-slate-500">Matched with Sunaquator RMS controller specs.</p>
+                  <strong className="text-slate-900">Sec 6.1 — Solar Inverter Efficiency (&gt; 98.5%)</strong>
+                  <p className="text-[11px] text-slate-700 font-medium">Matched with Sunaquator RMS controller specs.</p>
                 </div>
-                <span className="text-emerald-700 font-mono text-[10px]">Pass</span>
+                <span className="text-emerald-800 font-bold font-mono text-[10px]">Pass</span>
               </div>
             </div>
           </div>
@@ -640,7 +640,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
               disabled={!canUserEditStage('Engineering')}
               onChange={(e) => setStage2Remarks(e.target.value)}
               rows={2}
-              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
+              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:outline-none"
             />
           </div>
 
@@ -649,7 +649,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleCompleteStage2}
-                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
               >
                 <span>Approve Stage 2 Technical Analysis & Unlock Stage 3 (Cost Estimation)</span>
                 <ArrowRight className="w-4 h-4" />
@@ -666,8 +666,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-teal-300">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Calculator className="w-5 h-5 text-teal-700" />
-              <h3 className="text-lg font-display font-bold text-white">
+              <Calculator className="w-5 h-5 text-teal-800 font-semibold" />
+              <h3 className="text-lg font-display font-bold text-slate-900">
                 Stage 3 — Cost Estimation & Interactive BOQ Pricing
               </h3>
             </div>
@@ -680,7 +680,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
 
           {/* Learning Feedback Indicator */}
           <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-800 flex items-center space-x-2">
-            <Sparkles className="w-4 h-4 text-teal-700 shrink-0" />
+            <Sparkles className="w-4 h-4 text-teal-800 font-semibold shrink-0" />
             <span>
               <strong>Continuous AI Learning Active:</strong> Any manual edits to unit rates below will update the Company Knowledge Base to refine future tender cost estimations!
             </span>
@@ -689,18 +689,18 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
           {/* Editable BOQ Table */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h4 className="text-xs font-mono uppercase text-white">BOQ Unit Rate Breakdown Table</h4>
+              <h4 className="text-xs font-mono uppercase text-slate-900">BOQ Unit Rate Breakdown Table</h4>
               <div className="flex items-center space-x-3">
                 <button
                   type="button"
                   onClick={() => generateBOQExcelReport(activeTender, boqItems)}
                   className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-500/30 text-emerald-800 border border-emerald-300 text-xs font-semibold transition cursor-pointer"
                 >
-                  <Download className="w-4 h-4 text-emerald-700" />
+                  <Download className="w-4 h-4 text-emerald-800 font-bold" />
                   <span>Export Costing Excel (.xls)</span>
                 </button>
                 <div className="text-right">
-                  <span className="text-xs font-mono text-slate-500">Total Estimated Cost: </span>
+                  <span className="text-xs font-mono text-slate-700 font-medium">Total Estimated Cost: </span>
                   <strong className="text-base font-display font-bold text-teal-800">
                     ₹{(totalBOQCost / 10000000).toFixed(2)} Cr
                   </strong>
@@ -727,7 +727,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                     return (
                       <tr key={item.id} className="hover:bg-white/5 transition">
                         <td className="p-3 font-mono text-teal-800">{item.category}</td>
-                        <td className="p-3 font-semibold text-white">{item.item_name}</td>
+                        <td className="p-3 font-semibold text-slate-900">{item.item_name}</td>
                         <td className="p-3 text-right font-mono">{item.quantity} {item.unit_of_measure}</td>
                         <td className="p-3 text-right font-mono">
                           {canUserEditStage('Estimation Team') ? (
@@ -735,21 +735,21 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                               type="number"
                               value={item.unit_cost}
                               onChange={(e) => handleUpdateUnitCost(item.id, Number(e.target.value))}
-                              className="w-24 px-2 py-1 bg-slate-50 border border-teal-200 rounded text-right text-white font-mono text-xs focus:border-cyan-400"
+                              className="w-24 px-2 py-1 bg-slate-50 border border-teal-200 rounded text-right text-slate-900 font-mono text-xs focus:border-cyan-400"
                             />
                           ) : (
                             <span>₹{item.unit_cost.toLocaleString()}</span>
                           )}
                         </td>
                         <td className="p-3 text-right font-mono">{item.markup_percentage}%</td>
-                        <td className="p-3 text-right font-mono font-bold text-emerald-700">
+                        <td className="p-3 text-right font-mono font-bold text-emerald-800 font-bold">
                           ₹{Math.round(lineTotal).toLocaleString()}
                         </td>
                         {canUserEditStage('Estimation Team') && (
                           <td className="p-3 text-center">
                             <button
                               onClick={() => handleDeleteBOQItem(item.id)}
-                              className="p-1 rounded text-rose-700 hover:bg-rose-100 transition"
+                              className="p-1 rounded text-rose-800 font-bold hover:bg-rose-100 transition"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -771,7 +771,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 <select
                   value={newBOQCategory}
                   onChange={(e) => setNewBOQCategory(e.target.value as BOQLineItem['category'])}
-                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900"
                 >
                   <option value="Equipment">Equipment</option>
                   <option value="Raw Materials">Raw Materials</option>
@@ -785,7 +785,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   placeholder="Item Name (e.g. Pump Controller)"
                   value={newBOQItemName}
                   onChange={(e) => setNewBOQItemName(e.target.value)}
-                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white sm:col-span-2"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 sm:col-span-2"
                 />
 
                 <input
@@ -793,7 +793,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   placeholder="Qty"
                   value={newBOQQuantity}
                   onChange={(e) => setNewBOQQuantity(Number(e.target.value))}
-                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900"
                 />
 
                 <input
@@ -801,14 +801,14 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   placeholder="Unit Cost (₹)"
                   value={newBOQUnitCost}
                   onChange={(e) => setNewBOQUnitCost(Number(e.target.value))}
-                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900"
                 />
               </div>
 
               <div className="flex justify-end">
                 <button
                   onClick={handleAddBOQItem}
-                  className="flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-teal-700 text-aqua-950 font-bold text-xs hover:bg-teal-800 transition"
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-teal-800 text-white font-bold font-bold text-xs hover:bg-teal-800 transition"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Line Item & Update Learning</span>
@@ -822,7 +822,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleCompleteStage3}
-                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
               >
                 <span>Finalize BOQ Costing & Unlock Stage 4 (Bid Decision)</span>
                 <ArrowRight className="w-4 h-4" />
@@ -840,7 +840,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
               <UserCheck className="w-5 h-5 text-purple-700" />
-              <h3 className="text-lg font-display font-bold text-white">
+              <h3 className="text-lg font-display font-bold text-slate-900">
                 Stage 4 — Executive Management & BD Bid Decision
               </h3>
             </div>
@@ -858,8 +858,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 onClick={() => setDidApplyDecision(true)}
                 className={`px-6 py-3 rounded-xl font-bold text-xs transition border ${
                   didApplyDecision
-                    ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-lg shadow-emerald-400/20'
-                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                    ? 'bg-emerald-400 text-white border-emerald-300 shadow-lg shadow-emerald-400/20'
+                    : 'bg-slate-50 text-slate-700 font-medium border-slate-200'
                 }`}
               >
                 YES — Proceed to Bid Submission
@@ -871,8 +871,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 onClick={() => setDidApplyDecision(false)}
                 className={`px-6 py-3 rounded-xl font-bold text-xs transition border ${
                   !didApplyDecision
-                    ? 'bg-rose-500 text-white border-rose-400 shadow-lg shadow-rose-500/20'
-                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                    ? 'bg-rose-500 text-slate-900 border-rose-400 shadow-lg shadow-rose-500/20'
+                    : 'bg-slate-50 text-slate-700 font-medium border-slate-200'
                 }`}
               >
                 NO — Do Not Bid
@@ -886,7 +886,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 disabled={!canUserEditStage('Business Development')}
                 onChange={(e) => setApplyDecisionReason(e.target.value)}
                 rows={3}
-                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:outline-none"
               />
             </div>
           </div>
@@ -896,7 +896,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleCompleteStage4}
-                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-purple-400/20"
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-purple-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-lg shadow-purple-400/20"
               >
                 <span>Record Bid Decision & Advance to Stage 5 (Bid Details)</span>
                 <ArrowRight className="w-4 h-4" />
@@ -913,8 +913,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-300">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5 text-emerald-700" />
-              <h3 className="text-lg font-display font-bold text-white">
+              <Trophy className="w-5 h-5 text-emerald-800 font-bold" />
+              <h3 className="text-lg font-display font-bold text-slate-900">
                 Stage 5 — Bid Submission & Tender Documentation Details
               </h3>
             </div>
@@ -931,7 +931,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 disabled={!canUserEditStage('Tender Team')}
                 value={bidAmount}
                 onChange={(e) => setBidAmount(Number(e.target.value))}
-                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
               />
             </div>
 
@@ -942,7 +942,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 disabled={!canUserEditStage('Tender Team')}
                 value={emdAmount}
                 onChange={(e) => setEmdAmount(Number(e.target.value))}
-                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
               />
             </div>
 
@@ -953,7 +953,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 disabled={!canUserEditStage('Tender Team')}
                 value={emdReference}
                 onChange={(e) => setEmdReference(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
               />
             </div>
           </div>
@@ -966,7 +966,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 disabled={!canUserEditStage('Tender Team')}
                 value={tenderCode}
                 onChange={(e) => setTenderCode(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
               />
             </div>
 
@@ -977,7 +977,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 disabled={!canUserEditStage('Tender Team')}
                 value={submittedBy}
                 onChange={(e) => setSubmittedBy(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900"
               />
             </div>
           </div>
@@ -989,7 +989,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
               disabled={!canUserEditStage('Tender Team')}
               onChange={(e) => setSubmissionRemarks(e.target.value)}
               rows={2}
-              className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
+              className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:outline-none"
             />
           </div>
 
@@ -998,7 +998,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleCompleteStage5}
-                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-emerald-400/20"
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-lg shadow-emerald-400/20"
               >
                 <span>Submit Bid Details & Unlock Stage 6 (Tender Result)</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1015,8 +1015,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-300">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5 text-emerald-700" />
-              <h3 className="text-lg font-display font-bold text-white">
+              <Trophy className="w-5 h-5 text-emerald-800 font-bold" />
+              <h3 className="text-lg font-display font-bold text-slate-900">
                 Stage 6 — Final Tender Outcome & Competitive Intelligence Capture
               </h3>
             </div>
@@ -1038,10 +1038,10 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   className={`px-5 py-2.5 rounded-xl text-xs font-bold transition border ${
                     resultStatus === st
                       ? st === 'Won'
-                        ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-md shadow-emerald-400/20'
+                        ? 'bg-emerald-400 text-white border-emerald-300 shadow-md shadow-emerald-400/20'
                         : st === 'Lost'
-                        ? 'bg-rose-500 text-white border-rose-400'
-                        : 'bg-amber-400 text-aqua-950 border-amber-300'
+                        ? 'bg-rose-500 text-slate-900 border-rose-400'
+                        : 'bg-amber-400 text-white border-amber-300'
                       : 'bg-slate-50 text-slate-600 border-slate-200'
                   }`}
                 >
@@ -1060,98 +1060,98 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-500">Winning Company (L1)</label>
+                  <label className="text-xs font-mono text-slate-700 font-medium">Winning Company (L1)</label>
                   <input
                     type="text"
                     disabled={!canUserEditStage('Tender Team')}
                     value={winnerCompany}
                     onChange={(e) => setWinnerCompany(e.target.value)}
-                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
+                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-500">L1 Winning Bid Price (₹)</label>
+                  <label className="text-xs font-mono text-slate-700 font-medium">L1 Winning Bid Price (₹)</label>
                   <input
                     type="number"
                     disabled={!canUserEditStage('Tender Team')}
                     value={winningPrice}
                     onChange={(e) => setWinningPrice(Number(e.target.value))}
-                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-500">Our Final Rank</label>
+                  <label className="text-xs font-mono text-slate-700 font-medium">Our Final Rank</label>
                   <input
                     type="text"
                     disabled={!canUserEditStage('Tender Team')}
                     value={ourRank}
                     onChange={(e) => setOurRank(e.target.value)}
-                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-500">L2 Company & Price (₹)</label>
+                  <label className="text-xs font-mono text-slate-700 font-medium">L2 Company & Price (₹)</label>
                   <div className="flex space-x-2">
                     <input
                       type="text"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l2Company}
                       onChange={(e) => setL2Company(e.target.value)}
-                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900"
                     />
                     <input
                       type="number"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l2Price}
                       onChange={(e) => setL2Price(Number(e.target.value))}
-                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-500">L3 Company & Price (₹)</label>
+                  <label className="text-xs font-mono text-slate-700 font-medium">L3 Company & Price (₹)</label>
                   <div className="flex space-x-2">
                     <input
                       type="text"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l3Company}
                       onChange={(e) => setL3Company(e.target.value)}
-                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900"
                     />
                     <input
                       type="number"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l3Price}
                       onChange={(e) => setL3Price(Number(e.target.value))}
-                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1 pt-2">
-                <label className="text-xs font-mono text-slate-500">Primary Reason for Loss / Observations</label>
+                <label className="text-xs font-mono text-slate-700 font-medium">Primary Reason for Loss / Observations</label>
                 <textarea
                   value={lostReason}
                   disabled={!canUserEditStage('Tender Team')}
                   onChange={(e) => setLostReason(e.target.value)}
                   rows={2}
-                  className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
+                  className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-slate-500">Lessons Learned & AI Strategy Takeaways</label>
+                <label className="text-xs font-mono text-slate-700 font-medium">Lessons Learned & AI Strategy Takeaways</label>
                 <textarea
                   value={lessonsLearned}
                   disabled={!canUserEditStage('Tender Team')}
                   onChange={(e) => setLessonsLearned(e.target.value)}
                   rows={2}
-                  className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
+                  className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:outline-none"
                 />
               </div>
             </div>
@@ -1162,7 +1162,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleFinalizeStage6}
-                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-xl shadow-emerald-400/20"
+                className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-xl shadow-emerald-400/20"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Finalize Result & Index into Company Knowledge Base</span>
@@ -1178,12 +1178,12 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       <div className="glass-card p-6 rounded-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center space-x-2">
-            <Clock className="w-5 h-5 text-teal-700" />
-            <h3 className="font-display font-semibold text-base text-white">
+            <Clock className="w-5 h-5 text-teal-800 font-semibold" />
+            <h3 className="font-display font-semibold text-base text-slate-900">
               Complete Audit Trail & Lifecycle Timeline (#TND-{activeTender.id})
             </h3>
           </div>
-          <span className="text-xs font-mono text-slate-500">{activeTender.audit_trail.length} Logs Recorded</span>
+          <span className="text-xs font-mono text-slate-700 font-medium">{activeTender.audit_trail.length} Logs Recorded</span>
         </div>
 
         <div className="space-y-3">
@@ -1191,16 +1191,16 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <div key={log.id} className="p-4 rounded-xl bg-slate-50/60 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <span className="font-bold text-white">{log.user}</span>
+                  <span className="font-bold text-slate-900">{log.user}</span>
                   <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 font-mono text-[10px] border border-purple-200">
                     Dept: {log.department}
                   </span>
-                  <span className="text-slate-500 font-mono">{log.timestamp}</span>
+                  <span className="text-slate-700 font-medium font-mono">{log.timestamp}</span>
                 </div>
                 <p className="text-slate-200 font-medium">{log.action}</p>
                 <p className="text-teal-800 font-mono text-[11px]">Next Action: {log.next_pending_action}</p>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-mono text-xs font-bold border border-emerald-200 self-start sm:self-center shrink-0">
+              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold font-mono text-xs font-bold border border-emerald-200 self-start sm:self-center shrink-0">
                 {log.status}
               </span>
             </div>

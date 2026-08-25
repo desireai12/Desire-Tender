@@ -489,7 +489,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
         <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
           <button
             onClick={onBackToUserPortal}
-            className="flex items-center space-x-2 text-xs text-slate-500 hover:text-white transition font-mono"
+            className="flex items-center space-x-2 text-xs text-slate-700 font-medium hover:text-slate-900 transition font-mono"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to User Portal</span>
@@ -506,10 +506,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center mx-auto text-purple-800 shadow-xl shadow-purple-500/10">
               <ShieldCheck className="w-6 h-6 stroke-[2.5]" />
             </div>
-            <h2 className="text-2xl font-display font-bold text-white tracking-tight">
+            <h2 className="text-2xl font-display font-bold text-slate-900 tracking-tight">
               Admin Portal Security Gate
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700 font-medium">
               Enter Administrator Credentials to access backend user management and system settings.
             </p>
           </div>
@@ -517,7 +517,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
           <div className="glass-card p-8 rounded-3xl border border-purple-200 shadow-2xl space-y-5">
             {loginError && (
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-rose-700 shrink-0" />
+                <AlertCircle className="w-4 h-4 text-rose-800 font-bold shrink-0" />
                 <span>{loginError}</span>
               </div>
             )}
@@ -532,7 +532,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                   placeholder="admin"
                   value={adminId}
                   onChange={(e) => setAdminId(e.target.value)}
-                  className="w-full glass-input text-sm text-white px-4 py-2.5 rounded-xl border border-slate-250 focus:border-purple-400 focus:outline-none font-mono"
+                  className="w-full glass-input text-sm text-slate-900 px-4 py-2.5 rounded-xl border border-slate-250 focus:border-purple-400 focus:outline-none font-mono"
                 />
               </div>
 
@@ -546,12 +546,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                     placeholder="••••••••••••"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
-                    className="w-full glass-input text-sm text-white px-4 py-2.5 rounded-xl border border-slate-250 focus:border-purple-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-sm text-slate-900 px-4 py-2.5 rounded-xl border border-slate-250 focus:border-purple-400 focus:outline-none font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowAdminPassword(!showAdminPassword)}
-                    className="absolute right-3.5 top-3 text-slate-500 hover:text-white"
+                    className="absolute right-3.5 top-3 text-slate-700 font-medium hover:text-slate-900"
                   >
                     {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -560,7 +560,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold text-sm hover:from-purple-400 hover:to-indigo-500 transition shadow-xl shadow-purple-500/25 cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-slate-900 font-bold text-sm hover:from-purple-400 hover:to-indigo-500 transition shadow-xl shadow-purple-500/25 cursor-pointer"
               >
                 Authenticate Admin Session
               </button>
@@ -568,7 +568,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
           </div>
         </div>
 
-        <div className="text-center text-xs text-slate-500 font-mono">
+        <div className="text-center text-xs text-slate-700 font-medium font-mono">
           © 2026 Desire Energy Solutions Pvt. Ltd. • Dedicated `/admin` Backend
         </div>
       </div>
@@ -586,7 +586,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             <Lock className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
-            <h3 className="text-xl font-display font-bold text-white">Forced Password Update Required</h3>
+            <h3 className="text-xl font-display font-bold text-slate-900">Forced Password Update Required</h3>
             <p className="text-xs text-slate-600 mt-1">
               You logged in using the initial temporary Admin password. For security compliance, you must set a new secure Admin password before proceeding.
             </p>
@@ -594,7 +594,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
           {pwdChangeError && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 text-left flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-rose-700 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-rose-800 font-bold shrink-0" />
               <span>{pwdChangeError}</span>
             </div>
           )}
@@ -609,7 +609,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                 placeholder="Minimum 8 characters"
                 value={newAdminPassword}
                 onChange={(e) => setNewAdminPassword(e.target.value)}
-                className="w-full glass-input text-sm text-white px-3.5 py-2.5 rounded-xl border border-slate-250 focus:border-rose-400 focus:outline-none font-mono"
+                className="w-full glass-input text-sm text-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-250 focus:border-rose-400 focus:outline-none font-mono"
               />
             </div>
 
@@ -622,13 +622,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                 placeholder="Re-enter new password"
                 value={confirmAdminPassword}
                 onChange={(e) => setConfirmAdminPassword(e.target.value)}
-                className="w-full glass-input text-sm text-white px-3.5 py-2.5 rounded-xl border border-slate-250 focus:border-rose-400 focus:outline-none font-mono"
+                className="w-full glass-input text-sm text-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-250 focus:border-rose-400 focus:outline-none font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-sm hover:brightness-110 transition shadow-xl shadow-rose-500/25 cursor-pointer"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-slate-900 font-bold text-sm hover:brightness-110 transition shadow-xl shadow-rose-500/25 cursor-pointer"
             >
               Update Password & Enter Admin Dashboard
             </button>
@@ -652,7 +652,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
       {/* Toast Notice */}
       {toast && (
-        <div className="fixed top-5 right-5 z-50 p-4 rounded-xl bg-cyan-500/90 text-aqua-950 font-bold text-xs shadow-2xl flex items-center space-x-2 animate-bounce">
+        <div className="fixed top-5 right-5 z-50 p-4 rounded-xl bg-cyan-500/90 text-white font-bold text-xs shadow-2xl flex items-center space-x-2 animate-bounce">
           <CheckCircle2 className="w-5 h-5" />
           <span>{toast}</span>
         </div>
@@ -662,18 +662,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
       <header className="sticky top-0 z-40 w-full glass-card border-b border-purple-200 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 bg-slate-50/95">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <ShieldCheck className="w-5 h-5 text-white stroke-[2.5]" />
+            <ShieldCheck className="w-5 h-5 text-slate-900 stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="font-display text-lg font-bold tracking-tight text-white">
+              <h1 className="font-display text-lg font-bold tracking-tight text-slate-900">
                 DESIRE <span className="text-purple-700">ADMINISTRATOR PORTAL</span>
               </h1>
               <span className="px-2 py-0.5 text-[10px] font-mono uppercase bg-purple-500/20 text-purple-800 border border-purple-500/40 rounded-full">
                 `/admin` BACKEND
               </span>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block">
+            <p className="text-xs text-slate-700 font-medium hidden sm:block">
               Role-Based Access Control • Project Creation • AI Credentials Vault
             </p>
           </div>
@@ -718,12 +718,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                 onClick={() => setActiveAdminTab(tab.id)}
                 className={`p-3.5 rounded-2xl border text-left transition-all ${
                   isActive
-                    ? 'bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-400 text-white shadow-lg shadow-purple-500/20'
-                    : 'bg-slate-50/40 border-slate-200 text-slate-500 hover:text-white'
+                    ? 'bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-400 text-slate-900 shadow-lg shadow-purple-500/20'
+                    : 'bg-slate-50/40 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-purple-700' : 'text-slate-500'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-purple-700' : 'text-slate-700 font-medium'}`} />
                   <span className="font-display font-bold text-xs">{tab.label}</span>
                 </div>
               </button>
@@ -737,12 +737,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             {/* KPI Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="glass-card p-5 rounded-2xl border border-slate-200 space-y-1">
-                <span className="text-[11px] font-mono text-slate-500 uppercase">Total Registered Users</span>
-                <div className="text-3xl font-display font-bold text-white">{userList.length}</div>
+                <span className="text-[11px] font-mono text-slate-700 font-medium uppercase">Total Registered Users</span>
+                <div className="text-3xl font-display font-bold text-slate-900">{userList.length}</div>
               </div>
 
               <div className="glass-card p-5 rounded-2xl border border-amber-200 bg-amber-500/5 space-y-1">
-                <span className="text-[11px] font-mono text-amber-800 uppercase">Pending Approvals</span>
+                <span className="text-[11px] font-mono text-amber-900 font-bold uppercase">Pending Approvals</span>
                 <div className="text-3xl font-display font-bold text-amber-700">
                   {userList.filter(u => u.status === 'Pending').length}
                 </div>
@@ -750,7 +750,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
               <div className="glass-card p-5 rounded-2xl border border-emerald-200 bg-emerald-500/5 space-y-1">
                 <span className="text-[11px] font-mono text-emerald-800 uppercase">Active Approved Users</span>
-                <div className="text-3xl font-display font-bold text-emerald-700">
+                <div className="text-3xl font-display font-bold text-emerald-800 font-bold">
                   {userList.filter(u => u.status === 'Active').length}
                 </div>
               </div>
@@ -763,15 +763,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
             {/* Quick Actions Panel */}
             <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
-              <h3 className="text-sm font-display font-bold text-white uppercase font-mono">Pending User Approvals Queue</h3>
+              <h3 className="text-sm font-display font-bold text-slate-900 uppercase font-mono">Pending User Approvals Queue</h3>
               
               <div className="space-y-2">
                 {userList.filter(u => u.status === 'Pending').map((usr) => (
                   <div key={usr.id} className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="font-bold text-white text-sm">{usr.full_name || usr.employee_id}</span>
-                        <span className="font-mono text-xs text-amber-800">({usr.employee_id})</span>
+                        <span className="font-bold text-slate-900 text-sm">{usr.full_name || usr.employee_id}</span>
+                        <span className="font-mono text-xs text-amber-900 font-bold">({usr.employee_id})</span>
                       </div>
                       <p className="text-xs text-slate-600 font-mono mt-0.5">{usr.email} • {usr.phone}</p>
                     </div>
@@ -779,7 +779,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleUserStatusAction(usr, 'Active')}
-                        className="px-4 py-1.5 rounded-lg bg-emerald-500 text-aqua-950 font-bold text-xs hover:bg-emerald-400 transition"
+                        className="px-4 py-1.5 rounded-lg bg-emerald-500 text-white font-bold text-xs hover:bg-emerald-400 transition"
                       >
                         Approve User
                       </button>
@@ -794,7 +794,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                 ))}
 
                 {userList.filter(u => u.status === 'Pending').length === 0 && (
-                  <div className="text-center py-6 text-slate-500 text-xs font-mono">
+                  <div className="text-center py-6 text-slate-700 font-medium text-xs font-mono">
                     No pending user registration requests. All users are reviewed!
                   </div>
                 )}
@@ -808,24 +808,24 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
           <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div>
-                <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
+                <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
                   <Users className="w-5 h-5 text-purple-700" />
                   <span>User Directory & Permission Assignment Matrix</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-700 font-medium mt-1">
                   Review Employee IDs, approve accounts, assign department roles, and toggle module permissions.
                 </p>
               </div>
 
               {/* Search Bar */}
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <Search className="w-4 h-4 text-slate-700 font-medium absolute left-3 top-3" />
                 <input
                   type="text"
                   placeholder="Search Employee ID or Name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
+                  className="pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:outline-none"
                 />
               </div>
             </div>
@@ -849,10 +849,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                   {filteredUsers.map((usr) => (
                     <tr key={usr.id} className="hover:bg-white/5 transition">
                       <td className="p-3 font-mono font-bold text-purple-800">{usr.employee_id}</td>
-                      <td className="p-3 font-bold text-white">{usr.full_name || usr.employee_id}</td>
-                      <td className="p-3 font-mono text-slate-500 text-[11px]">
+                      <td className="p-3 font-bold text-slate-900">{usr.full_name || usr.employee_id}</td>
+                      <td className="p-3 font-mono text-slate-700 font-medium text-[11px]">
                         <div>{usr.email}</div>
-                        <div className="text-slate-500">{usr.phone}</div>
+                        <div className="text-slate-700 font-medium">{usr.phone}</div>
                       </td>
                       <td className="p-3 font-mono text-xs">
                         <div className="flex items-center space-x-1.5 bg-black/40 px-2.5 py-1 rounded-lg border border-slate-200 w-fit">
@@ -862,7 +862,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                           </span>
                           <button
                             onClick={() => setShowPasswordMap(prev => ({ ...prev, [usr.id || usr.employee_id]: !prev[usr.id || usr.employee_id] }))}
-                            className="text-slate-500 hover:text-white ml-1 p-0.5"
+                            className="text-slate-700 font-medium hover:text-slate-900 ml-1 p-0.5"
                             title="Toggle Password Visibility"
                           >
                             {showPasswordMap[usr.id || usr.employee_id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -872,7 +872,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                       <td className="p-3">
                         <span className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold ${
                           usr.status === 'Active' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                          usr.status === 'Pending' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                          usr.status === 'Pending' ? 'bg-amber-100 text-amber-900 font-bold border border-amber-200' :
                           'bg-rose-100 text-rose-800 border border-rose-200'
                         }`}>
                           {usr.status}
@@ -885,7 +885,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                             const updated = { ...usr, department: e.target.value as DepartmentRole };
                             setUserList(prev => prev.map(u => u.id === usr.id ? updated : u));
                           }}
-                          className="bg-slate-50 border border-purple-200 rounded-lg text-xs font-bold text-white p-1.5 focus:outline-none cursor-pointer"
+                          className="bg-slate-50 border border-purple-200 rounded-lg text-xs font-bold text-slate-900 p-1.5 focus:outline-none cursor-pointer"
                         >
                           <option value="Business Development">Business Development</option>
                           <option value="Engineering">Engineering</option>
@@ -915,7 +915,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                         {usr.status === 'Pending' && (
                           <button
                             onClick={() => handleUserStatusAction(usr, 'Active')}
-                            className="px-2 py-1 rounded bg-emerald-500 text-aqua-950 font-bold transition text-[11px]"
+                            className="px-2 py-1 rounded bg-emerald-500 text-white font-bold transition text-[11px]"
                           >
                             Approve
                           </button>
@@ -934,18 +934,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
           <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
-                <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
+                <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
                   <FolderKanban className="w-5 h-5 text-purple-700" />
                   <span>Managed Projects & Client Authorities</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-700 font-medium mt-1">
                   Create and configure project verticals, client requirements, and project-specific AI rules.
                 </p>
               </div>
 
               <button
                 onClick={() => setShowAddProjectModal(true)}
-                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-purple-500 text-white font-bold text-xs hover:bg-purple-400 transition shadow-lg"
+                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-purple-500 text-slate-900 font-bold text-xs hover:bg-purple-400 transition shadow-lg"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
                 <span>Create New Project</span>
@@ -955,7 +955,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             {/* Create Project Modal */}
             {showAddProjectModal && (
               <div className="p-6 rounded-2xl bg-slate-50/90 border border-purple-500/40 space-y-4">
-                <h4 className="text-sm font-display font-bold text-white">Create New Project Vertical</h4>
+                <h4 className="text-sm font-display font-bold text-slate-900">Create New Project Vertical</h4>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div>
@@ -965,7 +965,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                       placeholder="e.g. Rajasthan Solar Pumping Phase III"
                       value={newProjName}
                       onChange={(e) => setNewProjName(e.target.value)}
-                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white"
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-slate-900"
                     />
                   </div>
 
@@ -974,7 +974,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                     <select
                       value={newProjType}
                       onChange={(e) => setNewProjType(e.target.value as ProjectCategory)}
-                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-purple-200 text-white font-bold"
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-purple-200 text-slate-900 font-bold"
                     >
                       <option value="SOLAR">SOLAR</option>
                       <option value="RHDS">RHDS (Water Supply)</option>
@@ -992,7 +992,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                       placeholder="e.g. PHED / REDA"
                       value={newProjClient}
                       onChange={(e) => setNewProjClient(e.target.value)}
-                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white"
+                      className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-slate-900"
                     />
                   </div>
                 </div>
@@ -1004,20 +1004,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                     placeholder="Project scope and details..."
                     value={newProjDesc}
                     onChange={(e) => setNewProjDesc(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900"
                   />
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-2">
                   <button
                     onClick={() => setShowAddProjectModal(false)}
-                    className="px-4 py-2 rounded-xl bg-white/5 text-slate-500 text-xs hover:text-white"
+                    className="px-4 py-2 rounded-xl bg-white/5 text-slate-700 font-medium text-xs hover:text-slate-900"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleCreateProject}
-                    className="px-6 py-2 rounded-xl bg-purple-500 text-white font-bold text-xs hover:bg-purple-400"
+                    className="px-6 py-2 rounded-xl bg-purple-500 text-slate-900 font-bold text-xs hover:bg-purple-400"
                   >
                     Save Project
                   </button>
@@ -1031,12 +1031,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                 <div key={proj.id} className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-xs text-purple-800">{proj.type}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
                       {proj.status}
                     </span>
                   </div>
-                  <h4 className="text-base font-display font-bold text-white">{proj.name}</h4>
-                  <p className="text-xs text-slate-500">{proj.description}</p>
+                  <h4 className="text-base font-display font-bold text-slate-900">{proj.name}</h4>
+                  <p className="text-xs text-slate-700 font-medium">{proj.description}</p>
                   <div className="text-[11px] font-mono text-slate-600 pt-2 border-t border-slate-200">
                     Client: <span className="text-teal-800">{proj.client}</span>
                   </div>
@@ -1054,11 +1054,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
         {/* 5. SECURITY AUDIT LOG */}
         {activeAdminTab === 'audit' && (
           <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-4 border border-slate-200">
-            <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
+            <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
               <History className="w-5 h-5 text-purple-700" />
               <span>Security Audit Trail</span>
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700 font-medium">
               Immutable log tracking admin permissions changes, project creations, and API credential rotations.
             </p>
 
@@ -1070,10 +1070,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
               ].map((log, idx) => (
                 <div key={idx} className="p-3.5 rounded-xl bg-slate-50/60 border border-slate-200 flex items-center justify-between">
                   <div>
-                    <span className="font-bold text-white">{log.action}</span>
-                    <span className="text-slate-500 ml-2">Target: {log.target}</span>
+                    <span className="font-bold text-slate-900">{log.action}</span>
+                    <span className="text-slate-700 font-medium ml-2">Target: {log.target}</span>
                   </div>
-                  <span className="text-[11px] font-mono text-slate-500">{log.time}</span>
+                  <span className="text-[11px] font-mono text-slate-700 font-medium">{log.time}</span>
                 </div>
               ))}
             </div>
@@ -1087,21 +1087,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
           <div className="glass-card p-6 rounded-3xl border border-purple-500/40 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div>
-                <h4 className="text-sm font-display font-bold text-white flex items-center space-x-2">
+                <h4 className="text-sm font-display font-bold text-slate-900 flex items-center space-x-2">
                   <Key className="w-4 h-4 text-amber-700" />
                   <span>Edit Account & Reset Password</span>
                 </h4>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-700 font-medium">
                   {selectedUserModal.full_name} ({selectedUserModal.employee_id}) — {selectedUserModal.email}
                 </p>
               </div>
-              <button onClick={() => setSelectedUserModal(null)} className="text-slate-500 hover:text-white text-lg">×</button>
+              <button onClick={() => setSelectedUserModal(null)} className="text-slate-700 font-medium hover:text-slate-900 text-lg">×</button>
             </div>
 
             <div className="space-y-3 text-xs">
               {/* Reset Password Field */}
               <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 space-y-1.5">
-                <label className="text-[11px] font-mono text-amber-800 font-bold block flex items-center space-x-1.5">
+                <label className="text-[11px] font-mono text-amber-900 font-bold font-bold block flex items-center space-x-1.5">
                   <Lock className="w-3.5 h-3.5" />
                   <span>User Login Password</span>
                 </label>
@@ -1112,7 +1112,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                   onChange={(e) => setModalEditPassword(e.target.value)}
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-amber-300 text-amber-200 font-mono font-bold text-sm focus:outline-none focus:border-amber-400"
                 />
-                <p className="text-[10px] text-slate-500">
+                <p className="text-[10px] text-slate-700 font-medium">
                   Edit or enter a new password for this employee. Saved live to Supabase PostgreSQL Database.
                 </p>
               </div>
@@ -1124,7 +1124,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                   <select
                     value={selectedUserModal.department}
                     onChange={(e) => setSelectedUserModal({ ...selectedUserModal, department: e.target.value as DepartmentRole })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-purple-200 text-white font-bold text-xs"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-purple-200 text-slate-900 font-bold text-xs"
                   >
                     <option value="Business Development">Business Development</option>
                     <option value="Engineering">Engineering</option>
@@ -1141,7 +1141,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                   <select
                     value={selectedUserModal.status}
                     onChange={(e) => setSelectedUserModal({ ...selectedUserModal, status: e.target.value as UserStatus })}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-purple-200 text-white font-bold text-xs"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-purple-200 text-slate-900 font-bold text-xs"
                   >
                     <option value="Active">Active</option>
                     <option value="Pending">Pending Approval</option>
@@ -1159,7 +1159,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                     const isChecked = (selectedUserModal.permissions || ['eligibility']).includes(p);
                     return (
                       <label key={p} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
-                        <span className="font-mono text-white capitalize text-[11px]">{p.replace('_', ' ')}</span>
+                        <span className="font-mono text-slate-900 capitalize text-[11px]">{p.replace('_', ' ')}</span>
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -1182,13 +1182,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             <div className="flex justify-end space-x-2 pt-2 border-t border-slate-200">
               <button
                 onClick={() => { setSelectedUserModal(null); setModalEditPassword(''); }}
-                className="px-4 py-2 rounded-xl bg-white/5 text-slate-500 text-xs"
+                className="px-4 py-2 rounded-xl bg-white/5 text-slate-700 font-medium text-xs"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleSaveFullUserAccount(selectedUserModal, modalEditPassword)}
-                className="px-5 py-2 rounded-xl bg-purple-500 text-white font-bold text-xs hover:bg-purple-400 flex items-center space-x-1.5 shadow-lg"
+                className="px-5 py-2 rounded-xl bg-purple-500 text-slate-900 font-bold text-xs hover:bg-purple-400 flex items-center space-x-1.5 shadow-lg"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Credentials & Password</span>

@@ -435,14 +435,14 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       {/* Module Banner */}
       <div className="glass-card p-6 rounded-2xl border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-teal-700 font-mono text-xs mb-1">
+          <div className="flex items-center space-x-2 text-teal-800 font-semibold font-mono text-xs mb-1">
             <Wand2 className="w-4 h-4" />
             <span>DYNAMIC AI TENDER ELIGIBILITY ENGINE</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-white">
+          <h2 className="text-2xl font-display font-bold text-slate-900">
             Tender Assessment & Qualification Wizard
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-700 font-medium mt-1">
             Upload ANY tender PDF to dynamically extract requirements, compare against Company Master Data, and evaluate Desire Alone, JV Alone, and Desire + JV Combined.
           </p>
         </div>
@@ -476,17 +476,17 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                     isActive
-                      ? 'bg-teal-700 text-aqua-950'
+                      ? 'bg-teal-800 text-white font-bold'
                       : isDone
-                      ? 'bg-emerald-400 text-aqua-950'
-                      : 'bg-white/10 text-slate-500'
+                      ? 'bg-emerald-400 text-white'
+                      : 'bg-white/10 text-slate-700 font-medium'
                   }`}
                 >
                   {isDone ? <Check className="w-4 h-4" /> : s.num}
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-white">{s.title}</h4>
-                  <p className="text-[11px] text-slate-500">{s.desc}</p>
+                  <h4 className="text-xs font-semibold text-slate-900">{s.title}</h4>
+                  <p className="text-[11px] text-slate-700 font-medium">{s.desc}</p>
                 </div>
               </div>
             </div>
@@ -497,14 +497,14 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       {/* STEP 1: UPLOAD & SETUP (INCLUDES ANALYSIS MODE SELECTOR) */}
       {currentStep === 1 && (
         <div className="glass-card p-6 md:p-8 rounded-2xl border border-slate-200 space-y-6">
-          <h3 className="text-base font-bold text-white flex items-center space-x-2">
-            <Upload className="w-5 h-5 text-teal-700" />
+          <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+            <Upload className="w-5 h-5 text-teal-800 font-semibold" />
             <span>Step 1: Tender Details, Document Upload & Analysis Mode Selection</span>
           </h3>
 
           {/* Analysis Mode Selection on Step 1 */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-200 space-y-3">
-            <label className="text-[11px] font-mono text-teal-700 uppercase tracking-wider block font-bold">
+          <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 space-y-3">
+            <label className="text-[11px] font-mono text-teal-800 font-semibold uppercase tracking-wider block font-bold">
               Select Primary Analysis Mode (How You Want the AI Report Generated)
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -514,14 +514,14 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
                   activeAnalysisOption === 'desire'
                     ? 'bg-cyan-500/20 border-cyan-400 text-teal-800 shadow-lg shadow-cyan-500/10 font-bold'
-                    : 'bg-slate-900 border-slate-200 text-slate-500 hover:text-white'
+                    : 'bg-slate-100 border border-slate-200 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Building2 className="w-4 h-4 text-teal-700" />
+                  <Building2 className="w-4 h-4 text-teal-800 font-semibold" />
                   <span className="text-xs font-bold">1. Desire Alone</span>
                 </div>
-                <span className="text-[11px] text-slate-500">Evaluate Desire Energy standalone capability</span>
+                <span className="text-[11px] text-slate-700 font-medium">Evaluate Desire Energy standalone capability</span>
               </button>
 
               <button
@@ -529,15 +529,15 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 onClick={() => setActiveAnalysisOption('jv')}
                 className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
                   activeAnalysisOption === 'jv'
-                    ? 'bg-teal-500/20 border-teal-400 text-teal-300 shadow-lg shadow-teal-500/10 font-bold'
-                    : 'bg-slate-900 border-slate-200 text-slate-500 hover:text-white'
+                    ? 'bg-teal-500/20 border-teal-400 text-teal-800 font-bold shadow-lg shadow-teal-500/10 font-bold'
+                    : 'bg-slate-100 border border-slate-200 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Building2 className="w-4 h-4 text-teal-400" />
+                  <Building2 className="w-4 h-4 text-teal-800 font-bold" />
                   <span className="text-xs font-bold">2. JV Partner Alone</span>
                 </div>
-                <span className="text-[11px] text-slate-500">Evaluate chosen JV Partner standalone capability</span>
+                <span className="text-[11px] text-slate-700 font-medium">Evaluate chosen JV Partner standalone capability</span>
               </button>
 
               <button
@@ -545,15 +545,15 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 onClick={() => setActiveAnalysisOption('combined')}
                 className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
                   activeAnalysisOption === 'combined'
-                    ? 'bg-gradient-to-r from-cyan-500/30 to-teal-500/20 border-cyan-400 text-white font-bold shadow-lg shadow-cyan-500/15'
-                    : 'bg-slate-900 border-slate-200 text-slate-500 hover:text-white'
+                    ? 'bg-gradient-to-r from-cyan-500/30 to-teal-500/20 border-cyan-400 text-slate-900 font-bold shadow-lg shadow-cyan-500/15'
+                    : 'bg-slate-100 border border-slate-200 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <GitMerge className="w-4 h-4 text-teal-700" />
+                  <GitMerge className="w-4 h-4 text-teal-800 font-semibold" />
                   <span className="text-xs font-bold">3. Desire + JV Combined</span>
                 </div>
-                <span className="text-[11px] text-slate-500">Evaluate combined consortium with JV rules</span>
+                <span className="text-[11px] text-slate-700 font-medium">Evaluate combined consortium with JV rules</span>
               </button>
             </div>
           </div>
@@ -565,7 +565,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 type="text"
                 value={tenderTitle}
                 onChange={(e) => setTenderTitle(e.target.value)}
-                className="w-full bg-slate-900/80 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
@@ -574,7 +574,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value as ProjectCategory)}
-                className="w-full bg-slate-900/80 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
               >
                 <option value="ESCO">ESCO & Water Pumping Project (Junagadh Municipal Scheme)</option>
                 <option value="STP">STP & Sewerage Package (AMRUT 2.0 / Alwar PKG 44)</option>
@@ -588,12 +588,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             {/* Tender PDF Drag & Drop */}
             <div className="md:col-span-2 space-y-2">
               <label className="text-xs font-mono text-slate-600">Upload Tender Specification PDF *</label>
-              <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-250 hover:border-teal-300 bg-slate-900/40 hover:bg-cyan-950/20 cursor-pointer transition-all">
-                <Upload className="w-8 h-8 text-teal-700 mb-2" />
-                <span className="text-xs font-semibold text-white">
+              <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-250 hover:border-teal-300 bg-slate-100 border border-slate-200 hover:bg-cyan-950/20 cursor-pointer transition-all">
+                <Upload className="w-8 h-8 text-teal-800 font-semibold mb-2" />
+                <span className="text-xs font-semibold text-slate-900">
                   {uploadedTenderFile ? uploadedTenderFile.name : 'Drag & drop tender PDF here, or click to browse'}
                 </span>
-                <span className="text-[11px] text-slate-500 mt-1">Supports official tender NIT, RFP, PQ guidelines PDF (e.g. PQ_Upload_Junagadh.pdf)</span>
+                <span className="text-[11px] text-slate-700 font-medium mt-1">Supports official tender NIT, RFP, PQ guidelines PDF (e.g. PQ_Upload_Junagadh.pdf)</span>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx"
@@ -607,7 +607,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           <div className="flex justify-end pt-4 border-t border-slate-200">
             <button
               onClick={startDocumentAnalysis}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2 transition-all"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2 transition-all"
             >
               <span>Analyze Tender & Run AI Qualification</span>
               <ArrowRight className="w-4 h-4" />
@@ -619,12 +619,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       {/* STEP 2: DOCUMENT PROCESSING STATE */}
       {currentStep === 2 && (
         <div className="glass-card p-12 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-6">
-          <Loader2 className="w-12 h-12 text-teal-700 animate-spin" />
+          <Loader2 className="w-12 h-12 text-teal-800 font-semibold animate-spin" />
           <div className="space-y-2 max-w-md">
-            <h3 className="text-base font-bold text-white">Executing Dynamic AI Eligibility Engine</h3>
-            <p className="text-xs text-slate-500">{analysisStageText}</p>
+            <h3 className="text-base font-bold text-slate-900">Executing Dynamic AI Eligibility Engine</h3>
+            <p className="text-xs text-slate-700 font-medium">{analysisStageText}</p>
           </div>
-          <div className="w-full max-w-md bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-200">
+          <div className="w-full max-w-md bg-slate-100 border border-slate-200 rounded-full h-2 overflow-hidden border border-slate-200">
             <div
               className="bg-gradient-to-r from-cyan-400 to-teal-400 h-full transition-all duration-300"
               style={{ width: `${analysisProgress}%` }}
@@ -642,8 +642,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               onClick={() => setActiveAnalysisOption('desire')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'desire'
-                  ? 'bg-cyan-500/20 text-teal-800 border border-teal-300 shadow-lg shadow-cyan-500/10 font-bold'
-                  : 'bg-white/5 text-slate-500 hover:text-white'
+                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-300 shadow-lg shadow-cyan-500/10 font-bold'
+                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -657,8 +657,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               onClick={() => setActiveAnalysisOption('jv')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'jv'
-                  ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-lg shadow-teal-500/10 font-bold'
-                  : 'bg-white/5 text-slate-500 hover:text-white'
+                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold font-bold border border-teal-500/40 shadow-lg shadow-teal-500/10 font-bold'
+                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -672,8 +672,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               onClick={() => setActiveAnalysisOption('combined')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'combined'
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold shadow-lg shadow-cyan-500/20'
-                  : 'bg-white/5 text-slate-500 hover:text-white'
+                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold shadow-lg shadow-cyan-500/20'
+                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <GitMerge className="w-4 h-4" />
@@ -688,24 +688,24 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           <div className="glass-card p-6 rounded-2xl border border-teal-200 bg-gradient-to-r from-slate-900 via-aqua-950/60 to-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/20 text-teal-800 border border-teal-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
                   perspective.verdict.includes('ELIGIBLE') && !perspective.verdict.includes('PARTIALLY')
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-amber-100 text-amber-800 border border-amber-200'
+                    : 'bg-amber-100 text-amber-900 font-bold border border-amber-200'
                 }`}>
                   {perspective.verdict}
                 </span>
-                <span className="text-xs font-mono text-teal-700">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
+                <span className="text-xs font-mono text-teal-800 font-semibold">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
               </div>
-              <h2 className="text-lg font-bold text-white">{currentReport.tender_title}</h2>
+              <h2 className="text-lg font-bold text-slate-900">{currentReport.tender_title}</h2>
               <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">{perspective.executive_summary}</p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-200 shrink-0 text-center space-y-1">
-              <span className="text-[10px] font-mono text-slate-500 uppercase block">Recommendation</span>
+            <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 shrink-0 text-center space-y-1">
+              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Recommendation</span>
               <span className="text-xs font-bold text-teal-800 block">{perspective.recommendation}</span>
             </div>
           </div>
@@ -713,29 +713,29 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {/* Dynamic Criteria Summary Stats Across All Extracted Clauses WITH ZERO DISCREPANCY */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
             <div className="glass-card p-3 rounded-xl border border-slate-200">
-              <span className="text-[10px] font-mono text-slate-500 uppercase block">Total Criteria</span>
-              <span className="text-sm font-bold text-white">
+              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Total Criteria</span>
+              <span className="text-sm font-bold text-slate-900">
                 {perspective.total_count}
               </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
-              <span className="text-[10px] font-mono text-emerald-700 uppercase block">Matched</span>
+              <span className="text-[10px] font-mono text-emerald-800 font-bold uppercase block">Matched</span>
               <span className="text-sm font-bold text-emerald-800">
                 {perspective.matched_count}
               </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
               <span className="text-[10px] font-mono text-amber-700 uppercase block">Partial Match</span>
-              <span className="text-sm font-bold text-amber-800">
+              <span className="text-sm font-bold text-amber-900 font-bold">
                 {perspective.partial_count}
               </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-rose-500/20 bg-rose-500/5">
-              <span className="text-[10px] font-mono text-rose-700 uppercase block">Not Matching</span>
+              <span className="text-[10px] font-mono text-rose-800 font-bold uppercase block">Not Matching</span>
               <span className="text-sm font-bold text-rose-800">0</span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-slate-500/20 bg-slate-500/5">
-              <span className="text-[10px] font-mono text-slate-500 uppercase block">Data Missing</span>
+              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Data Missing</span>
               <span className="text-sm font-bold text-slate-600">0</span>
             </div>
           </div>
@@ -744,27 +744,27 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-white">Extracted Tender Clause Analysis ({currentReport.clauses_breakdown?.length || 10} Clauses Extracted)</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/20 text-teal-800 border border-teal-200">
+                <h3 className="text-sm font-bold text-slate-900">Extracted Tender Clause Analysis ({currentReport.clauses_breakdown?.length || 10} Clauses Extracted)</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
               </div>
-              <span className="text-xs text-slate-500 font-mono">Dynamic AI Matching Engine</span>
+              <span className="text-xs text-slate-700 font-medium font-mono">Dynamic AI Matching Engine</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 font-mono text-[10px] uppercase tracking-wider bg-slate-900/60">
+                  <tr className="border-b border-slate-200 text-slate-700 font-medium font-mono text-[10px] uppercase tracking-wider bg-slate-100 border border-slate-200">
                     <th className="p-3">Clause & Page</th>
                     <th className="p-3">Tender Requirement</th>
                     {activeAnalysisOption === 'desire' && <th className="p-3 text-teal-800">Desire Energy Value</th>}
-                    {activeAnalysisOption === 'jv' && <th className="p-3 text-teal-300">{jvComp.name} Value</th>}
+                    {activeAnalysisOption === 'jv' && <th className="p-3 text-teal-800 font-bold">{jvComp.name} Value</th>}
                     {activeAnalysisOption === 'combined' && (
                       <>
                         <th className="p-3 text-teal-800">Desire Energy</th>
-                        <th className="p-3 text-teal-300">JV Partner</th>
-                        <th className="p-3 text-white">Combined Result</th>
+                        <th className="p-3 text-teal-800 font-bold">JV Partner</th>
+                        <th className="p-3 text-slate-900">Combined Result</th>
                         <th className="p-3">Applicable JV Rule</th>
                       </>
                     )}
@@ -818,18 +818,18 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                     return (
                       <tr key={idx} className="hover:bg-white/5 transition-colors">
                         <td className="p-3">
-                          <span className="font-mono text-[10px] text-teal-700 block">{item.clause_no} ({item.page_ref})</span>
-                          <span className="font-semibold text-white">{item.clause_title}</span>
+                          <span className="font-mono text-[10px] text-teal-800 font-semibold block">{item.clause_no} ({item.page_ref})</span>
+                          <span className="font-semibold text-slate-900">{item.clause_title}</span>
                         </td>
                         <td className="p-3 text-slate-600">{item.tender_requirement}</td>
                         {activeAnalysisOption === 'desire' && <td className="p-3 text-teal-800 font-mono font-medium">{item.desire_value}</td>}
-                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-300 font-mono font-medium">{item.jv_value}</td>}
+                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-800 font-bold font-mono font-medium">{item.jv_value}</td>}
                         {activeAnalysisOption === 'combined' && (
                           <>
                             <td className="p-3 text-teal-800 font-mono">{item.desire_value}</td>
-                            <td className="p-3 text-teal-300 font-mono">{item.jv_value}</td>
-                            <td className="p-3 text-white font-mono font-bold">{item.combined_value}</td>
-                            <td className="p-3 text-slate-500 font-mono text-[11px]">{item.applicable_jv_rule}</td>
+                            <td className="p-3 text-teal-800 font-bold font-mono">{item.jv_value}</td>
+                            <td className="p-3 text-slate-900 font-mono font-bold">{item.combined_value}</td>
+                            <td className="p-3 text-slate-700 font-medium font-mono text-[11px]">{item.applicable_jv_rule}</td>
                           </>
                         )}
                         <td className="p-3">
@@ -838,7 +838,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                               statusVal === 'MATCH'
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                                 : statusVal === 'PARTIAL MATCH'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                ? 'bg-amber-100 text-amber-900 font-bold border border-amber-200'
                                 : statusVal === 'NOT MATCHING'
                                 ? 'bg-rose-100 text-rose-800 border border-rose-200'
                                 : statusVal === 'DATA NOT AVAILABLE'
@@ -853,10 +853,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                             <span>{statusVal}</span>
                           </span>
                         </td>
-                        <td className="p-3 font-mono font-bold text-teal-700">
+                        <td className="p-3 font-mono font-bold text-teal-800 font-semibold">
                           {itemFulfilledPct}
                         </td>
-                        <td className="p-3 text-slate-500 text-[11px]">{item.gap_notes}</td>
+                        <td className="p-3 text-slate-700 font-medium text-[11px]">{item.gap_notes}</td>
                         <td className="p-3 text-slate-600 font-mono text-[11px]">{item.required_doc}</td>
                       </tr>
                     );
@@ -877,7 +877,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             </button>
             <button
               onClick={() => setCurrentStep(4)}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2"
             >
               <span>Proceed to Step 4: Submit to Queue</span>
               <ArrowRight className="w-4 h-4" />
@@ -889,12 +889,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       {/* STEP 4: SUBMIT TO QUEUE */}
       {currentStep === 4 && (
         <div className="glass-card p-8 rounded-2xl border border-slate-200 space-y-6 text-center max-w-2xl mx-auto">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200 flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-bold text-white">Save Dynamic Assessment & Add to Process Queue</h3>
-            <p className="text-xs text-slate-500">
+            <h3 className="text-lg font-bold text-slate-900">Save Dynamic Assessment & Add to Process Queue</h3>
+            <p className="text-xs text-slate-700 font-medium">
               The dynamic AI evaluation report for '{tenderTitle}' has been generated and saved to the database. Submit to enter stage 1 of the tender process queue.
             </p>
           </div>
@@ -908,7 +908,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             </button>
             <button
               onClick={handleSubmitToQueue}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20"
             >
               Submit to Queue
             </button>

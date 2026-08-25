@@ -176,12 +176,12 @@ export const EligibilityChecker: React.FC = () => {
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-cyan-500/20 text-teal-700 border border-teal-200">
+          <div className="p-2.5 rounded-xl bg-teal-100 text-teal-900 border border-teal-300 font-bold font-semibold border border-teal-200">
             <Sparkles className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white tracking-wide">Dynamic AI Tender Eligibility Engine</h1>
-            <p className="text-xs text-slate-500">
+            <h1 className="text-xl font-bold text-slate-900 tracking-wide">Dynamic AI Tender Eligibility Engine</h1>
+            <p className="text-xs text-slate-700 font-medium">
               Upload ANY tender PDF to dynamically extract clauses & evaluate Desire Alone vs JV Alone vs Desire + JV.
             </p>
           </div>
@@ -193,15 +193,15 @@ export const EligibilityChecker: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* File Upload Box */}
           <div className="md:col-span-2 space-y-1">
-            <label className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">
+            <label className="text-[11px] font-mono text-slate-700 font-medium uppercase tracking-wider">
               Upload Tender PDF (or Select Working Project)
             </label>
             <div className="flex items-center space-x-3">
-              <label className="flex-1 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-200 cursor-pointer hover:border-teal-300 transition-all">
+              <label className="flex-1 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 cursor-pointer hover:border-teal-300 transition-all">
                 <span className="text-xs text-slate-600 truncate">
                   {tenderFile ? tenderFile.name : tenderTitleInput}
                 </span>
-                <Upload className="w-4 h-4 text-teal-700 shrink-0 ml-2" />
+                <Upload className="w-4 h-4 text-teal-800 font-semibold shrink-0 ml-2" />
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx"
@@ -220,11 +220,11 @@ export const EligibilityChecker: React.FC = () => {
 
           {/* Project Category */}
           <div className="space-y-1">
-            <label className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">Tender Category</label>
+            <label className="text-[11px] font-mono text-slate-700 font-medium uppercase tracking-wider">Tender Category</label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+              className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
             >
               <option value="RHDS">RHDS Jal Jeevan Mission Rural Water Scheme</option>
               <option value="STP">STP & Sewerage Package (AMRUT 2.0)</option>
@@ -239,12 +239,12 @@ export const EligibilityChecker: React.FC = () => {
         {/* JV Partner Selection Toolbar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-slate-200">
           <div className="flex items-center space-x-3 w-full sm:w-auto">
-            <GitMerge className="w-4 h-4 text-teal-700 shrink-0" />
-            <span className="text-xs text-slate-500">Select JV Partner for Evaluation:</span>
+            <GitMerge className="w-4 h-4 text-teal-800 font-semibold shrink-0" />
+            <span className="text-xs text-slate-700 font-medium">Select JV Partner for Evaluation:</span>
             <select
               value={selectedJvPartnerId}
               onChange={(e) => setSelectedJvPartnerId(e.target.value)}
-              className="bg-slate-900 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+              className="bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500 font-mono"
             >
               {companies.filter(c => c.type !== 'Desire Energy').map(c => (
                 <option key={c.id} value={c.id}>{c.name} ({c.type} - Avg ₹{c.average_turnover} Cr)</option>
@@ -256,7 +256,7 @@ export const EligibilityChecker: React.FC = () => {
           <button
             type="submit"
             disabled={analyzing}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center justify-center space-x-2 transition-all"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center justify-center space-x-2 transition-all"
           >
             {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             <span>Analyze Tender with AI Engine</span>
@@ -273,8 +273,8 @@ export const EligibilityChecker: React.FC = () => {
               onClick={() => setActiveAnalysisOption('desire')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'desire'
-                  ? 'bg-cyan-500/20 text-teal-800 border border-teal-300 shadow-lg shadow-cyan-500/10 font-bold'
-                  : 'bg-white/5 text-slate-500 hover:text-white'
+                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-300 shadow-lg shadow-cyan-500/10 font-bold'
+                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -288,8 +288,8 @@ export const EligibilityChecker: React.FC = () => {
               onClick={() => setActiveAnalysisOption('jv')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'jv'
-                  ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-lg shadow-teal-500/10 font-bold'
-                  : 'bg-white/5 text-slate-500 hover:text-white'
+                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold font-bold border border-teal-500/40 shadow-lg shadow-teal-500/10 font-bold'
+                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -303,8 +303,8 @@ export const EligibilityChecker: React.FC = () => {
               onClick={() => setActiveAnalysisOption('combined')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
                 activeAnalysisOption === 'combined'
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-aqua-950 font-bold shadow-lg shadow-cyan-500/20'
-                  : 'bg-white/5 text-slate-500 hover:text-white'
+                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold shadow-lg shadow-cyan-500/20'
+                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
               }`}
             >
               <GitMerge className="w-4 h-4" />
@@ -319,24 +319,24 @@ export const EligibilityChecker: React.FC = () => {
           <div className="glass-card p-6 rounded-2xl border border-teal-200 bg-gradient-to-r from-slate-900 via-aqua-950/60 to-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/20 text-teal-800 border border-teal-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
                   perspective.verdict.includes('Eligible')
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-amber-100 text-amber-800 border border-amber-200'
+                    : 'bg-amber-100 text-amber-900 font-bold border border-amber-200'
                 }`}>
                   {perspective.verdict}
                 </span>
-                <span className="text-xs font-mono text-teal-700">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
+                <span className="text-xs font-mono text-teal-800 font-semibold">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
               </div>
-              <h2 className="text-lg font-bold text-white">{report.tender_title}</h2>
+              <h2 className="text-lg font-bold text-slate-900">{report.tender_title}</h2>
               <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">{perspective.executive_summary}</p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-200 shrink-0 text-center space-y-1">
-              <span className="text-[10px] font-mono text-slate-500 uppercase block">Recommendation</span>
+            <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 shrink-0 text-center space-y-1">
+              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Recommendation</span>
               <span className="text-xs font-bold text-teal-800 block">{perspective.recommendation}</span>
             </div>
           </div>
@@ -344,23 +344,23 @@ export const EligibilityChecker: React.FC = () => {
           {/* Dynamic Criteria Summary Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
             <div className="glass-card p-3 rounded-xl border border-slate-200">
-              <span className="text-[10px] font-mono text-slate-500 uppercase block">Total Criteria</span>
-              <span className="text-sm font-bold text-white">{report.summary_counts?.total_criteria || 5}</span>
+              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Total Criteria</span>
+              <span className="text-sm font-bold text-slate-900">{report.summary_counts?.total_criteria || 5}</span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
-              <span className="text-[10px] font-mono text-emerald-700 uppercase block">Matched</span>
+              <span className="text-[10px] font-mono text-emerald-800 font-bold uppercase block">Matched</span>
               <span className="text-sm font-bold text-emerald-800">{report.summary_counts?.matched || 4}</span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
               <span className="text-[10px] font-mono text-amber-700 uppercase block">Partial Match</span>
-              <span className="text-sm font-bold text-amber-800">{report.summary_counts?.partial || 1}</span>
+              <span className="text-sm font-bold text-amber-900 font-bold">{report.summary_counts?.partial || 1}</span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-rose-500/20 bg-rose-500/5">
-              <span className="text-[10px] font-mono text-rose-700 uppercase block">Not Matching</span>
+              <span className="text-[10px] font-mono text-rose-800 font-bold uppercase block">Not Matching</span>
               <span className="text-sm font-bold text-rose-800">{report.summary_counts?.not_matching || 0}</span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-slate-500/20 bg-slate-500/5">
-              <span className="text-[10px] font-mono text-slate-500 uppercase block">Data Missing</span>
+              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Data Missing</span>
               <span className="text-sm font-bold text-slate-600">{report.summary_counts?.data_missing || 0}</span>
             </div>
           </div>
@@ -369,27 +369,27 @@ export const EligibilityChecker: React.FC = () => {
           <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-white">Extracted Tender Clause Analysis</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/20 text-teal-800 border border-teal-200">
+                <h3 className="text-sm font-bold text-slate-900">Extracted Tender Clause Analysis</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
                   {perspective.badge}
                 </span>
               </div>
-              <span className="text-xs text-slate-500 font-mono">Dynamic AI Matching Engine</span>
+              <span className="text-xs text-slate-700 font-medium font-mono">Dynamic AI Matching Engine</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 font-mono text-[10px] uppercase tracking-wider bg-slate-900/60">
+                  <tr className="border-b border-slate-200 text-slate-700 font-medium font-mono text-[10px] uppercase tracking-wider bg-slate-100 border border-slate-200">
                     <th className="p-3">Clause & Page</th>
                     <th className="p-3">Tender Requirement</th>
                     {activeAnalysisOption === 'desire' && <th className="p-3 text-teal-800">Desire Energy Value</th>}
-                    {activeAnalysisOption === 'jv' && <th className="p-3 text-teal-300">{jvComp.name} Value</th>}
+                    {activeAnalysisOption === 'jv' && <th className="p-3 text-teal-800 font-bold">{jvComp.name} Value</th>}
                     {activeAnalysisOption === 'combined' && (
                       <>
                         <th className="p-3 text-teal-800">Desire Energy</th>
-                        <th className="p-3 text-teal-300">JV Partner</th>
-                        <th className="p-3 text-white">Combined Result</th>
+                        <th className="p-3 text-teal-800 font-bold">JV Partner</th>
+                        <th className="p-3 text-slate-900">Combined Result</th>
                         <th className="p-3">Applicable JV Rule</th>
                       </>
                     )}
@@ -414,18 +414,18 @@ export const EligibilityChecker: React.FC = () => {
                     return (
                       <tr key={idx} className="hover:bg-white/5 transition-colors">
                         <td className="p-3">
-                          <span className="font-mono text-[10px] text-teal-700 block">{item.clause_no} ({item.page_ref})</span>
-                          <span className="font-semibold text-white">{item.clause_title}</span>
+                          <span className="font-mono text-[10px] text-teal-800 font-semibold block">{item.clause_no} ({item.page_ref})</span>
+                          <span className="font-semibold text-slate-900">{item.clause_title}</span>
                         </td>
                         <td className="p-3 text-slate-600">{item.tender_requirement}</td>
                         {activeAnalysisOption === 'desire' && <td className="p-3 text-teal-800 font-mono font-medium">{item.desire_value}</td>}
-                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-300 font-mono font-medium">{item.jv_value}</td>}
+                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-800 font-bold font-mono font-medium">{item.jv_value}</td>}
                         {activeAnalysisOption === 'combined' && (
                           <>
                             <td className="p-3 text-teal-800 font-mono">{item.desire_value}</td>
-                            <td className="p-3 text-teal-300 font-mono">{item.jv_value}</td>
-                            <td className="p-3 text-white font-mono font-bold">{item.combined_value}</td>
-                            <td className="p-3 text-slate-500 font-mono text-[11px]">{item.applicable_jv_rule}</td>
+                            <td className="p-3 text-teal-800 font-bold font-mono">{item.jv_value}</td>
+                            <td className="p-3 text-slate-900 font-mono font-bold">{item.combined_value}</td>
+                            <td className="p-3 text-slate-700 font-medium font-mono text-[11px]">{item.applicable_jv_rule}</td>
                           </>
                         )}
                         <td className="p-3">
@@ -434,7 +434,7 @@ export const EligibilityChecker: React.FC = () => {
                               statusVal === 'MATCH'
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                                 : statusVal === 'PARTIAL MATCH'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                ? 'bg-amber-100 text-amber-900 font-bold border border-amber-200'
                                 : statusVal === 'NOT MATCHING'
                                 ? 'bg-rose-100 text-rose-800 border border-rose-200'
                                 : statusVal === 'DATA NOT AVAILABLE'
@@ -448,10 +448,10 @@ export const EligibilityChecker: React.FC = () => {
                             <span>{statusVal}</span>
                           </span>
                         </td>
-                        <td className="p-3 font-mono font-bold text-teal-700">
+                        <td className="p-3 font-mono font-bold text-teal-800 font-semibold">
                           {activeAnalysisOption === 'desire' ? (statusVal === 'MATCH' ? '100%' : '75%') : (activeAnalysisOption === 'jv' ? '61.7%' : item.fulfilled_pct)}
                         </td>
-                        <td className="p-3 text-slate-500 text-[11px]">{item.gap_notes}</td>
+                        <td className="p-3 text-slate-700 font-medium text-[11px]">{item.gap_notes}</td>
                         <td className="p-3 text-slate-600 font-mono text-[11px]">{item.required_doc}</td>
                       </tr>
                     );

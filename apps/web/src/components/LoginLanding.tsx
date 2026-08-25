@@ -341,13 +341,13 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <Layers className="w-5 h-5 text-aqua-950 stroke-[2.5]" />
+            <Layers className="w-5 h-5 text-white stroke-[2.5]" />
           </div>
           <div>
-            <h1 className="font-display text-lg font-bold text-white tracking-tight">
-              DESIRE <span className="text-teal-700">ENERGY SOLUTIONS</span>
+            <h1 className="font-display text-lg font-bold text-slate-900 tracking-tight">
+              DESIRE <span className="text-teal-800 font-semibold">ENERGY SOLUTIONS</span>
             </h1>
-            <p className="text-[11px] text-slate-500 font-mono">
+            <p className="text-[11px] text-slate-700 font-medium font-mono">
               Tender Intelligence Platform • Jaipur HQ
             </p>
           </div>
@@ -371,10 +371,10 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             <span>Water Infrastructure Lifecycle Engine</span>
           </span>
 
-          <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-slate-900 tracking-tight">
             Desire Tender Portal
           </h2>
-          <p className="text-slate-500 text-xs max-w-md mx-auto">
+          <p className="text-slate-700 font-medium text-xs max-w-md mx-auto">
             Employee credentials are strictly validated. New accounts are granted initial access to **Eligibility Checking** pending Admin approval.
           </p>
         </div>
@@ -385,8 +385,8 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             onClick={() => { setActiveMode('signin'); setErrorMsg(null); setSuccessNotice(null); }}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold font-mono transition-all ${
               activeMode === 'signin'
-                ? 'bg-teal-700 text-aqua-950 shadow-lg shadow-cyan-400/20'
-                : 'text-slate-500 hover:text-white'
+                ? 'bg-teal-800 text-white font-bold shadow-lg shadow-cyan-400/20'
+                : 'text-slate-700 font-medium hover:text-slate-900'
             }`}
           >
             Sign In to Workspace
@@ -395,8 +395,8 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             onClick={() => { setActiveMode('register'); setErrorMsg(null); setSuccessNotice(null); }}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold font-mono transition-all ${
               activeMode === 'register'
-                ? 'bg-teal-700 text-aqua-950 shadow-lg shadow-cyan-400/20'
-                : 'text-slate-500 hover:text-white'
+                ? 'bg-teal-800 text-white font-bold shadow-lg shadow-cyan-400/20'
+                : 'text-slate-700 font-medium hover:text-slate-900'
             }`}
           >
             Create Account
@@ -407,14 +407,14 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
         <div className="glass-card p-8 rounded-3xl border border-teal-200 max-w-md mx-auto shadow-2xl shadow-cyan-500/10 space-y-5">
           {errorMsg && (
             <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start space-x-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-rose-800 font-bold shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successNotice && (
             <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start space-x-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-800 font-bold shrink-0 mt-0.5" />
               <span>{successNotice}</span>
             </div>
           )}
@@ -426,7 +426,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
               <div className="space-y-1.5">
                 <label className="text-xs font-mono uppercase text-slate-600 block">Employee / User ID *</label>
                 <div className="relative">
-                  <UserCheck className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <UserCheck className="w-4 h-4 text-slate-700 font-medium absolute left-3.5 top-3.5" />
                   <input
                     type="text"
                     required
@@ -434,7 +434,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="e.g. EMP001"
                     value={employeeId}
                     onChange={(e) => setEmployeeId(e.target.value)}
-                    className="w-full glass-input text-sm text-white pl-10 pr-4 py-2.5 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono uppercase"
+                    className="w-full glass-input text-sm text-slate-900 pl-10 pr-4 py-2.5 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono uppercase"
                   />
                 </div>
               </div>
@@ -443,7 +443,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
               <div className="space-y-1.5">
                 <label className="text-xs font-mono uppercase text-slate-600 block">Password *</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-slate-700 font-medium absolute left-3.5 top-3.5" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
@@ -451,12 +451,12 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full glass-input text-sm text-white pl-10 pr-10 py-2.5 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-sm text-slate-900 pl-10 pr-10 py-2.5 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3 text-slate-500 hover:text-white"
+                    className="absolute right-3.5 top-3 text-slate-700 font-medium hover:text-slate-900"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -466,7 +466,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center space-x-2 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-sm hover:from-cyan-300 hover:to-teal-300 transition shadow-xl shadow-cyan-400/25 cursor-pointer"
+                className="w-full flex items-center justify-center space-x-2 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-sm hover:from-cyan-300 hover:to-teal-300 transition shadow-xl shadow-cyan-400/25 cursor-pointer"
               >
                 <span>{isSubmitting ? 'Authenticating...' : 'Sign In'}</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
@@ -486,7 +486,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                   placeholder="e.g. EMP005"
                   value={regEmpId}
                   onChange={(e) => setRegEmpId(e.target.value)}
-                  className="w-full glass-input text-xs text-white px-3.5 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono uppercase"
+                  className="w-full glass-input text-xs text-slate-900 px-3.5 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono uppercase"
                 />
               </div>
 
@@ -499,7 +499,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                   placeholder="e.g. Ramesh Kumar"
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
-                  className="w-full glass-input text-xs text-white px-3.5 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none"
+                  className="w-full glass-input text-xs text-slate-900 px-3.5 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none"
                 />
               </div>
 
@@ -514,7 +514,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="9829012345"
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-xs text-slate-900 px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                 </div>
 
@@ -527,7 +527,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="name@desireenergy.com"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none"
+                    className="w-full glass-input text-xs text-slate-900 px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none"
                   />
                 </div>
               </div>
@@ -542,7 +542,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="••••••••"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-xs text-slate-900 px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                 </div>
 
@@ -555,7 +555,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="••••••••"
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-xs text-slate-900 px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                 </div>
               </div>
@@ -563,7 +563,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center space-x-2 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-xl shadow-cyan-400/25 cursor-pointer mt-2"
+                className="w-full flex items-center justify-center space-x-2 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-xl shadow-cyan-400/25 cursor-pointer mt-2"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>{isSubmitting ? 'Registering Account...' : 'Register Employee Account'}</span>
@@ -574,7 +574,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       </div>
 
       {/* Footer */}
-      <div className="text-center text-xs text-slate-500 font-mono border-t border-slate-200 pt-6 max-w-7xl mx-auto w-full">
+      <div className="text-center text-xs text-slate-700 font-medium font-mono border-t border-slate-200 pt-6 max-w-7xl mx-auto w-full">
         © 2026 Desire Energy Solutions Pvt. Ltd. Jaipur HQ • Production RBAC Architecture
       </div>
     </div>

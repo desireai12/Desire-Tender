@@ -20,14 +20,14 @@ export const CostBreakdownPlaceholder: React.FC<CostBreakdownPlaceholderProps> =
     <div className="glass-card rounded-2xl p-6 border border-slate-200">
       <div className="flex items-center justify-between mb-6 border-b border-slate-200 pb-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-700">
+          <div className="p-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 font-semibold">
             <Calculator className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-display font-semibold text-white">
+            <h3 className="text-lg font-display font-semibold text-slate-900">
               AI Baseline Cost Structure Breakdown
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700 font-medium">
               RAG-inferred cost proportions derived from competitor bidding data & past project intelligence
             </p>
           </div>
@@ -47,7 +47,7 @@ export const CostBreakdownPlaceholder: React.FC<CostBreakdownPlaceholderProps> =
               className="p-4 rounded-xl bg-slate-50/60 border border-white/8 hover:border-teal-200 transition-all space-y-3"
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-white">{item.category}</span>
+                <span className="text-sm font-semibold text-slate-900">{item.category}</span>
                 <span className="text-base font-display font-bold text-teal-800">
                   {item.estimated_percentage}%
                 </span>
@@ -60,7 +60,7 @@ export const CostBreakdownPlaceholder: React.FC<CostBreakdownPlaceholderProps> =
                 />
               </div>
 
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-slate-700 font-medium leading-relaxed">
                 {item.description}
               </p>
             </div>

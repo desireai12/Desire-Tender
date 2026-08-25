@@ -166,10 +166,10 @@ export const CompetitorBattleCardsView: React.FC = () => {
             <Swords className="w-4 h-4" />
             <span>PROVISION 6: COMPETITOR BATTLE CARDS MODULE</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-white">
+          <h2 className="text-2xl font-display font-bold text-slate-900">
             Indian Water & Solar Sector Competitor Intelligence
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-700 font-medium mt-1">
             Analyze 12-month historical bidding patterns, discount margins, technical vulnerabilities, and AI counter-strategies for L&T, Wabag, Shakti Pumps, KBL & Tata Power.
           </p>
         </div>
@@ -180,7 +180,7 @@ export const CompetitorBattleCardsView: React.FC = () => {
 
       {/* Vertical Category Filter Bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-mono text-slate-500 uppercase mr-2">Filter Vertical:</span>
+        <span className="text-xs font-mono text-slate-700 font-medium uppercase mr-2">Filter Vertical:</span>
         {['ALL', 'EPC', 'ESCO', 'SOLAR', 'STP', 'KUSUM', 'RHDS'].map((cat) => (
           <button
             key={cat}
@@ -191,7 +191,7 @@ export const CompetitorBattleCardsView: React.FC = () => {
             }}
             className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all border ${
               activeCategoryFilter === cat
-                ? 'bg-purple-500 text-white border-purple-400 font-bold shadow-md shadow-purple-500/20'
+                ? 'bg-purple-500 text-slate-900 border-purple-400 font-bold shadow-md shadow-purple-500/20'
                 : 'bg-slate-50/60 text-slate-600 border-slate-200 hover:border-purple-400/40'
             }`}
           >
@@ -216,19 +216,19 @@ export const CompetitorBattleCardsView: React.FC = () => {
               <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-purple-50 text-purple-800 border border-purple-200">
                 Category: {comp.category}
               </span>
-              <span className="text-xs font-mono text-emerald-700 font-bold">
+              <span className="text-xs font-mono text-emerald-800 font-bold font-bold">
                 Win Rate: {comp.historical_win_rate}
               </span>
             </div>
 
-            <h3 className="font-display font-bold text-lg text-white mb-2">{comp.name}</h3>
+            <h3 className="font-display font-bold text-lg text-slate-900 mb-2">{comp.name}</h3>
 
             <div className="space-y-2 text-xs text-slate-600">
               <div className="flex justify-between border-b border-slate-200 pb-1.5">
-                <span className="text-slate-500">12-Mo Discount Margin:</span>
+                <span className="text-slate-700 font-medium">12-Mo Discount Margin:</span>
                 <span className="font-mono text-teal-800 font-medium">{comp.avg_discount_margin}</span>
               </div>
-              <p className="text-slate-500 line-clamp-2 pt-1">{comp.bidding_pattern}</p>
+              <p className="text-slate-700 font-medium line-clamp-2 pt-1">{comp.bidding_pattern}</p>
             </div>
           </div>
         ))}
@@ -239,7 +239,7 @@ export const CompetitorBattleCardsView: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
           <div>
             <span className="text-xs font-mono text-purple-700 uppercase">Active Battle Card Analysis</span>
-            <h3 className="text-2xl font-display font-bold text-white mt-1">
+            <h3 className="text-2xl font-display font-bold text-slate-900 mt-1">
               {activeCompetitor.name}
             </h3>
           </div>
@@ -254,14 +254,14 @@ export const CompetitorBattleCardsView: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Key Strengths */}
           <div className="p-6 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-4">
-            <h4 className="font-display font-semibold text-emerald-700 text-base flex items-center space-x-2">
+            <h4 className="font-display font-semibold text-emerald-800 font-bold text-base flex items-center space-x-2">
               <CheckCircle className="w-5 h-5" />
               <span>Competitor Key Technical Advantages</span>
             </h4>
             <ul className="space-y-2 text-sm text-slate-200">
               {activeCompetitor.strengths.map((str, idx) => (
                 <li key={idx} className="flex items-start space-x-2">
-                  <span className="text-emerald-700 font-bold">•</span>
+                  <span className="text-emerald-800 font-bold font-bold">•</span>
                   <span>{str}</span>
                 </li>
               ))}
@@ -270,14 +270,14 @@ export const CompetitorBattleCardsView: React.FC = () => {
 
           {/* Vulnerabilities */}
           <div className="p-6 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-4">
-            <h4 className="font-display font-semibold text-rose-700 text-base flex items-center space-x-2">
+            <h4 className="font-display font-semibold text-rose-800 font-bold text-base flex items-center space-x-2">
               <ShieldAlert className="w-5 h-5" />
               <span>Competitor Vulnerabilities & Weak Points</span>
             </h4>
             <ul className="space-y-2 text-sm text-slate-200">
               {activeCompetitor.vulnerabilities.map((vul, idx) => (
                 <li key={idx} className="flex items-start space-x-2">
-                  <span className="text-rose-700 font-bold">•</span>
+                  <span className="text-rose-800 font-bold font-bold">•</span>
                   <span>{vul}</span>
                 </li>
               ))}
@@ -287,7 +287,7 @@ export const CompetitorBattleCardsView: React.FC = () => {
 
         {/* Win/Loss Rationale */}
         <div className="p-5 rounded-xl bg-slate-50/80 border border-slate-200 space-y-2">
-          <span className="text-xs font-mono text-slate-500 uppercase">Historical Win/Loss Rationale</span>
+          <span className="text-xs font-mono text-slate-700 font-medium uppercase">Historical Win/Loss Rationale</span>
           <p className="text-sm text-slate-200 leading-relaxed font-medium">
             "{activeCompetitor.win_loss_rationale}"
           </p>
@@ -296,10 +296,10 @@ export const CompetitorBattleCardsView: React.FC = () => {
         {/* AI Counter Strategy Banner */}
         <div className="p-6 rounded-2xl bg-gradient-to-r from-cyan-950/80 via-aqua-900 to-teal-950/80 border border-cyan-400/40 space-y-3 shadow-lg shadow-cyan-500/10">
           <div className="flex items-center space-x-2 text-teal-800 font-mono text-xs">
-            <Crosshair className="w-4 h-4 text-teal-700" />
+            <Crosshair className="w-4 h-4 text-teal-800 font-semibold" />
             <span>AI RECOMMENDED BID COUNTER-STRATEGY</span>
           </div>
-          <p className="text-base text-white font-semibold leading-relaxed">
+          <p className="text-base text-slate-900 font-semibold leading-relaxed">
             {activeCompetitor.recommended_counter_strategy}
           </p>
         </div>

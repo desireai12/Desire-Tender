@@ -322,19 +322,19 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
   if (activeRole !== 'Admin') {
     return (
       <div className="glass-card p-12 rounded-2xl text-center space-y-5 border-2 border-rose-200 max-w-3xl mx-auto my-8">
-        <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-700">
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-800 font-bold">
           <Lock className="w-8 h-8 stroke-[2.5]" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-display font-bold text-white">
+          <h3 className="text-xl font-display font-bold text-slate-900">
             Backend Configuration Restricted — Admin Authorization Required
           </h3>
           <p className="text-xs text-slate-600 leading-relaxed max-w-xl mx-auto">
             API keys, project system instructions, prompt version history, and model settings are managed securely in the Admin Backend. End users cannot view or edit these settings.
           </p>
         </div>
-        <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-500 inline-block font-mono">
-          Current Role: <strong className="text-rose-700">{activeRole}</strong> • Switch role to <strong className="text-teal-800">Admin</strong> in header to open panel.
+        <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 font-medium inline-block font-mono">
+          Current Role: <strong className="text-rose-800 font-bold">{activeRole}</strong> • Switch role to <strong className="text-teal-800">Admin</strong> in header to open panel.
         </div>
       </div>
     );
@@ -475,9 +475,9 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
     <div className="space-y-8 animate-fadeIn">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-aqua-950 font-bold text-xs flex items-center justify-between shadow-2xl animate-bounce">
+        <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-xs flex items-center justify-between shadow-2xl animate-bounce">
           <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-5 h-5 text-aqua-950" />
+            <ShieldCheck className="w-5 h-5 text-white" />
             <span>{toastMessage}</span>
           </div>
           <span className="text-[10px] font-mono uppercase bg-slate-50 text-emerald-800 px-2 py-0.5 rounded-md">
@@ -489,14 +489,14 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
       {/* Module Header */}
       <div className="glass-card p-6 rounded-2xl border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-teal-700 font-mono text-xs mb-1">
+          <div className="flex items-center space-x-2 text-teal-800 font-semibold font-mono text-xs mb-1">
             <ShieldCheck className="w-4 h-4" />
             <span>SECURE BACKEND ADMIN MODULE • ENCRYPTED</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-white">
+          <h2 className="text-2xl font-display font-bold text-slate-900">
             AI System Instructions & Credentials Backend Panel
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-700 font-medium mt-1">
             Manage project-specific system instructions, prompt version history, encrypted API keys, and knowledge source bindings.
           </p>
         </div>
@@ -523,14 +523,14 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
               className={`p-4 rounded-xl border text-left transition-all ${
                 isActive
                   ? 'bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/20 ring-1 ring-cyan-400'
-                  : 'bg-slate-50/40 border-slate-200 hover:border-slate-300 text-slate-500'
+                  : 'bg-slate-50/40 border-slate-200 hover:border-slate-300 text-slate-700 font-medium'
               }`}
             >
               <div className="flex items-center space-x-2 mb-1">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-teal-700' : 'text-slate-500'}`} />
-                <span className="font-display font-bold text-xs text-white">{tab.label}</span>
+                <Icon className={`w-4 h-4 ${isActive ? 'text-teal-800 font-semibold' : 'text-slate-700 font-medium'}`} />
+                <span className="font-display font-bold text-xs text-slate-900">{tab.label}</span>
               </div>
-              <p className="text-[10px] text-slate-500 truncate">{tab.desc}</p>
+              <p className="text-[10px] text-slate-700 font-medium truncate">{tab.desc}</p>
             </button>
           );
         })}
@@ -541,18 +541,18 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border border-slate-200">
           <div className="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
-                <Users className="w-5 h-5 text-teal-700" />
+              <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
+                <Users className="w-5 h-5 text-teal-800 font-semibold" />
                 <span>Backend User Directory & Department Rights Assignment</span>
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-700 font-medium mt-1">
                 Assign user department roles and module permissions. Regular users are automatically restricted to their assigned department rights upon login.
               </p>
             </div>
             <div className="flex items-center space-x-3 shrink-0">
               <button
                 onClick={() => setShowAddUserModal(!showAddUserModal)}
-                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-teal-700 text-aqua-950 font-bold text-xs hover:bg-teal-800 transition shadow-lg shadow-cyan-400/20"
+                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-teal-800 text-white font-bold font-bold text-xs hover:bg-teal-800 transition shadow-lg shadow-cyan-400/20"
               >
                 <Plus className="w-4 h-4 stroke-[2.5]" />
                 <span>Add Authorized User</span>
@@ -579,7 +579,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                     placeholder="e.g. Ramesh Kumar"
                     value={newUserName}
                     onChange={(e) => setNewUserName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white text-xs focus:border-cyan-400 focus:outline-none"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-slate-900 text-xs focus:border-cyan-400 focus:outline-none"
                   />
                 </div>
 
@@ -590,7 +590,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                     placeholder="ramesh.kumar@desireenergy.com"
                     value={newUserEmail}
                     onChange={(e) => setNewUserEmail(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white text-xs focus:border-cyan-400 focus:outline-none"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-slate-900 text-xs focus:border-cyan-400 focus:outline-none"
                   />
                 </div>
 
@@ -613,7 +613,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                     placeholder="Enter unique password for user"
                     value={newUserPassword}
                     onChange={(e) => setNewUserPassword(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white text-xs font-mono focus:border-cyan-400 focus:outline-none"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-slate-900 text-xs font-mono focus:border-cyan-400 focus:outline-none"
                   />
                 </div>
 
@@ -622,7 +622,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   <select
                     value={newUserDept}
                     onChange={(e) => setNewUserDept(e.target.value as DepartmentRole)}
-                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-teal-200 text-white text-xs font-bold focus:outline-none cursor-pointer"
+                    className="w-full p-2.5 rounded-xl bg-slate-50 border border-teal-200 text-slate-900 text-xs font-bold focus:outline-none cursor-pointer"
                   >
                     <option value="Business Development">Business Development</option>
                     <option value="Engineering">Engineering</option>
@@ -637,13 +637,13 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 <div className="flex items-end space-x-2">
                   <button
                     onClick={handleCreateUser}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-md"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-md"
                   >
                     Create User Account
                   </button>
                   <button
                     onClick={() => setShowAddUserModal(false)}
-                    className="px-4 py-2.5 rounded-xl bg-white/5 text-slate-500 text-xs hover:text-white transition"
+                    className="px-4 py-2.5 rounded-xl bg-white/5 text-slate-700 font-medium text-xs hover:text-slate-900 transition"
                   >
                     Cancel
                   </button>
@@ -670,8 +670,8 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 <tbody className="divide-y divide-white/5">
                   {userList.map((usr) => (
                     <tr key={usr.id} className="hover:bg-white/5 transition">
-                      <td className="p-3 font-bold text-white flex items-center space-x-2">
-                        <UserCheck className="w-4 h-4 text-teal-700" />
+                      <td className="p-3 font-bold text-slate-900 flex items-center space-x-2">
+                        <UserCheck className="w-4 h-4 text-teal-800 font-semibold" />
                         <span>{usr.full_name || usr.employee_id}</span>
                       </td>
                       <td className="p-3 font-mono text-slate-600">{usr.email}</td>
@@ -685,20 +685,20 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                           {usr.department}
                         </span>
                       </td>
-                      <td className="p-3 font-mono text-slate-500 text-[11px]">{usr.last_login}</td>
+                      <td className="p-3 font-mono text-slate-700 font-medium text-[11px]">{usr.last_login}</td>
                       <td className="p-3 text-center">
                         <select
                           value={usr.department}
                           onChange={(e) => handleAssignUserRole(usr.id, e.target.value as DepartmentRole)}
                           className="bg-slate-50 border border-teal-200 rounded-lg text-xs font-bold text-teal-800 p-1.5 focus:outline-none cursor-pointer"
                         >
-                          <option value="Business Development" className="bg-slate-50 text-white">Business Development</option>
-                          <option value="Engineering" className="bg-slate-50 text-white">Engineering</option>
-                          <option value="Estimation Team" className="bg-slate-50 text-white">Estimation Team</option>
-                          <option value="Tender Team" className="bg-slate-50 text-white">Tender Team</option>
-                          <option value="Management" className="bg-slate-50 text-white">Management</option>
-                          <option value="Finance" className="bg-slate-50 text-white">Finance</option>
-                          <option value="Admin" className="bg-slate-50 text-white">Admin (Full Access)</option>
+                          <option value="Business Development" className="bg-slate-50 text-slate-900">Business Development</option>
+                          <option value="Engineering" className="bg-slate-50 text-slate-900">Engineering</option>
+                          <option value="Estimation Team" className="bg-slate-50 text-slate-900">Estimation Team</option>
+                          <option value="Tender Team" className="bg-slate-50 text-slate-900">Tender Team</option>
+                          <option value="Management" className="bg-slate-50 text-slate-900">Management</option>
+                          <option value="Finance" className="bg-slate-50 text-slate-900">Finance</option>
+                          <option value="Admin" className="bg-slate-50 text-slate-900">Admin (Full Access)</option>
                         </select>
                       </td>
                     </tr>
@@ -711,20 +711,20 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
           {/* User Login Audit Logs */}
           <div className="pt-4 border-t border-slate-200 space-y-3">
             <h4 className="text-xs font-mono uppercase text-slate-600 flex items-center space-x-2">
-              <History className="w-4 h-4 text-teal-700" />
+              <History className="w-4 h-4 text-teal-800 font-semibold" />
               <span>Real-Time Login Audit Logs (Email & 10-Digit Mobile Verifications)</span>
             </h4>
             <div className="space-y-2 text-xs">
               {loginLogs.slice(0, 5).map((log, idx) => (
                 <div key={idx} className="p-3 rounded-xl bg-slate-50/60 border border-slate-200 flex items-center justify-between">
                   <div>
-                    <span className="font-bold text-white">{log.user_name}</span>
-                    <span className="text-slate-500 font-mono ml-2">({log.email} • {log.phone})</span>
+                    <span className="font-bold text-slate-900">{log.user_name}</span>
+                    <span className="text-slate-700 font-medium font-mono ml-2">({log.email} • {log.phone})</span>
                     <p className="text-[11px] text-teal-800 mt-0.5">Assigned Department: {log.department}</p>
                   </div>
-                  <div className="text-right font-mono text-[11px] text-slate-500">
+                  <div className="text-right font-mono text-[11px] text-slate-700 font-medium">
                     <div>{log.timestamp}</div>
-                    <span className="text-emerald-700 font-bold">{log.status}</span>
+                    <span className="text-emerald-800 font-bold font-bold">{log.status}</span>
                   </div>
                 </div>
               ))}
@@ -738,11 +738,11 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border border-slate-200">
           <div className="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
-                <FileCode className="w-5 h-5 text-teal-700" />
+              <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
+                <FileCode className="w-5 h-5 text-teal-800 font-semibold" />
                 <span>Project-Specific AI System Instructions & Prompt Rules</span>
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-700 font-medium mt-1">
                 Configure specialized system behavior, eligibility criteria, and costing methodology per project vertical.
               </p>
             </div>
@@ -764,8 +764,8 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   onClick={() => setSelectedCategory(cat)}
                   className={`py-3 px-4 rounded-xl border font-mono font-bold text-xs text-center transition-all ${
                     selectedCategory === cat
-                      ? 'bg-cyan-500/20 text-teal-800 border-cyan-400 shadow-md shadow-cyan-500/20'
-                      : 'bg-slate-50/40 text-slate-500 border-slate-200 hover:border-slate-300'
+                      ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border-cyan-400 shadow-md shadow-cyan-500/20'
+                      : 'bg-slate-50/40 text-slate-700 font-medium border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   {cat}
@@ -784,7 +784,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
               value={systemInstruction}
               onChange={(e) => setSystemInstruction(e.target.value)}
               rows={4}
-              className="w-full p-4 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:border-cyan-400 focus:outline-none font-mono leading-relaxed"
+              className="w-full p-4 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:border-cyan-400 focus:outline-none font-mono leading-relaxed"
             />
           </div>
 
@@ -796,7 +796,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 value={eligibilityLogic}
                 onChange={(e) => setEligibilityLogic(e.target.value)}
                 rows={3}
-                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:border-cyan-400 focus:outline-none"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:border-cyan-400 focus:outline-none"
               />
             </div>
 
@@ -807,7 +807,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 value={costingMethodology}
                 onChange={(e) => setCostingMethodology(e.target.value)}
                 rows={3}
-                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:border-cyan-400 focus:outline-none"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 focus:border-cyan-400 focus:outline-none"
               />
             </div>
           </div>
@@ -820,7 +820,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
               placeholder="e.g. Added IEC 61215 solar module compliance rule..."
               value={changelogNotes}
               onChange={(e) => setChangelogNotes(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900"
             />
           </div>
 
@@ -829,7 +829,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
             <button
               onClick={handleSaveAIConfig}
               disabled={isSavingConfig}
-              className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-teal-700 text-aqua-950 font-bold text-xs hover:bg-teal-800 transition shadow-lg shadow-cyan-400/20"
+              className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-teal-800 text-white font-bold font-bold text-xs hover:bg-teal-800 transition shadow-lg shadow-cyan-400/20"
             >
               <Save className="w-4 h-4" />
               <span>{isSavingConfig ? 'Deploying...' : `Save & Deploy Prompt for ${selectedCategory}`}</span>
@@ -840,7 +840,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
           {projectConfigs[selectedCategory]?.prompt_history && projectConfigs[selectedCategory].prompt_history.length > 0 && (
             <div className="pt-6 border-t border-slate-200 space-y-3">
               <h4 className="text-xs font-mono uppercase text-slate-600 flex items-center space-x-2">
-                <History className="w-4 h-4 text-teal-700" />
+                <History className="w-4 h-4 text-teal-800 font-semibold" />
                 <span>Prompt Version History ({selectedCategory})</span>
               </h4>
               <div className="space-y-2">
@@ -848,12 +848,12 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   <div key={idx} className="p-3.5 rounded-xl bg-slate-50/60 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-cyan-500/20 text-teal-800 border border-teal-200">
+                        <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
                           {hist.version}
                         </span>
-                        <span className="font-semibold text-white">{hist.notes}</span>
+                        <span className="font-semibold text-slate-900">{hist.notes}</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-1">Updated on {hist.updated_at} by {hist.author}</p>
+                      <p className="text-[11px] text-slate-700 font-medium mt-1">Updated on {hist.updated_at} by {hist.author}</p>
                     </div>
 
                     <button
@@ -874,11 +874,11 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
       {activeTab === 'credentials' && (
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border border-slate-200">
           <div className="border-b border-slate-200 pb-4">
-            <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
-              <Key className="w-5 h-5 text-teal-700" />
+            <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
+              <Key className="w-5 h-5 text-teal-800 font-semibold" />
               <span>Encrypted API Key & Provider Credentials Vault</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-700 font-medium mt-1">
               Credentials are encrypted on the backend and never exposed in plaintext to end users.
             </p>
           </div>
@@ -901,15 +901,15 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 <tbody className="divide-y divide-white/5">
                   {credentials.map((cred) => (
                     <tr key={cred.id} className="hover:bg-white/5 transition">
-                      <td className="p-3 font-semibold text-white">{cred.provider}</td>
+                      <td className="p-3 font-semibold text-slate-900">{cred.provider}</td>
                       <td className="p-3 font-mono text-teal-800">{cred.key_type}</td>
-                      <td className="p-3 font-mono text-slate-500">{cred.masked_key}</td>
+                      <td className="p-3 font-mono text-slate-700 font-medium">{cred.masked_key}</td>
                       <td className="p-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
                           {cred.status}
                         </span>
                       </td>
-                      <td className="p-3 font-mono text-slate-500">{cred.last_rotated}</td>
+                      <td className="p-3 font-mono text-slate-700 font-medium">{cred.last_rotated}</td>
                       <td className="p-3 text-center">
                         <button
                           onClick={() => handleTestKey(cred)}
@@ -919,7 +919,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                         </button>
                         {testStatus[cred.id] && (
                           <div className={`text-[10px] font-mono mt-1 ${
-                            testStatus[cred.id].status === 'success' ? 'text-emerald-700' : 'text-rose-700'
+                            testStatus[cred.id].status === 'success' ? 'text-emerald-800 font-bold' : 'text-rose-800 font-bold'
                           }`}>
                             {testStatus[cred.id].message}
                           </div>
@@ -941,7 +941,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 <select
                   value={newKeyProvider}
                   onChange={(e) => setNewKeyProvider(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white"
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900"
                 >
                   <option value="Google Gemini API">Google Gemini API</option>
                   <option value="OpenAI API (GPT-4o)">OpenAI API (GPT-4o)</option>
@@ -959,7 +959,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   placeholder="Paste secret API key (e.g. sk-proj-...)"
                   value={newRawKey}
                   onChange={(e) => setNewRawKey(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white font-mono"
+                  className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900 font-mono"
                 />
               </div>
             </div>
@@ -971,7 +971,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 placeholder="e.g. Rotated for production tender bidding engine..."
                 value={newKeyNotes}
                 onChange={(e) => setNewKeyNotes(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white"
+                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900"
               />
             </div>
 
@@ -979,7 +979,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
               <button
                 onClick={handleRotateKey}
                 disabled={!newRawKey.trim()}
-                className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-teal-700 text-aqua-950 font-bold text-xs hover:bg-teal-800 transition"
+                className="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-teal-800 text-white font-bold font-bold text-xs hover:bg-teal-800 transition"
               >
                 <Key className="w-4 h-4" />
                 <span>Encrypt & Save API Credential</span>
@@ -993,11 +993,11 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
       {activeTab === 'knowledge_binding' && (
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border border-slate-200">
           <div className="border-b border-slate-200 pb-4">
-            <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
-              <Database className="w-5 h-5 text-teal-700" />
+            <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
+              <Database className="w-5 h-5 text-teal-800 font-semibold" />
               <span>Project-Wise Knowledge Source Binding Matrix</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-700 font-medium mt-1">
               Select which knowledge repositories the AI will query for each project category.
             </p>
           </div>
@@ -1022,14 +1022,14 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                 <div key={cat} className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200 space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                     <span className="font-mono font-bold text-sm text-teal-800">{cat} Project Vertical</span>
-                    <span className="text-[10px] font-mono text-slate-500">{assigned.length} Sources Assigned</span>
+                    <span className="text-[10px] font-mono text-slate-700 font-medium">{assigned.length} Sources Assigned</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {allSources.map((src) => {
                       const isChecked = assigned.includes(src);
                       return (
-                        <label key={src} className="flex items-center space-x-2 cursor-pointer text-slate-600 hover:text-white">
+                        <label key={src} className="flex items-center space-x-2 cursor-pointer text-slate-600 hover:text-slate-900">
                           <input
                             type="checkbox"
                             checked={isChecked}
@@ -1039,7 +1039,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                                 : assigned.filter(s => s !== src);
                               setKnowledgeMatrix({ ...knowledgeMatrix, [cat]: updated });
                             }}
-                            className="rounded border-slate-300 bg-slate-50 text-teal-700 focus:ring-0"
+                            className="rounded border-slate-300 bg-slate-50 text-teal-800 font-semibold focus:ring-0"
                           />
                           <span className="text-[11px] truncate">{src}</span>
                         </label>
@@ -1070,7 +1070,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   setTimeout(() => setToastMessage(null), 4000);
                 }
               }}
-              className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
+              className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-lg shadow-cyan-400/20"
             >
               <Save className="w-4 h-4" />
               <span>Save Knowledge Source Binding Matrix</span>
@@ -1083,11 +1083,11 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
       {activeTab === 'audit' && (
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-4 border border-slate-200">
           <div className="border-b border-slate-200 pb-4">
-            <h3 className="text-lg font-display font-bold text-white flex items-center space-x-2">
-              <History className="w-5 h-5 text-teal-700" />
+            <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
+              <History className="w-5 h-5 text-teal-800 font-semibold" />
               <span>Backend Configuration Audit Log</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-700 font-medium mt-1">
               Immutably records every credential rotation and prompt modification.
             </p>
           </div>
@@ -1102,11 +1102,11 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
               <div key={idx} className="p-3.5 rounded-xl bg-slate-50/60 border border-slate-200 flex items-center justify-between">
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-bold text-white">{log.action}</span>
+                    <span className="font-bold text-slate-900">{log.action}</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">By {log.user} on {log.time}</p>
+                  <p className="text-[11px] text-slate-700 font-medium mt-0.5">By {log.user} on {log.time}</p>
                 </div>
-                <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
                   {log.status}
                 </span>
               </div>

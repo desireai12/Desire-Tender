@@ -228,14 +228,14 @@ export const CostingEstimatorView: React.FC = () => {
       {/* BidMaster AI Header Banner */}
       <div className="glass-card p-6 rounded-2xl border border-teal-200 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-teal-700 font-mono text-xs">
+          <div className="flex items-center space-x-2 text-teal-800 font-semibold font-mono text-xs">
             <Bot className="w-4 h-4 text-teal-800" />
             <span>BIDMASTER AI — WATER & WASTEWATER EPC COSTING ENGINE</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-white flex items-center space-x-2">
+          <h2 className="text-2xl font-display font-bold text-slate-900 flex items-center space-x-2">
             <span>Area-Wise BOQ Estimator & Rate Database</span>
           </h2>
-          <p className="text-xs text-slate-500 max-w-3xl">
+          <p className="text-xs text-slate-700 font-medium max-w-3xl">
             Prioritizes user-provided area-wise service & procurement schedules from <strong className="text-teal-800">Service Price Database.xlsx</strong>. Automatically maps state/zone procurement rates (DI, HDPE, MS, RCC) and applies local labour/HDD service costs.
           </p>
         </div>
@@ -243,23 +243,23 @@ export const CostingEstimatorView: React.FC = () => {
         {/* Region & Location Selector */}
         <div className="flex flex-wrap items-center gap-3 shrink-0">
           <div className="flex items-center space-x-2 bg-slate-50/80 px-3.5 py-2 rounded-xl border border-teal-200">
-            <MapPin className="w-4 h-4 text-teal-700" />
+            <MapPin className="w-4 h-4 text-teal-800 font-semibold" />
             <span className="text-xs font-mono text-slate-600">Target Region:</span>
             <select
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
               className="bg-transparent text-xs font-bold font-mono text-teal-800 focus:outline-none cursor-pointer"
             >
-              <option value="Rajasthan" className="bg-slate-50 text-white">Rajasthan (Jaipur / Balotra)</option>
-              <option value="Gujarat" className="bg-slate-50 text-white">Gujarat (Vapi / Mehsana / Banaskantha)</option>
-              <option value="UP" className="bg-slate-50 text-white">UP (Bhadohi / Kanpur / Ballia)</option>
-              <option value="All" className="bg-slate-50 text-white">All India Database (164 Rates)</option>
+              <option value="Rajasthan" className="bg-slate-50 text-slate-900">Rajasthan (Jaipur / Balotra)</option>
+              <option value="Gujarat" className="bg-slate-50 text-slate-900">Gujarat (Vapi / Mehsana / Banaskantha)</option>
+              <option value="UP" className="bg-slate-50 text-slate-900">UP (Bhadohi / Kanpur / Ballia)</option>
+              <option value="All" className="bg-slate-50 text-slate-900">All India Database (164 Rates)</option>
             </select>
           </div>
 
           <button
             onClick={addItem}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-teal-700 text-aqua-950 font-bold hover:bg-teal-800 transition shadow-md shadow-cyan-400/20 text-xs"
+            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-teal-800 text-white font-bold font-bold hover:bg-teal-800 transition shadow-md shadow-cyan-400/20 text-xs"
           >
             <Plus className="w-4 h-4" />
             <span>Add Custom Item</span>
@@ -270,31 +270,31 @@ export const CostingEstimatorView: React.FC = () => {
       {/* Real-time Bid Metrics Summary Badges */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-cyan-400">
-          <span className="text-xs font-mono text-slate-500 uppercase">Calculated Bid Price (₹ Total)</span>
-          <div className="text-3xl font-display font-bold text-white">
+          <span className="text-xs font-mono text-slate-700 font-medium uppercase">Calculated Bid Price (₹ Total)</span>
+          <div className="text-3xl font-display font-bold text-slate-900">
             ₹{manualTotal >= 10000000 ? (manualTotal / 10000000).toFixed(2) + ' Cr' : (manualTotal / 100000).toFixed(2) + ' Lakhs'}
           </div>
-          <p className="text-[11px] text-slate-500">₹{manualTotal.toLocaleString('en-IN')} (Purchase + Service + Markup + Tax)</p>
+          <p className="text-[11px] text-slate-700 font-medium">₹{manualTotal.toLocaleString('en-IN')} (Purchase + Service + Markup + Tax)</p>
         </div>
 
         <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-emerald-400 bg-emerald-500/5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-emerald-700 uppercase">AI Recommended Bid Price</span>
-            <Sparkles className="w-4 h-4 text-emerald-700" />
+            <span className="text-xs font-mono text-emerald-800 font-bold uppercase">AI Recommended Bid Price</span>
+            <Sparkles className="w-4 h-4 text-emerald-800 font-bold" />
           </div>
           <div className="text-3xl font-display font-bold text-emerald-800">
             ₹{aiRecommendedTotal >= 10000000 ? (aiRecommendedTotal / 10000000).toFixed(2) + ' Cr' : (aiRecommendedTotal / 100000).toFixed(2) + ' Lakhs'}
           </div>
-          <p className="text-[11px] text-emerald-700/80">BidMaster RAG optimized for L1 winning margin (-{aiTargetDiscount}%)</p>
+          <p className="text-[11px] text-emerald-800 font-bold/80">BidMaster RAG optimized for L1 winning margin (-{aiTargetDiscount}%)</p>
         </div>
 
         <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-teal-400">
-          <span className="text-xs font-mono text-slate-500 uppercase">Estimated Gross Profit Margin</span>
+          <span className="text-xs font-mono text-slate-700 font-medium uppercase">Estimated Gross Profit Margin</span>
           <div className="text-3xl font-display font-bold text-teal-800 flex items-center space-x-2">
             <span>+{estimatedMargin.toFixed(1)}%</span>
-            <TrendingUp className="w-5 h-5 text-emerald-700" />
+            <TrendingUp className="w-5 h-5 text-emerald-800 font-bold" />
           </div>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] text-slate-700 font-medium">
             Overhead & Net Revenue Optimization
           </p>
         </div>
@@ -304,8 +304,8 @@ export const CostingEstimatorView: React.FC = () => {
       <div className="glass-card p-6 rounded-2xl space-y-4 border border-cyan-500/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
           <div className="flex items-center space-x-2">
-            <FileSpreadsheet className="w-5 h-5 text-emerald-700" />
-            <h3 className="font-display font-semibold text-sm text-white uppercase tracking-wider">
+            <FileSpreadsheet className="w-5 h-5 text-emerald-800 font-bold" />
+            <h3 className="font-display font-semibold text-sm text-slate-900 uppercase tracking-wider">
               Service Price Database Quick Selector ({selectedRegion})
             </h3>
           </div>
@@ -315,7 +315,7 @@ export const CostingEstimatorView: React.FC = () => {
               placeholder="Search DI, HDPE, MS, RCC, HDD rates..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white placeholder-slate-500"
+              className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-slate-900 placeholder-slate-500"
             />
           </div>
         </div>
@@ -329,21 +329,21 @@ export const CostingEstimatorView: React.FC = () => {
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-teal-800">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-teal-100 text-teal-900 border border-teal-300 font-bold">
                     {rate.state} ({rate.city})
                   </span>
-                  <span className="text-[11px] font-mono text-emerald-700 font-bold">
+                  <span className="text-[11px] font-mono text-emerald-800 font-bold font-bold">
                     ₹{rate.total_unit_rate} /{rate.unit}
                   </span>
                 </div>
-                <h5 className="text-xs font-semibold text-white mt-1.5 group-hover:text-teal-800 transition">
+                <h5 className="text-xs font-semibold text-slate-900 mt-1.5 group-hover:text-teal-800 transition">
                   {rate.item_description} {rate.sub_description ? `(${rate.sub_description})` : ''}
                 </h5>
               </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 font-mono">
+              <div className="flex items-center justify-between text-[10px] text-slate-700 font-medium pt-2 font-mono">
                 <span>Purchase: ₹{rate.purchase_cost}</span>
                 <span>Service: ₹{rate.service_cost}</span>
-                <span className="text-teal-700 group-hover:underline">+ Add to BOQ</span>
+                <span className="text-teal-800 font-semibold group-hover:underline">+ Add to BOQ</span>
               </div>
             </div>
           ))}
@@ -354,8 +354,8 @@ export const CostingEstimatorView: React.FC = () => {
       <div className="glass-card p-6 rounded-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5 text-teal-700" />
-            <h3 className="font-display font-semibold text-lg text-white">
+            <BarChart3 className="w-5 h-5 text-teal-800 font-semibold" />
+            <h3 className="font-display font-semibold text-lg text-slate-900">
               BidMaster AI Cost Comparison (₹ Lakhs)
             </h3>
           </div>
@@ -384,14 +384,14 @@ export const CostingEstimatorView: React.FC = () => {
       <div className="glass-card rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <h3 className="text-lg font-display font-semibold text-white">
+            <h3 className="text-lg font-display font-semibold text-slate-900">
               BidMaster BOQ Cost Breakdown Grid (Area-Wise Schedule)
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700 font-medium">
               Each line item includes exact Purchase & Service costs, Markups, and mandatory <strong className="text-teal-800">Rate Source</strong> tracking.
             </p>
           </div>
-          <span className="text-xs font-mono text-teal-700">
+          <span className="text-xs font-mono text-teal-800 font-semibold">
             {items.length} BOQ Items
           </span>
         </div>
@@ -399,7 +399,7 @@ export const CostingEstimatorView: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
-              <tr className="border-b border-slate-200 text-[11px] font-mono text-slate-500 uppercase">
+              <tr className="border-b border-slate-200 text-[11px] font-mono text-slate-700 font-medium uppercase">
                 <th className="py-3 px-2">Category</th>
                 <th className="py-3 px-2">Description & Size</th>
                 <th className="py-3 px-2 text-center">Unit</th>
@@ -423,7 +423,7 @@ export const CostingEstimatorView: React.FC = () => {
                       className="glass-input text-[11px] text-teal-800 px-1.5 py-1 rounded-lg border border-slate-200 max-w-[130px]"
                     >
                       {categories.map((c) => (
-                        <option key={c} value={c} className="bg-white text-white">
+                        <option key={c} value={c} className="bg-white text-slate-900">
                           {c}
                         </option>
                       ))}
@@ -434,10 +434,10 @@ export const CostingEstimatorView: React.FC = () => {
                       type="text"
                       value={item.item_name}
                       onChange={(e) => updateItem(item.id, 'item_name', e.target.value)}
-                      className="w-full glass-input text-xs text-white px-2 py-1 rounded-lg font-medium"
+                      className="w-full glass-input text-xs text-slate-900 px-2 py-1 rounded-lg font-medium"
                     />
                     {item.sub_description && (
-                      <span className="text-[10px] text-slate-500 block font-mono mt-0.5">{item.sub_description}</span>
+                      <span className="text-[10px] text-slate-700 font-medium block font-mono mt-0.5">{item.sub_description}</span>
                     )}
                   </td>
                   <td className="py-3 px-2 text-center font-mono text-slate-600">
@@ -445,7 +445,7 @@ export const CostingEstimatorView: React.FC = () => {
                       type="text"
                       value={item.unit}
                       onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
-                      className="w-12 glass-input text-xs text-center text-white px-1 py-1 rounded-lg font-mono"
+                      className="w-12 glass-input text-xs text-center text-slate-900 px-1 py-1 rounded-lg font-mono"
                     />
                   </td>
                   <td className="py-3 px-2 text-right">
@@ -453,7 +453,7 @@ export const CostingEstimatorView: React.FC = () => {
                       type="number"
                       value={item.purchase_cost}
                       onChange={(e) => updateItem(item.id, 'purchase_cost', parseFloat(e.target.value) || 0)}
-                      className="w-20 glass-input text-xs text-white px-1.5 py-1 rounded-lg text-right font-mono"
+                      className="w-20 glass-input text-xs text-slate-900 px-1.5 py-1 rounded-lg text-right font-mono"
                     />
                   </td>
                   <td className="py-3 px-2 text-right">
@@ -461,7 +461,7 @@ export const CostingEstimatorView: React.FC = () => {
                       type="number"
                       value={item.service_cost}
                       onChange={(e) => updateItem(item.id, 'service_cost', parseFloat(e.target.value) || 0)}
-                      className="w-16 glass-input text-xs text-white px-1.5 py-1 rounded-lg text-right font-mono"
+                      className="w-16 glass-input text-xs text-slate-900 px-1.5 py-1 rounded-lg text-right font-mono"
                     />
                   </td>
                   <td className="py-3 px-2 text-right font-mono text-slate-200">
@@ -472,7 +472,7 @@ export const CostingEstimatorView: React.FC = () => {
                       type="number"
                       value={item.quantity}
                       onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                      className="w-16 glass-input text-xs text-white px-1.5 py-1 rounded-lg text-right font-mono"
+                      className="w-16 glass-input text-xs text-slate-900 px-1.5 py-1 rounded-lg text-right font-mono"
                     />
                   </td>
                   <td className="py-3 px-2 text-right">
@@ -497,7 +497,7 @@ export const CostingEstimatorView: React.FC = () => {
                   <td className="py-3 px-2 text-center">
                     <button
                       onClick={() => deleteItem(item.id)}
-                      className="p-1 rounded-lg hover:bg-rose-100 text-slate-500 hover:text-rose-700 transition"
+                      className="p-1 rounded-lg hover:bg-rose-100 text-slate-700 font-medium hover:text-rose-800 font-bold transition"
                       title="Delete item"
                     >
                       <Trash2 className="w-4 h-4" />

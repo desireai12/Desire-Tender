@@ -43,10 +43,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
   if (activeRole && activeRole !== 'Admin') {
     return (
       <div className="glass-card p-12 rounded-2xl text-center space-y-4 border-2 border-rose-200 max-w-3xl mx-auto my-8">
-        <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-700">
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto text-rose-800 font-bold">
           <Lock className="w-8 h-8 stroke-[2.5]" />
         </div>
-        <h3 className="text-xl font-display font-bold text-white">System Settings Restricted — Admin Authorization Required</h3>
+        <h3 className="text-xl font-display font-bold text-slate-900">System Settings Restricted — Admin Authorization Required</h3>
         <p className="text-xs text-slate-600 max-w-lg mx-auto">
           API key management, model configurations, and system settings are strictly managed by authorized Administrators. End users cannot view or modify these settings.
         </p>
@@ -156,14 +156,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
     <div className="space-y-8 max-w-4xl mx-auto animate-fadeIn">
       {/* Page Header */}
       <div className="glass-card p-6 rounded-2xl border border-cyan-500/20 space-y-2">
-        <div className="flex items-center space-x-2 text-teal-700 font-mono text-xs">
+        <div className="flex items-center space-x-2 text-teal-800 font-semibold font-mono text-xs">
           <ShieldCheck className="w-4 h-4" />
           <span>PROVISION 4: DYNAMIC LLM API KEY CONFIGURATION</span>
         </div>
-        <h2 className="text-2xl font-display font-bold text-white">
+        <h2 className="text-2xl font-display font-bold text-slate-900">
           AI Model Provider & API Key Management
         </h2>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-700 font-medium">
           Paste your own API Keys directly in the UI to dynamically switch between Google Gemini and OpenAI without server restarts.
         </p>
       </div>
@@ -183,16 +183,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
             }`}
           >
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 rounded-lg bg-teal-50 text-teal-700">
+              <div className="p-2.5 rounded-lg bg-teal-50 text-teal-800 font-semibold">
                 <Sparkles className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-semibold text-white text-base">Google Gemini</h4>
-                <p className="text-xs text-slate-500">Primary RAG Engine (Free Tier)</p>
+                <h4 className="font-semibold text-slate-900 text-base">Google Gemini</h4>
+                <p className="text-xs text-slate-700 font-medium">Primary RAG Engine (Free Tier)</p>
               </div>
             </div>
             {provider === 'gemini' && (
-              <CheckCircle2 className="w-5 h-5 text-teal-700" />
+              <CheckCircle2 className="w-5 h-5 text-teal-800 font-semibold" />
             )}
           </div>
 
@@ -209,12 +209,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
                 <Cpu className="w-6 h-6" />
               </div>
               <div>
-                <h4 className="font-semibold text-white text-base">OpenAI GPT-4o</h4>
-                <p className="text-xs text-slate-500">Fallback / High Precision</p>
+                <h4 className="font-semibold text-slate-900 text-base">OpenAI GPT-4o</h4>
+                <p className="text-xs text-slate-700 font-medium">Fallback / High Precision</p>
               </div>
             </div>
             {provider === 'openai' && (
-              <CheckCircle2 className="w-5 h-5 text-teal-700" />
+              <CheckCircle2 className="w-5 h-5 text-teal-800 font-semibold" />
             )}
           </div>
         </div>
@@ -224,12 +224,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
       <div className="glass-card p-6 rounded-2xl space-y-4 border-l-4 border-l-cyan-400">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-teal-700" />
-            <h3 className="font-display font-semibold text-lg text-white">
+            <Sparkles className="w-5 h-5 text-teal-800 font-semibold" />
+            <h3 className="font-display font-semibold text-lg text-slate-900">
               Google Gemini Credentials
             </h3>
           </div>
-          <span className="text-xs font-mono text-teal-700">
+          <span className="text-xs font-mono text-teal-800 font-semibold">
             Embedding: text-embedding-004
           </span>
         </div>
@@ -244,12 +244,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
               value={geminiKey}
               onChange={(e) => setGeminiKey(e.target.value)}
               placeholder="Paste AIzaSy... Google Gemini API Key"
-              className="w-full glass-input text-sm text-white px-4 py-3 rounded-xl border border-slate-200 pr-12 focus:border-cyan-400 font-mono"
+              className="w-full glass-input text-sm text-slate-900 px-4 py-3 rounded-xl border border-slate-200 pr-12 focus:border-cyan-400 font-mono"
             />
             <button
               type="button"
               onClick={() => setShowGeminiKey(!showGeminiKey)}
-              className="absolute right-3.5 top-3.5 text-slate-500 hover:text-white"
+              className="absolute right-3.5 top-3.5 text-slate-700 font-medium hover:text-slate-900"
             >
               {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -257,11 +257,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div>
-              <label className="text-xs font-mono text-slate-500 block mb-1">Target Model</label>
+              <label className="text-xs font-mono text-slate-700 font-medium block mb-1">Target Model</label>
               <select
                 value={geminiModel}
                 onChange={(e) => setGeminiModel(e.target.value)}
-                className="w-full glass-input text-xs text-white px-3 py-2 rounded-lg"
+                className="w-full glass-input text-xs text-slate-900 px-3 py-2 rounded-lg"
               >
                 <option value="gemini-1.5-flash" className="bg-white">Gemini 1.5 Flash (Fast)</option>
                 <option value="gemini-1.5-pro" className="bg-white">Gemini 1.5 Pro (Deep RAG)</option>
@@ -289,9 +289,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
           {testResultGemini.message && (
             <div className={`p-3 rounded-lg text-xs font-mono flex items-center space-x-2 ${
               testResultGemini.status === 'success' 
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                ? 'bg-emerald-50 text-emerald-800 font-bold border border-emerald-200'
                 : testResultGemini.status === 'error'
-                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                ? 'bg-rose-50 text-rose-800 font-bold border border-rose-200'
                 : 'bg-teal-50 text-teal-800'
             }`}>
               {testResultGemini.status === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0" />}
@@ -307,7 +307,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Cpu className="w-5 h-5 text-purple-700" />
-            <h3 className="font-display font-semibold text-lg text-white">
+            <h3 className="font-display font-semibold text-lg text-slate-900">
               OpenAI Credentials
             </h3>
           </div>
@@ -326,12 +326,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
               value={openaiKey}
               onChange={(e) => setOpenaiKey(e.target.value)}
               placeholder="Paste sk-... OpenAI API Key"
-              className="w-full glass-input text-sm text-white px-4 py-3 rounded-xl border border-slate-200 pr-12 focus:border-purple-400 font-mono"
+              className="w-full glass-input text-sm text-slate-900 px-4 py-3 rounded-xl border border-slate-200 pr-12 focus:border-purple-400 font-mono"
             />
             <button
               type="button"
               onClick={() => setShowOpenaiKey(!showOpenaiKey)}
-              className="absolute right-3.5 top-3.5 text-slate-500 hover:text-white"
+              className="absolute right-3.5 top-3.5 text-slate-700 font-medium hover:text-slate-900"
             >
               {showOpenaiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -339,11 +339,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div>
-              <label className="text-xs font-mono text-slate-500 block mb-1">Target Model</label>
+              <label className="text-xs font-mono text-slate-700 font-medium block mb-1">Target Model</label>
               <select
                 value={openaiModel}
                 onChange={(e) => setOpenaiModel(e.target.value)}
-                className="w-full glass-input text-xs text-white px-3 py-2 rounded-lg"
+                className="w-full glass-input text-xs text-slate-900 px-3 py-2 rounded-lg"
               >
                 <option value="gpt-4o-mini" className="bg-white">GPT-4o Mini (Cost Efficient)</option>
                 <option value="gpt-4o" className="bg-white">GPT-4o (High Reasoning)</option>
@@ -370,9 +370,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
           {testResultOpenai.message && (
             <div className={`p-3 rounded-lg text-xs font-mono flex items-center space-x-2 ${
               testResultOpenai.status === 'success' 
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                ? 'bg-emerald-50 text-emerald-800 font-bold border border-emerald-200'
                 : testResultOpenai.status === 'error'
-                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                ? 'bg-rose-50 text-rose-800 font-bold border border-rose-200'
                 : 'bg-purple-50 text-purple-800'
             }`}>
               {testResultOpenai.status === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0" />}
@@ -386,12 +386,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
       {/* Save Settings CTA */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
         {saveMessage ? (
-          <div className="text-xs font-mono text-emerald-700 flex items-center space-x-1.5">
+          <div className="text-xs font-mono text-emerald-800 font-bold flex items-center space-x-1.5">
             <CheckCircle2 className="w-4 h-4" />
             <span>{saveMessage}</span>
           </div>
         ) : (
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-700 font-medium">
             Keys are encrypted and stored in backend configuration manager.
           </span>
         )}
@@ -400,7 +400,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ activeRole, onProvid
           type="button"
           onClick={handleSaveSettings}
           disabled={isSaving}
-          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-8 py-3.5 rounded-xl bg-teal-700 text-aqua-950 font-bold hover:bg-teal-800 transition-all shadow-lg shadow-cyan-400/25"
+          className="w-full sm:w-auto flex items-center justify-center space-x-2 px-8 py-3.5 rounded-xl bg-teal-800 text-white font-bold font-bold hover:bg-teal-800 transition-all shadow-lg shadow-cyan-400/25"
         >
           {isSaving ? (
             <RefreshCw className="w-5 h-5 animate-spin" />

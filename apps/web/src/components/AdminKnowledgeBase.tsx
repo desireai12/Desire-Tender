@@ -214,12 +214,12 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
   if (activeRole !== 'Admin') {
     return (
       <div className="glass-card p-12 rounded-2xl text-center space-y-4 border-2 border-rose-500/40">
-        <ShieldAlert className="w-12 h-12 text-rose-700 mx-auto animate-bounce" />
-        <h3 className="text-xl font-display font-bold text-white">ACCESS DENIED — ADMIN BACKEND PORTAL ONLY</h3>
+        <ShieldAlert className="w-12 h-12 text-rose-800 font-bold mx-auto animate-bounce" />
+        <h3 className="text-xl font-display font-bold text-slate-900">ACCESS DENIED — ADMIN BACKEND PORTAL ONLY</h3>
         <p className="text-xs text-slate-600 max-w-md mx-auto">
           Knowledge Base management is restricted exclusively to System Administrators. Normal department accounts cannot directly touch or modify AI training knowledge assets.
         </p>
-        <div className="text-xs font-mono text-teal-700 pt-2">
+        <div className="text-xs font-mono text-teal-800 font-semibold pt-2">
           Current Role: {activeRole} (Switch role to 'Admin' in the top header to access).
         </div>
       </div>
@@ -231,14 +231,14 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-cyan-500/20">
         <div>
-          <div className="flex items-center space-x-2 text-teal-700 text-xs font-mono mb-1">
+          <div className="flex items-center space-x-2 text-teal-800 font-semibold text-xs font-mono mb-1">
             <Database className="w-4 h-4" />
             <span>ADMIN COMPANY RECORDS PORTAL</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-white">
+          <h2 className="text-2xl font-display font-bold text-slate-900">
             Company Records Repository & Asset Versioning
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-700 font-medium mt-1">
             Manage company credentials, certificate registries, competitor intelligence, and historical BOQ repositories.
           </p>
         </div>
@@ -248,7 +248,7 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg"
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-white font-bold text-xs hover:brightness-110 transition shadow-lg"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>+ Add Asset</span>
@@ -259,8 +259,8 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
       {/* Add Knowledge Asset Modal */}
       {showAddModal && (
         <div className="glass-card p-6 rounded-2xl border border-teal-300 space-y-4">
-          <h4 className="text-sm font-display font-bold text-white flex items-center space-x-2">
-            <Upload className="w-4 h-4 text-teal-700" />
+          <h4 className="text-sm font-display font-bold text-slate-900 flex items-center space-x-2">
+            <Upload className="w-4 h-4 text-teal-800 font-semibold" />
             <span>Register New Knowledge Asset for [{activeModule.toUpperCase()}]</span>
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -271,7 +271,7 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
                 placeholder="e.g. ISO 9001:2015 Quality Certificate 2026"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white"
+                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-slate-900"
               />
             </div>
             <div>
@@ -281,7 +281,7 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
                 placeholder="e.g. ISO_Cert_2026.pdf"
                 value={newFilename}
                 onChange={(e) => setNewFilename(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white"
+                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-slate-900"
               />
             </div>
           </div>
@@ -292,19 +292,19 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
               placeholder="Record details and key credentials..."
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white"
+              className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-slate-900"
             />
           </div>
           <div className="flex justify-end space-x-2 pt-2">
             <button
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2 rounded-xl bg-white/5 text-slate-500 text-xs hover:text-white"
+              className="px-4 py-2 rounded-xl bg-white/5 text-slate-700 font-medium text-xs hover:text-slate-900"
             >
               Cancel
             </button>
             <button
               onClick={handleAddKnowledgeAsset}
-              className="px-6 py-2 rounded-xl bg-cyan-500 text-aqua-950 font-bold text-xs hover:bg-teal-700"
+              className="px-6 py-2 rounded-xl bg-cyan-500 text-white font-bold text-xs hover:bg-teal-700"
             >
               Save to Database
             </button>
@@ -330,8 +330,8 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
                 : 'bg-slate-50/40 border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div className="font-display font-bold text-xs text-white">{m.title}</div>
-            <div className="text-[11px] text-slate-500 truncate mt-0.5">{m.desc}</div>
+            <div className="font-display font-bold text-xs text-slate-900">{m.title}</div>
+            <div className="text-[11px] text-slate-700 font-medium truncate mt-0.5">{m.desc}</div>
           </button>
         ))}
       </div>
@@ -340,16 +340,16 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
       <div className="glass-card rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <h3 className="text-lg font-display font-semibold text-white">
+            <h3 className="text-lg font-display font-semibold text-slate-900">
               {activeModule.toUpperCase()} Knowledge Repository Assets
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700 font-medium">
               Only latest approved versions are queried by the RAG evaluation engine.
             </p>
           </div>
           <button
             onClick={() => alert(`Upload dialog for ${activeModule} module opened.`)}
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-teal-700 text-aqua-950 font-bold text-xs hover:bg-teal-800 transition"
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-teal-800 text-white font-bold font-bold text-xs hover:bg-teal-800 transition"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>Add {activeModule} Asset</span>
@@ -363,14 +363,14 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
               <div key={doc.id} className="p-4 rounded-xl bg-slate-50/60 border border-slate-200 space-y-2 hover:border-teal-200 transition">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2.5">
-                    <FileText className="w-5 h-5 text-teal-700 shrink-0" />
+                    <FileText className="w-5 h-5 text-teal-800 font-semibold shrink-0" />
                     <div>
-                      <h4 className="font-semibold text-sm text-white">{doc.title}</h4>
-                      <p className="text-[11px] text-slate-500">{doc.filename} • Version <span className="text-teal-800 font-mono">{doc.version}</span></p>
+                      <h4 className="font-semibold text-sm text-slate-900">{doc.title}</h4>
+                      <p className="text-[11px] text-slate-700 font-medium">{doc.filename} • Version <span className="text-teal-800 font-mono">{doc.version}</span></p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
                       {doc.approval_status}
                     </span>
                     <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-teal-50 text-teal-800 border border-teal-200">
@@ -381,9 +381,9 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
 
                 <p className="text-xs text-slate-600 pl-7">{doc.summary}</p>
 
-                <div className="flex items-center justify-between pt-2 pl-7 text-[11px] text-slate-500 font-mono border-t border-slate-200">
+                <div className="flex items-center justify-between pt-2 pl-7 text-[11px] text-slate-700 font-medium font-mono border-t border-slate-200">
                   <span>Uploaded By: {doc.uploaded_by} on {doc.uploaded_at}</span>
-                  {doc.expiry_date && <span className="text-amber-800">Expires: {doc.expiry_date}</span>}
+                  {doc.expiry_date && <span className="text-amber-900 font-bold">Expires: {doc.expiry_date}</span>}
                 </div>
               </div>
             ))}

@@ -61,10 +61,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="space-y-6">
         {/* Navigation Category Label */}
         <div className="px-3 pt-2 flex items-center justify-between">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-700 font-medium">
             Platform Modules
           </span>
-          <Waves className="w-3.5 h-3.5 text-teal-700 animate-pulse" />
+          <Waves className="w-3.5 h-3.5 text-teal-800 font-semibold animate-pulse" />
         </div>
 
         {/* Menu Items */}
@@ -80,13 +80,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
                   isActive
                     ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-teal-800 border border-teal-300 shadow-lg shadow-cyan-500/10'
-                    : 'text-slate-600 hover:bg-white/5 hover:text-white'
+                    : 'text-slate-600 hover:bg-white/5 hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
                   <Icon
                     className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-teal-700' : 'text-slate-500 group-hover:text-teal-800'
+                      isActive ? 'text-teal-800 font-semibold' : 'text-slate-700 font-medium group-hover:text-teal-800'
                     }`}
                   />
                   <span>{item.label}</span>
@@ -95,8 +95,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span
                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${
                       isActive
-                        ? 'bg-teal-700 text-aqua-950 font-bold'
-                        : 'bg-white/5 text-slate-500 group-hover:bg-white/10'
+                        ? 'bg-teal-800 text-white font-bold font-bold'
+                        : 'bg-white/5 text-slate-700 font-medium group-hover:bg-white/10'
                     }`}
                   >
                     {item.badge}
@@ -111,10 +111,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* System Status Card */}
       <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-white">RHDS Engine Active</span>
+          <span className="text-xs font-semibold text-slate-900">RHDS Engine Active</span>
           <span className="w-2 h-2 rounded-full bg-teal-700 animate-ping" />
         </div>
-        <p className="text-[11px] text-slate-500 leading-relaxed">
+        <p className="text-[11px] text-slate-700 font-medium leading-relaxed">
           Master Company DB & Combined JV Eligibility calculation engine online.
         </p>
       </div>
