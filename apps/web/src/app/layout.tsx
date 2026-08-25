@@ -1,3 +1,4 @@
+// Force Vercel Production Build Sync: 2026-08-25 13:17:38
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
