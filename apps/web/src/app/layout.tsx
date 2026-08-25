@@ -38,11 +38,11 @@ export default function RootLayout({
       <body className={`${inter.variable} bg-[#f4f6f8] text-slate-900 min-h-screen flex flex-col antialiased relative bg-blueprint-grid overflow-x-hidden`}>
         {/* Dynamic Moving Tender & Infrastructure Floating Background Icons */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <FileText className="absolute top-[12%] left-[8%] w-12 h-12 text-teal-600/15 animate-floating-icon-1" />
-          <Workflow className="absolute top-[25%] right-[10%] w-14 h-14 text-sky-600/15 animate-floating-icon-2" />
-          <Award className="absolute bottom-[20%] left-[12%] w-16 h-16 text-teal-700/15 animate-floating-icon-1" />
-          <Compass className="absolute top-[55%] right-[15%] w-14 h-14 text-indigo-600/15 animate-floating-icon-2" />
-          <Layers className="absolute bottom-[10%] right-[8%] w-12 h-12 text-emerald-600/15 animate-floating-icon-1" />
+          <FileText className="absolute top-[10%] left-[6%] w-14 h-14 text-teal-600/20 animate-floating-icon-1" />
+          <Workflow className="absolute top-[22%] right-[8%] w-16 h-16 text-sky-600/20 animate-floating-icon-2" />
+          <Award className="absolute bottom-[18%] left-[10%] w-16 h-16 text-teal-700/20 animate-floating-icon-1" />
+          <Compass className="absolute top-[50%] right-[12%] w-14 h-14 text-indigo-600/20 animate-floating-icon-2" />
+          <Layers className="absolute bottom-[8%] right-[6%] w-14 h-14 text-emerald-600/20 animate-floating-icon-1" />
         </div>
 
         {/* Foreground Content */}

@@ -496,7 +496,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
           </button>
 
           <div className="px-3.5 py-1.5 rounded-full bg-purple-50 border border-purple-200 text-purple-800 font-mono text-xs flex items-center space-x-1.5">
-            <Lock className="w-3.5 h-3.5 text-purple-700" />
+            <Lock className="w-3.5 h-3.5 text-purple-800 font-bold" />
             <span>Dedicated `/admin` Security Portal</span>
           </div>
         </div>
@@ -667,7 +667,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="font-display text-lg font-bold tracking-tight text-slate-900">
-                DESIRE <span className="text-purple-700">ADMINISTRATOR PORTAL</span>
+                DESIRE <span className="text-purple-800 font-bold">ADMINISTRATOR PORTAL</span>
               </h1>
               <span className="px-2 py-0.5 text-[10px] font-mono uppercase bg-purple-500/20 text-purple-800 border border-purple-500/40 rounded-full">
                 `/admin` BACKEND
@@ -757,7 +757,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
 
               <div className="glass-card p-5 rounded-2xl border border-purple-200 bg-purple-500/5 space-y-1">
                 <span className="text-[11px] font-mono text-purple-800 uppercase">Managed Projects</span>
-                <div className="text-3xl font-display font-bold text-purple-700">{projectList.length}</div>
+                <div className="text-3xl font-display font-bold text-purple-800 font-bold">{projectList.length}</div>
               </div>
             </div>
 
@@ -809,7 +809,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div>
                 <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-purple-700" />
+                  <Users className="w-5 h-5 text-purple-800 font-bold" />
                   <span>User Directory & Permission Assignment Matrix</span>
                 </h3>
                 <p className="text-xs text-slate-700 font-medium mt-1">
@@ -935,7 +935,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
                 <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
-                  <FolderKanban className="w-5 h-5 text-purple-700" />
+                  <FolderKanban className="w-5 h-5 text-purple-800 font-bold" />
                   <span>Managed Projects & Client Authorities</span>
                 </h3>
                 <p className="text-xs text-slate-700 font-medium mt-1">
@@ -1055,7 +1055,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
         {activeAdminTab === 'audit' && (
           <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-4 border border-slate-200">
             <h3 className="text-lg font-display font-bold text-slate-900 flex items-center space-x-2">
-              <History className="w-5 h-5 text-purple-700" />
+              <History className="w-5 h-5 text-purple-800 font-bold" />
               <span>Security Audit Trail</span>
             </h3>
             <p className="text-xs text-slate-700 font-medium">

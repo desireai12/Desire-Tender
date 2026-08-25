@@ -582,7 +582,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             {/* Tender PDF Drag & Drop */}
             <div className="md:col-span-2 space-y-2">
               <label className="text-xs font-mono text-slate-600">Upload Tender Specification PDF *</label>
-              <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-250 hover:border-teal-300 bg-slate-100 border border-slate-200 hover:bg-cyan-950/20 cursor-pointer transition-all">
+              <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-250 hover:border-teal-300 bg-slate-100 border border-slate-200 hover:bg-teal-800/20 cursor-pointer transition-all">
                 <Upload className="w-8 h-8 text-teal-800 font-semibold mb-2" />
                 <span className="text-xs font-semibold text-slate-900">
                   {uploadedTenderFile ? uploadedTenderFile.name : 'Drag & drop tender PDF here, or click to browse'}
