@@ -11,12 +11,9 @@
   }
 }
 
-html.dark body {
-  background-color: #0b132b !important;
-  color: #f8fafc !important;
-}
-
-/* Technical Blueprint Grid Pattern Overlay */
+/* ------------------------------------------------------------- */
+/* 1. TECHNICAL BLUEPRINT GRID BACKGROUND                         */
+/* ------------------------------------------------------------- */
 .bg-blueprint-grid {
   background-size: 36px 36px;
   background-image: 
@@ -27,8 +24,8 @@ html.dark body {
 
 html.dark .bg-blueprint-grid {
   background-image: 
-    linear-gradient(to right, rgba(16, 185, 129, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(16, 185, 129, 0.12) 1px, transparent 1px);
+    linear-gradient(to right, rgba(16, 185, 129, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 185, 129, 0.14) 1px, transparent 1px);
 }
 
 @keyframes moveGrid {
@@ -57,31 +54,17 @@ html.dark .bg-blueprint-grid {
   animation: floatWaterIcon2 18s ease-in-out infinite;
 }
 
-/* Glass Card Styling for Light & Dark Themes */
+/* ------------------------------------------------------------- */
+/* 2. GLASS CARDS & CONTAINERS FOR LIGHT & DARK THEMES           */
+/* ------------------------------------------------------------- */
 .glass-card {
-  background: rgba(255, 255, 255, 0.90);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid #cbd5e1;
   box-shadow: 0 4px 20px -2px rgba(6, 78, 59, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
   border-radius: 12px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-html.dark .glass-card {
-  background: rgba(15, 23, 42, 0.90) !important;
-  border-color: #334155 !important;
-  color: #f8fafc !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4) !important;
-}
-
-.glass-card:hover {
-  border-color: #047857;
-  box-shadow: 0 10px 25px -3px rgba(4, 120, 87, 0.14), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-}
-
-html.dark .glass-card:hover {
-  border-color: #10b981 !important;
 }
 
 .glass-input {
@@ -92,21 +75,109 @@ html.dark .glass-card:hover {
   transition: all 0.15s ease-in-out;
 }
 
-html.dark .glass-input {
-  background: #020617 !important;
-  border-color: #334155 !important;
-  color: #f8fafc !important;
-}
-
 .glass-input:focus {
   border-color: #047857;
   box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.18);
   outline: none;
 }
 
-html.dark .glass-input:focus {
+/* ------------------------------------------------------------- */
+/* 3. COMPREHENSIVE DARK MODE SYSTEM OVERRIDES (html.dark)        */
+/* ------------------------------------------------------------- */
+
+html.dark body {
+  background-color: #090e1a !important;
+  color: #f8fafc !important;
+}
+
+html.dark header {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+html.dark aside {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+html.dark .glass-card {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .glass-card:hover {
+  border-color: #10b981 !important;
+  box-shadow: 0 8px 24px -2px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Dark Mode Typography Overrides */
+html.dark h1, 
+html.dark h2, 
+html.dark h3, 
+html.dark h4, 
+html.dark h5, 
+html.dark h6 {
+  color: #ffffff !important;
+}
+
+html.dark .text-slate-900 {
+  color: #ffffff !important;
+}
+
+html.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+html.dark .text-slate-700, 
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500, 
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Dark Mode Badges & Container Backgrounds */
+html.dark .bg-slate-50, 
+html.dark .bg-slate-100, 
+html.dark .bg-white {
+  background-color: rgba(30, 41, 59, 0.85) !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html.dark .border-slate-200, 
+html.dark .border-slate-250, 
+html.dark .border-slate-300 {
+  border-color: #334155 !important;
+}
+
+/* Dark Mode Inputs, Selects & Textareas */
+html.dark input, 
+html.dark select, 
+html.dark textarea {
+  background-color: #020617 !important;
+  color: #ffffff !important;
+  border-color: #334155 !important;
+}
+
+html.dark input:focus, 
+html.dark select:focus, 
+html.dark textarea:focus {
   border-color: #10b981 !important;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Dark Mode Active Button Accent */
+html.dark .bg-\[\#064e3b\] {
+  background-color: #065f46 !important;
+  color: #ffffff !important;
+  border-color: #34d399 !important;
 }
 
 /* Custom Scrollbar */
