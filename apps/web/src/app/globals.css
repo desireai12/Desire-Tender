@@ -7,15 +7,43 @@
     @apply bg-[#f4f6f8] text-slate-900 font-sans antialiased min-h-screen selection:bg-teal-700/20 selection:text-teal-950;
     background-color: #f4f6f8;
     position: relative;
+    overflow-x: hidden;
   }
 }
 
 /* Technical Blueprint Grid Pattern Overlay */
 .bg-blueprint-grid {
-  background-size: 32px 32px;
+  background-size: 36px 36px;
   background-image: 
-    linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+    linear-gradient(to right, rgba(13, 148, 136, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 148, 136, 0.09) 1px, transparent 1px);
+  animation: moveGrid 35s linear infinite;
+}
+
+@keyframes moveGrid {
+  0% { background-position: 0 0; }
+  100% { background-position: 36px 36px; }
+}
+
+/* Dynamic Floating Tender Icons Background Keyframes */
+@keyframes floatTenderIcon1 {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.18; }
+  50% { transform: translateY(-30px) rotate(6deg) scale(1.08); opacity: 0.30; }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.18; }
+}
+
+@keyframes floatTenderIcon2 {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.15; }
+  50% { transform: translateY(35px) rotate(-8deg) scale(1.10); opacity: 0.28; }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.15; }
+}
+
+.animate-floating-icon-1 {
+  animation: floatTenderIcon1 14s ease-in-out infinite;
+}
+
+.animate-floating-icon-2 {
+  animation: floatTenderIcon2 18s ease-in-out infinite;
 }
 
 /* Technical Document Card Containers */

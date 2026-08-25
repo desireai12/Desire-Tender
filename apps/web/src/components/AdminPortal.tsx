@@ -718,13 +718,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
                 onClick={() => setActiveAdminTab(tab.id)}
                 className={`p-3.5 rounded-2xl border text-left transition-all ${
                   isActive
-                    ? 'bg-gradient-to-br from-purple-950 to-indigo-950 border-purple-400 text-slate-900 shadow-lg shadow-purple-500/20'
-                    : 'bg-slate-50/40 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
+                    ? 'bg-purple-700 text-white border-2 border-purple-800 shadow-md shadow-purple-900/20 font-bold'
+                    : 'bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-purple-700' : 'text-slate-700 font-medium'}`} />
-                  <span className="font-display font-bold text-xs">{tab.label}</span>
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-700'}`} />
+                  <span className={`font-display font-bold text-xs ${isActive ? 'text-white' : 'text-slate-900'}`}>{tab.label}</span>
                 </div>
               </button>
             );
