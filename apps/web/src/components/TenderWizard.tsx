@@ -775,7 +775,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {(currentReport.clauses_breakdown || []).map((item, idx) => {
+                  {(currentReport.clauses_breakdown || []).map((item: any, idx: number) => {
                     let statusVal = item.status;
                     let displayVal = item.combined_value;
                     let itemFulfilledPct = item.fulfilled_pct;

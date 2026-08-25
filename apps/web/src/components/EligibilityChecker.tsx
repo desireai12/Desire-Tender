@@ -1,3 +1,34 @@
+export interface ClauseBreakdownItem {
+  clause_no?: string;
+  clause_ref?: string;
+  category?: string;
+  requirement?: string;
+  company_match?: string;
+  status?: 'Pass' | 'Fail' | 'Partial' | string;
+  remarks?: string;
+  [key: string]: any;
+}
+
+export interface DynamicTenderEvaluationReport {
+  tender_id?: string;
+  tender_title?: string;
+  project_category?: string;
+  verdict?: 'Eligible' | 'Conditional' | 'Ineligible' | string;
+  eligibility_score?: number;
+  executive_summary?: string;
+  parameter_matrix?: any[];
+  clause_breakdown?: ClauseBreakdownItem[];
+  clauses_breakdown?: ClauseBreakdownItem[];
+  competitor_intelligence?: any[];
+  cost_structure_placeholder?: any[];
+  [key: string]: any;
+}
+
+
+
+
+
+
 'use client';
 
 import React, { useState } from 'react';
