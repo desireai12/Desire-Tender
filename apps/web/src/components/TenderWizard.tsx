@@ -466,27 +466,27 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               key={s.num}
               className={`p-4 rounded-xl border transition-all ${
                 isActive
-                  ? 'bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/15'
+                  ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md'
                   : isDone
-                  ? 'bg-emerald-950/30 border-emerald-200 text-slate-600'
-                  : 'bg-slate-50/40 border-slate-200 opacity-60'
+                  ? 'bg-emerald-50 border border-emerald-300 text-emerald-900'
+                  : 'bg-white border border-slate-200 text-slate-600 opacity-80'
               }`}
             >
               <div className="flex items-center space-x-3">
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                     isActive
-                      ? 'bg-teal-800 text-white font-bold'
+                      ? 'bg-white text-teal-800 font-bold'
                       : isDone
-                      ? 'bg-emerald-400 text-white'
-                      : 'bg-white/10 text-slate-700 font-medium'
+                      ? 'bg-emerald-600 text-white font-bold'
+                      : 'bg-slate-100 text-slate-700 font-bold border border-slate-300'
                   }`}
                 >
                   {isDone ? <Check className="w-4 h-4" /> : s.num}
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-slate-900">{s.title}</h4>
-                  <p className="text-[11px] text-slate-700 font-medium">{s.desc}</p>
+                  <h4 className={`text-xs font-bold ${isActive ? 'text-white' : 'text-slate-900'}`}>{s.title}</h4>
+                  <p className={`text-[11px] font-medium ${isActive ? 'text-teal-100' : 'text-slate-600'}`}>{s.desc}</p>
                 </div>
               </div>
             </div>
@@ -512,9 +512,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 type="button"
                 onClick={() => setActiveAnalysisOption('desire')}
                 className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'desire'
-                    ? 'bg-cyan-500/20 border-cyan-400 text-teal-800 shadow-lg shadow-cyan-500/10 font-bold'
-                    : 'bg-slate-100 border border-slate-200 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
+                  activeAnalysisOption === 'desire' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
               >
                 <div className="flex items-center space-x-2">
@@ -528,9 +526,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 type="button"
                 onClick={() => setActiveAnalysisOption('jv')}
                 className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'jv'
-                    ? 'bg-teal-500/20 border-teal-400 text-teal-800 font-bold shadow-lg shadow-teal-500/10 font-bold'
-                    : 'bg-slate-100 border border-slate-200 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
+                  activeAnalysisOption === 'jv' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
               >
                 <div className="flex items-center space-x-2">
@@ -544,9 +540,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 type="button"
                 onClick={() => setActiveAnalysisOption('combined')}
                 className={`p-3 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'combined'
-                    ? 'bg-gradient-to-r from-cyan-500/30 to-teal-500/20 border-cyan-400 text-slate-900 font-bold shadow-lg shadow-cyan-500/15'
-                    : 'bg-slate-100 border border-slate-200 border-slate-200 text-slate-700 font-medium hover:text-slate-900'
+                  activeAnalysisOption === 'combined' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
                 }`}
               >
                 <div className="flex items-center space-x-2">
@@ -641,9 +635,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             <button
               onClick={() => setActiveAnalysisOption('desire')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
-                activeAnalysisOption === 'desire'
-                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-300 shadow-lg shadow-cyan-500/10 font-bold'
-                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
+                activeAnalysisOption === 'desire' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -656,9 +648,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             <button
               onClick={() => setActiveAnalysisOption('jv')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
-                activeAnalysisOption === 'jv'
-                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold font-bold border border-teal-500/40 shadow-lg shadow-teal-500/10 font-bold'
-                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
+                activeAnalysisOption === 'jv' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -671,9 +661,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             <button
               onClick={() => setActiveAnalysisOption('combined')}
               className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
-                activeAnalysisOption === 'combined'
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold shadow-lg shadow-cyan-500/20'
-                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900'
+                activeAnalysisOption === 'combined' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
               }`}
             >
               <GitMerge className="w-4 h-4" />
