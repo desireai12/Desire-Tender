@@ -332,9 +332,9 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
   };
 
   return (
-    <div className="min-h-screen bg-[#101415] text-[#e0e3e5] flex flex-col justify-between relative overflow-hidden p-6 sm:p-12">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between relative overflow-hidden p-6 sm:p-12">
       {/* Ambient Orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-teal-50 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header Navigation */}
@@ -345,9 +345,9 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
           </div>
           <div>
             <h1 className="font-display text-lg font-bold text-white tracking-tight">
-              DESIRE <span className="text-cyan-400">ENERGY SOLUTIONS</span>
+              DESIRE <span className="text-teal-700">ENERGY SOLUTIONS</span>
             </h1>
-            <p className="text-[11px] text-slate-400 font-mono">
+            <p className="text-[11px] text-slate-500 font-mono">
               Tender Intelligence Platform • Jaipur HQ
             </p>
           </div>
@@ -356,9 +356,9 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
         {/* Dedicated /admin Portal Link */}
         <button
           onClick={onNavigateAdmin}
-          className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-mono hover:bg-purple-500/20 transition cursor-pointer"
+          className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-purple-50 border border-purple-200 text-purple-800 text-xs font-mono hover:bg-purple-500/20 transition cursor-pointer"
         >
-          <ShieldCheck className="w-4 h-4 text-purple-400" />
+          <ShieldCheck className="w-4 h-4 text-purple-700" />
           <span>Go to /admin Portal</span>
         </button>
       </div>
@@ -366,7 +366,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       {/* Main Form Center Container */}
       <div className="max-w-xl mx-auto w-full my-auto py-8 space-y-6 animate-fadeIn">
         <div className="text-center space-y-2">
-          <span className="px-3.5 py-1.5 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-xs font-mono inline-flex items-center space-x-1.5">
+          <span className="px-3.5 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-mono inline-flex items-center space-x-1.5">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Water Infrastructure Lifecycle Engine</span>
           </span>
@@ -374,19 +374,19 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight">
             Desire Tender Portal
           </h2>
-          <p className="text-slate-400 text-xs max-w-md mx-auto">
+          <p className="text-slate-500 text-xs max-w-md mx-auto">
             Employee credentials are strictly validated. New accounts are granted initial access to **Eligibility Checking** pending Admin approval.
           </p>
         </div>
 
         {/* Dual Mode Switcher Tabs */}
-        <div className="glass-card p-1.5 rounded-2xl border border-white/10 flex items-center max-w-md mx-auto">
+        <div className="glass-card p-1.5 rounded-2xl border border-slate-200 flex items-center max-w-md mx-auto">
           <button
             onClick={() => { setActiveMode('signin'); setErrorMsg(null); setSuccessNotice(null); }}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold font-mono transition-all ${
               activeMode === 'signin'
-                ? 'bg-cyan-400 text-aqua-950 shadow-lg shadow-cyan-400/20'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-teal-700 text-aqua-950 shadow-lg shadow-cyan-400/20'
+                : 'text-slate-500 hover:text-white'
             }`}
           >
             Sign In to Workspace
@@ -395,8 +395,8 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             onClick={() => { setActiveMode('register'); setErrorMsg(null); setSuccessNotice(null); }}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold font-mono transition-all ${
               activeMode === 'register'
-                ? 'bg-cyan-400 text-aqua-950 shadow-lg shadow-cyan-400/20'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-teal-700 text-aqua-950 shadow-lg shadow-cyan-400/20'
+                : 'text-slate-500 hover:text-white'
             }`}
           >
             Create Account
@@ -404,17 +404,17 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
         </div>
 
         {/* Authentication Card (NO AUTOFILL) */}
-        <div className="glass-card p-8 rounded-3xl border border-cyan-500/30 max-w-md mx-auto shadow-2xl shadow-cyan-500/10 space-y-5">
+        <div className="glass-card p-8 rounded-3xl border border-teal-200 max-w-md mx-auto shadow-2xl shadow-cyan-500/10 space-y-5">
           {errorMsg && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-start space-x-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start space-x-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successNotice && (
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-start space-x-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start space-x-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
               <span>{successNotice}</span>
             </div>
           )}
@@ -424,9 +424,9 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
             <form onSubmit={handleSignIn} autoComplete="off" className="space-y-4">
               {/* Employee ID */}
               <div className="space-y-1.5">
-                <label className="text-xs font-mono uppercase text-slate-300 block">Employee / User ID *</label>
+                <label className="text-xs font-mono uppercase text-slate-600 block">Employee / User ID *</label>
                 <div className="relative">
-                  <UserCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <UserCheck className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                   <input
                     type="text"
                     required
@@ -434,16 +434,16 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="e.g. EMP001"
                     value={employeeId}
                     onChange={(e) => setEmployeeId(e.target.value)}
-                    className="w-full glass-input text-sm text-white pl-10 pr-4 py-2.5 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none font-mono uppercase"
+                    className="w-full glass-input text-sm text-white pl-10 pr-4 py-2.5 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono uppercase"
                   />
                 </div>
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-xs font-mono uppercase text-slate-300 block">Password *</label>
+                <label className="text-xs font-mono uppercase text-slate-600 block">Password *</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
@@ -451,12 +451,12 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full glass-input text-sm text-white pl-10 pr-10 py-2.5 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-sm text-white pl-10 pr-10 py-2.5 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3 text-slate-400 hover:text-white"
+                    className="absolute right-3.5 top-3 text-slate-500 hover:text-white"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -478,7 +478,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
           {activeMode === 'register' && (
             <form onSubmit={handleRegister} autoComplete="off" className="space-y-3.5">
               <div className="space-y-1">
-                <label className="text-[11px] font-mono uppercase text-slate-300 block">Employee / User ID *</label>
+                <label className="text-[11px] font-mono uppercase text-slate-600 block">Employee / User ID *</label>
                 <input
                   type="text"
                   required
@@ -486,12 +486,12 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                   placeholder="e.g. EMP005"
                   value={regEmpId}
                   onChange={(e) => setRegEmpId(e.target.value)}
-                  className="w-full glass-input text-xs text-white px-3.5 py-2 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none font-mono uppercase"
+                  className="w-full glass-input text-xs text-white px-3.5 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono uppercase"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-mono uppercase text-slate-300 block">Full Name *</label>
+                <label className="text-[11px] font-mono uppercase text-slate-600 block">Full Name *</label>
                 <input
                   type="text"
                   required
@@ -499,13 +499,13 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                   placeholder="e.g. Ramesh Kumar"
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
-                  className="w-full glass-input text-xs text-white px-3.5 py-2 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none"
+                  className="w-full glass-input text-xs text-white px-3.5 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-mono uppercase text-slate-300 block">Mobile (10 Digits) *</label>
+                  <label className="text-[11px] font-mono uppercase text-slate-600 block">Mobile (10 Digits) *</label>
                   <input
                     type="tel"
                     required
@@ -514,12 +514,12 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="9829012345"
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value.replace(/\D/g, ''))}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-mono uppercase text-slate-300 block">Work Email *</label>
+                  <label className="text-[11px] font-mono uppercase text-slate-600 block">Work Email *</label>
                   <input
                     type="email"
                     required
@@ -527,14 +527,14 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="name@desireenergy.com"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none"
+                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-mono uppercase text-slate-300 block">Password *</label>
+                  <label className="text-[11px] font-mono uppercase text-slate-600 block">Password *</label>
                   <input
                     type="password"
                     required
@@ -542,12 +542,12 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="••••••••"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-mono uppercase text-slate-300 block">Confirm Password *</label>
+                  <label className="text-[11px] font-mono uppercase text-slate-600 block">Confirm Password *</label>
                   <input
                     type="password"
                     required
@@ -555,7 +555,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
                     placeholder="••••••••"
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-white/15 focus:border-cyan-400 focus:outline-none font-mono"
+                    className="w-full glass-input text-xs text-white px-3 py-2 rounded-xl border border-slate-250 focus:border-cyan-400 focus:outline-none font-mono"
                   />
                 </div>
               </div>
@@ -574,7 +574,7 @@ export const LoginLanding: React.FC<LoginLandingProps> = ({ onLoginSuccess, onNa
       </div>
 
       {/* Footer */}
-      <div className="text-center text-xs text-slate-500 font-mono border-t border-white/5 pt-6 max-w-7xl mx-auto w-full">
+      <div className="text-center text-xs text-slate-500 font-mono border-t border-slate-200 pt-6 max-w-7xl mx-auto w-full">
         © 2026 Desire Energy Solutions Pvt. Ltd. Jaipur HQ • Production RBAC Architecture
       </div>
     </div>

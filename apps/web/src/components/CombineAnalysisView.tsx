@@ -141,14 +141,14 @@ export const CombineAnalysisView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-white/10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+          <div className="p-2.5 rounded-xl bg-cyan-500/20 text-teal-700 border border-teal-200">
             <GitMerge className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white tracking-wide">JV & Combine Eligibility Engine</h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               Evaluate Desire Alone vs JV Partner Alone vs Combined JV Eligibility under RHDS & Tender-specific rules.
             </p>
           </div>
@@ -165,14 +165,14 @@ export const CombineAnalysisView: React.FC = () => {
       </div>
 
       {/* Selector Controls Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 glass-card p-4 rounded-xl border border-white/10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 glass-card p-4 rounded-xl border border-slate-200">
         {/* Tender Category */}
         <div className="space-y-1">
-          <label className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Working Tender Category</label>
+          <label className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">Working Tender Category</label>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+            className="w-full bg-slate-900 border border-slate-200 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
           >
             <option value="RHDS">RHDS Jal Jeevan Mission Rural Water Supply (Min ₹60 Cr Turnover)</option>
             <option value="STP">STP & Sewerage Package 44 AMRUT 2.0 (Min ₹54.8 Cr Turnover)</option>
@@ -185,11 +185,11 @@ export const CombineAnalysisView: React.FC = () => {
 
         {/* Desire Entity Selector */}
         <div className="space-y-1">
-          <label className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Desire Energy Entity</label>
+          <label className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">Desire Energy Entity</label>
           <select
             value={desireCompanyId}
             onChange={(e) => setDesireCompanyId(e.target.value)}
-            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+            className="w-full bg-slate-900 border border-slate-200 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
           >
             {companies.filter(c => c.type === 'Desire Energy' || c.name.includes('DESIRE')).map(c => (
               <option key={c.id} value={c.id}>{c.name} (Avg ₹{c.average_turnover} Cr)</option>
@@ -200,11 +200,11 @@ export const CombineAnalysisView: React.FC = () => {
 
         {/* JV Partner Selector */}
         <div className="space-y-1">
-          <label className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Select JV Partner(s)</label>
+          <label className="text-[11px] font-mono text-slate-500 uppercase tracking-wider">Select JV Partner(s)</label>
           <select
             value={jvPartnerId}
             onChange={(e) => setJvPartnerId(e.target.value)}
-            className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+            className="w-full bg-slate-900 border border-slate-200 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
           >
             {companies.filter(c => c.type !== 'Desire Energy').map(c => (
               <option key={c.id} value={c.id}>{c.name} ({c.type} - Avg ₹{c.average_turnover} Cr)</option>
@@ -217,39 +217,39 @@ export const CombineAnalysisView: React.FC = () => {
       {/* 3-Pillar Comparison Cards (Desire Alone vs JV Alone vs Combined JV) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Desire Energy Alone */}
-        <div className="glass-card p-5 rounded-2xl border border-white/10 space-y-4">
+        <div className="glass-card p-5 rounded-2xl border border-slate-200 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-teal-800 border border-teal-200">
               Desire Energy Alone
             </span>
-            <span className="text-xs font-bold font-mono text-cyan-400">
+            <span className="text-xs font-bold font-mono text-teal-700">
               {evaluation?.desire_alone?.fulfilled_pct || '501.5%'}
             </span>
           </div>
 
           <div>
             <h3 className="text-sm font-bold text-white line-clamp-1">{desireComp.name}</h3>
-            <p className="text-xs text-slate-400 mt-1">Standalone capability evaluation</p>
+            <p className="text-xs text-slate-500 mt-1">Standalone capability evaluation</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/5 space-y-1.5 font-mono text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-200 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400">Avg Turnover:</span>
+              <span className="text-slate-500">Avg Turnover:</span>
               <span className="font-bold text-white">₹{desireComp.average_turnover || 300.93} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Net Worth:</span>
+              <span className="text-slate-500">Net Worth:</span>
               <span className="font-bold text-teal-300">₹{desireComp.net_worth || 95.0} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Status:</span>
-              <span className="font-bold text-emerald-400">{evaluation?.desire_alone?.status || 'Eligible'}</span>
+              <span className="text-slate-500">Status:</span>
+              <span className="font-bold text-emerald-700">{evaluation?.desire_alone?.status || 'Eligible'}</span>
             </div>
           </div>
         </div>
 
         {/* JV Partner Alone */}
-        <div className="glass-card p-5 rounded-2xl border border-white/10 space-y-4">
+        <div className="glass-card p-5 rounded-2xl border border-slate-200 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
               JV Partner Alone
@@ -261,68 +261,68 @@ export const CombineAnalysisView: React.FC = () => {
 
           <div>
             <h3 className="text-sm font-bold text-white line-clamp-1">{jvComp.name}</h3>
-            <p className="text-xs text-slate-400 mt-1">Partner standalone capability evaluation</p>
+            <p className="text-xs text-slate-500 mt-1">Partner standalone capability evaluation</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/5 space-y-1.5 font-mono text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-200 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400">Avg Turnover:</span>
+              <span className="text-slate-500">Avg Turnover:</span>
               <span className="font-bold text-white">₹{jvComp.average_turnover || 37.01} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Net Worth:</span>
+              <span className="text-slate-500">Net Worth:</span>
               <span className="font-bold text-teal-300">₹{jvComp.net_worth || 6.58} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Status:</span>
-              <span className="font-bold text-amber-300">{evaluation?.jv_alone?.status || 'Partially Eligible'}</span>
+              <span className="text-slate-500">Status:</span>
+              <span className="font-bold text-amber-800">{evaluation?.jv_alone?.status || 'Partially Eligible'}</span>
             </div>
           </div>
         </div>
 
         {/* Combined JV (DESPL + Partner) */}
-        <div className="glass-card p-5 rounded-2xl border border-cyan-500/40 bg-gradient-to-br from-cyan-500/10 to-teal-500/5 space-y-4 shadow-xl shadow-cyan-500/10">
+        <div className="glass-card p-5 rounded-2xl border border-teal-300 bg-gradient-to-br from-cyan-500/10 to-teal-500/5 space-y-4 shadow-xl shadow-cyan-500/10">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-cyan-400 text-aqua-950">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-700 text-aqua-950">
               Combined JV
             </span>
-            <span className="text-xs font-bold font-mono text-cyan-300">
+            <span className="text-xs font-bold font-mono text-teal-800">
               {evaluation?.combined_jv?.fulfilled_pct || '563.2%'}
             </span>
           </div>
 
           <div>
             <h3 className="text-sm font-bold text-white">Combined Consortium Result</h3>
-            <p className="text-xs text-slate-300 mt-1">Pooled turnover, credentials & JV rules compliance</p>
+            <p className="text-xs text-slate-600 mt-1">Pooled turnover, credentials & JV rules compliance</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-cyan-500/30 space-y-1.5 font-mono text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-teal-200 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-400">Combined Turnover:</span>
-              <span className="font-bold text-cyan-300">₹{((desireComp.average_turnover||300.93) + (jvComp.average_turnover||37.01)).toFixed(2)} Cr</span>
+              <span className="text-slate-500">Combined Turnover:</span>
+              <span className="font-bold text-teal-800">₹{((desireComp.average_turnover||300.93) + (jvComp.average_turnover||37.01)).toFixed(2)} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Combined Net Worth:</span>
+              <span className="text-slate-500">Combined Net Worth:</span>
               <span className="font-bold text-teal-300">₹{((desireComp.net_worth||95) + (jvComp.net_worth||6.58)).toFixed(2)} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Final Verdict:</span>
-              <span className="font-bold text-emerald-400">{evaluation?.combined_jv?.status || 'Eligible Through JV'}</span>
+              <span className="text-slate-500">Final Verdict:</span>
+              <span className="font-bold text-emerald-700">{evaluation?.combined_jv?.status || 'Eligible Through JV'}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Comprehensive Comparative Matrix Table (Section 3 & 4 Requirement) */}
-      <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-4">
+      <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400">
+            <div className="p-2 rounded-lg bg-cyan-500/20 text-teal-700">
               <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Combined Eligibility Breakdown Matrix</h2>
-              <p className="text-xs text-slate-400">Tender Requirement vs Desire Contribution vs JV Contribution vs Combined Result</p>
+              <p className="text-xs text-slate-500">Tender Requirement vs Desire Contribution vs JV Contribution vs Combined Result</p>
             </div>
           </div>
         </div>
@@ -330,10 +330,10 @@ export const CombineAnalysisView: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-white/10 text-slate-400 font-mono text-[11px] uppercase tracking-wider bg-slate-900/40">
+              <tr className="border-b border-slate-200 text-slate-500 font-mono text-[11px] uppercase tracking-wider bg-slate-900/40">
                 <th className="p-3">Eligibility Criterion</th>
                 <th className="p-3">Tender Requirement</th>
-                <th className="p-3 text-cyan-300">Desire Energy</th>
+                <th className="p-3 text-teal-800">Desire Energy</th>
                 <th className="p-3 text-teal-300">JV Partner</th>
                 <th className="p-3 text-white">Combined Result</th>
                 <th className="p-3">Applicable JV Rule</th>
@@ -345,14 +345,14 @@ export const CombineAnalysisView: React.FC = () => {
               {evaluation?.matrix_breakdown?.map((row, idx) => (
                 <tr key={idx} className="hover:bg-white/5 transition-colors">
                   <td className="p-3 font-semibold text-white">{row.criterion}</td>
-                  <td className="p-3 text-slate-300">{row.tender_requirement}</td>
-                  <td className="p-3 text-cyan-300 font-mono font-medium">{row.desire_contribution}</td>
+                  <td className="p-3 text-slate-600">{row.tender_requirement}</td>
+                  <td className="p-3 text-teal-800 font-mono font-medium">{row.desire_contribution}</td>
                   <td className="p-3 text-teal-300 font-mono font-medium">{row.jv_contribution}</td>
                   <td className="p-3 font-bold text-white font-mono">{row.combined_result}</td>
-                  <td className="p-3 text-slate-400 font-mono text-[11px]">{row.applicable_jv_rule}</td>
-                  <td className="p-3 font-mono font-bold text-cyan-400">{row.qualification_pct}</td>
+                  <td className="p-3 text-slate-500 font-mono text-[11px]">{row.applicable_jv_rule}</td>
+                  <td className="p-3 font-mono font-bold text-teal-700">{row.qualification_pct}</td>
                   <td className="p-3">
-                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>{row.status}</span>
                     </span>
@@ -365,28 +365,28 @@ export const CombineAnalysisView: React.FC = () => {
       </div>
 
       {/* JV Rules Audit Checklist (Section 4 & 5 Requirement) */}
-      <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-4">
+      <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+          <div className="p-2 rounded-lg bg-amber-100 text-amber-700">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-base font-bold text-white">RHDS Tender JV Rules Audit Checklist</h2>
-            <p className="text-xs text-slate-400">Verification of equity shares, lead member mandate, and credential restriction rules</p>
+            <p className="text-xs text-slate-500">Verification of equity shares, lead member mandate, and credential restriction rules</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {evaluation?.jv_rules_audit?.map((item, idx) => (
-            <div key={idx} className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+            <div key={idx} className="p-4 rounded-xl bg-slate-900/60 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-white">{item.rule}</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                   {item.status}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Requirement: <span className="text-slate-200 font-mono">{item.requirement}</span></p>
-              <p className="text-[11px] text-slate-400">Actual: <span className="text-cyan-300 font-mono font-bold">{item.actual}</span></p>
+              <p className="text-[11px] text-slate-500">Requirement: <span className="text-slate-200 font-mono">{item.requirement}</span></p>
+              <p className="text-[11px] text-slate-500">Actual: <span className="text-teal-800 font-mono font-bold">{item.actual}</span></p>
             </div>
           ))}
         </div>

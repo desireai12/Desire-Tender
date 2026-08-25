@@ -5,18 +5,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmb
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from core.config import settings, get_active_config
-from core.db import fetch_one
-
-def _get_key_with_db_fallback(provider: str, active_key: Optional[str]) -> str:
-    if active_key:
-        return active_key
-    db_row = fetch_one("SELECT * FROM public.app_settings WHERE id = 'default'")
-    if db_row:
-        if provider == "gemini":
-            return db_row.get("gemini_api_key") or ""
-        elif provider == "openai":
-            return db_row.get("openai_api_key") or ""
-    return 
 
 
 class LLMFactory:
@@ -38,7 +26,7 @@ class LLMFactory:
 
         if selected_provider == "gemini":
             target_model = model_name or config.get("gemini_model") or settings.GEMINI_MODEL
-            active_key = _get_key_with_db_fallback("gemini", api_key_override or config.get("gemini_key") or settings.GEMINI_API_KEY)
+            active_key = api_key_override or config.get("gemini_key") or settings.GEMINI_API_KEY
             if not active_key:
                 raise ValueError("GEMINI_API_KEY is not configured in settings or environment variables.")
             return ChatGoogleGenerativeAI(
@@ -48,7 +36,7 @@ class LLMFactory:
             )
         elif selected_provider == "openai":
             target_model = model_name or config.get("openai_model") or settings.OPENAI_MODEL
-            active_key = _get_key_with_db_fallback("openai", api_key_override or config.get("openai_key") or settings.OPENAI_API_KEY)
+            active_key = api_key_override or config.get("openai_key") or settings.OPENAI_API_KEY
             if not active_key:
                 raise ValueError("OPENAI_API_KEY is not configured in settings or environment variables.")
             return ChatOpenAI(
@@ -68,7 +56,7 @@ class LLMFactory:
         selected_provider = provider or config.get("provider") or settings.DEFAULT_LLM_PROVIDER
 
         if selected_provider == "gemini":
-            active_key = _get_key_with_db_fallback("gemini", api_key_override or config.get("gemini_key") or settings.GEMINI_API_KEY)
+            active_key = api_key_override or config.get("gemini_key") or settings.GEMINI_API_KEY
             if not active_key:
                 raise ValueError("GEMINI_API_KEY is not configured in settings or environment variables.")
             return GoogleGenerativeAIEmbeddings(
@@ -76,7 +64,7 @@ class LLMFactory:
                 google_api_key=active_key,
             )
         elif selected_provider == "openai":
-            active_key = _get_key_with_db_fallback("openai", api_key_override or config.get("openai_key") or settings.OPENAI_API_KEY)
+            active_key = api_key_override or config.get("openai_key") or settings.OPENAI_API_KEY
             if not active_key:
                 raise ValueError("OPENAI_API_KEY is not configured in settings or environment variables.")
             return OpenAIEmbeddings(

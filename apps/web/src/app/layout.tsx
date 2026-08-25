@@ -34,7 +34,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} bg-[#101415] text-[#e0e3e5] min-h-screen flex flex-col antialiased`}>
+      <body className={`${inter.variable} bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased`}>
         {children}
       </body>
     </html>

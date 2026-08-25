@@ -130,9 +130,9 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
   if (!activeTender) {
     return (
       <div className="glass-card p-12 rounded-2xl text-center space-y-4">
-        <Workflow className="w-12 h-12 text-cyan-400 mx-auto" />
+        <Workflow className="w-12 h-12 text-teal-700 mx-auto" />
         <h3 className="text-xl font-display font-bold text-white">No Active Tenders in Process Queue</h3>
-        <p className="text-xs text-slate-400">Use the Tender Assessment Wizard to create a new tender entry.</p>
+        <p className="text-xs text-slate-500">Use the Tender Assessment Wizard to create a new tender entry.</p>
       </div>
     );
   }
@@ -389,37 +389,37 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             <Database className="w-5 h-5" />
             <span>{feedbackToast}</span>
           </div>
-          <span className="text-[10px] font-mono uppercase bg-aqua-950 text-emerald-300 px-2.5 py-0.5 rounded-md">
+          <span className="text-[10px] font-mono uppercase bg-slate-50 text-emerald-800 px-2.5 py-0.5 rounded-md">
             Company Knowledge Updated
           </span>
         </div>
       )}
 
       {/* Module Banner */}
-      <div className="glass-card p-6 rounded-2xl border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="glass-card p-6 rounded-2xl border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-cyan-400 font-mono text-xs mb-1">
+          <div className="flex items-center space-x-2 text-teal-700 font-mono text-xs mb-1">
             <Workflow className="w-4 h-4" />
             <span>ENTERPRISE TENDER PROCESS QUEUE • 6 STAGES</span>
           </div>
           <h2 className="text-2xl font-display font-bold text-white">
             Tender Process Queue & Lifecycle Pipeline
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Progress tenders through 6 sequential stages. Current User Role: <strong className="text-cyan-300">{activeRole}</strong>
+          <p className="text-xs text-slate-500 mt-1">
+            Progress tenders through 6 sequential stages. Current User Role: <strong className="text-teal-800">{activeRole}</strong>
           </p>
         </div>
 
         {/* Active Tender Selector */}
-        <div className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-aqua-950/80 border border-white/10 shrink-0">
-          <span className="text-xs font-mono text-slate-400">Select Tender:</span>
+        <div className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-50/80 border border-slate-200 shrink-0">
+          <span className="text-xs font-mono text-slate-500">Select Tender:</span>
           <select
             value={selectedTenderId}
             onChange={(e) => setSelectedTenderId(e.target.value)}
             className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
           >
             {tenders.map((t) => (
-              <option key={t.id} value={t.id} className="bg-[#101415] text-white">
+              <option key={t.id} value={t.id} className="bg-slate-50 text-white">
                 #{t.id} — {t.tender_name.slice(0, 35)}... ({t.project_category})
               </option>
             ))}
@@ -443,47 +443,47 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 isViewing
                   ? 'ring-2 ring-cyan-400 bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/20'
                   : isPassed
-                  ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'
+                  ? 'bg-emerald-950/30 border-emerald-200 text-emerald-800'
                   : isCurrentActive
-                  ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-200'
-                  : 'bg-aqua-950/40 border-white/5 opacity-50'
+                  ? 'bg-cyan-950/40 border-teal-300 text-cyan-200'
+                  : 'bg-slate-50/40 border-slate-200 opacity-50'
               }`}
             >
               <div className="flex items-center justify-between text-[10px] font-mono mb-1">
-                <span className={`font-bold ${isPassed ? 'text-emerald-400' : isCurrentActive ? 'text-cyan-300' : 'text-slate-500'}`}>
+                <span className={`font-bold ${isPassed ? 'text-emerald-700' : isCurrentActive ? 'text-teal-800' : 'text-slate-500'}`}>
                   {isPassed ? '✅ DONE' : isCurrentActive ? '🔄 ACTIVE' : '⏳ PENDING'}
                 </span>
-                <span className="text-slate-400">{s.dept.split(' ')[0]}</span>
+                <span className="text-slate-500">{s.dept.split(' ')[0]}</span>
               </div>
               <div className="font-display font-semibold text-xs text-white truncate">{s.label}</div>
-              <div className="text-[10px] text-slate-400 truncate mt-0.5">{s.desc}</div>
+              <div className="text-[10px] text-slate-500 truncate mt-0.5">{s.desc}</div>
             </button>
           );
         })}
       </div>
 
       {/* Viewing Stage Detail Banner */}
-      <div className="p-4 rounded-xl bg-aqua-950/70 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center space-x-2 text-slate-300">
-          <span className="font-mono text-cyan-400 font-bold">STAGE VIEW:</span>
+      <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center space-x-2 text-slate-600">
+          <span className="font-mono text-teal-700 font-bold">STAGE VIEW:</span>
           <span className="font-semibold text-white">
             {stagesList.find(s => s.stage === viewingStage)?.label}
           </span>
-          <span className="text-slate-400">• Assigned Department:</span>
-          <strong className="text-cyan-300">
+          <span className="text-slate-500">• Assigned Department:</span>
+          <strong className="text-teal-800">
             {stagesList.find(s => s.stage === viewingStage)?.dept}
           </strong>
         </div>
 
         {/* RBAC Badge */}
         {!canUserEditStage(stagesList.find(s => s.stage === viewingStage)?.dept || 'Admin') ? (
-          <div className="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-[11px] flex items-center space-x-1">
-            <Lock className="w-3 h-3 text-amber-400" />
+          <div className="px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 font-mono text-[11px] flex items-center space-x-1">
+            <Lock className="w-3 h-3 text-amber-700" />
             <span>View-Only Mode (Switch Role to {stagesList.find(s => s.stage === viewingStage)?.dept} to edit)</span>
           </div>
         ) : (
-          <div className="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] flex items-center space-x-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] flex items-center space-x-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
             <span>Role Authorized ({activeRole})</span>
           </div>
         )}
@@ -493,41 +493,41 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* STAGE 1: ELIGIBILITY CHECK ACTION CARD */}
       {/* ========================================== */}
       {viewingStage === '1_ELIGIBILITY' && (
-        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-cyan-500/40">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-teal-300">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Building2 className="w-5 h-5 text-cyan-400" />
+              <Building2 className="w-5 h-5 text-teal-700" />
               <h3 className="text-lg font-display font-bold text-white">
                 Stage 1 — Company Qualification & Eligibility Assessment
               </h3>
             </div>
-            <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
               Department: Business Development
             </span>
           </div>
 
           {/* Qualification Summary Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-aqua-950/80 border border-white/10 space-y-1">
-              <span className="text-[11px] font-mono uppercase text-slate-400">Financial Turnover</span>
+            <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">
+              <span className="text-[11px] font-mono uppercase text-slate-500">Financial Turnover</span>
               <div className="text-sm font-bold text-white">₹300.93 Cr Verified</div>
-              <p className="text-[11px] text-emerald-400">Exceeds ₹150 Cr requirement</p>
+              <p className="text-[11px] text-emerald-700">Exceeds ₹150 Cr requirement</p>
             </div>
-            <div className="p-4 rounded-xl bg-aqua-950/80 border border-white/10 space-y-1">
-              <span className="text-[11px] font-mono uppercase text-slate-400">Track Record</span>
+            <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">
+              <span className="text-[11px] font-mono uppercase text-slate-500">Track Record</span>
               <div className="text-sm font-bold text-white">1,00,000+ Villages</div>
-              <p className="text-[11px] text-emerald-400">JJM / ESCO / Solar pumps</p>
+              <p className="text-[11px] text-emerald-700">JJM / ESCO / Solar pumps</p>
             </div>
-            <div className="p-4 rounded-xl bg-aqua-950/80 border border-white/10 space-y-1">
-              <span className="text-[11px] font-mono uppercase text-slate-400">Licenses & ISO</span>
+            <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">
+              <span className="text-[11px] font-mono uppercase text-slate-500">Licenses & ISO</span>
               <div className="text-sm font-bold text-white">Class-A PHED License</div>
-              <p className="text-[11px] text-emerald-400">Active & Valid in Rajasthan</p>
+              <p className="text-[11px] text-emerald-700">Active & Valid in Rajasthan</p>
             </div>
           </div>
 
           {/* Eligibility Verdict Form */}
-          <div className="space-y-4 p-5 rounded-xl bg-aqua-950/60 border border-white/10">
-            <label className="text-xs font-mono uppercase text-slate-300 block">Eligibility Verdict *</label>
+          <div className="space-y-4 p-5 rounded-xl bg-slate-50/60 border border-slate-200">
+            <label className="text-xs font-mono uppercase text-slate-600 block">Eligibility Verdict *</label>
             <div className="flex flex-wrap gap-3">
               {(['Eligible', 'Partially Eligible', 'Not Eligible'] as const).map((v) => (
                 <button
@@ -542,7 +542,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                         : v === 'Partially Eligible'
                         ? 'bg-amber-400 text-aqua-950 border-amber-300'
                         : 'bg-rose-500 text-white border-rose-400'
-                      : 'bg-aqua-950 text-slate-400 border-white/10'
+                      : 'bg-slate-50 text-slate-500 border-slate-200'
                   }`}
                 >
                   {v}
@@ -551,13 +551,13 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             </div>
 
             <div className="space-y-1.5 pt-2">
-              <label className="text-xs font-mono uppercase text-slate-300 block">Officer Remarks / Qualification Notes</label>
+              <label className="text-xs font-mono uppercase text-slate-600 block">Officer Remarks / Qualification Notes</label>
               <textarea
                 value={stage1Remarks}
                 disabled={!canUserEditStage('Business Development')}
                 onChange={(e) => setStage1Remarks(e.target.value)}
                 rows={2}
-                className="w-full p-3 rounded-xl bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
               />
             </div>
           </div>
@@ -581,66 +581,66 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* STAGE 2: TENDER ANALYSIS ACTION CARD */}
       {/* ========================================== */}
       {viewingStage === '2_AI_ANALYSIS' && (
-        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-cyan-500/40">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-teal-300">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-cyan-400" />
+              <FileText className="w-5 h-5 text-teal-700" />
               <h3 className="text-lg font-display font-bold text-white">
                 Stage 2 — Tender Specification & Clause Breakdown Analysis
               </h3>
             </div>
-            <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
               Department: Engineering
             </span>
           </div>
 
           {/* Uploaded File Info */}
-          <div className="p-4 rounded-xl bg-aqua-950/80 border border-cyan-500/30 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-slate-50/80 border border-teal-200 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <FileText className="w-6 h-6 text-cyan-400" />
+              <FileText className="w-6 h-6 text-teal-700" />
               <div>
                 <h4 className="text-xs font-bold text-white">
                   Uploaded Document: {activeTender.uploaded_files?.tender_pdf || 'Tender_Specification_Package.pdf'}
                 </h4>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-[11px] text-slate-500 mt-0.5">
                   Analyzed against Company Knowledge Base & Technical Standards
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-md font-mono text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            <span className="px-2.5 py-1 rounded-md font-mono text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">
               Analyzed
             </span>
           </div>
 
           {/* Clause Analysis Sample Breakdown */}
           <div className="space-y-3">
-            <h4 className="text-xs font-mono uppercase text-cyan-300">Technical Compliance Summary</h4>
+            <h4 className="text-xs font-mono uppercase text-teal-800">Technical Compliance Summary</h4>
             <div className="space-y-2 text-xs">
-              <div className="p-3 rounded-lg bg-aqua-950/60 border border-white/5 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-slate-50/60 border border-slate-200 flex items-center justify-between">
                 <div>
                   <strong className="text-white">Sec 4.2 — HDPE Pipeline Pressure Rating (PN-10)</strong>
-                  <p className="text-[11px] text-slate-400">Compliant with ISO 4427 standards.</p>
+                  <p className="text-[11px] text-slate-500">Compliant with ISO 4427 standards.</p>
                 </div>
-                <span className="text-emerald-400 font-mono text-[10px]">Pass</span>
+                <span className="text-emerald-700 font-mono text-[10px]">Pass</span>
               </div>
-              <div className="p-3 rounded-lg bg-aqua-950/60 border border-white/5 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-slate-50/60 border border-slate-200 flex items-center justify-between">
                 <div>
                   <strong className="text-white">Sec 6.1 — Solar Inverter Efficiency (&gt; 98.5%)</strong>
-                  <p className="text-[11px] text-slate-400">Matched with Sunaquator RMS controller specs.</p>
+                  <p className="text-[11px] text-slate-500">Matched with Sunaquator RMS controller specs.</p>
                 </div>
-                <span className="text-emerald-400 font-mono text-[10px]">Pass</span>
+                <span className="text-emerald-700 font-mono text-[10px]">Pass</span>
               </div>
             </div>
           </div>
 
-          <div className="space-y-1.5 p-4 rounded-xl bg-aqua-950/60 border border-white/10">
-            <label className="text-xs font-mono uppercase text-slate-300 block">Engineering Compliance Remarks</label>
+          <div className="space-y-1.5 p-4 rounded-xl bg-slate-50/60 border border-slate-200">
+            <label className="text-xs font-mono uppercase text-slate-600 block">Engineering Compliance Remarks</label>
             <textarea
               value={stage2Remarks}
               disabled={!canUserEditStage('Engineering')}
               onChange={(e) => setStage2Remarks(e.target.value)}
               rows={2}
-              className="w-full p-3 rounded-xl bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
             />
           </div>
 
@@ -663,24 +663,24 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* STAGE 3: COST ESTIMATION & EDITABLE BOQ */}
       {/* ========================================== */}
       {viewingStage === '3_COST_ESTIMATION' && (
-        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-cyan-500/40">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-teal-300">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Calculator className="w-5 h-5 text-cyan-400" />
+              <Calculator className="w-5 h-5 text-teal-700" />
               <h3 className="text-lg font-display font-bold text-white">
                 Stage 3 — Cost Estimation & Interactive BOQ Pricing
               </h3>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
                 Department: Estimation Team
               </span>
             </div>
           </div>
 
           {/* Learning Feedback Indicator */}
-          <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-300 flex items-center space-x-2">
-            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+          <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-800 flex items-center space-x-2">
+            <Sparkles className="w-4 h-4 text-teal-700 shrink-0" />
             <span>
               <strong>Continuous AI Learning Active:</strong> Any manual edits to unit rates below will update the Company Knowledge Base to refine future tender cost estimations!
             </span>
@@ -694,14 +694,14 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 <button
                   type="button"
                   onClick={() => generateBOQExcelReport(activeTender, boqItems)}
-                  className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold transition cursor-pointer"
+                  className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-100 hover:bg-emerald-500/30 text-emerald-800 border border-emerald-300 text-xs font-semibold transition cursor-pointer"
                 >
-                  <Download className="w-4 h-4 text-emerald-400" />
+                  <Download className="w-4 h-4 text-emerald-700" />
                   <span>Export Costing Excel (.xls)</span>
                 </button>
                 <div className="text-right">
-                  <span className="text-xs font-mono text-slate-400">Total Estimated Cost: </span>
-                  <strong className="text-base font-display font-bold text-cyan-300">
+                  <span className="text-xs font-mono text-slate-500">Total Estimated Cost: </span>
+                  <strong className="text-base font-display font-bold text-teal-800">
                     ₹{(totalBOQCost / 10000000).toFixed(2)} Cr
                   </strong>
                 </div>
@@ -709,8 +709,8 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-aqua-950 text-cyan-300 font-mono uppercase text-[11px]">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead className="bg-slate-50 text-teal-800 font-mono uppercase text-[11px]">
                   <tr>
                     <th className="p-3">Category</th>
                     <th className="p-3">Item Description</th>
@@ -726,7 +726,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                     const lineTotal = item.quantity * item.unit_cost * (1 + item.markup_percentage / 100) * (1 + item.tax_percentage / 100);
                     return (
                       <tr key={item.id} className="hover:bg-white/5 transition">
-                        <td className="p-3 font-mono text-cyan-300">{item.category}</td>
+                        <td className="p-3 font-mono text-teal-800">{item.category}</td>
                         <td className="p-3 font-semibold text-white">{item.item_name}</td>
                         <td className="p-3 text-right font-mono">{item.quantity} {item.unit_of_measure}</td>
                         <td className="p-3 text-right font-mono">
@@ -735,21 +735,21 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                               type="number"
                               value={item.unit_cost}
                               onChange={(e) => handleUpdateUnitCost(item.id, Number(e.target.value))}
-                              className="w-24 px-2 py-1 bg-aqua-950 border border-cyan-500/30 rounded text-right text-white font-mono text-xs focus:border-cyan-400"
+                              className="w-24 px-2 py-1 bg-slate-50 border border-teal-200 rounded text-right text-white font-mono text-xs focus:border-cyan-400"
                             />
                           ) : (
                             <span>₹{item.unit_cost.toLocaleString()}</span>
                           )}
                         </td>
                         <td className="p-3 text-right font-mono">{item.markup_percentage}%</td>
-                        <td className="p-3 text-right font-mono font-bold text-emerald-400">
+                        <td className="p-3 text-right font-mono font-bold text-emerald-700">
                           ₹{Math.round(lineTotal).toLocaleString()}
                         </td>
                         {canUserEditStage('Estimation Team') && (
                           <td className="p-3 text-center">
                             <button
                               onClick={() => handleDeleteBOQItem(item.id)}
-                              className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition"
+                              className="p-1 rounded text-rose-700 hover:bg-rose-100 transition"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -765,13 +765,13 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
 
           {/* Add Custom BOQ Line Item */}
           {canUserEditStage('Estimation Team') && (
-            <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/10 space-y-3">
-              <h4 className="text-xs font-mono uppercase text-cyan-300">Add BOQ Line Item to Cost Model</h4>
+            <div className="p-4 rounded-xl bg-slate-50/60 border border-slate-200 space-y-3">
+              <h4 className="text-xs font-mono uppercase text-teal-800">Add BOQ Line Item to Cost Model</h4>
               <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 <select
                   value={newBOQCategory}
                   onChange={(e) => setNewBOQCategory(e.target.value as BOQLineItem['category'])}
-                  className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
                 >
                   <option value="Equipment">Equipment</option>
                   <option value="Raw Materials">Raw Materials</option>
@@ -785,7 +785,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   placeholder="Item Name (e.g. Pump Controller)"
                   value={newBOQItemName}
                   onChange={(e) => setNewBOQItemName(e.target.value)}
-                  className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white sm:col-span-2"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white sm:col-span-2"
                 />
 
                 <input
@@ -793,7 +793,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   placeholder="Qty"
                   value={newBOQQuantity}
                   onChange={(e) => setNewBOQQuantity(Number(e.target.value))}
-                  className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
                 />
 
                 <input
@@ -801,14 +801,14 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   placeholder="Unit Cost (₹)"
                   value={newBOQUnitCost}
                   onChange={(e) => setNewBOQUnitCost(Number(e.target.value))}
-                  className="px-3 py-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                  className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
                 />
               </div>
 
               <div className="flex justify-end">
                 <button
                   onClick={handleAddBOQItem}
-                  className="flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-cyan-400 text-aqua-950 font-bold text-xs hover:bg-cyan-300 transition"
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-teal-700 text-aqua-950 font-bold text-xs hover:bg-teal-800 transition"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Line Item & Update Learning</span>
@@ -837,20 +837,20 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* ========================================== */}
       {viewingStage === '4_DECISION' && (
         <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-purple-500/40">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <UserCheck className="w-5 h-5 text-purple-400" />
+              <UserCheck className="w-5 h-5 text-purple-700" />
               <h3 className="text-lg font-display font-bold text-white">
                 Stage 4 — Executive Management & BD Bid Decision
               </h3>
             </div>
-            <span className="text-xs font-mono px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30">
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-purple-50 text-purple-800 border border-purple-200">
               Department: Business Development / Management
             </span>
           </div>
 
           <div className="space-y-4">
-            <label className="text-xs font-mono uppercase text-slate-300 block">Bid Application Decision *</label>
+            <label className="text-xs font-mono uppercase text-slate-600 block">Bid Application Decision *</label>
             <div className="flex flex-wrap gap-4">
               <button
                 type="button"
@@ -859,7 +859,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 className={`px-6 py-3 rounded-xl font-bold text-xs transition border ${
                   didApplyDecision
                     ? 'bg-emerald-400 text-aqua-950 border-emerald-300 shadow-lg shadow-emerald-400/20'
-                    : 'bg-aqua-950 text-slate-400 border-white/10'
+                    : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
                 YES — Proceed to Bid Submission
@@ -872,7 +872,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 className={`px-6 py-3 rounded-xl font-bold text-xs transition border ${
                   !didApplyDecision
                     ? 'bg-rose-500 text-white border-rose-400 shadow-lg shadow-rose-500/20'
-                    : 'bg-aqua-950 text-slate-400 border-white/10'
+                    : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
               >
                 NO — Do Not Bid
@@ -880,13 +880,13 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
             </div>
 
             <div className="space-y-1.5 pt-2">
-              <label className="text-xs font-mono uppercase text-slate-300 block">Decision Rationale & Strategic Comments</label>
+              <label className="text-xs font-mono uppercase text-slate-600 block">Decision Rationale & Strategic Comments</label>
               <textarea
                 value={applyDecisionReason}
                 disabled={!canUserEditStage('Business Development')}
                 onChange={(e) => setApplyDecisionReason(e.target.value)}
                 rows={3}
-                className="w-full p-3 rounded-xl bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
               />
             </div>
           </div>
@@ -910,86 +910,86 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* STAGE 5: BID DETAILS ACTION CARD */}
       {/* ========================================== */}
       {viewingStage === '5_BID_DETAILS' && (
-        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-500/40">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-300">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5 text-emerald-400" />
+              <Trophy className="w-5 h-5 text-emerald-700" />
               <h3 className="text-lg font-display font-bold text-white">
                 Stage 5 — Bid Submission & Tender Documentation Details
               </h3>
             </div>
-            <span className="text-xs font-mono px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
               Department: Tender Team / Finance
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-300">Submitted Bid Amount (₹) *</label>
+              <label className="text-xs font-mono text-slate-600">Submitted Bid Amount (₹) *</label>
               <input
                 type="number"
                 disabled={!canUserEditStage('Tender Team')}
                 value={bidAmount}
                 onChange={(e) => setBidAmount(Number(e.target.value))}
-                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-300">EMD Deposit Amount (₹) *</label>
+              <label className="text-xs font-mono text-slate-600">EMD Deposit Amount (₹) *</label>
               <input
                 type="number"
                 disabled={!canUserEditStage('Tender Team')}
                 value={emdAmount}
                 onChange={(e) => setEmdAmount(Number(e.target.value))}
-                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-300">EMD Guarantee Reference</label>
+              <label className="text-xs font-mono text-slate-600">EMD Guarantee Reference</label>
               <input
                 type="text"
                 disabled={!canUserEditStage('Tender Team')}
                 value={emdReference}
                 onChange={(e) => setEmdReference(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-300">Tender Reference ID / Portal Code</label>
+              <label className="text-xs font-mono text-slate-600">Tender Reference ID / Portal Code</label>
               <input
                 type="text"
                 disabled={!canUserEditStage('Tender Team')}
                 value={tenderCode}
                 onChange={(e) => setTenderCode(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-mono text-slate-300">Submitted By Officer</label>
+              <label className="text-xs font-mono text-slate-600">Submitted By Officer</label>
               <input
                 type="text"
                 disabled={!canUserEditStage('Tender Team')}
                 value={submittedBy}
                 onChange={(e) => setSubmittedBy(e.target.value)}
-                className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-mono text-slate-300">Submission Remarks & Digital Sign-off</label>
+            <label className="text-xs font-mono text-slate-600">Submission Remarks & Digital Sign-off</label>
             <textarea
               value={submissionRemarks}
               disabled={!canUserEditStage('Tender Team')}
               onChange={(e) => setSubmissionRemarks(e.target.value)}
               rows={2}
-              className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+              className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
             />
           </div>
 
@@ -1012,22 +1012,22 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* STAGE 6: TENDER RESULT & KNOWLEDGE CAPTURE */}
       {/* ========================================== */}
       {viewingStage === '6_TENDER_RESULT' && (
-        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-500/40">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="glass-card p-6 sm:p-8 rounded-2xl space-y-6 border-2 border-emerald-300">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5 text-emerald-400" />
+              <Trophy className="w-5 h-5 text-emerald-700" />
               <h3 className="text-lg font-display font-bold text-white">
                 Stage 6 — Final Tender Outcome & Competitive Intelligence Capture
               </h3>
             </div>
-            <span className="text-xs font-mono px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
               Department: Tender Team / Management
             </span>
           </div>
 
           {/* Outcome Status Selector */}
           <div className="space-y-3">
-            <label className="text-xs font-mono uppercase text-slate-300 block">Final Result Status *</label>
+            <label className="text-xs font-mono uppercase text-slate-600 block">Final Result Status *</label>
             <div className="flex flex-wrap gap-3">
               {(['Won', 'Lost', 'Under Evaluation', 'Cancelled'] as const).map((st) => (
                 <button
@@ -1042,7 +1042,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                         : st === 'Lost'
                         ? 'bg-rose-500 text-white border-rose-400'
                         : 'bg-amber-400 text-aqua-950 border-amber-300'
-                      : 'bg-aqua-950 text-slate-300 border-white/10'
+                      : 'bg-slate-50 text-slate-600 border-slate-200'
                   }`}
                 >
                   {st}
@@ -1053,105 +1053,105 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
 
           {/* Detailed Competitive Bidding Breakdown (L1, L2, L3) */}
           {resultStatus === 'Lost' && (
-            <div className="p-5 rounded-2xl bg-aqua-950/80 border border-white/10 space-y-4">
-              <h4 className="text-xs font-mono uppercase text-cyan-300">
+            <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-4">
+              <h4 className="text-xs font-mono uppercase text-teal-800">
                 Competitive Bidding Ranking & Market Prices (L1 / L2 / L3)
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-400">Winning Company (L1)</label>
+                  <label className="text-xs font-mono text-slate-500">Winning Company (L1)</label>
                   <input
                     type="text"
                     disabled={!canUserEditStage('Tender Team')}
                     value={winnerCompany}
                     onChange={(e) => setWinnerCompany(e.target.value)}
-                    className="w-full p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-400">L1 Winning Bid Price (₹)</label>
+                  <label className="text-xs font-mono text-slate-500">L1 Winning Bid Price (₹)</label>
                   <input
                     type="number"
                     disabled={!canUserEditStage('Tender Team')}
                     value={winningPrice}
                     onChange={(e) => setWinningPrice(Number(e.target.value))}
-                    className="w-full p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-400">Our Final Rank</label>
+                  <label className="text-xs font-mono text-slate-500">Our Final Rank</label>
                   <input
                     type="text"
                     disabled={!canUserEditStage('Tender Team')}
                     value={ourRank}
                     onChange={(e) => setOurRank(e.target.value)}
-                    className="w-full p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                    className="w-full p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-400">L2 Company & Price (₹)</label>
+                  <label className="text-xs font-mono text-slate-500">L2 Company & Price (₹)</label>
                   <div className="flex space-x-2">
                     <input
                       type="text"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l2Company}
                       onChange={(e) => setL2Company(e.target.value)}
-                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
                     />
                     <input
                       type="number"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l2Price}
                       onChange={(e) => setL2Price(Number(e.target.value))}
-                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-mono text-slate-400">L3 Company & Price (₹)</label>
+                  <label className="text-xs font-mono text-slate-500">L3 Company & Price (₹)</label>
                   <div className="flex space-x-2">
                     <input
                       type="text"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l3Company}
                       onChange={(e) => setL3Company(e.target.value)}
-                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white"
                     />
                     <input
                       type="number"
                       disabled={!canUserEditStage('Tender Team')}
                       value={l3Price}
                       onChange={(e) => setL3Price(Number(e.target.value))}
-                      className="w-1/2 p-2 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white font-mono"
+                      className="w-1/2 p-2 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white font-mono"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1 pt-2">
-                <label className="text-xs font-mono text-slate-400">Primary Reason for Loss / Observations</label>
+                <label className="text-xs font-mono text-slate-500">Primary Reason for Loss / Observations</label>
                 <textarea
                   value={lostReason}
                   disabled={!canUserEditStage('Tender Team')}
                   onChange={(e) => setLostReason(e.target.value)}
                   rows={2}
-                  className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+                  className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-mono text-slate-400">Lessons Learned & AI Strategy Takeaways</label>
+                <label className="text-xs font-mono text-slate-500">Lessons Learned & AI Strategy Takeaways</label>
                 <textarea
                   value={lessonsLearned}
                   disabled={!canUserEditStage('Tender Team')}
                   onChange={(e) => setLessonsLearned(e.target.value)}
                   rows={2}
-                  className="w-full p-2.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white focus:outline-none"
+                  className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-250 text-xs text-white focus:outline-none"
                 />
               </div>
             </div>
@@ -1176,31 +1176,31 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
       {/* AUDIT TRAIL TIMELINE & HISTORY */}
       {/* ========================================== */}
       <div className="glass-card p-6 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center space-x-2">
-            <Clock className="w-5 h-5 text-cyan-400" />
+            <Clock className="w-5 h-5 text-teal-700" />
             <h3 className="font-display font-semibold text-base text-white">
               Complete Audit Trail & Lifecycle Timeline (#TND-{activeTender.id})
             </h3>
           </div>
-          <span className="text-xs font-mono text-slate-400">{activeTender.audit_trail.length} Logs Recorded</span>
+          <span className="text-xs font-mono text-slate-500">{activeTender.audit_trail.length} Logs Recorded</span>
         </div>
 
         <div className="space-y-3">
           {activeTender.audit_trail.map((log) => (
-            <div key={log.id} className="p-4 rounded-xl bg-aqua-950/60 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div key={log.id} className="p-4 rounded-xl bg-slate-50/60 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <span className="font-bold text-white">{log.user}</span>
-                  <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 font-mono text-[10px] border border-purple-500/30">
+                  <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 font-mono text-[10px] border border-purple-200">
                     Dept: {log.department}
                   </span>
-                  <span className="text-slate-400 font-mono">{log.timestamp}</span>
+                  <span className="text-slate-500 font-mono">{log.timestamp}</span>
                 </div>
                 <p className="text-slate-200 font-medium">{log.action}</p>
-                <p className="text-cyan-300 font-mono text-[11px]">Next Action: {log.next_pending_action}</p>
+                <p className="text-teal-800 font-mono text-[11px]">Next Action: {log.next_pending_action}</p>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30 self-start sm:self-center shrink-0">
+              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-mono text-xs font-bold border border-emerald-200 self-start sm:self-center shrink-0">
                 {log.status}
               </span>
             </div>

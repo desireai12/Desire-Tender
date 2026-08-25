@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/lib/api';
 import { 
   Upload, 
   FileText, 
@@ -8,111 +9,201 @@ import {
   RefreshCw, 
   CheckCircle, 
   Database, 
-  Tag
+  Tag, 
+  Layers, 
+  AlertCircle,
+  Plus,
+  ShieldAlert
 } from 'lucide-react';
-import { API_BASE_URL } from '@/lib/api';
 
-interface DocumentAsset {
-  id: string;
-  filename: string;
-  doc_type: string;
-  category: string;
-  chunks_count: number;
-  uploaded_at: string;
+import { DepartmentRole, KnowledgeModuleType } from '@/lib/types';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+
+interface AdminKnowledgeBaseProps {
+  activeRole: DepartmentRole;
 }
 
-export const AdminKnowledgeBase: React.FC = () => {
-  const [documents, setDocuments] = useState<DocumentAsset[]>([
+export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRole }) => {
+  const [activeModule, setActiveModule] = useState<KnowledgeModuleType>('company');
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [newTitle, setNewTitle] = useState<string>('');
+  const [newFilename, setNewFilename] = useState<string>('');
+  const [newDesc, setNewDesc] = useState<string>('');
+
+  const [documents, setDocuments] = useState<Array<{
+    id: string;
+    module: KnowledgeModuleType;
+    title: string;
+    filename: string;
+    version: string;
+    uploaded_by: string;
+    uploaded_at: string;
+    approval_status: 'Approved' | 'Pending Review' | 'Archived';
+    expiry_date?: string;
+    chunk_count: number;
+    tags: string[];
+    summary: string;
+  }>>([
     {
-      id: 'doc-1',
-      filename: 'Company_Audited_Financials_2023_2025.pdf',
-      doc_type: 'company_credentials',
-      category: 'Financial',
-      chunks_count: 8,
-      uploaded_at: '2026-08-01 10:30:00'
+      id: 'doc-m1-01',
+      module: 'company',
+      title: 'Desire Energy Corporate Credentials & SOP 2026',
+      filename: 'Desire_Energy_Corporate_Profile_2026.pdf',
+      version: 'v2.4',
+      uploaded_by: 'MD Office (Gaurav Gupta)',
+      uploaded_at: '2026-08-01 10:00:00',
+      approval_status: 'Approved',
+      chunk_count: 8,
+      tags: ['Corporate Profile', 'Turnover', 'JJM 100k Villages'],
+      summary: 'Company profile, 1,00,000+ village operations, AquaLogix IoT/AI telemetry, and executive leadership roster.'
     },
     {
-      id: 'doc-2',
-      filename: 'ISO_9001_and_27001_Certifications.pdf',
-      doc_type: 'company_credentials',
-      category: 'Technical Capability',
-      chunks_count: 4,
-      uploaded_at: '2026-08-02 14:15:00'
+      id: 'doc-m2-01',
+      module: 'certificates',
+      title: 'Class-A PHED Contractor & ISO 9001/14001 Licenses',
+      filename: 'Class_A_PHED_and_ISO_Certificates_Combined.pdf',
+      version: 'v3.1',
+      uploaded_by: 'Compliance (Mohit Modi)',
+      uploaded_at: '2026-08-02 11:30:00',
+      approval_status: 'Approved',
+      expiry_date: '2028-12-31',
+      chunk_count: 6,
+      tags: ['Class-A License', 'ISO 9001:2015', 'ISO 14001:2015'],
+      summary: 'Public Health Engineering Dept Class-A registration and active ISO quality & safety certs.'
     },
     {
-      id: 'doc-3',
-      filename: 'Municipal_Water_Plant_Past_Experience.pdf',
-      doc_type: 'company_credentials',
-      category: 'Past Experience',
-      chunks_count: 6,
-      uploaded_at: '2026-08-03 09:45:00'
+      id: 'doc-m3-01',
+      module: 'competitor',
+      title: 'Indian Water & Solar Competitor Bidding Intel 2025-2026',
+      filename: 'L&T_Wabag_Shakti_Competitor_Analysis.pdf',
+      version: 'v1.8',
+      uploaded_by: 'BD Team (Ankit Purohit)',
+      uploaded_at: '2026-08-03 14:15:00',
+      approval_status: 'Approved',
+      chunk_count: 12,
+      tags: ['Competitor Intel', 'L&T', 'Wabag', 'Shakti Pumps'],
+      summary: 'Historical win rates, discount margins, vulnerabilities, and counter-strategies for rivals.'
     },
     {
-      id: 'doc-4',
-      filename: 'Apex_Aqua_Bidding_History_2025.pdf',
-      doc_type: 'competitor_data',
-      category: 'Competitor Profile',
-      chunks_count: 5,
-      uploaded_at: '2026-08-04 16:20:00'
+      id: 'doc-m4-01',
+      module: 'historical_boq',
+      title: 'Historical BOQ Unit Rates & Cost Estimation Database',
+      filename: 'JJM_Solar_Pumping_Historical_BOQ_Rates.xlsx',
+      version: 'v4.0',
+      uploaded_by: 'Estimation (Deepak Khandelwal)',
+      uploaded_at: '2026-08-04 09:45:00',
+      approval_status: 'Approved',
+      chunk_count: 15,
+      tags: ['BOQ Rates', 'Unit Pricing', 'HDPE Pipe Cost'],
+      summary: 'Itemized BOQ historical rates for HDPE pipelines, solar pump controllers, and SCADA sensors.'
     }
   ]);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('Financial');
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  // FETCH LIVE KNOWLEDGE DOCUMENTS FROM DATABASE ON MOUNT
+  useEffect(() => {
+    const fetchKnowledgeDocs = async () => {
+      let loaded: any[] = [];
+      try {
+        const res = await fetch(`${API_BASE_URL}/knowledge`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.knowledge && Array.isArray(data.knowledge) && data.knowledge.length > 0) {
+            loaded = data.knowledge;
+          }
+        }
+      } catch (e) {}
 
-  const categories = [
-    'Financial',
-    'Technical Capability',
-    'Past Experience',
-    'Competitor Profile'
-  ];
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    setUploadStatus(null);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('doc_category', selectedCategory);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/knowledge-base/upload/company-credentials`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const resData = await response.json();
-        const newDoc: DocumentAsset = {
-          id: `doc-${Date.now()}`,
-          filename: file.name,
-          doc_type: selectedCategory === 'Competitor Profile' ? 'competitor_data' : 'company_credentials',
-          category: selectedCategory,
-          chunks_count: resData.chunks_created || 5,
-          uploaded_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
-        };
-        setDocuments((prev) => [newDoc, ...prev]);
-        setUploadStatus(`Successfully ingested '${file.name}' into Supabase pgvector store!`);
-      } else {
-        throw new Error('Server responded with error');
+      if (loaded.length === 0 && isSupabaseConfigured && supabase) {
+        try {
+          const { data: dbKb, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+          if (!error && dbKb && dbKb.length > 0) {
+            loaded = dbKb.map((k: any) => ({
+              id: k.id,
+              module: (k.category || 'company').toLowerCase(),
+              title: k.title,
+              filename: k.file_name || 'Document.pdf',
+              version: 'v1.0',
+              uploaded_by: k.uploaded_by || 'Admin',
+              uploaded_at: k.created_at ? k.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+              approval_status: 'Approved',
+              chunk_count: 8,
+              tags: [k.category || 'Company Record'],
+              summary: k.description || k.title
+            }));
+          }
+        } catch (dbErr) {}
       }
-    } catch (err) {
-      const newDoc: DocumentAsset = {
-        id: `doc-${Date.now()}`,
-        filename: file.name,
-        doc_type: selectedCategory === 'Competitor Profile' ? 'competitor_data' : 'company_credentials',
-        category: selectedCategory,
-        chunks_count: 6,
-        uploaded_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
-      };
-      setDocuments((prev) => [newDoc, ...prev]);
-      setUploadStatus(`Document '${file.name}' processed and cached into vector store.`);
-    } finally {
-      setIsUploading(false);
+
+      if (loaded.length > 0) {
+        setDocuments(prev => {
+          const idMap = new Map();
+          prev.forEach(d => idMap.set(d.id, d));
+          loaded.forEach(d => idMap.set(d.id, d));
+          return Array.from(idMap.values());
+        });
+      }
+    };
+
+    fetchKnowledgeDocs();
+  }, []);
+
+  const handleAddKnowledgeAsset = async () => {
+    if (!newTitle.trim()) {
+      alert('Document Title is required.');
+      return;
+    }
+
+    const newDoc = {
+      id: `kb-${Date.now()}`,
+      module: activeModule,
+      title: newTitle.trim(),
+      filename: newFilename.trim() || `${newTitle.trim().replace(/\s+/g, '_')}.pdf`,
+      version: 'v1.0',
+      uploaded_by: 'MD Office (Admin)',
+      uploaded_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
+      approval_status: 'Approved' as const,
+      chunk_count: 8,
+      tags: [activeModule.toUpperCase(), 'Company Record'],
+      summary: newDesc.trim() || `${newTitle.trim()} uploaded and indexed.`
+    };
+
+    setDocuments(prev => [newDoc, ...prev]);
+    setShowAddModal(false);
+    setNewTitle('');
+    setNewFilename('');
+    setNewDesc('');
+
+    // Post to API
+    try {
+      await fetch(`${API_BASE_URL}/knowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: newDoc.id,
+          title: newDoc.title,
+          category: activeModule,
+          file_name: newDoc.filename,
+          description: newDoc.summary,
+          status: 'Active',
+          uploaded_by: newDoc.uploaded_by
+        })
+      });
+    } catch (e) {}
+
+    // Direct Supabase Write
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('knowledge_base').upsert({
+          id: newDoc.id,
+          title: newDoc.title,
+          category: activeModule,
+          file_name: newDoc.filename,
+          description: newDoc.summary,
+          status: 'Active',
+          uploaded_by: newDoc.uploaded_by,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      } catch (dbErr) {}
     }
   };
 
@@ -120,166 +211,182 @@ export const AdminKnowledgeBase: React.FC = () => {
     setDocuments((prev) => prev.filter((doc) => doc.id !== id));
   };
 
+  if (activeRole !== 'Admin') {
+    return (
+      <div className="glass-card p-12 rounded-2xl text-center space-y-4 border-2 border-rose-500/40">
+        <ShieldAlert className="w-12 h-12 text-rose-700 mx-auto animate-bounce" />
+        <h3 className="text-xl font-display font-bold text-white">ACCESS DENIED — ADMIN BACKEND PORTAL ONLY</h3>
+        <p className="text-xs text-slate-600 max-w-md mx-auto">
+          Knowledge Base management is restricted exclusively to System Administrators. Normal department accounts cannot directly touch or modify AI training knowledge assets.
+        </p>
+        <div className="text-xs font-mono text-teal-700 pt-2">
+          Current Role: {activeRole} (Switch role to 'Admin' in the top header to access).
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-cyan-500/20">
         <div>
-          <div className="flex items-center space-x-2 text-teal-700 text-xs font-mono mb-1 font-semibold">
+          <div className="flex items-center space-x-2 text-teal-700 text-xs font-mono mb-1">
             <Database className="w-4 h-4" />
-            <span>Admin Knowledge Base Portal</span>
+            <span>ADMIN COMPANY RECORDS PORTAL</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-slate-900">
-            Company Credentials & Competitor Asset Repository
+          <h2 className="text-2xl font-display font-bold text-white">
+            Company Records Repository & Asset Versioning
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Ingest audited balance sheets, ISO certificates, past project sheets & competitor bidding documents into Supabase <code className="text-teal-700 font-semibold">pgvector</code>.
+            Manage company credentials, certificate registries, competitor intelligence, and historical BOQ repositories.
           </p>
         </div>
-        <div className="px-4 py-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 font-mono text-xs text-center font-semibold">
-          Total Chunks: {documents.reduce((acc, d) => acc + d.chunks_count, 0)}
+        <div className="flex items-center space-x-3 shrink-0">
+          <div className="px-4 py-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 font-mono text-xs text-center">
+            Total Chunks: {documents.reduce((acc, d) => acc + d.chunk_count, 0)}
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-aqua-950 font-bold text-xs hover:brightness-110 transition shadow-lg"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>+ Add Asset</span>
+          </button>
         </div>
       </div>
 
-      {/* Upload Zone & Metadata Tagging */}
-      <div className="glass-card p-6 rounded-2xl space-y-6">
-        <h3 className="text-lg font-display font-semibold text-slate-900 flex items-center space-x-2">
-          <Upload className="w-5 h-5 text-teal-700" />
-          <span>Upload & Ingest New Knowledge Asset</span>
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Metadata Category Tag Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-mono uppercase text-slate-500 font-semibold flex items-center space-x-1.5">
-              <Tag className="w-3.5 h-3.5 text-teal-700" />
-              <span>Metadata Tag Category</span>
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-white text-sm text-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat} className="bg-white text-slate-900">
-                  {cat}
-                </option>
-              ))}
-            </select>
-            <p className="text-[11px] text-slate-500">
-              Categorizes chunks for targeted RAG retrieval during tender evaluation.
-            </p>
-          </div>
-
-          {/* Drag & Drop File Zone */}
-          <div className="md:col-span-2">
-            <label className="text-xs font-mono uppercase text-slate-500 font-semibold block mb-2">
-              Select PDF Document
-            </label>
-            <div className="relative border-2 border-dashed border-teal-300 hover:border-teal-500 rounded-xl p-6 text-center transition-all bg-teal-50/30 group cursor-pointer">
+      {/* Add Knowledge Asset Modal */}
+      {showAddModal && (
+        <div className="glass-card p-6 rounded-2xl border border-teal-300 space-y-4">
+          <h4 className="text-sm font-display font-bold text-white flex items-center space-x-2">
+            <Upload className="w-4 h-4 text-teal-700" />
+            <span>Register New Knowledge Asset for [{activeModule.toUpperCase()}]</span>
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="text-[11px] font-mono text-slate-600 block mb-1">Document Title *</label>
               <input
-                type="file"
-                accept=".pdf"
-                onChange={handleFileUpload}
-                disabled={isUploading}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                type="text"
+                placeholder="e.g. ISO 9001:2015 Quality Certificate 2026"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white"
               />
-              <div className="flex flex-col items-center space-y-2">
-                <div className="w-12 h-12 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 group-hover:scale-105 transition-transform">
-                  {isUploading ? (
-                    <RefreshCw className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <Upload className="w-6 h-6" />
-                  )}
-                </div>
-                <p className="text-sm font-semibold text-slate-900">
-                  {isUploading ? 'Chunking & Vectorizing Document...' : 'Drag & drop PDF here or click to browse'}
-                </p>
-                <p className="text-xs text-slate-500">
-                  PyMuPDF text extraction + Google Gemini <code className="text-teal-700 font-semibold">text-embedding-004</code>
-                </p>
-              </div>
+            </div>
+            <div>
+              <label className="text-[11px] font-mono text-slate-600 block mb-1">File Name</label>
+              <input
+                type="text"
+                placeholder="e.g. ISO_Cert_2026.pdf"
+                value={newFilename}
+                onChange={(e) => setNewFilename(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-white"
+              />
             </div>
           </div>
-        </div>
-
-        {uploadStatus && (
-          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center space-x-2 text-xs font-mono text-emerald-800">
-            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{uploadStatus}</span>
+          <div>
+            <label className="text-[11px] font-mono text-slate-600 block mb-1">Summary / Description</label>
+            <textarea
+              rows={2}
+              placeholder="Record details and key credentials..."
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+              className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-250 text-xs text-white"
+            />
           </div>
-        )}
+          <div className="flex justify-end space-x-2 pt-2">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="px-4 py-2 rounded-xl bg-white/5 text-slate-500 text-xs hover:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddKnowledgeAsset}
+              className="px-6 py-2 rounded-xl bg-cyan-500 text-aqua-950 font-bold text-xs hover:bg-teal-700"
+            >
+              Save to Database
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5 Backend Knowledge Module Tabs */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {[
+          { id: 'company' as KnowledgeModuleType, title: 'Module 1: Company', desc: 'Profiles, SOPs & Staff' },
+          { id: 'certificates' as KnowledgeModuleType, title: 'Module 2: Certificates', desc: 'ISO, GST, Expiry Dates' },
+          { id: 'competitor' as KnowledgeModuleType, title: 'Module 3: Competitors', desc: 'Prices & Win/Loss' },
+          { id: 'historical_boq' as KnowledgeModuleType, title: 'Module 4: Past BOQs', desc: 'Unit Rates & Anomaly' },
+          { id: 'versioning' as KnowledgeModuleType, title: 'Module 5: Versioning', desc: 'Audit & Approval Logs' },
+        ].map((m) => (
+          <button
+            key={m.id}
+            onClick={() => setActiveModule(m.id)}
+            className={`p-4 rounded-xl border text-left transition-all ${
+              activeModule === m.id
+                ? 'bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/15'
+                : 'bg-slate-50/40 border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <div className="font-display font-bold text-xs text-white">{m.title}</div>
+            <div className="text-[11px] text-slate-500 truncate mt-0.5">{m.desc}</div>
+          </button>
+        ))}
       </div>
 
-      {/* Document Repository Table */}
+      {/* Active Module Asset List */}
       <div className="glass-card rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <h3 className="text-lg font-display font-semibold text-slate-900">
-              Ingested Document Repository
+            <h3 className="text-lg font-display font-semibold text-white">
+              {activeModule.toUpperCase()} Knowledge Repository Assets
             </h3>
             <p className="text-xs text-slate-500">
-              Manage vector indexes, chunk partitions, and metadata tags stored in Supabase.
+              Only latest approved versions are queried by the RAG evaluation engine.
             </p>
           </div>
-          <span className="text-xs font-mono text-teal-700 font-semibold">
-            {documents.length} Active Files
-          </span>
+          <button
+            onClick={() => alert(`Upload dialog for ${activeModule} module opened.`)}
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-teal-700 text-aqua-950 font-bold text-xs hover:bg-teal-800 transition"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Add {activeModule} Asset</span>
+          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 text-[11px] font-mono text-slate-500 uppercase bg-slate-50">
-                <th className="py-3 px-4 rounded-l-lg">Document Asset</th>
-                <th className="py-3 px-4">Category Tag</th>
-                <th className="py-3 px-4">Doc Type</th>
-                <th className="py-3 px-4 text-center">Vector Chunks</th>
-                <th className="py-3 px-4">Ingested At</th>
-                <th className="py-3 px-4 text-right rounded-r-lg">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-sm">
-              {documents.map((doc) => (
-                <tr key={doc.id} className="hover:bg-slate-50/80 transition">
-                  <td className="py-3.5 px-4 font-medium text-slate-900 flex items-center space-x-2.5">
-                    <FileText className="w-4 h-4 text-teal-700 shrink-0" />
-                    <span className="truncate max-w-xs">{doc.filename}</span>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-mono bg-teal-50 text-teal-700 border border-teal-200 font-semibold">
-                      {doc.category}
+        <div className="space-y-3">
+          {documents
+            .filter((d) => activeModule === 'versioning' || d.module === activeModule)
+            .map((doc) => (
+              <div key={doc.id} className="p-4 rounded-xl bg-slate-50/60 border border-slate-200 space-y-2 hover:border-teal-200 transition">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2.5">
+                    <FileText className="w-5 h-5 text-teal-700 shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-sm text-white">{doc.title}</h4>
+                      <p className="text-[11px] text-slate-500">{doc.filename} • Version <span className="text-teal-800 font-mono">{doc.version}</span></p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {doc.approval_status}
                     </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-xs font-mono text-slate-600">
-                    {doc.doc_type}
-                  </td>
-                  <td className="py-3.5 px-4 text-center font-mono text-teal-800 font-bold">
-                    {doc.chunks_count}
-                  </td>
-                  <td className="py-3.5 px-4 text-xs font-mono text-slate-500">
-                    {doc.uploaded_at}
-                  </td>
-                  <td className="py-3.5 px-4 text-right space-x-2">
-                    <button
-                      onClick={() => alert(`Re-indexed ${doc.filename} successfully.`)}
-                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-teal-700 transition"
-                      title="Re-index vector embeddings"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(doc.id)}
-                      className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition"
-                      title="Delete asset"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-teal-50 text-teal-800 border border-teal-200">
+                      {doc.chunk_count} Vector Chunks
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 pl-7">{doc.summary}</p>
+
+                <div className="flex items-center justify-between pt-2 pl-7 text-[11px] text-slate-500 font-mono border-t border-slate-200">
+                  <span>Uploaded By: {doc.uploaded_by} on {doc.uploaded_at}</span>
+                  {doc.expiry_date && <span className="text-amber-800">Expires: {doc.expiry_date}</span>}
+                </div>
+              </div>
+            ))}
         </div>
       </div>
     </div>
