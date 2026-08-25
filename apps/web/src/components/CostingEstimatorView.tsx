@@ -464,7 +464,7 @@ export const CostingEstimatorView: React.FC = () => {
                       className="w-16 glass-input text-xs text-slate-900 px-1.5 py-1 rounded-lg text-right font-mono"
                     />
                   </td>
-                  <td className="py-3 px-2 text-right font-mono text-slate-200">
+                  <td className="py-3 px-2 text-right font-mono text-slate-800 font-medium">
                     ₹{(item.unit_cost || (item.purchase_cost + item.service_cost)).toLocaleString('en-IN')}
                   </td>
                   <td className="py-3 px-2 text-right">

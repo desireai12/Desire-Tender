@@ -88,7 +88,7 @@ export const MatrixTable: React.FC<MatrixTableProps> = ({ parameters }) => {
                 <td className="py-4 px-4 text-slate-600 text-xs leading-relaxed max-w-xs">
                   {item.tender_requirement}
                 </td>
-                <td className="py-4 px-4 text-slate-200 text-xs leading-relaxed max-w-xs">
+                <td className="py-4 px-4 text-slate-800 font-medium text-xs leading-relaxed max-w-xs">
                   {item.company_capability}
                 </td>
                 <td className="py-4 px-4 text-center">

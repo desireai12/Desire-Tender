@@ -456,7 +456,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                 <span className={`font-medium ${isViewing ? 'text-slate-400' : 'text-slate-500'}`}>{s.dept.split(' ')[0]}</span>
               </div>
               <div className={`font-bold text-xs truncate ${isViewing ? 'text-white' : 'text-slate-900'}`}>{s.label}</div>
-              <div className={`text-[10px] font-medium truncate mt-0.5 ${isViewing ? 'text-slate-300' : 'text-slate-600'}`}>{s.desc}</div>
+              <div className={`text-[10px] font-medium truncate mt-0.5 ${isViewing ? 'text-slate-700 font-medium' : 'text-slate-600'}`}>{s.desc}</div>
             </button>
           );
         })}
@@ -1197,7 +1197,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
                   </span>
                   <span className="text-slate-700 font-medium font-mono">{log.timestamp}</span>
                 </div>
-                <p className="text-slate-200 font-medium">{log.action}</p>
+                <p className="text-slate-800 font-medium font-medium">{log.action}</p>
                 <p className="text-teal-800 font-mono text-[11px]">Next Action: {log.next_pending_action}</p>
               </div>
               <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold font-mono text-xs font-bold border border-emerald-200 self-start sm:self-center shrink-0">

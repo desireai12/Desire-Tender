@@ -385,7 +385,7 @@ export const CombineAnalysisView: React.FC = () => {
                   {item.status}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-700 font-medium">Requirement: <span className="text-slate-200 font-mono">{item.requirement}</span></p>
+              <p className="text-[11px] text-slate-700 font-medium">Requirement: <span className="text-slate-800 font-medium font-mono">{item.requirement}</span></p>
               <p className="text-[11px] text-slate-700 font-medium">Actual: <span className="text-teal-800 font-mono font-bold">{item.actual}</span></p>
             </div>
           ))}

@@ -65,7 +65,7 @@ export const CompetitorAnalysis: React.FC<CompetitorAnalysisProps> = ({ competit
 
             <div className="p-3.5 rounded-xl bg-purple-950/50 border border-purple-500/20 space-y-1.5">
               <p className="text-[11px] font-mono uppercase text-purple-700">Counter-Strategy</p>
-              <p className="text-xs text-slate-200 leading-relaxed">
+              <p className="text-xs text-slate-800 font-medium leading-relaxed">
                 {comp.recommended_counter_strategy}
               </p>
             </div>

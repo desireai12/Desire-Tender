@@ -253,12 +253,12 @@ export const CompetitorBattleCardsView: React.FC = () => {
         {/* Strengths vs Vulnerabilities Matrix */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Key Strengths */}
-          <div className="p-6 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-4">
-            <h4 className="font-display font-semibold text-emerald-800 font-bold text-base flex items-center space-x-2">
+          <div className="p-6 rounded-xl bg-emerald-50 border border-emerald-200 space-y-4">
+            <h4 className="font-display font-bold text-emerald-950 text-base flex items-center space-x-2">
               <CheckCircle className="w-5 h-5" />
               <span>Competitor Key Technical Advantages</span>
             </h4>
-            <ul className="space-y-2 text-sm text-slate-200">
+            <ul className="space-y-2 text-sm text-slate-800 font-medium">
               {activeCompetitor.strengths.map((str, idx) => (
                 <li key={idx} className="flex items-start space-x-2">
                   <span className="text-emerald-800 font-bold font-bold">•</span>
@@ -269,12 +269,12 @@ export const CompetitorBattleCardsView: React.FC = () => {
           </div>
 
           {/* Vulnerabilities */}
-          <div className="p-6 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-4">
-            <h4 className="font-display font-semibold text-rose-800 font-bold text-base flex items-center space-x-2">
+          <div className="p-6 rounded-xl bg-rose-50 border border-rose-200 space-y-4">
+            <h4 className="font-display font-bold text-rose-950 text-base flex items-center space-x-2">
               <ShieldAlert className="w-5 h-5" />
               <span>Competitor Vulnerabilities & Weak Points</span>
             </h4>
-            <ul className="space-y-2 text-sm text-slate-200">
+            <ul className="space-y-2 text-sm text-slate-800 font-medium">
               {activeCompetitor.vulnerabilities.map((vul, idx) => (
                 <li key={idx} className="flex items-start space-x-2">
                   <span className="text-rose-800 font-bold font-bold">•</span>
@@ -288,18 +288,18 @@ export const CompetitorBattleCardsView: React.FC = () => {
         {/* Win/Loss Rationale */}
         <div className="p-5 rounded-xl bg-slate-50/80 border border-slate-200 space-y-2">
           <span className="text-xs font-mono text-slate-700 font-medium uppercase">Historical Win/Loss Rationale</span>
-          <p className="text-sm text-slate-200 leading-relaxed font-medium">
+          <p className="text-sm text-slate-900 leading-relaxed font-semibold">
             "{activeCompetitor.win_loss_rationale}"
           </p>
         </div>
 
         {/* AI Counter Strategy Banner */}
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-cyan-950/80 via-aqua-900 to-teal-950/80 border border-cyan-400/40 space-y-3 shadow-lg shadow-cyan-500/10">
-          <div className="flex items-center space-x-2 text-teal-800 font-mono text-xs">
-            <Crosshair className="w-4 h-4 text-teal-800 font-semibold" />
+        <div className="p-6 rounded-2xl bg-slate-900 border-2 border-teal-500 space-y-3 shadow-md shadow-slate-900/10">
+          <div className="flex items-center space-x-2 text-teal-300 font-mono text-xs font-bold">
+            <Crosshair className="w-4 h-4 text-teal-300" />
             <span>AI RECOMMENDED BID COUNTER-STRATEGY</span>
           </div>
-          <p className="text-base text-slate-900 font-semibold leading-relaxed">
+          <p className="text-base text-white font-bold leading-relaxed">
             {activeCompetitor.recommended_counter_strategy}
           </p>
         </div>

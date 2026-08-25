@@ -126,7 +126,7 @@ export const EligibilityCard: React.FC<EligibilityCardProps> = ({
         <h3 className="text-[11px] font-mono uppercase tracking-widest text-slate-700 font-medium">
           AI Executive Summary
         </h3>
-        <p className="text-sm text-slate-200 leading-relaxed max-w-4xl">
+        <p className="text-sm text-slate-800 font-medium leading-relaxed max-w-4xl">
           {executiveSummary}
         </p>
       </div>
