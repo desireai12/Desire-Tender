@@ -82,8 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Control Actions & User Badge */}
       <div className="flex items-center space-x-2.5 shrink-0">
         {/* Dark / Light Theme Switcher Button */}
-        /* Always visible Theme Switcher Button */
-        {true && (
+                {true && (
           <button
             type="button"
             onClick={handleToggle}
