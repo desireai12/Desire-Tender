@@ -36,7 +36,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} bg-[#f4f7f6] text-slate-900 min-h-screen flex flex-col antialiased relative bg-blueprint-grid overflow-x-hidden`}>
+      <body className={`${inter.variable} bg-[#f4f7f6] text-slate-900 min-h-screen flex flex-col antialiased relative overflow-x-hidden`}>
         {/* Dynamic Sleek Medium-Sized Floating Water Infrastructure & Tender Bidding SVG Icons */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           <Droplets className="absolute top-[7%] right-[12%] w-12 h-12 text-[#064e3b] opacity-65 animate-floating-icon-1 stroke-[2]" />

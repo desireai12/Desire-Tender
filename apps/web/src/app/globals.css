@@ -13,14 +13,14 @@
   body::before {
     content: '';
     position: fixed;
-    top: -15%;
-    left: -10%;
-    width: 65vw;
-    height: 65vw;
+    top: -10%;
+    left: -5%;
+    width: 55vw;
+    height: 55vw;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(6, 78, 59, 0.14) 0%, rgba(13, 148, 136, 0.08) 50%, transparent 75%);
+    background: radial-gradient(circle, rgba(6, 78, 59, 0.08) 0%, rgba(13, 148, 136, 0.04) 50%, transparent 75%);
     filter: blur(80px);
-    animation: floatBottleAura1 18s ease-in-out infinite alternate;
+    animation: floatBottleAura1 20s ease-in-out infinite alternate;
     pointer-events: none;
     z-index: 0;
   }
@@ -28,41 +28,19 @@
 
 @keyframes floatBottleAura1 {
   0% { transform: translate(0px, 0px) scale(1); }
-  100% { transform: translate(50px, -40px) scale(1.15); }
-}
-
-/* ------------------------------------------------------------- */
-/* 1. DYNAMIC TECHNICAL BLUEPRINT GRID BACKGROUND                 */
-/* ------------------------------------------------------------- */
-.bg-blueprint-grid {
-  background-size: 36px 36px;
-  background-image: 
-    linear-gradient(to right, rgba(13, 148, 136, 0.09) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(13, 148, 136, 0.09) 1px, transparent 1px);
-  animation: moveGrid 25s linear infinite;
-}
-
-html.dark .bg-blueprint-grid {
-  background-image: 
-    linear-gradient(to right, rgba(16, 185, 129, 0.16) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(16, 185, 129, 0.16) 1px, transparent 1px);
-}
-
-@keyframes moveGrid {
-  0% { background-position: 0 0; }
-  100% { background-position: 36px 36px; }
+  100% { transform: translate(40px, -30px) scale(1.1); }
 }
 
 /* Dynamic Floating Water Infrastructure Icons Keyframes */
 @keyframes floatWaterIcon1 {
   0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.70; }
-  50% { transform: translateY(-28px) rotate(6deg) scale(1.12); opacity: 0.95; }
+  50% { transform: translateY(-25px) rotate(6deg) scale(1.10); opacity: 0.90; }
   100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.70; }
 }
 
 @keyframes floatWaterIcon2 {
   0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.65; }
-  50% { transform: translateY(30px) rotate(-8deg) scale(1.14); opacity: 0.90; }
+  50% { transform: translateY(28px) rotate(-8deg) scale(1.12); opacity: 0.85; }
   100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.65; }
 }
 
@@ -111,7 +89,7 @@ html.dark body {
 }
 
 html.dark body::before {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(6, 95, 70, 0.15) 50%, transparent 80%) !important;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(6, 95, 70, 0.10) 50%, transparent 80%) !important;
   filter: blur(90px) !important;
 }
 
