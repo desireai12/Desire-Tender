@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   });
 
   return (
-    <aside className="w-52 glass-card bg-white/90 backdrop-blur-md border-r border-slate-200 p-3 flex flex-col justify-between hidden md:flex shrink-0 min-h-[calc(100vh-55px)]">
+    <aside className="w-52 glass-card bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-r border-slate-200 dark:border-slate-800 p-3 flex flex-col justify-between hidden md:flex shrink-0 min-h-[calc(100vh-55px)] transition-colors duration-200">
       <div className="space-y-4">
         {/* Category Label */}
         <div className="px-2 pt-1 flex items-center justify-between">
@@ -79,16 +79,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all group ${
                   isActive
                     ? 'bg-[#064e3b] text-white font-bold shadow-sm border-l-4 border-l-emerald-400'
-                    : 'text-slate-900 font-semibold hover:bg-emerald-50 hover:text-emerald-950'
+                    : 'text-slate-900 dark:text-slate-200 font-semibold hover:bg-emerald-50 dark:hover:bg-slate-800 hover:text-emerald-950 dark:hover:text-emerald-400'
                 }`}
               >
                 <div className="flex items-center space-x-2">
                   <Icon
                     className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-white' : 'text-slate-800 font-bold group-hover:text-emerald-900'
+                      isActive ? 'text-white' : 'text-slate-800 dark:text-slate-300 font-bold group-hover:text-emerald-900 dark:group-hover:text-emerald-400'
                     }`}
                   />
-                  <span className={isActive ? 'text-white font-bold' : 'text-slate-900 font-bold'}>{item.label}</span>
+                  <span className={isActive ? 'text-white font-bold' : 'text-slate-900 dark:text-slate-100 font-bold'}>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
