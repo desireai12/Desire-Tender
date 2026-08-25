@@ -149,7 +149,7 @@ export const CombineAnalysisView: React.FC = () => {
           <div>
             <h1 className="text-xl font-bold text-slate-900 tracking-wide">JV & Combine Eligibility Engine</h1>
             <p className="text-xs text-slate-700 font-medium">
-              Evaluate Desire Alone vs JV Partner Alone vs Combined JV Eligibility under RHDS & Tender-specific rules.
+              Evaluate Desire Alone vs JV Partner Alone vs Combined JV Eligibility under {selectedCategory} & Tender-specific rules.
             </p>
           </div>
         </div>
@@ -371,7 +371,7 @@ export const CombineAnalysisView: React.FC = () => {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-900">RHDS Tender JV Rules Audit Checklist</h2>
+            <h2 className="text-base font-bold text-slate-900">{selectedCategory} Tender JV Rules Audit Checklist</h2>
             <p className="text-xs text-slate-700 font-medium">Verification of equity shares, lead member mandate, and credential restriction rules</p>
           </div>
         </div>

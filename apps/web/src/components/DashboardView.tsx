@@ -80,7 +80,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Start Guided Wizard
             </h3>
             <p className="text-[11px] text-slate-600 font-medium mt-0.5 leading-snug">
-              Step 1 Eligibility $ightarrow$ Step 2 PDF Upload $ightarrow$ Step 3 AI Analysis $ightarrow$ Step 4 Report.
+              Step 1 Eligibility $
+ightarrow$ Step 2 PDF Upload $
+ightarrow$ Step 3 AI Analysis $
+ightarrow$ Step 4 Report.
             </p>
           </div>
           <div className="flex items-center text-[11px] font-mono text-emerald-900 font-bold pt-1">
@@ -176,7 +179,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   Jal Jeevan Mission (JJM) Rural Water Supply (#JJM-RJ-2026-44)
                 </h4>
                 <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Category: RHDS • Stage 2 Complete • Verified ₹300.93 Cr turnover & 1,00,000+ villages
+                  Category: Water Infra (RHDS) • Stage 2 Complete • Verified ₹300.93 Cr turnover & 1,00,000+ villages
                 </p>
               </div>
             </div>

@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Status Card */}
       <div className="p-3 rounded-lg bg-slate-100/90 border border-slate-200 space-y-1 text-left">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold text-slate-900">RHDS Engine Online</span>
+          <span className="text-[11px] font-bold text-slate-900">Tender AI Engine Online</span>
           <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
         </div>
         <p className="text-[10px] text-slate-700 font-medium leading-tight">
