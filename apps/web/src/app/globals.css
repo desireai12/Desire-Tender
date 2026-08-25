@@ -151,19 +151,19 @@ html.dark li,
 html.dark label, 
 html.dark td, 
 html.dark th {
-  color: #e2e8f0;
+  color: #f1f5f9;
 }
 
 html.dark .text-slate-900, 
 html.dark .text-slate-800, 
 html.dark .text-slate-700, 
 html.dark .text-slate-600 {
-  color: #e2e8f0 !important;
+  color: #f1f5f9 !important;
 }
 
 html.dark .text-slate-500, 
 html.dark .text-slate-400 {
-  color: #94a3b8 !important;
+  color: #cbd5e1 !important;
 }
 
 /* ALL INNER BOXES & BADGES IN DARK MODE */
@@ -171,44 +171,44 @@ html.dark .bg-slate-50,
 html.dark .bg-slate-100, 
 html.dark .bg-slate-200, 
 html.dark .bg-white {
-  background-color: #162238 !important;
-  border-color: #27374d !important;
+  background-color: #15233c !important;
+  border-color: #263752 !important;
   color: #ffffff !important;
 }
 
 /* SPECIFIC COLOR HIGHLIGHT BOXES IN DARK MODE */
 html.dark .bg-emerald-50, 
 html.dark .bg-emerald-100 {
-  background-color: rgba(6, 78, 59, 0.65) !important;
-  border-color: rgba(52, 211, 153, 0.45) !important;
+  background-color: rgba(6, 78, 59, 0.75) !important;
+  border-color: rgba(52, 211, 153, 0.5) !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-rose-50, 
 html.dark .bg-rose-100 {
-  background-color: rgba(136, 19, 55, 0.65) !important;
-  border-color: rgba(251, 113, 133, 0.45) !important;
+  background-color: rgba(136, 19, 55, 0.75) !important;
+  border-color: rgba(251, 113, 133, 0.5) !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-amber-50, 
 html.dark .bg-amber-100 {
-  background-color: rgba(120, 53, 15, 0.65) !important;
-  border-color: rgba(251, 191, 36, 0.45) !important;
+  background-color: rgba(120, 53, 15, 0.75) !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-teal-50, 
 html.dark .bg-teal-100 {
-  background-color: rgba(19, 78, 74, 0.65) !important;
-  border-color: rgba(45, 212, 191, 0.45) !important;
+  background-color: rgba(19, 78, 74, 0.75) !important;
+  border-color: rgba(45, 212, 191, 0.5) !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-purple-50, 
 html.dark .bg-purple-100 {
-  background-color: rgba(88, 28, 135, 0.65) !important;
-  border-color: rgba(192, 132, 252, 0.45) !important;
+  background-color: rgba(88, 28, 135, 0.75) !important;
+  border-color: rgba(192, 132, 252, 0.5) !important;
   color: #ffffff !important;
 }
 
@@ -253,7 +253,7 @@ html.dark table th {
 
 html.dark table td {
   border-color: #1e293b !important;
-  color: #e2e8f0 !important;
+  color: #f1f5f9 !important;
 }
 
 html.dark tr:hover td {

@@ -197,7 +197,7 @@ export const EligibilityChecker: React.FC = () => {
               Upload Tender PDF (or Select Working Project)
             </label>
             <div className="flex items-center space-x-3">
-              <label className="flex-1 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 cursor-pointer hover:border-teal-300 transition-all">
+              <label className="flex-1 flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] cursor-pointer hover:border-teal-300 transition-all">
                 <span className="text-xs text-slate-600 truncate">
                   {tenderFile ? tenderFile.name : tenderTitleInput}
                 </span>
@@ -224,7 +224,7 @@ export const EligibilityChecker: React.FC = () => {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
+              className="w-full bg-slate-100 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
             >
               <option value="RHDS">RHDS Jal Jeevan Mission Rural Water Scheme</option>
               <option value="STP">STP & Sewerage Package (AMRUT 2.0)</option>
@@ -244,7 +244,7 @@ export const EligibilityChecker: React.FC = () => {
             <select
               value={selectedJvPartnerId}
               onChange={(e) => setSelectedJvPartnerId(e.target.value)}
-              className="bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500 font-mono"
+              className="bg-slate-100 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500 font-mono"
             >
               {companies.filter(c => c.type !== 'Desire Energy').map(c => (
                 <option key={c.id} value={c.id}>{c.name} ({c.type} - Avg ₹{c.average_turnover} Cr)</option>
@@ -316,7 +316,7 @@ export const EligibilityChecker: React.FC = () => {
           </div>
 
           {/* DYNAMIC VERDICT BANNER FOR SELECTED OPTION */}
-          <div className="glass-card p-6 rounded-2xl border border-teal-200 bg-gradient-to-r from-slate-900 via-aqua-950/60 to-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="glass-card p-6 rounded-2xl border border-teal-200 dark:border-teal-700/60 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-[#0b1426] dark:via-[#111e38] dark:to-[#0b1426] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center space-x-3">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-200">
@@ -331,13 +331,13 @@ export const EligibilityChecker: React.FC = () => {
                 </span>
                 <span className="text-xs font-mono text-teal-800 font-semibold">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900">{report.tender_title}</h2>
-              <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">{perspective.executive_summary}</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{report.tender_title}</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-200 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 shrink-0 text-center space-y-1">
+            <div className="p-4 rounded-xl bg-slate-100 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] shrink-0 text-center space-y-1">
               <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Recommendation</span>
-              <span className="text-xs font-bold text-teal-800 block">{perspective.recommendation}</span>
+              <span className="text-xs font-bold text-teal-800 dark:text-teal-300 block">{perspective.recommendation}</span>
             </div>
           </div>
 
@@ -380,7 +380,7 @@ export const EligibilityChecker: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-700 font-medium font-mono text-[10px] uppercase tracking-wider bg-slate-100 border border-slate-200">
+                  <tr className="border-b border-slate-200 dark:border-[#263752] text-slate-700 dark:text-teal-300 font-medium font-mono text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-[#111c33]">
                     <th className="p-3">Clause & Page</th>
                     <th className="p-3">Tender Requirement</th>
                     {activeAnalysisOption === 'desire' && <th className="p-3 text-teal-800">Desire Energy Value</th>}
