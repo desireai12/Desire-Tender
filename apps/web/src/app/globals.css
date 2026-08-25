@@ -80,7 +80,7 @@
 }
 
 /* ------------------------------------------------------------- */
-/* 3. UNIVERSAL COMPREHENSIVE DARK MODE SYSTEM (html.dark)        */
+/* 3. UNIVERSAL HIGH-CONTRAST DARK MODE ENGINE (html.dark)       */
 /* ------------------------------------------------------------- */
 
 html.dark body {
@@ -93,27 +93,39 @@ html.dark body::before {
   filter: blur(90px) !important;
 }
 
+/* FORCE ALL CONTAINERS TO DARK OBSIDIAN IN DARK MODE */
 html.dark header, 
-html.dark aside {
-  background-color: #0b1426 !important;
+html.dark aside,
+html.dark nav,
+html.dark .glass-card,
+html.dark .bg-white,
+html.dark .bg-slate-50,
+html.dark .bg-slate-100,
+html.dark .bg-slate-200 {
+  background-color: #0d1527 !important;
   border-color: #1e293b !important;
   color: #ffffff !important;
 }
 
-/* ALL CARDS & CONTAINERS IN DARK MODE */
-html.dark .glass-card {
-  background: #0f1930 !important;
-  border-color: #1e293b !important;
+/* FORCE ALL TYPOGRAPHY TO PURE WHITE / LIGHT SLATE IN DARK MODE */
+html.dark body,
+html.dark main,
+html.dark div,
+html.dark section,
+html.dark article,
+html.dark p,
+html.dark span,
+html.dark li,
+html.dark label,
+html.dark td,
+html.dark th,
+html.dark button,
+html.dark input,
+html.dark select,
+html.dark textarea {
   color: #f8fafc !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6) !important;
 }
 
-html.dark .glass-card:hover {
-  border-color: #34d399 !important;
-  box-shadow: 0 8px 24px -2px rgba(52, 211, 153, 0.25) !important;
-}
-
-/* ALL HEADINGS & TEXT IN DARK MODE */
 html.dark h1, 
 html.dark h2, 
 html.dark h3, 
@@ -121,22 +133,14 @@ html.dark h4,
 html.dark h5, 
 html.dark h6 {
   color: #ffffff !important;
-}
-
-html.dark p, 
-html.dark span, 
-html.dark li, 
-html.dark label, 
-html.dark td, 
-html.dark th {
-  color: #f1f5f9;
+  font-weight: 700 !important;
 }
 
 html.dark .text-slate-900, 
 html.dark .text-slate-800, 
 html.dark .text-slate-700, 
 html.dark .text-slate-600 {
-  color: #f1f5f9 !important;
+  color: #f8fafc !important;
 }
 
 html.dark .text-slate-500, 
@@ -144,66 +148,57 @@ html.dark .text-slate-400 {
   color: #cbd5e1 !important;
 }
 
-/* ALL INNER BOXES & BADGES IN DARK MODE */
-html.dark .bg-slate-50, 
-html.dark .bg-slate-100, 
-html.dark .bg-slate-200, 
-html.dark .bg-white {
-  background-color: #15233c !important;
-  border-color: #263752 !important;
-  color: #ffffff !important;
-}
-
-/* SPECIFIC COLOR HIGHLIGHT BOXES IN DARK MODE */
+/* SPECIFIC COLOR HIGHLIGHT CONTAINERS IN DARK MODE */
 html.dark .bg-emerald-50, 
 html.dark .bg-emerald-100 {
-  background-color: rgba(6, 78, 59, 0.75) !important;
-  border-color: rgba(52, 211, 153, 0.5) !important;
+  background-color: rgba(6, 78, 59, 0.85) !important;
+  border-color: #10b981 !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-rose-50, 
 html.dark .bg-rose-100 {
-  background-color: rgba(136, 19, 55, 0.75) !important;
-  border-color: rgba(251, 113, 133, 0.5) !important;
+  background-color: rgba(136, 19, 55, 0.85) !important;
+  border-color: #f43f5e !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-amber-50, 
 html.dark .bg-amber-100 {
-  background-color: rgba(120, 53, 15, 0.75) !important;
-  border-color: rgba(251, 191, 36, 0.5) !important;
+  background-color: rgba(120, 53, 15, 0.85) !important;
+  border-color: #f59e0b !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-teal-50, 
 html.dark .bg-teal-100 {
-  background-color: rgba(19, 78, 74, 0.75) !important;
-  border-color: rgba(45, 212, 191, 0.5) !important;
+  background-color: rgba(19, 78, 74, 0.85) !important;
+  border-color: #14b8a6 !important;
   color: #ffffff !important;
 }
 
 html.dark .bg-purple-50, 
 html.dark .bg-purple-100 {
-  background-color: rgba(88, 28, 135, 0.75) !important;
-  border-color: rgba(192, 132, 252, 0.5) !important;
+  background-color: rgba(88, 28, 135, 0.85) !important;
+  border-color: #c084fc !important;
   color: #ffffff !important;
 }
 
-/* ACTIVE BOTTLE GREEN BUTTON ACCENT */
+/* ACTIVE BUTTONS IN DARK MODE */
 html.dark .bg-\[\#064e3b\] {
   background-color: #059669 !important;
   color: #ffffff !important;
   border-color: #34d399 !important;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
 }
 
-/* FLOATING ICON GLOWING TINT */
-html.dark .text-\[\#064e3b\],
-html.dark .text-\[\#047857\],
-html.dark .text-\[\#065f46\],
-html.dark .text-\[\#0d9488\] {
+/* ICONS IN DARK MODE */
+html.dark svg {
   color: #34d399 !important;
+}
+
+html.dark svg.text-white {
+  color: #ffffff !important;
 }
 
 /* INPUTS, SELECTS & TEXTAREAS IN DARK MODE */
@@ -231,7 +226,7 @@ html.dark table th {
 
 html.dark table td {
   border-color: #1e293b !important;
-  color: #f1f5f9 !important;
+  color: #f8fafc !important;
 }
 
 html.dark tr:hover td {
