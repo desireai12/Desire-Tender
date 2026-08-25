@@ -36,27 +36,14 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} bg-[#f4f7f6] text-slate-900 min-h-screen flex flex-col antialiased relative bg-blueprint-grid overflow-x-hidden`}>
-        {/* Dynamic Floating Water Infrastructure & Tender Bidding Status Badges */}
+        {/* Dynamic Pure Visual Floating Water Infrastructure & Tender Bidding SVG Icons */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute top-[12%] right-[8%] bg-[#064e3b] text-white px-3 py-1.5 rounded-xl shadow-lg border border-emerald-400/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-1">
-            <Droplets className="w-4 h-4 text-emerald-300" />
-            <span>JJM Water Pipeline Network • Active</span>
-          </div>
-
-          <div className="absolute top-[32%] left-[3%] bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-lg border border-teal-500/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-2">
-            <FileText className="w-4 h-4 text-teal-300" />
-            <span>Tender Bid Specs Verified</span>
-          </div>
-
-          <div className="absolute bottom-[16%] right-[6%] bg-[#064e3b] text-white px-3 py-1.5 rounded-xl shadow-lg border border-emerald-400/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-1">
-            <Sun className="w-4 h-4 text-amber-300" />
-            <span>Solar PV Pump Scheme (KUSUM)</span>
-          </div>
-
-          <div className="absolute bottom-[32%] left-[2%] bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-lg border border-teal-500/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-2">
-            <Award className="w-4 h-4 text-emerald-300" />
-            <span>Class-A License Compliant</span>
-          </div>
+          <Droplets className="absolute top-[8%] right-[8%] w-24 h-24 text-[#064e3b] opacity-40 animate-floating-icon-1 stroke-[1.8]" />
+          <FileText className="absolute top-[30%] left-[3%] w-20 h-20 text-[#047857] opacity-45 animate-floating-icon-2 stroke-[1.8]" />
+          <Sun className="absolute bottom-[18%] right-[6%] w-24 h-24 text-[#065f46] opacity-40 animate-floating-icon-1 stroke-[1.8]" />
+          <Workflow className="absolute bottom-[35%] left-[2%] w-20 h-20 text-[#0d9488] opacity-40 animate-floating-icon-2 stroke-[1.8]" />
+          <Award className="absolute top-[48%] right-[12%] w-20 h-20 text-[#047857] opacity-45 animate-floating-icon-1 stroke-[1.8]" />
+          <Activity className="absolute top-[20%] left-[10%] w-16 h-16 text-[#064e3b] opacity-35 animate-floating-icon-2 stroke-[1.8]" />
         </div>
 
         {/* Foreground Workspace Container */}

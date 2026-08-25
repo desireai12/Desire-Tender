@@ -40,7 +40,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-slate-900 tracking-tight leading-tight">
             Tender Assessment Wizard. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">
+            <span className="text-[#064e3b] font-extrabold">
               6-Stage Process Queue & Company Knowledge.
             </span>
           </h1>
