@@ -36,14 +36,14 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} bg-[#f4f7f6] text-slate-900 min-h-screen flex flex-col antialiased relative bg-blueprint-grid overflow-x-hidden`}>
-        {/* Dynamic Pure Visual Floating Water Infrastructure & Tender Bidding SVG Icons */}
+        {/* Dynamic Sleek Medium-Sized Floating Water Infrastructure & Tender Bidding SVG Icons */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <Droplets className="absolute top-[8%] right-[8%] w-24 h-24 text-[#064e3b] opacity-40 animate-floating-icon-1 stroke-[1.8]" />
-          <FileText className="absolute top-[30%] left-[3%] w-20 h-20 text-[#047857] opacity-45 animate-floating-icon-2 stroke-[1.8]" />
-          <Sun className="absolute bottom-[18%] right-[6%] w-24 h-24 text-[#065f46] opacity-40 animate-floating-icon-1 stroke-[1.8]" />
-          <Workflow className="absolute bottom-[35%] left-[2%] w-20 h-20 text-[#0d9488] opacity-40 animate-floating-icon-2 stroke-[1.8]" />
-          <Award className="absolute top-[48%] right-[12%] w-20 h-20 text-[#047857] opacity-45 animate-floating-icon-1 stroke-[1.8]" />
-          <Activity className="absolute top-[20%] left-[10%] w-16 h-16 text-[#064e3b] opacity-35 animate-floating-icon-2 stroke-[1.8]" />
+          <Droplets className="absolute top-[7%] right-[12%] w-12 h-12 text-[#064e3b] opacity-65 animate-floating-icon-1 stroke-[2]" />
+          <FileText className="absolute top-[28%] left-[2%] w-11 h-11 text-[#047857] opacity-65 animate-floating-icon-2 stroke-[2]" />
+          <Sun className="absolute bottom-[16%] right-[8%] w-12 h-12 text-[#065f46] opacity-65 animate-floating-icon-1 stroke-[2]" />
+          <Workflow className="absolute bottom-[30%] left-[1.5%] w-11 h-11 text-[#0d9488] opacity-65 animate-floating-icon-2 stroke-[2]" />
+          <Award className="absolute top-[45%] right-[14%] w-11 h-11 text-[#047857] opacity-65 animate-floating-icon-1 stroke-[2]" />
+          <Activity className="absolute top-[18%] left-[8%] w-10 h-10 text-[#064e3b] opacity-60 animate-floating-icon-2 stroke-[2]" />
         </div>
 
         {/* Foreground Workspace Container */}

@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   });
 
   return (
-    <aside className="w-56 glass-card bg-white/90 backdrop-blur-md border-r border-slate-200 p-3 flex flex-col justify-between hidden md:flex shrink-0 min-h-[calc(100vh-55px)]">
+    <aside className="w-52 glass-card bg-white/90 backdrop-blur-md border-r border-slate-200 p-3 flex flex-col justify-between hidden md:flex shrink-0 min-h-[calc(100vh-55px)]">
       <div className="space-y-4">
         {/* Category Label */}
         <div className="px-2 pt-1 flex items-center justify-between">
