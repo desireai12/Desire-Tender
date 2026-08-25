@@ -108,12 +108,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Status Card */}
-      <div className="p-3 rounded-lg bg-slate-100/90 border border-slate-200 space-y-1 text-left">
+      <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 space-y-1 text-left">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold text-slate-900">Tender AI Engine Online</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+          <span className="text-[11px] font-bold text-slate-900 dark:text-white">Tender AI Engine Online</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-ping" />
         </div>
-        <p className="text-[10px] text-slate-700 font-medium leading-tight">
+        <p className="text-[10px] text-slate-700 dark:text-slate-300 font-medium leading-tight">
           Master Company DB & Combined JV Eligibility Active.
         </p>
       </div>

@@ -15,42 +15,37 @@
     position: fixed;
     top: -15%;
     left: -10%;
-    width: 60vw;
-    height: 60vw;
+    width: 65vw;
+    height: 65vw;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(6, 78, 59, 0.12) 0%, rgba(13, 148, 136, 0.06) 50%, transparent 75%);
+    background: radial-gradient(circle, rgba(6, 78, 59, 0.14) 0%, rgba(13, 148, 136, 0.08) 50%, transparent 75%);
     filter: blur(80px);
+    animation: floatBottleAura1 18s ease-in-out infinite alternate;
     pointer-events: none;
     z-index: 0;
   }
 }
 
-/* ------------------------------------------------------------- */
-/* 1. DARK MODE CANVAS & FLOATING GLOW AURAS (html.dark)          */
-/* ------------------------------------------------------------- */
-html.dark body {
-  background-color: #060b14 !important;
-  color: #f8fafc !important;
+@keyframes floatBottleAura1 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  100% { transform: translate(50px, -40px) scale(1.15); }
 }
 
-html.dark body::before {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, rgba(6, 95, 70, 0.14) 50%, transparent 80%) !important;
-  filter: blur(90px) !important;
-}
-
-/* Technical Blueprint Grid Pattern Overlay */
+/* ------------------------------------------------------------- */
+/* 1. DYNAMIC TECHNICAL BLUEPRINT GRID BACKGROUND                 */
+/* ------------------------------------------------------------- */
 .bg-blueprint-grid {
   background-size: 36px 36px;
   background-image: 
     linear-gradient(to right, rgba(13, 148, 136, 0.09) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(13, 148, 136, 0.09) 1px, transparent 1px);
-  animation: moveGrid 30s linear infinite;
+  animation: moveGrid 25s linear infinite;
 }
 
 html.dark .bg-blueprint-grid {
   background-image: 
-    linear-gradient(to right, rgba(16, 185, 129, 0.15) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(16, 185, 129, 0.15) 1px, transparent 1px);
+    linear-gradient(to right, rgba(16, 185, 129, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 185, 129, 0.16) 1px, transparent 1px);
 }
 
 @keyframes moveGrid {
@@ -60,15 +55,15 @@ html.dark .bg-blueprint-grid {
 
 /* Dynamic Floating Water Infrastructure Icons Keyframes */
 @keyframes floatWaterIcon1 {
-  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.65; }
-  50% { transform: translateY(-25px) rotate(6deg) scale(1.10); opacity: 0.90; }
-  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.65; }
+  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.70; }
+  50% { transform: translateY(-28px) rotate(6deg) scale(1.12); opacity: 0.95; }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.70; }
 }
 
 @keyframes floatWaterIcon2 {
-  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.60; }
-  50% { transform: translateY(28px) rotate(-8deg) scale(1.12); opacity: 0.85; }
-  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.60; }
+  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.65; }
+  50% { transform: translateY(30px) rotate(-8deg) scale(1.14); opacity: 0.90; }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.65; }
 }
 
 .animate-floating-icon-1 {
@@ -110,6 +105,16 @@ html.dark .bg-blueprint-grid {
 /* 3. OBSIDIAN MIDNIGHT EMERALD DARK MODE OVERRIDES (html.dark)   */
 /* ------------------------------------------------------------- */
 
+html.dark body {
+  background-color: #060b14 !important;
+  color: #f8fafc !important;
+}
+
+html.dark body::before {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(6, 95, 70, 0.15) 50%, transparent 80%) !important;
+  filter: blur(90px) !important;
+}
+
 html.dark header {
   background-color: rgba(11, 20, 38, 0.95) !important;
   border-color: rgba(16, 185, 129, 0.25) !important;
@@ -134,7 +139,7 @@ html.dark .glass-card:hover {
   box-shadow: 0 8px 24px -2px rgba(52, 211, 153, 0.25) !important;
 }
 
-/* Dark Mode Typography Overrides */
+/* Dark Mode Typography Overrides (Except inside specific light containers) */
 html.dark h1, 
 html.dark h2, 
 html.dark h3, 
@@ -162,35 +167,23 @@ html.dark .text-slate-400 {
   color: #94a3b8 !important;
 }
 
-/* Dark Mode Badges & Container Backgrounds */
-html.dark .bg-slate-50, 
-html.dark .bg-slate-100, 
-html.dark .bg-white {
-  background-color: rgba(26, 40, 68, 0.85) !important;
-  color: #f8fafc !important;
-  border-color: #334155 !important;
-}
-
-html.dark .border-slate-200, 
-html.dark .border-slate-250, 
-html.dark .border-slate-300 {
-  border-color: #334155 !important;
-}
-
-/* Dark Mode Inputs, Selects & Textareas */
-html.dark input, 
-html.dark select, 
-html.dark textarea {
-  background-color: #020617 !important;
+/* Specific Light Card Overrides inside Dark Mode */
+html.dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.85) !important;
+  border-color: rgba(52, 211, 153, 0.5) !important;
   color: #ffffff !important;
-  border-color: #334155 !important;
 }
 
-html.dark input:focus, 
-html.dark select:focus, 
-html.dark textarea:focus {
-  border-color: #34d399 !important;
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25) !important;
+html.dark .bg-rose-50 {
+  background-color: rgba(136, 19, 55, 0.85) !important;
+  border-color: rgba(251, 113, 133, 0.5) !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: rgba(30, 41, 59, 0.85) !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
 }
 
 /* Dark Mode Active Button Accent */
@@ -220,7 +213,7 @@ html.dark .text-\[\#0d9488\] {
 }
 
 html.dark ::-webkit-scrollbar-track {
-  background: #090e1a;
+  background: #060b14;
 }
 
 ::-webkit-scrollbar-thumb {
