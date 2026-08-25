@@ -35,16 +35,28 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} bg-[#f4f7f6] text-slate-900 min-h-screen flex flex-col antialiased relative bg-water-infra-flow overflow-x-hidden`}>
-        {/* Dynamic High-Visibility Floating Water Infrastructure & Tender Bidding Icons */}
+      <body className={`${inter.variable} bg-[#f4f7f6] text-slate-900 min-h-screen flex flex-col antialiased relative bg-blueprint-grid overflow-x-hidden`}>
+        {/* Dynamic Floating Water Infrastructure & Tender Bidding Status Badges */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <Droplets className="absolute top-[6%] left-[4%] w-20 h-20 text-emerald-800/40 animate-floating-icon-1" />
-          <FileText className="absolute top-[18%] right-[5%] w-18 h-18 text-teal-800/40 animate-floating-icon-2" />
-          <Sun className="absolute bottom-[20%] left-[6%] w-20 h-20 text-emerald-800/40 animate-floating-icon-1" />
-          <Workflow className="absolute top-[45%] right-[8%] w-20 h-20 text-teal-800/40 animate-floating-icon-2" />
-          <Award className="absolute bottom-[8%] right-[4%] w-18 h-18 text-emerald-800/40 animate-floating-icon-1" />
-          <Activity className="absolute bottom-[38%] left-[2%] w-16 h-16 text-emerald-700/35 animate-floating-icon-2" />
-          <Compass className="absolute top-[38%] left-[8%] w-16 h-16 text-teal-800/35 animate-floating-icon-1" />
+          <div className="absolute top-[12%] right-[8%] bg-[#064e3b] text-white px-3 py-1.5 rounded-xl shadow-lg border border-emerald-400/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-1">
+            <Droplets className="w-4 h-4 text-emerald-300" />
+            <span>JJM Water Pipeline Network • Active</span>
+          </div>
+
+          <div className="absolute top-[32%] left-[3%] bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-lg border border-teal-500/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-2">
+            <FileText className="w-4 h-4 text-teal-300" />
+            <span>Tender Bid Specs Verified</span>
+          </div>
+
+          <div className="absolute bottom-[16%] right-[6%] bg-[#064e3b] text-white px-3 py-1.5 rounded-xl shadow-lg border border-emerald-400/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-1">
+            <Sun className="w-4 h-4 text-amber-300" />
+            <span>Solar PV Pump Scheme (KUSUM)</span>
+          </div>
+
+          <div className="absolute bottom-[32%] left-[2%] bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-lg border border-teal-500/40 flex items-center space-x-2 text-xs font-bold animate-floating-icon-2">
+            <Award className="w-4 h-4 text-emerald-300" />
+            <span>Class-A License Compliant</span>
+          </div>
         </div>
 
         {/* Foreground Workspace Container */}
