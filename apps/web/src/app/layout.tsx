@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { FileText, Workflow, Award, ShieldCheck, Database, Compass, Layers } from 'lucide-react';
+import { Droplets, Sun, FileText, Workflow, Award, Activity, ShieldCheck, Compass } from 'lucide-react';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -35,17 +35,18 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} bg-[#f4f6f8] text-slate-900 min-h-screen flex flex-col antialiased relative bg-blueprint-grid overflow-x-hidden`}>
-        {/* Dynamic Moving Tender & Infrastructure Floating Background Icons */}
+      <body className={`${inter.variable} bg-[#f4f7f6] text-slate-900 min-h-screen flex flex-col antialiased relative bg-water-infra-flow overflow-x-hidden`}>
+        {/* Water Infrastructure & Tender Bidding Dynamic Floating Icons */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <FileText className="absolute top-[10%] left-[6%] w-14 h-14 text-teal-600/20 animate-floating-icon-1" />
-          <Workflow className="absolute top-[22%] right-[8%] w-16 h-16 text-sky-600/20 animate-floating-icon-2" />
-          <Award className="absolute bottom-[18%] left-[10%] w-16 h-16 text-teal-700/20 animate-floating-icon-1" />
-          <Compass className="absolute top-[50%] right-[12%] w-14 h-14 text-indigo-600/20 animate-floating-icon-2" />
-          <Layers className="absolute bottom-[8%] right-[6%] w-14 h-14 text-emerald-600/20 animate-floating-icon-1" />
+          <Droplets className="absolute top-[8%] left-[5%] w-16 h-16 text-emerald-700/25 animate-floating-icon-1" />
+          <FileText className="absolute top-[20%] right-[7%] w-14 h-14 text-teal-800/25 animate-floating-icon-2" />
+          <Sun className="absolute bottom-[22%] left-[8%] w-16 h-16 text-emerald-600/25 animate-floating-icon-1" />
+          <Workflow className="absolute top-[48%] right-[10%] w-16 h-16 text-teal-700/25 animate-floating-icon-2" />
+          <Award className="absolute bottom-[10%] right-[5%] w-14 h-14 text-emerald-800/25 animate-floating-icon-1" />
+          <Activity className="absolute bottom-[35%] left-[2%] w-12 h-12 text-emerald-600/20 animate-floating-icon-2" />
         </div>
 
-        {/* Foreground Content */}
+        {/* Foreground Workspace Container */}
         <div className="relative z-10 min-h-screen flex flex-col">
           {children}
         </div>

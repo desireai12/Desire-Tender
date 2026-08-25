@@ -4,69 +4,102 @@
 
 @layer base {
   body {
-    @apply bg-[#f4f6f8] text-slate-900 font-sans antialiased min-h-screen selection:bg-teal-700/20 selection:text-teal-950;
-    background-color: #f4f6f8;
+    @apply bg-[#f4f7f6] text-slate-900 font-sans antialiased min-h-screen selection:bg-emerald-700/20 selection:text-emerald-950;
+    background-color: #f4f7f6;
     position: relative;
     overflow-x: hidden;
   }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -15%;
+    left: -10%;
+    width: 60vw;
+    height: 60vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6, 78, 59, 0.14) 0%, rgba(13, 148, 136, 0.08) 50%, transparent 75%);
+    filter: blur(80px);
+    animation: floatBottleAura1 18s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -15%;
+    right: -10%;
+    width: 65vw;
+    height: 65vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(4, 120, 87, 0.12) 0%, rgba(2, 132, 199, 0.06) 50%, transparent 75%);
+    filter: blur(90px);
+    animation: floatBottleAura2 22s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
 }
 
-/* Technical Blueprint Grid Pattern Overlay with 30s continuous movement */
-.bg-blueprint-grid {
-  background-size: 36px 36px;
+@keyframes floatBottleAura1 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  100% { transform: translate(45px, -45px) scale(1.15); }
+}
+
+@keyframes floatBottleAura2 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  100% { transform: translate(-50px, 35px) scale(1.18); }
+}
+
+/* Water Wave Infrastructure Network Flow Background */
+.bg-water-infra-flow {
+  background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(13, 148, 136, 0.09) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(13, 148, 136, 0.09) 1px, transparent 1px);
-  animation: moveGrid 30s linear infinite;
+    radial-gradient(circle, rgba(6, 78, 59, 0.07) 1px, transparent 1px);
 }
 
-@keyframes moveGrid {
-  0% { background-position: 0 0; }
-  100% { background-position: 36px 36px; }
+/* Dynamic Floating Water Infrastructure Icons Keyframes */
+@keyframes floatWaterIcon1 {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.25; }
+  50% { transform: translateY(-30px) rotate(8deg) scale(1.12); opacity: 0.42; }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.25; }
 }
 
-/* Dynamic Floating Tender Icons Background Keyframes */
-@keyframes floatTenderIcon1 {
-  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.20; }
-  50% { transform: translateY(-35px) rotate(8deg) scale(1.10); opacity: 0.35; }
-  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.20; }
-}
-
-@keyframes floatTenderIcon2 {
-  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.18; }
-  50% { transform: translateY(40px) rotate(-10deg) scale(1.12); opacity: 0.32; }
-  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.18; }
+@keyframes floatWaterIcon2 {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.22; }
+  50% { transform: translateY(35px) rotate(-10deg) scale(1.15); opacity: 0.38; }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.22; }
 }
 
 .animate-floating-icon-1 {
-  animation: floatTenderIcon1 14s ease-in-out infinite;
+  animation: floatWaterIcon1 14s ease-in-out infinite;
 }
 
 .animate-floating-icon-2 {
-  animation: floatTenderIcon2 18s ease-in-out infinite;
+  animation: floatWaterIcon2 18s ease-in-out infinite;
 }
 
-/* Premium Technical Document Cards */
+/* Bottle Green Premium Cards */
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  box-shadow: 0 4px 20px -2px rgba(6, 78, 59, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
   border-radius: 12px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: #0284c7;
-  box-shadow: 0 10px 25px -3px rgba(2, 132, 199, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  border-color: #047857;
+  box-shadow: 0 10px 25px -3px rgba(4, 120, 87, 0.14), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
 }
 
 .glass-card-glow {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(16px);
-  border: 1.5px solid #0d9488;
-  box-shadow: 0 0 20px rgba(13, 148, 136, 0.18), 0 4px 12px rgba(15, 23, 42, 0.04);
+  border: 1.5px solid #065f46;
+  box-shadow: 0 0 20px rgba(6, 95, 70, 0.18), 0 4px 12px rgba(15, 23, 42, 0.04);
   border-radius: 12px;
 }
 
@@ -79,21 +112,9 @@
 }
 
 .glass-input:focus {
-  border-color: #0d9488;
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18);
+  border-color: #047857;
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.18);
   outline: none;
-}
-
-/* Meaningful Workflow Line Animation */
-@keyframes workflowPulse {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-
-.animate-workflow-line {
-  background: linear-gradient(90deg, #0284c7 0%, #0d9488 50%, #2563eb 100%);
-  background-size: 200% 100%;
-  animation: workflowPulse 6s linear infinite;
 }
 
 /* Custom Scrollbar */
@@ -112,5 +133,5 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0d9488;
+  background: #047857;
 }

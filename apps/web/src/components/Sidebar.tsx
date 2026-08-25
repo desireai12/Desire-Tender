@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span
                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${
                       isActive
-                        ? 'bg-teal-800 text-white font-bold font-bold'
+                        ? 'bg-emerald-900 text-white font-bold font-bold'
                         : 'bg-white/5 text-slate-700 font-medium group-hover:bg-white/10'
                     }`}
                   >

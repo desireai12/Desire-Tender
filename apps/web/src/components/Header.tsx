@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* User Profile / Employee ID Badge */}
         {currentUser && (
           <div className="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-xl bg-slate-50/90 border border-teal-200">
-            <div className="w-6 h-6 rounded-full bg-teal-700/20 flex items-center justify-center text-teal-800 font-mono text-xs">
+            <div className="w-6 h-6 rounded-full bg-emerald-800/20 flex items-center justify-center text-teal-800 font-mono text-xs">
               {currentUser.employee_id?.slice(0, 3) || 'EMP'}
             </div>
             <div>
