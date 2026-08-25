@@ -522,15 +522,15 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
               onClick={() => setActiveTab(tab.id)}
               className={`p-4 rounded-xl border text-left transition-all ${
                 isActive
-                  ? 'bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/20 ring-1 ring-cyan-400'
-                  : 'bg-slate-50/40 border-slate-200 hover:border-slate-300 text-slate-700 font-medium'
+                  ? 'bg-[#064e3b] text-white border-2 border-emerald-400 shadow-md shadow-emerald-950/20 font-bold'
+                  : 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-medium'
               }`}
             >
               <div className="flex items-center space-x-2 mb-1">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-teal-800 font-semibold' : 'text-slate-700 font-medium'}`} />
-                <span className="font-display font-bold text-xs text-slate-900">{tab.label}</span>
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-700'}`} />
+                <span className={`font-display font-bold text-xs ${isActive ? 'text-white' : 'text-slate-900'}`}>{tab.label}</span>
               </div>
-              <p className="text-[10px] text-slate-700 font-medium truncate">{tab.desc}</p>
+              <p className={`text-[10px] font-medium truncate ${isActive ? 'text-emerald-100 font-medium' : 'text-slate-600'}`}>{tab.desc}</p>
             </button>
           );
         })}
