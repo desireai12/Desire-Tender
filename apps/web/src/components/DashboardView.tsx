@@ -11,106 +11,100 @@ import {
   Sparkles, 
   CheckCircle2, 
   AlertTriangle, 
-  Clock,
-  Layers,
-  Award
+  Clock
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 
 interface DashboardViewProps {
   onNavigate: (tab: NavTab) => void;
-  tendersCount?: number;
+  recentAssessmentScore?: number;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigate,
-  tendersCount = 2
+  recentAssessmentScore = 92
 }) => {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-2xl glass-card border border-cyan-500/30 p-8 bg-gradient-to-r from-aqua-900 via-aqua-800 to-teal-900/60 shadow-2xl shadow-cyan-500/10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-        
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 p-8 text-white shadow-md">
         <div className="max-w-3xl space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-xs font-mono">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Enterprise Water Infrastructure Procurement System</span>
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-400/10 border border-teal-400/30 text-teal-300 text-xs font-mono">
+            <Sparkles className="w-3.5 h-3.5 text-teal-300" />
+            <span>Water Infrastructure Procurement Intelligence</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight leading-tight">
-            Tender Assessment Wizard. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">
-              6-Stage Process Queue & Company Knowledge.
+            Instant Eligibility. <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-cyan-200 to-emerald-300">
+              Intelligent Costing & Bid Strategy.
             </span>
           </h1>
 
           <p className="text-slate-300 text-base leading-relaxed">
-            Upload tender documents, evaluate company eligibility, manage department permissions across 6 stages, and maintain historical bidding insights.
+            Automate tender criteria cross-retrieval against company financials, evaluate competitor win/loss patterns, and generate AI-optimized costing breakdowns in seconds.
           </p>
 
           <div className="flex flex-wrap gap-4 pt-2">
             <button
-              onClick={() => onNavigate('wizard')}
-              className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-cyan-400 text-aqua-950 font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-cyan-400/25 group"
+              onClick={() => onNavigate('eligibility')}
+              className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold transition-all shadow-md shadow-teal-500/20 group cursor-pointer"
             >
               <FileCheck2 className="w-5 h-5" />
-              <span>Start Tender Assessment</span>
+              <span>Check Tender Eligibility</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </button>
 
             <button
-              onClick={() => onNavigate('lifecycle')}
-              className="flex items-center space-x-2 px-6 py-3 rounded-xl glass-card text-white hover:bg-white/10 border border-white/15 transition-all"
+              onClick={() => onNavigate('costing')}
+              className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
             >
-              <Calculator className="w-5 h-5 text-cyan-400" />
-              <span>Tender Process Queue ({tendersCount})</span>
+              <Calculator className="w-5 h-5 text-teal-300" />
+              <span>Costing Estimator V2</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Key Action Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Card 1: Guided Tender Wizard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Card 1: Check Tender Eligibility */}
         <div 
-          onClick={() => onNavigate('wizard')}
-          className="glass-card rounded-xl p-6 hover:border-cyan-400/50 transition-all cursor-pointer group space-y-4 relative overflow-hidden"
+          onClick={() => onNavigate('eligibility')}
+          className="glass-card rounded-2xl p-6 hover:border-teal-500/50 transition-all cursor-pointer group space-y-4"
         >
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 group-hover:scale-105 transition-transform">
             <FileCheck2 className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-display font-semibold text-lg text-white group-hover:text-cyan-300 transition-colors">
-              Start Guided Wizard
+            <h3 className="font-display font-semibold text-lg text-slate-900 group-hover:text-teal-700 transition-colors">
+              Check Tender Eligibility
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Step 1 Eligibility Gate $\rightarrow$ Step 2 PDF Upload $\rightarrow$ Step 3 20s AI Analysis $\rightarrow$ Step 4 Report.
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Upload municipal tender PDF/DOCX for automated RAG parameter evaluation.
             </p>
           </div>
-          <div className="flex items-center text-xs font-mono text-cyan-400 pt-2">
-            <span>Launch 4-Step Wizard</span>
+          <div className="flex items-center text-xs font-semibold text-teal-700 pt-2">
+            <span>Upload Document</span>
             <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 
-        {/* Card 2: Lifecycle Queue Stat Badge */}
-        <div 
-          onClick={() => onNavigate('lifecycle')}
-          className="glass-card rounded-xl p-6 hover:border-emerald-400/50 transition-all cursor-pointer group space-y-4 relative"
-        >
+        {/* Card 2: Tenders Assessed Stat Badge */}
+        <div className="glass-card rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
               <TrendingUp className="w-6 h-6" />
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono border border-emerald-500/30">
-              Active Pipeline
+            <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-mono border border-emerald-200 font-semibold">
+              +24% this month
             </span>
           </div>
           <div>
-            <div className="text-3xl font-display font-bold text-white">{tendersCount} Tenders</div>
-            <p className="text-xs text-slate-400 mt-1">
-              Progressing through 6 Enterprise Stages
+            <div className="text-3xl font-display font-bold text-slate-900">48</div>
+            <p className="text-xs text-slate-500 mt-1">
+              Tenders Assessed with Average Match Score of{' '}
+              <span className="text-emerald-700 font-bold">{recentAssessmentScore}%</span>
             </p>
           </div>
         </div>
@@ -118,136 +112,134 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Card 3: View Competitor Battle Cards */}
         <div 
           onClick={() => onNavigate('competitors')}
-          className="glass-card rounded-xl p-6 hover:border-purple-400/50 transition-all cursor-pointer group space-y-4"
+          className="glass-card rounded-2xl p-6 hover:border-purple-300 transition-all cursor-pointer group space-y-4"
         >
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 group-hover:scale-105 transition-transform">
             <Swords className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-display font-semibold text-lg text-white group-hover:text-purple-300 transition-colors">
+            <h3 className="font-display font-semibold text-lg text-slate-900 group-hover:text-purple-700 transition-colors">
               Competitor Battle Cards
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Analyze L&T, Wabag, Shakti Pumps, KBL & Tata Power bidding patterns.
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Side-by-side win/loss rationales, bidding patterns & markup strategies.
             </p>
           </div>
-          <div className="flex items-center text-xs font-mono text-purple-400 pt-2">
-            <span>Explore 5 Competitors</span>
+          <div className="flex items-center text-xs font-semibold text-purple-700 pt-2">
+            <span>Explore 4 Competitors</span>
             <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 
-        {/* Card 3.5: BidMaster Costing Engine & 164 Rates */}
-        <div 
-          onClick={() => onNavigate('costing')}
-          className="glass-card rounded-xl p-6 hover:border-cyan-400/50 transition-all cursor-pointer group space-y-4"
-        >
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
-            <Calculator className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="font-display font-semibold text-lg text-white group-hover:text-cyan-300 transition-colors">
-              BidMaster Costing Engine
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Area-wise rates for Rajasthan, Gujarat & UP from Service Price Database.
-            </p>
-          </div>
-          <div className="flex items-center text-xs font-mono text-cyan-400 pt-2">
-            <span>Access 164 Rates</span>
-            <ArrowRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </div>
-
-        {/* Card 4: Admin Knowledge Base Status Indicator */}
+        {/* Card 4: Knowledge Base Status Indicator */}
         <div 
           onClick={() => onNavigate('admin')}
-          className="glass-card rounded-xl p-6 hover:border-teal-400/50 transition-all cursor-pointer group space-y-4 md:col-span-4"
+          className="glass-card rounded-2xl p-6 hover:border-teal-300 transition-all cursor-pointer group space-y-4"
         >
           <div className="flex items-center justify-between">
-            <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
+            <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
               <Database className="w-6 h-6" />
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-300 text-xs font-mono">
-              Admin Portal Only
+            <span className="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-mono font-semibold border border-teal-200">
+              12 Chunks Indexed
             </span>
           </div>
           <div>
-            <h3 className="font-display font-semibold text-lg text-white group-hover:text-teal-300 transition-colors">
-              5 Dedicated Knowledge Base Modules & Asset Versioning
+            <h3 className="font-display font-semibold text-lg text-slate-900 group-hover:text-teal-700 transition-colors">
+              Knowledge Base Status
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Restricted exclusively to System Admin. Manage Company SOPs, ISO Licenses, Competitor Intel, Past BOQs & Self-Learning feedback logs.
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Company Credentials, Balance Sheets, ISO Certs & Past Turnovers ready.
             </p>
+          </div>
+        </div>
+
+        {/* Card 5: Costing Templates */}
+        <div 
+          onClick={() => onNavigate('costing')}
+          className="glass-card rounded-2xl p-6 hover:border-teal-300 transition-all cursor-pointer group space-y-4 md:col-span-2 lg:col-span-2"
+        >
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shrink-0">
+              <Calculator className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-display font-semibold text-lg text-slate-900 group-hover:text-teal-700 transition-colors">
+                Costing Estimation Engine V2
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed mt-0.5">
+                Interactive financial line-item breakdown with custom manual overrides & AI RAG bid amount comparison.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Recent Activity Feed */}
-      <div className="glass-card rounded-xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+      <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center space-x-2">
-            <Clock className="w-5 h-5 text-cyan-400" />
-            <h2 className="font-display font-semibold text-lg text-white">
-              Recent Tender Lifecycle Pipeline Activity Feed
+            <Clock className="w-5 h-5 text-teal-700" />
+            <h2 className="font-display font-semibold text-lg text-slate-900">
+              Recent Tender Activity & Assessment Feed
             </h2>
           </div>
-          <span className="text-xs font-mono text-slate-400">Real-time Updates</span>
+          <span className="text-xs font-mono text-slate-500">Real-time Updates</span>
         </div>
 
         <div className="space-y-3">
           {/* Feed Item 1 */}
-          <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-cyan-500/30 transition">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-teal-300 transition">
             <div className="flex items-start space-x-3">
-              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 mt-0.5">
+              <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700 mt-0.5">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-medium text-sm text-white">
-                  Jal Jeevan Mission (JJM) Rural Water Supply (Tender #JJM-RJ-2026-44)
+                <h4 className="font-semibold text-sm text-slate-900">
+                  Municipal Water Filtration Plant Upgrade (Tender #MWP-2026-09)
                 </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Category: RHDS • Stage 2 Complete • Verified ₹300.93 Cr turnover & 1,00,000+ villages
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Assessed 10 mins ago • 4 Parameters Checked • RAG Match Verified
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3 self-end sm:self-center">
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/30">
-                STAGE 2: APPROVED
+              <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-mono text-xs font-bold border border-emerald-200">
+                VERDICT: ELIGIBLE (92%)
               </span>
               <button 
-                onClick={() => onNavigate('lifecycle')}
-                className="text-xs text-cyan-400 hover:underline font-medium"
+                onClick={() => onNavigate('eligibility')}
+                className="text-xs text-teal-700 hover:underline font-semibold"
               >
-                Open Lifecycle Queue
+                View Details
               </button>
             </div>
           </div>
 
           {/* Feed Item 2 */}
-          <div className="p-4 rounded-xl bg-aqua-950/60 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-cyan-500/30 transition">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-amber-300 transition">
             <div className="flex items-start space-x-3">
-              <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 mt-0.5">
-                <CheckCircle2 className="w-5 h-5" />
+              <div className="p-2 rounded-lg bg-amber-100 text-amber-700 mt-0.5">
+                <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-medium text-sm text-white">
-                  PM-Kusum Component-B Solar Pumping (Tender #KUSUM-UP-8812)
+                <h4 className="font-semibold text-sm text-slate-900">
+                  Regional SCADA Telemetry & Pumping Pipeline (Tender #RST-8812)
                 </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Category: KUSUM • Stage 3 In Progress • Estimation Team BOQ Construction
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Assessed 2 hours ago • ISO 27001 Certificate Audit Pending
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3 self-end sm:self-center">
-              <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 font-mono text-xs font-bold border border-cyan-500/30">
-                STAGE 3: COSTING IN PROGRESS
+              <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 font-mono text-xs font-bold border border-amber-200">
+                VERDICT: CONDITIONAL (78%)
               </span>
               <button 
-                onClick={() => onNavigate('lifecycle')}
-                className="text-xs text-cyan-400 hover:underline font-medium"
+                onClick={() => onNavigate('eligibility')}
+                className="text-xs text-teal-700 hover:underline font-semibold"
               >
-                Open Lifecycle Queue
+                View Details
               </button>
             </div>
           </div>

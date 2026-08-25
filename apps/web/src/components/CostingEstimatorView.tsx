@@ -6,180 +6,87 @@ import {
   Plus, 
   Trash2, 
   TrendingUp, 
-  DollarSign, 
   Sparkles, 
-  Percent, 
-  BarChart3,
-  RefreshCw,
-  MapPin,
-  Database,
-  Building2,
-  FileSpreadsheet,
-  Bot
+  BarChart3
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
-import rawRateData from '@/lib/service_price_database.json';
 
 interface CostItem {
   id: string;
-  category: 'Civil & Structural' | 'Mechanical Equipment' | 'E&I / SCADA' | 'Piping & Distribution' | 'Services / Commissioning' | 'Overhead & Risk';
+  category: 'Labour' | 'Raw Materials' | 'Logistics' | 'Overhead' | 'Risk Buffer';
   item_name: string;
-  sub_description?: string;
-  unit: string;
-  purchase_cost: number;
-  service_cost: number;
   unit_cost: number;
   quantity: number;
   markup_percentage: number;
   tax_percentage: number;
-  rate_source: string;
-  region: string;
 }
 
 export const CostingEstimatorView: React.FC = () => {
-  const [selectedRegion, setSelectedRegion] = useState<string>('Rajasthan');
-  const [searchFilter, setSearchFilter] = useState<string>('');
-  const [selectedPresetItem, setSelectedPresetItem] = useState<string>('');
-
   const [items, setItems] = useState<CostItem[]>([
     {
       id: 'item-1',
-      category: 'Piping & Distribution',
-      item_name: 'HDPE Pipe, PE-100, PN-6 (HDD Method)',
-      sub_description: '315 mm dia',
-      unit: 'Rmt',
-      purchase_cost: 1777,
-      service_cost: 3500,
-      unit_cost: 5277,
-      quantity: 500,
-      markup_percentage: 12,
-      tax_percentage: 18,
-      rate_source: 'Rajasthan (Jaipur) — May 2026 Schedule (Divija)',
-      region: 'Rajasthan'
+      category: 'Labour',
+      item_name: 'Senior Hydraulic & Civil Engineer (400 hrs)',
+      unit_cost: 120,
+      quantity: 400,
+      markup_percentage: 15,
+      tax_percentage: 5
     },
     {
       id: 'item-2',
-      category: 'Piping & Distribution',
-      item_name: 'DI Pipe, K-7',
-      sub_description: '250 mm dia',
-      unit: 'Rmt',
-      purchase_cost: 1741.53,
-      service_cost: 130,
-      unit_cost: 1871.53,
-      quantity: 1200,
-      markup_percentage: 10,
-      tax_percentage: 18,
-      rate_source: 'Rajasthan (Balotra) — Feb 2026 Schedule',
-      region: 'Rajasthan'
+      category: 'Raw Materials',
+      item_name: 'High-Pressure Water Filtration Valves & Piping',
+      unit_cost: 2500,
+      quantity: 50,
+      markup_percentage: 12,
+      tax_percentage: 8
     },
     {
       id: 'item-3',
-      category: 'Civil & Structural',
-      item_name: 'RCC Pipe NP4 Class (Vibrated Casting)',
-      sub_description: '600 mm dia',
-      unit: 'Rmt',
-      purchase_cost: 2080,
-      service_cost: 1800,
-      unit_cost: 3880,
-      quantity: 350,
-      markup_percentage: 15,
-      tax_percentage: 18,
-      rate_source: 'Rajasthan (Jaipur STP DLB) — May 2026 Schedule',
-      region: 'Rajasthan'
+      category: 'Logistics',
+      item_name: 'Heavy Transport & Trenching Machinery Rental',
+      unit_cost: 1600,
+      quantity: 20,
+      markup_percentage: 10,
+      tax_percentage: 5
     },
     {
       id: 'item-4',
-      category: 'E&I / SCADA',
-      item_name: 'Sunaquator 4G IoT Telemetry & PLC Automation Suite',
-      sub_description: 'STP/WTP Remote Telemetry',
-      unit: 'Job',
-      purchase_cost: 450000,
-      service_cost: 85000,
-      unit_cost: 535000,
-      quantity: 1,
-      markup_percentage: 15,
-      tax_percentage: 18,
-      rate_source: 'Desire Energy Corporate Master Schedule',
-      region: 'Rajasthan'
+      category: 'Overhead',
+      item_name: 'SCADA Telemetry & IoT Pressure Sensor Suite',
+      unit_cost: 4500,
+      quantity: 12,
+      markup_percentage: 18,
+      tax_percentage: 10
     },
     {
       id: 'item-5',
-      category: 'Overhead & Risk',
-      item_name: 'Site Overhead & Seasonal Delay Contingency Buffer',
-      sub_description: 'Geotechnical / Rain Risk',
-      unit: 'LumpSum',
-      purchase_cost: 250000,
-      service_cost: 50000,
-      unit_cost: 300000,
+      category: 'Risk Buffer',
+      item_name: 'Unforeseen Geotechnical Delay Contingency',
+      unit_cost: 25000,
       quantity: 1,
       markup_percentage: 5,
-      tax_percentage: 0,
-      rate_source: 'BidMaster Contingency Rule (5%)',
-      region: 'Rajasthan'
+      tax_percentage: 0
     }
   ]);
 
   const [aiTargetDiscount, setAiTargetDiscount] = useState<number>(6.5);
 
-  // Filter rate database based on region & search
-  const availableDatabaseRates = rawRateData.filter((r) => {
-    const matchRegion = selectedRegion === 'All' || r.state.toLowerCase().includes(selectedRegion.toLowerCase());
-    const matchSearch = !searchFilter || 
-      r.item_description.toLowerCase().includes(searchFilter.toLowerCase()) || 
-      r.sub_description.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      r.city.toLowerCase().includes(searchFilter.toLowerCase());
-    return matchRegion && matchSearch;
-  });
-
-  const addRateFromDatabase = (rateObj: any) => {
-    const newItem: CostItem = {
-      id: `item-${Date.now()}-${Math.random().toString().slice(-4)}`,
-      category: rateObj.item_description.toLowerCase().includes('pipe') ? 'Piping & Distribution' : 'Civil & Structural',
-      item_name: rateObj.item_description,
-      sub_description: rateObj.sub_description,
-      unit: rateObj.unit || 'Rmt',
-      purchase_cost: rateObj.purchase_cost || 0,
-      service_cost: rateObj.service_cost || 0,
-      unit_cost: rateObj.total_unit_rate || (rateObj.purchase_cost + rateObj.service_cost),
-      quantity: 100,
-      markup_percentage: 12,
-      tax_percentage: 18,
-      rate_source: `Rate Source: ${rateObj.state} (${rateObj.city}) — Database Schedule ${rateObj.remarks ? '(' + rateObj.remarks.slice(0, 25) + '...)' : ''}`,
-      region: rateObj.state
-    };
-    setItems((prev) => [...prev, newItem]);
-  };
-
   const updateItem = (id: string, field: keyof CostItem, value: any) => {
     setItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const updated = { ...item, [field]: value };
-          if (field === 'purchase_cost' || field === 'service_cost') {
-            updated.unit_cost = (parseFloat(updated.purchase_cost as any) || 0) + (parseFloat(updated.service_cost as any) || 0);
-          }
-          return updated;
-        }
-        return item;
-      })
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
   };
 
   const addItem = () => {
     const newItem: CostItem = {
       id: `item-${Date.now()}`,
-      category: 'Civil & Structural',
-      item_name: 'Custom WTP/STP Line Item',
-      sub_description: 'Custom specification',
-      unit: 'Rmt',
-      purchase_cost: 1000,
-      service_cost: 200,
-      unit_cost: 1200,
-      quantity: 10,
+      category: 'Labour',
+      item_name: 'New Custom Line Item',
+      unit_cost: 1000,
+      quantity: 1,
       markup_percentage: 10,
-      tax_percentage: 18,
-      rate_source: `Rate Source: ${selectedRegion} Market Estimate`,
-      region: selectedRegion
+      tax_percentage: 5
     };
     setItems((prev) => [...prev, newItem]);
   };
@@ -189,13 +96,8 @@ export const CostingEstimatorView: React.FC = () => {
   };
 
   // Calculations
-  const calculateItemBase = (item: CostItem) => {
-    const unitRate = item.unit_cost || (item.purchase_cost + item.service_cost);
-    return unitRate * item.quantity;
-  };
-
   const calculateItemTotal = (item: CostItem) => {
-    const base = calculateItemBase(item);
+    const base = item.unit_cost * item.quantity;
     const withMarkup = base * (1 + item.markup_percentage / 100);
     return withMarkup * (1 + item.tax_percentage / 100);
   };
@@ -203,178 +105,102 @@ export const CostingEstimatorView: React.FC = () => {
   const manualTotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0);
   const aiRecommendedTotal = manualTotal * (1 - aiTargetDiscount / 100);
   const varianceAmount = manualTotal - aiRecommendedTotal;
-  const estimatedMargin = manualTotal > 0 ? ((manualTotal - (manualTotal * 0.75)) / manualTotal) * 100 : 0;
+  const estimatedMargin = manualTotal > 0 ? ((manualTotal - (manualTotal * 0.72)) / manualTotal) * 100 : 0;
 
   // Chart data preparation
   const chartData = [
     {
-      name: 'Total Bid (₹ Lakhs)',
-      'Estimated Bid Total (₹ Lakhs)': Math.round(manualTotal / 100000),
-      'AI Recommended Bid (₹ Lakhs)': Math.round(aiRecommendedTotal / 100000)
+      name: 'Total Bid Comparison',
+      'User Manual Total ($)': Math.round(manualTotal),
+      'AI Recommended Bid ($)': Math.round(aiRecommendedTotal)
     }
   ];
 
-  const categories = [
-    'Civil & Structural', 
-    'Mechanical Equipment', 
-    'E&I / SCADA', 
-    'Piping & Distribution', 
-    'Services / Commissioning', 
-    'Overhead & Risk'
-  ];
+  const categories = ['Labour', 'Raw Materials', 'Logistics', 'Overhead', 'Risk Buffer'];
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* BidMaster AI Header Banner */}
-      <div className="glass-card p-6 rounded-2xl border border-cyan-500/30 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-cyan-400 font-mono text-xs">
-            <Bot className="w-4 h-4 text-cyan-300" />
-            <span>BIDMASTER AI — WATER & WASTEWATER EPC COSTING ENGINE</span>
+      {/* Module Banner */}
+      <div className="glass-card p-6 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-2 text-teal-700 font-mono text-xs mb-1 font-semibold">
+            <Calculator className="w-4 h-4" />
+            <span>PROVISION 7: COSTING ESTIMATION ENGINE V2</span>
           </div>
-          <h2 className="text-2xl font-display font-bold text-white flex items-center space-x-2">
-            <span>Area-Wise BOQ Estimator & Rate Database</span>
+          <h2 className="text-2xl font-display font-bold text-slate-900">
+            Nested Line-Item Cost Breakdown & AI Comparison
           </h2>
-          <p className="text-xs text-slate-400 max-w-3xl">
-            Prioritizes user-provided area-wise service & procurement schedules from <strong className="text-cyan-300">Service Price Database.xlsx</strong>. Automatically maps state/zone procurement rates (DI, HDPE, MS, RCC) and applies local labour/HDD service costs.
+          <p className="text-xs text-slate-500 mt-1">
+            Perform real-time cost overrides across Labour, Materials & Overhead, and compare against AI RAG Recommended Winning Bid Amount.
           </p>
         </div>
-
-        {/* Region & Location Selector */}
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <div className="flex items-center space-x-2 bg-aqua-950/80 px-3.5 py-2 rounded-xl border border-cyan-500/30">
-            <MapPin className="w-4 h-4 text-cyan-400" />
-            <span className="text-xs font-mono text-slate-300">Target Region:</span>
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              className="bg-transparent text-xs font-bold font-mono text-cyan-300 focus:outline-none cursor-pointer"
-            >
-              <option value="Rajasthan" className="bg-[#101415] text-white">Rajasthan (Jaipur / Balotra)</option>
-              <option value="Gujarat" className="bg-[#101415] text-white">Gujarat (Vapi / Mehsana / Banaskantha)</option>
-              <option value="UP" className="bg-[#101415] text-white">UP (Bhadohi / Kanpur / Ballia)</option>
-              <option value="All" className="bg-[#101415] text-white">All India Database (164 Rates)</option>
-            </select>
-          </div>
-
-          <button
-            onClick={addItem}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-cyan-400 text-aqua-950 font-bold hover:bg-cyan-300 transition shadow-md shadow-cyan-400/20 text-xs"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Custom Item</span>
-          </button>
-        </div>
+        <button
+          onClick={addItem}
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold transition shadow-xs text-xs shrink-0 self-start sm:self-center cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Line Item</span>
+        </button>
       </div>
 
       {/* Real-time Bid Metrics Summary Badges */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-cyan-400">
-          <span className="text-xs font-mono text-slate-400 uppercase">Calculated Bid Price (₹ Total)</span>
-          <div className="text-3xl font-display font-bold text-white">
-            ₹{manualTotal >= 10000000 ? (manualTotal / 10000000).toFixed(2) + ' Cr' : (manualTotal / 100000).toFixed(2) + ' Lakhs'}
+        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-teal-600">
+          <span className="text-xs font-mono text-slate-500 uppercase font-semibold">Calculated Manual Bid Amount</span>
+          <div className="text-3xl font-display font-bold text-slate-900">
+            ${manualTotal.toLocaleString('en-US', { maximumFractionDigits: 0 })}
           </div>
-          <p className="text-[11px] text-slate-400">₹{manualTotal.toLocaleString('en-IN')} (Purchase + Service + Markup + Tax)</p>
+          <p className="text-[11px] text-slate-500">Sum of user custom line items with markup & tax</p>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-emerald-400 bg-emerald-500/5">
+        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-emerald-600 bg-emerald-50/40">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-emerald-400 uppercase">AI Recommended Bid Price</span>
-            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-mono text-emerald-800 uppercase font-semibold">AI Recommended Bid Amount</span>
+            <Sparkles className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-3xl font-display font-bold text-emerald-300">
-            ₹{aiRecommendedTotal >= 10000000 ? (aiRecommendedTotal / 10000000).toFixed(2) + ' Cr' : (aiRecommendedTotal / 100000).toFixed(2) + ' Lakhs'}
+          <div className="text-3xl font-display font-bold text-emerald-800">
+            ${aiRecommendedTotal.toLocaleString('en-US', { maximumFractionDigits: 0 })}
           </div>
-          <p className="text-[11px] text-emerald-400/80">BidMaster RAG optimized for L1 winning margin (-{aiTargetDiscount}%)</p>
+          <p className="text-[11px] text-emerald-700">RAG derived based on competitor winning margins</p>
         </div>
 
-        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-teal-400">
-          <span className="text-xs font-mono text-slate-400 uppercase">Estimated Gross Profit Margin</span>
-          <div className="text-3xl font-display font-bold text-cyan-300 flex items-center space-x-2">
+        <div className="glass-card p-6 rounded-2xl space-y-2 border-l-4 border-l-cyan-600">
+          <span className="text-xs font-mono text-slate-500 uppercase font-semibold">Profit Margin Variance</span>
+          <div className="text-3xl font-display font-bold text-teal-800 flex items-center space-x-2">
             <span>+{estimatedMargin.toFixed(1)}%</span>
-            <TrendingUp className="w-5 h-5 text-emerald-400" />
+            <TrendingUp className="w-5 h-5 text-emerald-600" />
           </div>
-          <p className="text-[11px] text-slate-400">
-            Overhead & Net Revenue Optimization
+          <p className="text-[11px] text-slate-500">
+            AI Delta: -${varianceAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })} (-{aiTargetDiscount}%)
           </p>
-        </div>
-      </div>
-
-      {/* QUICK RATE PICKER FROM SERVICE PRICE DATABASE.XLSX */}
-      <div className="glass-card p-6 rounded-2xl space-y-4 border border-cyan-500/20">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-          <div className="flex items-center space-x-2">
-            <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
-            <h3 className="font-display font-semibold text-sm text-white uppercase tracking-wider">
-              Service Price Database Quick Selector ({selectedRegion})
-            </h3>
-          </div>
-          <div className="w-full sm:w-64">
-            <input
-              type="text"
-              placeholder="Search DI, HDPE, MS, RCC, HDD rates..."
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full px-3 py-1.5 rounded-lg bg-aqua-950 border border-white/15 text-xs text-white placeholder-slate-500"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-56 overflow-y-auto pr-1">
-          {availableDatabaseRates.slice(0, 12).map((rate) => (
-            <div 
-              key={rate.id}
-              onClick={() => addRateFromDatabase(rate)}
-              className="p-3 rounded-xl bg-aqua-950/60 border border-white/10 hover:border-cyan-400 transition cursor-pointer group flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300">
-                    {rate.state} ({rate.city})
-                  </span>
-                  <span className="text-[11px] font-mono text-emerald-400 font-bold">
-                    ₹{rate.total_unit_rate} /{rate.unit}
-                  </span>
-                </div>
-                <h5 className="text-xs font-semibold text-white mt-1.5 group-hover:text-cyan-300 transition">
-                  {rate.item_description} {rate.sub_description ? `(${rate.sub_description})` : ''}
-                </h5>
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 font-mono">
-                <span>Purchase: ₹{rate.purchase_cost}</span>
-                <span>Service: ₹{rate.service_cost}</span>
-                <span className="text-cyan-400 group-hover:underline">+ Add to BOQ</span>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
       {/* AI Costing Comparison Visualization Chart */}
       <div className="glass-card p-6 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5 text-cyan-400" />
-            <h3 className="font-display font-semibold text-lg text-white">
-              BidMaster AI Cost Comparison (₹ Lakhs)
+            <BarChart3 className="w-5 h-5 text-teal-700" />
+            <h3 className="font-display font-semibold text-lg text-slate-900">
+              AI Costing Comparison Bar Visualization
             </h3>
           </div>
-          <span className="text-xs font-mono text-cyan-300">User Manual Total vs AI Recommended L1 Bid</span>
+          <span className="text-xs font-mono text-teal-700 font-semibold">Side-by-Side Financial Comparison</span>
         </div>
 
         <div className="h-64 w-full pt-4">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#272a2c" />
-              <XAxis dataKey="name" stroke="#849495" />
-              <YAxis stroke="#849495" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="name" stroke="#64748b" />
+              <YAxis stroke="#64748b" />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#101415', borderColor: '#00dbe7', borderRadius: '12px', color: '#fff' }}
-                formatter={(value: any) => [`₹${value.toLocaleString()} Lakhs`, '']}
+                contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '12px', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                formatter={(value: any) => [`$${value.toLocaleString()}`, '']}
               />
               <Legend wrapperStyle={{ paddingTop: '10px' }} />
-              <Bar dataKey="Estimated Bid Total (₹ Lakhs)" fill="#00f2ff" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="AI Recommended Bid (₹ Lakhs)" fill="#10b981" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="User Manual Total ($)" fill="#0d9488" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="AI Recommended Bid ($)" fill="#10b981" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -382,122 +208,97 @@ export const CostingEstimatorView: React.FC = () => {
 
       {/* Editable Line-Item Cost Breakdown Grid */}
       <div className="glass-card rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <h3 className="text-lg font-display font-semibold text-white">
-              BidMaster BOQ Cost Breakdown Grid (Area-Wise Schedule)
+            <h3 className="text-lg font-display font-semibold text-slate-900">
+              Financial Line-Item Cost Breakdown Grid
             </h3>
-            <p className="text-xs text-slate-400">
-              Each line item includes exact Purchase & Service costs, Markups, and mandatory <strong className="text-cyan-300">Rate Source</strong> tracking.
+            <p className="text-xs text-slate-500">
+              Edit quantities, unit rates, markups, and taxes with real-time manual cost recalculation.
             </p>
           </div>
-          <span className="text-xs font-mono text-cyan-400">
-            {items.length} BOQ Items
+          <span className="text-xs font-mono text-teal-700 font-semibold">
+            {items.length} Financial Items
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[900px]">
+          <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-white/10 text-[11px] font-mono text-slate-400 uppercase">
-                <th className="py-3 px-2">Category</th>
-                <th className="py-3 px-2">Description & Size</th>
-                <th className="py-3 px-2 text-center">Unit</th>
-                <th className="py-3 px-2 text-right">Purchase (₹)</th>
-                <th className="py-3 px-2 text-right">Service (₹)</th>
-                <th className="py-3 px-2 text-right">Unit Rate (₹)</th>
-                <th className="py-3 px-2 text-right">Qty</th>
-                <th className="py-3 px-2 text-right">Markup %</th>
-                <th className="py-3 px-2 text-right">Line Total (₹)</th>
-                <th className="py-3 px-2">Rate Source</th>
-                <th className="py-3 px-2 text-center">Action</th>
+              <tr className="border-b border-slate-200 text-[11px] font-mono text-slate-500 uppercase bg-slate-50">
+                <th className="py-3 px-3 rounded-l-lg">Category</th>
+                <th className="py-3 px-3">Line Item Description</th>
+                <th className="py-3 px-3 text-right">Unit Rate ($)</th>
+                <th className="py-3 px-3 text-right">Qty</th>
+                <th className="py-3 px-3 text-right">Markup %</th>
+                <th className="py-3 px-3 text-right">Tax %</th>
+                <th className="py-3 px-3 text-right">Line Total ($)</th>
+                <th className="py-3 px-3 text-center rounded-r-lg">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-xs">
+            <tbody className="divide-y divide-slate-200 text-sm">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-white/5 transition">
-                  <td className="py-3 px-2">
+                <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                  <td className="py-3 px-3">
                     <select
                       value={item.category}
                       onChange={(e) => updateItem(item.id, 'category', e.target.value)}
-                      className="glass-input text-[11px] text-cyan-300 px-1.5 py-1 rounded-lg border border-white/10 max-w-[130px]"
+                      className="bg-white text-xs text-teal-900 px-2 py-1.5 rounded-lg border border-slate-300 font-medium"
                     >
                       {categories.map((c) => (
-                        <option key={c} value={c} className="bg-aqua-900 text-white">
+                        <option key={c} value={c} className="bg-white text-slate-900">
                           {c}
                         </option>
                       ))}
                     </select>
                   </td>
-                  <td className="py-3 px-2">
+                  <td className="py-3 px-3">
                     <input
                       type="text"
                       value={item.item_name}
                       onChange={(e) => updateItem(item.id, 'item_name', e.target.value)}
-                      className="w-full glass-input text-xs text-white px-2 py-1 rounded-lg font-medium"
-                    />
-                    {item.sub_description && (
-                      <span className="text-[10px] text-slate-400 block font-mono mt-0.5">{item.sub_description}</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-2 text-center font-mono text-slate-300">
-                    <input
-                      type="text"
-                      value={item.unit}
-                      onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
-                      className="w-12 glass-input text-xs text-center text-white px-1 py-1 rounded-lg font-mono"
+                      className="w-full bg-white text-xs text-slate-900 px-2.5 py-1.5 rounded-lg font-medium border border-slate-300"
                     />
                   </td>
-                  <td className="py-3 px-2 text-right">
+                  <td className="py-3 px-3 text-right">
                     <input
                       type="number"
-                      value={item.purchase_cost}
-                      onChange={(e) => updateItem(item.id, 'purchase_cost', parseFloat(e.target.value) || 0)}
-                      className="w-20 glass-input text-xs text-white px-1.5 py-1 rounded-lg text-right font-mono"
+                      value={item.unit_cost}
+                      onChange={(e) => updateItem(item.id, 'unit_cost', parseFloat(e.target.value) || 0)}
+                      className="w-24 bg-white text-xs text-slate-900 px-2 py-1.5 rounded-lg text-right font-mono border border-slate-300"
                     />
                   </td>
-                  <td className="py-3 px-2 text-right">
-                    <input
-                      type="number"
-                      value={item.service_cost}
-                      onChange={(e) => updateItem(item.id, 'service_cost', parseFloat(e.target.value) || 0)}
-                      className="w-16 glass-input text-xs text-white px-1.5 py-1 rounded-lg text-right font-mono"
-                    />
-                  </td>
-                  <td className="py-3 px-2 text-right font-mono text-slate-200">
-                    ₹{(item.unit_cost || (item.purchase_cost + item.service_cost)).toLocaleString('en-IN')}
-                  </td>
-                  <td className="py-3 px-2 text-right">
+                  <td className="py-3 px-3 text-right">
                     <input
                       type="number"
                       value={item.quantity}
                       onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                      className="w-16 glass-input text-xs text-white px-1.5 py-1 rounded-lg text-right font-mono"
+                      className="w-16 bg-white text-xs text-slate-900 px-2 py-1.5 rounded-lg text-right font-mono border border-slate-300"
                     />
                   </td>
-                  <td className="py-3 px-2 text-right">
+                  <td className="py-3 px-3 text-right">
                     <input
                       type="number"
                       value={item.markup_percentage}
                       onChange={(e) => updateItem(item.id, 'markup_percentage', parseFloat(e.target.value) || 0)}
-                      className="w-14 glass-input text-xs text-emerald-300 px-1.5 py-1 rounded-lg text-right font-mono"
+                      className="w-16 bg-white text-xs text-emerald-700 font-bold px-2 py-1.5 rounded-lg text-right font-mono border border-slate-300"
                     />
                   </td>
-                  <td className="py-3 px-2 text-right font-mono text-cyan-300 font-bold">
-                    ₹{Math.round(calculateItemTotal(item)).toLocaleString('en-IN')}
-                  </td>
-                  <td className="py-3 px-2">
+                  <td className="py-3 px-3 text-right">
                     <input
-                      type="text"
-                      value={item.rate_source}
-                      onChange={(e) => updateItem(item.id, 'rate_source', e.target.value)}
-                      className="w-full glass-input text-[10px] text-slate-300 px-2 py-1 rounded-lg font-mono"
+                      type="number"
+                      value={item.tax_percentage}
+                      onChange={(e) => updateItem(item.id, 'tax_percentage', parseFloat(e.target.value) || 0)}
+                      className="w-16 bg-white text-xs text-slate-700 px-2 py-1.5 rounded-lg text-right font-mono border border-slate-300"
                     />
                   </td>
-                  <td className="py-3 px-2 text-center">
+                  <td className="py-3 px-3 text-right font-mono text-teal-800 font-bold">
+                    ${calculateItemTotal(item).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  </td>
+                  <td className="py-3 px-3 text-center">
                     <button
                       onClick={() => deleteItem(item.id)}
-                      className="p-1 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition"
+                      className="p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition"
                       title="Delete item"
                     >
                       <Trash2 className="w-4 h-4" />

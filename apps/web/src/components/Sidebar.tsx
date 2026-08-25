@@ -2,69 +2,41 @@
 
 import React from 'react';
 import { 
-  LayoutDashboard,
-  Calculator, 
-  Wand2, 
-  Workflow, 
+  LayoutDashboard, 
+  Database, 
+  FileCheck2, 
   Swords, 
-  Settings, 
-  ShieldCheck,
-  FileCode,
-  Waves,
-  Building2,
-  GitMerge,
-  FolderGit2
+  Calculator, 
+  Settings,
+  Waves
 } from 'lucide-react';
-import { DepartmentRole, PermissionType, UserStatus } from '@/lib/types';
 
-export type NavTab = 'dashboard' | 'wizard' | 'lifecycle' | 'costing' | 'companies' | 'competitors' | 'combine' | 'admin' | 'admin_config' | 'settings';
+export type NavTab = 'dashboard' | 'admin' | 'eligibility' | 'competitors' | 'costing' | 'settings';
 
 interface SidebarProps {
   activeTab: NavTab;
   onTabChange: (tab: NavTab) => void;
-  activeRole: DepartmentRole;
-  userPermissions?: PermissionType[];
-  userStatus?: UserStatus;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
-  activeTab, 
-  onTabChange, 
-  activeRole,
-  userPermissions = ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
-  userStatus = 'Active'
-}) => {
-  const allNavItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: null, perm: 'eligibility', adminOnly: false },
-    { id: 'wizard' as NavTab, label: 'Eligibility Analysis', icon: Wand2, badge: 'AI Dynamic', perm: 'eligibility', adminOnly: false },
-    { id: 'combine' as NavTab, label: 'JV / Combine Analysis', icon: GitMerge, badge: 'Engine', perm: 'eligibility', adminOnly: false },
-    { id: 'companies' as NavTab, label: 'Company Details (Master)', icon: Building2, badge: 'Master DB', perm: 'eligibility', adminOnly: false },
-    { id: 'competitors' as NavTab, label: 'Competitors Profile', icon: Swords, badge: 'Intel', perm: 'ai_analysis', adminOnly: false },
-    { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Workflow, badge: 'Queue', perm: 'ai_analysis', adminOnly: false },
-    { id: 'costing' as NavTab, label: 'BidMaster Costing Engine', icon: Calculator, badge: '164 Rates', perm: 'cost_estimation', adminOnly: false },
-    { id: 'admin' as NavTab, label: 'Documents Vault (Admin)', icon: FolderGit2, badge: 'Vault', perm: 'admin', adminOnly: false },
-    { id: 'admin_config' as NavTab, label: 'AI System & Prompts', icon: FileCode, badge: 'Encrypted', perm: 'admin', adminOnly: true },
-    { id: 'settings' as NavTab, label: 'System Settings', icon: Settings, badge: 'Admin', perm: 'admin', adminOnly: true },
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
+  const navItems = [
+    { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard, badge: null },
+    { id: 'admin' as NavTab, label: 'Knowledge Base', icon: Database, badge: 'Admin' },
+    { id: 'eligibility' as NavTab, label: 'Check Eligibility', icon: FileCheck2, badge: 'V1 Core' },
+    { id: 'competitors' as NavTab, label: 'Battle Cards', icon: Swords, badge: 'Intel' },
+    { id: 'costing' as NavTab, label: 'Costing Estimator', icon: Calculator, badge: 'V2 AI' },
+    { id: 'settings' as NavTab, label: 'Settings & Keys', icon: Settings, badge: null },
   ];
 
-  // Dynamic RBAC Navigation Filter
-  const navItems = allNavItems.filter(item => {
-    if ((activeRole as string) === 'Admin') return true;
-    if (userStatus === 'Pending') {
-      return item.id === 'dashboard' || item.id === 'wizard' || item.id === 'companies' || item.id === 'combine';
-    }
-    return !item.adminOnly || (activeRole as string) === 'Admin';
-  });
-
   return (
-    <aside className="w-64 glass-card border-r border-white/10 p-4 flex flex-col justify-between hidden md:flex min-h-[calc(100vh-65px)]">
+    <aside className="w-64 bg-white border-r border-slate-200 p-4 flex flex-col justify-between hidden md:flex min-h-[calc(100vh-65px)] shadow-xs">
       <div className="space-y-6">
         {/* Navigation Category Label */}
         <div className="px-3 pt-2 flex items-center justify-between">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
             Platform Modules
           </span>
-          <Waves className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+          <Waves className="w-3.5 h-3.5 text-teal-600 animate-pulse" />
         </div>
 
         {/* Menu Items */}
@@ -77,26 +49,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                   isActive
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/40 shadow-lg shadow-cyan-500/10'
-                    : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                    ? 'bg-teal-50 text-teal-900 border border-teal-200/80 font-semibold shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
-                <div className="flex items-center space-x-2.5">
+                <div className="flex items-center space-x-3">
                   <Icon
                     className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-cyan-300'
+                      isActive ? 'text-teal-700' : 'text-slate-400 group-hover:text-slate-600'
                     }`}
                   />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span
-                    className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${
+                    className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
                       isActive
-                        ? 'bg-cyan-400 text-aqua-950 font-bold'
-                        : 'bg-white/5 text-slate-400 group-hover:bg-white/10'
+                        ? 'bg-teal-700 text-white font-bold'
+                        : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
                     }`}
                   >
                     {item.badge}
@@ -108,14 +80,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* System Status Card */}
-      <div className="p-3.5 rounded-xl bg-aqua-950/80 border border-white/10 space-y-2">
+      {/* Water Infra Plant Status Card */}
+      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-white">RHDS Engine Active</span>
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+          <span className="text-xs font-semibold text-slate-800">System Active</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
         </div>
-        <p className="text-[11px] text-slate-400 leading-relaxed">
-          Master Company DB & Combined JV Eligibility calculation engine online.
+        <p className="text-[11px] text-slate-500 leading-relaxed">
+          Supabase pgvector RAG active. Ready to evaluate municipal tender bids & costing.
         </p>
       </div>
     </aside>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
 from rag.ingestion import DocumentIngestion
@@ -25,7 +25,6 @@ class CostingCalculationPayload(BaseModel):
 @router.post("/analyze")
 async def analyze_tender_document(
     file: UploadFile = File(...),
-    project_category: Optional[str] = Form("EPC"),
     provider: Optional[str] = Query(None, description="llm provider override: 'gemini' or 'openai'")
 ) -> Dict[str, Any]:
     """
@@ -67,8 +66,7 @@ async def analyze_tender_document(
         report = evaluator.evaluate_tender(
             tender_text=combined_tender_text,
             company_docs=company_retrieved,
-            competitor_docs=competitor_retrieved,
-            project_category=project_category or "EPC"
+            competitor_docs=competitor_retrieved
         )
 
         return {
