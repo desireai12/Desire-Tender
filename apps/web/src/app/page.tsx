@@ -246,7 +246,7 @@ export default function Home() {
   // Render Loading Splash Screen while checking persistent session on refresh
   if (isInitializingSession) {
     return (
-      <div className="min-h-screen bg-[#0d1112] flex flex-col items-center justify-center text-slate-900 space-y-4 font-mono">
+      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center text-slate-900 space-y-4 font-mono">
         <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 flex items-center space-x-3">
           <Loader2 className="w-6 h-6 text-teal-800 font-semibold animate-spin" />
           <span className="text-sm font-bold tracking-wide">Checking authentication session...</span>
@@ -266,7 +266,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800">
+    <div className="flex flex-col min-h-screen bg-transparent text-slate-800">
       {/* Header Bar with User Badge & Logout */}
       <Header 
         currentProvider={provider} 

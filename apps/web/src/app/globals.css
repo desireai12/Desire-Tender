@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 font-sans antialiased min-h-screen selection:bg-teal-500/20 selection:text-teal-900;
+    @apply bg-slate-50 text-slate-900 font-sans antialiased min-h-screen selection:bg-teal-500/20 selection:text-teal-900;
     background-color: #f8fafc;
     position: relative;
     overflow-x: hidden;
@@ -13,14 +13,14 @@
   body::before {
     content: '';
     position: fixed;
-    top: -15%;
-    left: -10%;
-    width: 55vw;
-    height: 55vw;
+    top: -20%;
+    left: -15%;
+    width: 65vw;
+    height: 65vw;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(13, 148, 136, 0.16) 0%, rgba(2, 132, 199, 0.08) 45%, transparent 75%);
-    filter: blur(80px);
-    animation: floatAura1 20s ease-in-out infinite alternate;
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.22) 0%, rgba(2, 132, 199, 0.12) 45%, transparent 75%);
+    filter: blur(70px);
+    animation: floatAura1 16s ease-in-out infinite alternate;
     pointer-events: none;
     z-index: 0;
   }
@@ -28,14 +28,14 @@
   body::after {
     content: '';
     position: fixed;
-    bottom: -15%;
-    right: -10%;
-    width: 60vw;
-    height: 60vw;
+    bottom: -20%;
+    right: -15%;
+    width: 70vw;
+    height: 70vw;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, rgba(13, 148, 136, 0.09) 50%, transparent 75%);
-    filter: blur(90px);
-    animation: floatAura2 24s ease-in-out infinite alternate;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.20) 0%, rgba(13, 148, 136, 0.12) 50%, transparent 75%);
+    filter: blur(80px);
+    animation: floatAura2 20s ease-in-out infinite alternate;
     pointer-events: none;
     z-index: 0;
   }
@@ -43,48 +43,49 @@
 
 @keyframes floatAura1 {
   0% { transform: translate(0px, 0px) scale(1); }
-  100% { transform: translate(40px, -40px) scale(1.12); }
+  100% { transform: translate(50px, -50px) scale(1.15); }
 }
 
 @keyframes floatAura2 {
   0% { transform: translate(0px, 0px) scale(1); }
-  100% { transform: translate(-50px, 30px) scale(1.15); }
+  100% { transform: translate(-60px, 40px) scale(1.20); }
 }
 
 @keyframes moveGrid {
   0% { background-position: 0 0; }
-  100% { background-position: 36px 36px; }
+  100% { background-position: 40px 40px; }
 }
 
-/* Tender Bid Moving Grid Background Overlay */
+/* Prominent Tender Blueprint Moving Grid Background Overlay */
 .bg-grid-moving {
-  background-size: 36px 36px;
+  background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
-  animation: moveGrid 40s linear infinite;
+    linear-gradient(to right, rgba(13, 148, 136, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(13, 148, 136, 0.08) 1px, transparent 1px);
+  animation: moveGrid 30s linear infinite;
 }
 
 /* Premium Light Glassmorphism Component Utilities */
 .glass-card {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  box-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.06), 0 2px 8px -2px rgba(15, 23, 42, 0.03);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(13, 148, 136, 0.4);
-  box-shadow: 0 12px 28px -4px rgba(13, 148, 136, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  border-color: rgba(13, 148, 136, 0.5);
+  box-shadow: 0 14px 32px -4px rgba(13, 148, 136, 0.15), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  transform: translateY(-1px);
 }
 
 .glass-card-glow {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   border: 1.5px solid #0d9488;
-  box-shadow: 0 0 24px rgba(13, 148, 136, 0.18), 0 4px 20px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 0 28px rgba(13, 148, 136, 0.22), 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
 .glass-input {
@@ -96,7 +97,7 @@
 
 .glass-input:focus {
   border-color: #0d9488;
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.20);
   outline: none;
 }
 
