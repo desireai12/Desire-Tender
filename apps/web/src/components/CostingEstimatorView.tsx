@@ -251,11 +251,42 @@ export const CostingEstimatorView: React.FC = () => {
               className="bg-transparent text-xs font-bold font-mono text-teal-800 focus:outline-none cursor-pointer"
             >
               <option value="Rajasthan" className="bg-slate-50 text-slate-900">Rajasthan (Jaipur / Balotra)</option>
-              <option value="Gujarat" className="bg-slate-50 text-slate-900">Gujarat (Vapi / Mehsana / Banaskantha)</option>
+              <option value="Gujarat" className="bg-slate-50 text-slate-900">Gujarat (Junagadh O&M 8.34 Cr / Vapi / Mehsana)</option>
               <option value="UP" className="bg-slate-50 text-slate-900">UP (Bhadohi / Kanpur / Ballia)</option>
-              <option value="All" className="bg-slate-50 text-slate-900">All India Database (164 Rates)</option>
+              <option value="All" className="bg-slate-50 text-slate-900">All India Database (244 Rates)</option>
             </select>
           </div>
+
+          
+          <button
+            onClick={() => {
+              const gujRates = (rawRateData as any[]).filter(r => r.project && r.project.includes('Gujarat Junagadh'));
+              if (gujRates.length > 0) {
+                const templateItems: CostItem[] = gujRates.map((r, i) => ({
+                  id: `guj-item-${i}`,
+                  category: r.category || 'Services / Commissioning',
+                  item_name: r.item_description,
+                  sub_description: r.sub_description || '',
+                  unit: r.unit || 'Job',
+                  purchase_cost: r.purchase_cost || 0,
+                  service_cost: r.service_cost || 0,
+                  unit_cost: r.total_unit_rate || (r.purchase_cost + r.service_cost),
+                  quantity: 1,
+                  markup_percentage: 12,
+                  tax_percentage: 18,
+                  rate_source: 'Gujarat GWSSB Junagadh O&M Schedule (Rs 8.34 Cr)',
+                  region: 'Gujarat'
+                }));
+                setItems(templateItems);
+                setSelectedRegion('Gujarat');
+              }
+            }}
+            className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs transition shadow-sm cursor-pointer"
+            title="Load all items from Gujarat O&M 8.34 CR Junagadh BOQ"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Load Gujarat 8.34 Cr BOQ</span>
+          </button>
 
           <button
             onClick={addItem}

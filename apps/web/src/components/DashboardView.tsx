@@ -41,7 +41,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     { label: 'Active Tenders in India', value: '48 Live', sub: 'Verified JJM & EPC Tenders', icon: Globe2, color: 'text-emerald-800 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/60' },
     { label: 'Total Market Value', value: '₹4,120.5 Cr', sub: 'Across 9 Target States', icon: TrendingUp, color: 'text-blue-800 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950/60' },
     { label: 'Desire Turnover Match', value: '₹300.93 Cr', sub: 'Class-AA PHED Registered', icon: ShieldCheck, color: 'text-purple-800 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-950/60' },
-    { label: 'Costing BOQ Rates', value: '164 Items', sub: 'Area-Wise Rajasthan & UP', icon: Calculator, color: 'text-amber-800 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/60' },
+    { label: 'Costing BOQ Rates', value: '244 Items', sub: 'Gujarat (Junagadh), Rajasthan & UP', icon: Calculator, color: 'text-amber-800 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/60' },
   ];
 
   // Top Sector Opportunities
@@ -447,7 +447,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             { tab: 'master_company' as NavTab, label: 'Company Master DB', desc: 'Financial Records', icon: Building2, color: 'text-blue-700 dark:text-blue-400' },
             { tab: 'competitors' as NavTab, label: 'Competitor Intel', desc: 'L&T, Wabag, Shakti', icon: Swords, color: 'text-amber-700 dark:text-amber-400' },
             { tab: 'lifecycle' as NavTab, label: 'Tender Process Queue', desc: `${tendersCount} Stage Pipeline`, icon: Layers, color: 'text-emerald-800 dark:text-emerald-300' },
-            { tab: 'costing' as NavTab, label: 'Costing Estimator', desc: '164 BOQ Rates', icon: Calculator, color: 'text-teal-700 dark:text-teal-400' },
+            { tab: 'costing' as NavTab, label: 'Costing Estimator', desc: '244 BOQ Rates', icon: Calculator, color: 'text-teal-700 dark:text-teal-400' },
           ].map((item, idx) => {
             const Icon = item.icon;
             return (

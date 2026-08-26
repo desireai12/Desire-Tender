@@ -56,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'master_company' as NavTab, label: 'Company Details (Master)', icon: Building2, badge: 'Master DB' },
     { id: 'competitors' as NavTab, label: 'Competitors Profile', icon: Swords, badge: 'Intel' },
     { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Layers, badge: 'Queue' },
-    { id: 'costing' as NavTab, label: 'BidMaster Costing Engine', icon: Calculator, badge: '164 Rates' },
+    { id: 'costing' as NavTab, label: 'BidMaster Costing Engine', icon: Calculator, badge: '244 Rates' },
     { id: 'admin_kb' as NavTab, label: 'Documents Vault (Admin)', icon: FileCode, badge: 'Vault' },
   ];
 
