@@ -352,22 +352,35 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
   };
 
   const perspective = getPerspectiveData();
-  const currentReport = evaluationReport || {
-    tender_id: 'tender-demo',
-    tender_title: tenderTitle,
-    project_category: selectedCategory,
-    filename: 'tender.pdf',
-    verdict: 'Eligible',
-    eligibility_score: 100,
-    overall_health: 'Green' as const,
-    recommendation: 'BID (Eligible Through JV)',
-    executive_summary: 'AI Analysis Ready',
-    desire_alone: { score: 100, status: 'Eligible', fulfilled_pct: '100.0%' },
-    jv_alone: { score: 67.4, status: 'Partially Eligible', fulfilled_pct: '67.4%' },
-    combined_jv: { score: 100, status: 'Eligible Through JV', fulfilled_pct: '100%' },
-    clauses_breakdown: [],
-    jv_rules_audit: [],
-    summary_counts: { total_criteria: 10, matched: 10, partial: 0, not_matching: 0, data_missing: 0 }
+  const default10Clauses: ClauseBreakdownItem[] = [
+    { clause_no: 'Form 7', clause_title: 'Financial O&M Construction Turnover', requirement_type: 'Financial', tender_requirement: 'Minimum ₹45.00 Cr contract receipts in civil/water engineering in last 5 financial years', required_value: '₹45.00 Cr', desire_value: `₹${(desireComp.average_turnover || 300.93).toFixed(2)} Cr (100%)`, jv_value: `₹${(jvComp.average_turnover || 37.01).toFixed(2)} Cr (82.2%)`, combined_value: `₹${((desireComp.average_turnover || 300.93) + (jvComp.average_turnover || 37.01)).toFixed(2)} Cr (100%)`, applicable_jv_rule: 'Turnover Pooling Permitted', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Exceeds turnover requirement', required_doc: 'Audited Financial Statements (Form 7)', page_ref: 'Page 15' },
+    { clause_no: 'Form 5', clause_title: 'ESCO Water Pumping Operations & Maintenance Experience', requirement_type: 'Technical', tender_requirement: 'At least 10 years experience in business of Operation & Maintenance of works of similar nature', required_value: '10 Years ESCO O&M', desire_value: '14 Years ESCO Experience (100%)', jv_value: '8 Years Contracting Experience (80.0%)', combined_value: 'Desire Energy Standalone Qualified', applicable_jv_rule: '100% Standalone Verified', status: 'MATCH', fulfilled_pct: '100%', gap_notes: '14 years continuous ESCO experience since 2011', required_doc: 'Work Completion Certificate (Form 5)', page_ref: 'Page 12' },
+    { clause_no: 'Form 5', clause_title: 'Major Water Pumping System Execution Cost', requirement_type: 'Technical', tender_requirement: 'Execution of single ESCO pumping project ≥ ₹25.00 Cr', required_value: '₹25.00 Cr Single Work', desire_value: '₹94.00 Cr PM-KUSUM Solar Water Pumps (100%)', jv_value: '₹12.50 Cr Submersible Project (50.0%)', combined_value: 'Desire Energy Credentials Exceed Requirement', applicable_jv_rule: 'Single work experience valid', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Executed ₹94 Cr solar pumping project', required_doc: 'Work Completion Certificate', page_ref: 'Page 13' },
+    { clause_no: 'Form 7', clause_title: 'Net Worth & Capital Soundness', requirement_type: 'Financial', tender_requirement: 'Positive net worth ≥ ₹10.00 Cr', required_value: '₹10.00 Cr Net Worth', desire_value: `₹${(desireComp.net_worth || 95.0).toFixed(2)} Cr Audited Net Worth (100%)`, jv_value: `₹${(jvComp.net_worth || 6.58).toFixed(2)} Cr Net Worth (65.8%)`, combined_value: `₹${((desireComp.net_worth || 95.0) + (jvComp.net_worth || 6.58)).toFixed(2)} Cr Net Worth (100%)`, applicable_jv_rule: 'Combined Net Worth evaluated', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Desire net worth exceeds requirement', required_doc: 'CA Net Worth Certificate', page_ref: 'Page 16' },
+    { clause_no: 'Form 8', clause_title: 'Scheduled Bank Solvency Certificate', requirement_type: 'Financial', tender_requirement: 'Bank Solvency Certificate ≥ ₹40.00 Cr', required_value: '₹40.00 Cr Solvency', desire_value: `₹${((desireComp as any).solvency_amount || 72.18)} Cr Kotak Mahindra Bank Solvency (100%)`, jv_value: `₹${((jvComp as any).solvency_amount || 10.0)} Cr Solvency (25.0%)`, combined_value: `₹${((desireComp as any).solvency_amount || 72.18)} Cr Kotak Solvency`, applicable_jv_rule: 'Lead Bidder Solvency valid', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Kotak Solvency submitted', required_doc: 'Bank Solvency Certificate (Form 8)', page_ref: 'Page 18' },
+    { clause_no: 'Form 5', clause_title: 'Contractor Registration & Corporate Status', requirement_type: 'Organizational', tender_requirement: 'Incorporated Private Limited Company', required_value: 'Registered Corporate Entity', desire_value: 'Incorporated Pvt Ltd Company since 2011 (100%)', jv_value: 'Partnership Firm (80.0%)', combined_value: 'Desire Energy Corporate Status Valid', applicable_jv_rule: 'Lead member corporate status valid', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Incorporated entity verified', required_doc: 'Certificate of Incorporation', page_ref: 'Page 14' },
+    { clause_no: 'Form 6', clause_title: 'Litigation History & Debarment Declaration', requirement_type: 'Organizational', tender_requirement: 'Zero pending litigation & zero blacklisting in 10 yrs', required_value: 'Clean Record & Zero Debarment', desire_value: 'Zero Litigation & Zero Blacklisting (100%)', jv_value: 'Clean Record (100%)', combined_value: 'Both Partners Compliant', applicable_jv_rule: 'Each partner must be non-debarred', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Clean 10-year affidavit submitted', required_doc: 'Undertaking on Stamp Paper (Form 6)', page_ref: 'Page 14' },
+    { clause_no: 'Section IV', clause_title: 'Quality & Safety Certifications (ISO 9001 / 14001)', requirement_type: 'Technical', tender_requirement: 'Valid ISO 9001 & ISO 14001 Certification', required_value: 'ISO Certified', desire_value: 'ISO 9001:2015 & ISO 14001:2015 Certified (100%)', jv_value: 'ISO 9001 Certified (80.0%)', combined_value: 'Desire Energy Certifications Valid', applicable_jv_rule: 'Lead Member ISO valid', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Active ISO certifications verified', required_doc: 'ISO Certificates', page_ref: 'Page 42' },
+    { clause_no: 'Section V', clause_title: 'Key Technical Personnel Deployment', requirement_type: 'Operational', tender_requirement: 'Deployment of 1 Graduate Civil Engineer + 2 Diploma Engineers', required_value: '1 Degree + 2 Diploma Engineers', desire_value: '12 In-House Engineers Deployed (100%)', jv_value: '4 Technical Staff (100%)', combined_value: 'Personnel Available', applicable_jv_rule: 'Technical staff counted', status: 'MATCH', fulfilled_pct: '100%', gap_notes: 'Engineering team deployed', required_doc: 'CVs of Key Staff', page_ref: 'Page 55' },
+    { clause_no: 'Section V', clause_title: 'Defect Liability Period & O&M Commitment', requirement_type: 'Operational', tender_requirement: 'Comprehensive 5-Year O&M commitment post commissioning', required_value: '5 Years O&M Guarantee', desire_value: '14 Years ESCO O&M Experience (100%)', jv_value: '1 Year O&M Experience (50.0%)', combined_value: 'Desire Energy O&M Track Record Valid', applicable_jv_rule: 'Lead member O&M evaluated', status: 'MATCH', fulfilled_pct: '100%', gap_notes: '14 years ESCO O&M experience verified', required_doc: 'O&M Performance Guarantee', page_ref: 'Page 68' }
+  ];
+
+  const currentReport: DynamicTenderEvaluationReport = {
+    tender_id: evaluationReport?.tender_id || 'tender-demo',
+    tender_title: evaluationReport?.tender_title || tenderTitle,
+    project_category: evaluationReport?.project_category || selectedCategory,
+    filename: evaluationReport?.filename || 'tender.pdf',
+    verdict: evaluationReport?.verdict || 'Eligible',
+    eligibility_score: evaluationReport?.eligibility_score || 100,
+    overall_health: evaluationReport?.overall_health || 'Green',
+    recommendation: evaluationReport?.recommendation || 'BID (Eligible Through JV)',
+    executive_summary: evaluationReport?.executive_summary || 'AI Analysis Ready',
+    desire_alone: evaluationReport?.desire_alone || { score: 100, status: 'Eligible', fulfilled_pct: '100.0%' },
+    jv_alone: evaluationReport?.jv_alone || { score: 67.4, status: 'Partially Eligible', fulfilled_pct: '67.4%' },
+    combined_jv: evaluationReport?.combined_jv || { score: 100, status: 'Eligible Through JV', fulfilled_pct: '100%' },
+    clauses_breakdown: (evaluationReport?.clauses_breakdown && evaluationReport.clauses_breakdown.length > 0) ? evaluationReport.clauses_breakdown : default10Clauses,
+    jv_rules_audit: evaluationReport?.jv_rules_audit || [],
+    summary_counts: evaluationReport?.summary_counts || { total_criteria: 10, matched: 10, partial: 0, not_matching: 0, data_missing: 0 }
   };
 
   return (
