@@ -243,34 +243,41 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     let opt2Partial = 0;
 
     clauses.forEach(c => {
+      const cTitle = (c.clause_title || '').toLowerCase();
+      const reqText = (c.tender_requirement || '').toLowerCase();
+      const isSewerageReq = cTitle.includes('sewer') || cTitle.includes('stp') || reqText.includes('sewer') || reqText.includes('stp');
+
       // Option 1 Evaluation (Desire Alone)
       let dVal = c.desire_value || '';
-      let status1 = c.status || '';
-      if (dVal.includes('No Prior') || dVal.includes('(0%)') || dVal.includes('0.0%') || status1 === 'NOT MATCHING') {
+      const hasDesireSewerGap = isSewerageReq && (dVal.toLowerCase().includes('no ') || dVal.toLowerCase().includes('water pipeline') || dVal.toLowerCase().includes('0%'));
+
+      if (hasDesireSewerGap || dVal.includes('No Prior') || dVal.includes('(0%)') || dVal.includes('0.0%') || c.status === 'NOT MATCHING') {
         opt1Sum += 0;
         opt1Partial++;
-      } else if (dVal.includes('100%') || dVal.includes('Exceeds') || status1 === 'MATCH') {
+      } else if ((dVal.includes('100%') || dVal.includes('Exceeds')) && !isSewerageReq) {
+        opt1Sum += 100;
+        opt1Matched++;
+      } else if (c.status === 'MATCH' && !isSewerageReq) {
         opt1Sum += 100;
         opt1Matched++;
       } else {
         const pctMatch = dVal.match(/(\d+(\.\d+)?)%/);
-        if (pctMatch) {
+        if (pctMatch && !isSewerageReq) {
           const val = Math.min(100, Math.max(0, parseFloat(pctMatch[1])));
           opt1Sum += val;
           if (val >= 100) opt1Matched++; else opt1Partial++;
         } else {
-          opt1Sum += 75;
+          opt1Sum += isSewerageReq ? 0 : 75;
           opt1Partial++;
         }
       }
 
       // Option 2 Evaluation (Divija Alone)
       let jVal = c.jv_value || '';
-      let status2 = c.status || '';
       if (jVal.includes('No Prior') || jVal.includes('(0%)') || jVal.includes('0.0%')) {
         opt2Sum += 0;
         opt2Partial++;
-      } else if (jVal.includes('100%') || jVal.includes('Exceeds')) {
+      } else if (jVal.includes('100%') || jVal.includes('Exceeds') || (isSewerageReq && (jVal.includes('136 km') || jVal.includes('Sewer')))) {
         opt2Sum += 100;
         opt2Matched++;
       } else {
@@ -752,9 +759,11 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                     const cleanJVal = (item.jv_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
                     const cleanCVal = (item.combined_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
 
+                    const isSewerClause = (item.clause_title || '').toLowerCase().includes('sewer') || (item.clause_title || '').toLowerCase().includes('stp') || (item.tender_requirement || '').toLowerCase().includes('sewer');
+
                     if (activeAnalysisOption === 'desire') {
                       displayVal = item.desire_value;
-                      if (item.desire_value.includes('No Prior') || item.desire_value.includes('(0%)') || item.desire_value.includes('0.0%')) {
+                      if (isSewerClause || item.desire_value.includes('No Prior') || item.desire_value.includes('No underground') || item.desire_value.includes('(0%)') || item.desire_value.includes('0.0%')) {
                         statusVal = 'PARTIAL MATCH';
                         itemFulfilledPct = '0.0%';
                       } else if (item.desire_value.includes('100%') || item.desire_value.includes('Exceeds')) {

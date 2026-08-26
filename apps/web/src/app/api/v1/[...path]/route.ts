@@ -193,7 +193,18 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null>
 function sanitizeReportClauses(report: any) {
   if (!report || !report.clauses_breakdown || !Array.isArray(report.clauses_breakdown)) return report;
   report.clauses_breakdown.forEach((c: any) => {
-    if (c.status === 'MATCH') {
+    const cTitle = (c.clause_title || '').toLowerCase();
+    const reqText = (c.tender_requirement || '').toLowerCase();
+    const isSewer = cTitle.includes('sewer') || cTitle.includes('stp') || reqText.includes('sewer') || reqText.includes('stp');
+
+    if (isSewer) {
+      // Desire has NO sewerage experience — MUST be PARTIAL MATCH / 0%
+      c.status = 'PARTIAL MATCH';
+      c.fulfilled_pct = '0%';
+      c.desire_value = '120+ km HDPE/DI Water Pipelines (No underground sewer network experience)';
+      c.jv_value = '136 km Sewer Network (100%)';
+      c.gap_notes = 'Desire Energy has a technical gap in sewerage works (only has water pipeline experience). Divija completely bridges this gap with its 136 km sewer network experience.';
+    } else if (c.status === 'MATCH') {
       c.fulfilled_pct = '100%';
     } else if (c.fulfilled_pct) {
       const match = String(c.fulfilled_pct).match(/(\d+(\.\d+)?)/);
@@ -206,10 +217,11 @@ function sanitizeReportClauses(report: any) {
     } else {
       c.fulfilled_pct = '100%';
     }
-    if (c.desire_value) {
+
+    if (c.desire_value && !isSewer) {
       c.desire_value = String(c.desire_value).replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
     }
-    if (c.jv_value) {
+    if (c.jv_value && !isSewer) {
       c.jv_value = String(c.jv_value).replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
     }
   });
