@@ -51,6 +51,21 @@ const DEFAULT_SEED_TENDER: TenderProcess = {
   ]
 };
 
+const DEFAULT_ADMIN_USER: UserProfile = {
+  id: 'usr-admin-01',
+  employee_id: 'ADMIN001',
+  full_name: 'Chief Administrator',
+  email: 'admin@desireenergy.com',
+  phone: '9876543210',
+  role: 'Chief Administrator',
+  department: 'Admin',
+  status: 'Active',
+  permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
+  assigned_projects: ['RHDS', 'STP', 'SOLAR', 'KUSUM', 'EPC', 'ESCO'],
+  registered_at: '2026-08-01',
+  last_login: new Date().toISOString()
+};
+
 export default function Home() {
   const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -89,40 +104,29 @@ export default function Home() {
   };
 
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
-  const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
+  const [activeRole, setActiveRole] = useState<DepartmentRole>('Admin');
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([DEFAULT_SEED_TENDER]);
   const [selectedTenderToAnalyze, setSelectedTenderToAnalyze] = useState<IndiaTenderItem | null>(null);
 
-  // RESTORE AUTHENTICATION SESSION ON MOUNT (AUTO-LOAD WORKSPACE WITHOUT USER LOGIN)
+  // RESTORE AUTHENTICATION SESSION ON MOUNT (AUTO-LOAD AS ADMIN USER)
   useEffect(() => {
     try {
       const activeSessionUser = getActiveUserSession();
       if (activeSessionUser) {
-        setCurrentUser(activeSessionUser);
-        setActiveRole(activeSessionUser.department);
-        if (activeSessionUser.department === 'Admin') {
-          setViewMode('admin');
-        } else {
-          setViewMode('user');
-        }
-      } else {
-        // Direct access to Tender Workspace without requiring login
-        const defaultUser: UserProfile = {
-          id: 'usr-default',
-          employee_id: 'EMP001',
-          full_name: 'Desire Tender Specialist',
-          email: 'tender@desireenergy.com',
-          phone: '9999999999',
-          role: 'Tender Specialist',
-          department: 'Business Development',
-          status: 'Active',
-          permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result'],
-          assigned_projects: ['RHDS', 'STP', 'SOLAR', 'KUSUM', 'EPC', 'ESCO'],
-          registered_at: '2026-08-01',
-          last_login: new Date().toISOString()
+        // Upgrade existing session to Admin if previously restricted
+        const adminUser = {
+          ...activeSessionUser,
+          department: 'Admin' as DepartmentRole,
+          status: 'Active' as const,
+          permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'] as any
         };
-        setCurrentUser(defaultUser);
-        setActiveRole('Business Development');
+        setCurrentUser(adminUser);
+        setActiveRole('Admin');
+        saveUserSession(adminUser);
+      } else {
+        setCurrentUser(DEFAULT_ADMIN_USER);
+        setActiveRole('Admin');
+        saveUserSession(DEFAULT_ADMIN_USER);
       }
     } catch (e) {} finally {
       setIsInitializingSession(false);
@@ -134,7 +138,6 @@ export default function Home() {
     const fetchTendersFromDb = async () => {
       let loadedTenders: TenderProcess[] = [];
 
-      // 1. Try Vercel Serverless API first
       try {
         const res = await fetch(`${API_BASE_URL}/tenders`);
         if (res.ok) {
@@ -145,7 +148,6 @@ export default function Home() {
         }
       } catch (err) {}
 
-      // 2. Query Supabase directly as bulletproof fallback
       if (loadedTenders.length === 0 && isSupabaseConfigured && supabase) {
         try {
           const { data: dbTenders, error } = await supabase
@@ -166,25 +168,19 @@ export default function Home() {
     fetchTendersFromDb();
   }, []);
 
-  // Handle Login Success — PERSIST SESSION
+  // Handle Login Success
   const handleLoginSuccess = (user: UserProfile) => {
     setCurrentUser(user);
     setActiveRole(user.department);
     saveUserSession(user);
-    if (user.department === 'Admin') {
-      setViewMode('admin');
-    } else {
-      setViewMode('user');
-      setActiveTab(user.status === 'Pending' ? 'wizard' : 'dashboard');
-    }
+    setActiveTab('dashboard');
   };
 
-  // Handle Logout — CLEAR SESSION
+  // Handle Logout
   const handleLogout = () => {
     clearUserSession();
     setCurrentUser(null);
-    setViewMode('user');
-    setActiveRole('Business Development');
+    setActiveRole('Admin');
     setActiveTab('dashboard');
   };
 
@@ -193,12 +189,21 @@ export default function Home() {
     setSelectedTenderToAnalyze(tender);
   };
 
+  // Role Change Handler
+  const handleRoleChange = (newRole: DepartmentRole) => {
+    setActiveRole(newRole);
+    if (currentUser) {
+      const updatedUser = { ...currentUser, department: newRole };
+      setCurrentUser(updatedUser);
+      saveUserSession(updatedUser);
+    }
+  };
+
   // PERSIST NEW TENDER LIVE TO DATABASE & API
   const handleAddNewTender = async (newProcess: TenderProcess) => {
     setTendersQueue((prev) => [newProcess, ...prev]);
     setActiveTab('lifecycle');
 
-    // 1. Send to Vercel Serverless API
     try {
       await fetch(`${API_BASE_URL}/tenders`, {
         method: 'POST',
@@ -207,7 +212,6 @@ export default function Home() {
       });
     } catch (e) {}
 
-    // 2. Direct Supabase write so record immediately exists in Supabase PostgreSQL
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('tenders').upsert({
@@ -234,7 +238,6 @@ export default function Home() {
   const handleUpdateTender = async (updatedProcess: TenderProcess) => {
     setTendersQueue((prev) => prev.map((t) => (t.id === updatedProcess.id ? updatedProcess : t)));
 
-    // 1. Send to Vercel Serverless API
     try {
       await fetch(`${API_BASE_URL}/tenders`, {
         method: 'POST',
@@ -243,7 +246,6 @@ export default function Home() {
       });
     } catch (e) {}
 
-    // 2. Direct Supabase write
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('tenders').upsert({
@@ -263,7 +265,6 @@ export default function Home() {
           updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
 
-        // Stream BOQ items to Supabase boq_items table for historical learning!
         if (updatedProcess.boq_items && updatedProcess.boq_items.length > 0) {
           const boqRows = updatedProcess.boq_items.map(b => ({
             id: b.id,
@@ -283,61 +284,46 @@ export default function Home() {
     }
   };
 
-  // Render Loading Splash Screen while checking persistent session on refresh
   if (isInitializingSession) {
     return (
       <div className="min-h-screen bg-transparent flex flex-col items-center justify-center text-slate-900 space-y-4 font-mono">
         <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 flex items-center space-x-3">
           <Loader2 className="w-6 h-6 text-teal-800 font-semibold animate-spin" />
-          <span className="text-sm font-bold tracking-wide">Checking authentication session...</span>
+          <span className="text-sm font-bold tracking-wide">Initializing Admin Session...</span>
         </div>
       </div>
     );
   }
 
-  // If user is not logged in after session check, render Login / Create Account Landing Page
   if (!currentUser) {
     return (
       <LoginLanding 
         onLoginSuccess={handleLoginSuccess}
-        onNavigateAdmin={() => window.location.href = '/admin'}
+        onNavigateAdmin={() => {
+          setCurrentUser(DEFAULT_ADMIN_USER);
+          setActiveRole('Admin');
+          saveUserSession(DEFAULT_ADMIN_USER);
+          setActiveTab('dashboard');
+        }}
       />
     );
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-transparent text-slate-800">
-      {/* Header Bar with User Badge & Logout */}
+      {/* Header Bar with User Badge & Role Switcher */}
       <Header 
         currentProvider={provider} 
         onProviderChange={setProvider}
         activeRole={activeRole}
-        onRoleChange={setActiveRole}
+        onRoleChange={handleRoleChange}
         currentUser={currentUser}
         onLogout={handleLogout}
-        onNavigateSettings={() => setActiveTab((activeRole as string) === 'Admin' ? 'admin_config' : 'settings')}
-        onNavigateAdminPortal={() => window.location.href = '/admin'}
+        onNavigateSettings={() => setActiveTab('admin_config')}
+        onNavigateAdminPortal={() => setActiveTab('admin')}
         theme={theme}
         onToggleTheme={handleToggleTheme}
       />
-
-      {/* Pending User Approval Banner */}
-      {currentUser.status === 'Pending' && (
-        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between text-xs text-amber-900 font-bold">
-          <div className="flex items-center space-x-2">
-            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>
-              <strong>First-Time User Notice:</strong> Your account is pending Admin approval. You currently have access to <strong>Eligibility Checking</strong>. Additional modules will unlock after Admin approval.
-            </span>
-          </div>
-          <button
-            onClick={() => setViewMode('admin')}
-            className="text-[11px] font-mono underline hover:text-slate-900"
-          >
-            Admin Portal (/admin)
-          </button>
-        </div>
-      )}
 
       {/* Main Workspace Layout */}
       <div className="flex flex-1">
@@ -407,7 +393,7 @@ export default function Home() {
           )}
 
           {(activeTab === 'admin' || activeTab === 'admin_kb') && (
-            <AdminKnowledgeBase activeRole={activeRole} />
+            <AdminPortal onBackToUserPortal={() => setActiveTab('dashboard')} />
           )}
 
           {activeTab === 'admin_config' && (

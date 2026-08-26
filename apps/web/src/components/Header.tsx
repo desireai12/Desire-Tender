@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Cpu, Sparkles, Layers, Activity, LogOut, User, Sun, Moon } from 'lucide-react';
+import { ShieldCheck, Cpu, Sparkles, Layers, Activity, LogOut, User, Sun, Moon, ChevronDown, UserCheck } from 'lucide-react';
 import { UserProfile, DepartmentRole } from '@/lib/types';
 
 interface HeaderProps {
@@ -57,6 +57,18 @@ export const Header: React.FC<HeaderProps> = ({
       } catch (e) {}
     }
   };
+
+  const departmentRoles: DepartmentRole[] = [
+    'Admin',
+    'Business Development',
+    'Engineering',
+    'Estimation Team',
+    'Management',
+    'Tender Team',
+    'Procurement',
+    'Finance'
+  ];
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-5 py-2.5 flex items-center justify-between shadow-xs transition-colors duration-200">
       {/* Brand & Logo */}
@@ -70,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
               DESIRE <span className="text-[#064e3b] dark:text-emerald-400">TENDER INTELLIGENCE</span>
             </h1>
             <span className="px-1.5 py-0.5 text-[9px] font-mono uppercase bg-emerald-100 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded font-bold">
-              ENTERPRISE
+              ENTERPRISE ADMIN
             </span>
           </div>
           <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium hidden md:block">
@@ -81,54 +93,63 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Control Actions & User Badge */}
       <div className="flex items-center space-x-2.5 shrink-0">
-        {/* Dark / Light Theme Switcher Button */}
-                {true && (
-          <button
-            type="button"
-            onClick={handleToggle}
-            className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-emerald-400"
-            title="Switch between Light Mode and Dark Mode"
+        {/* Role Selector Dropdown */}
+        <div className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800">
+          <UserCheck className="w-3.5 h-3.5 text-purple-700 dark:text-purple-300" />
+          <select
+            value={activeRole}
+            onChange={(e) => onRoleChange(e.target.value as DepartmentRole)}
+            className="bg-transparent text-xs font-bold text-purple-900 dark:text-purple-300 focus:outline-none cursor-pointer"
+            title="Switch active user role"
           >
-            {activeTheme === 'dark' ? (
-              <>
-                <Sun className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
-                <span className="hidden sm:inline">Light Mode</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-3.5 h-3.5 text-indigo-700" />
-                <span className="hidden sm:inline">Dark Mode</span>
-              </>
-            )}
-          </button>
-        )}
+            {departmentRoles.map((role) => (
+              <option key={role} value={role} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                {role} {role === 'Admin' ? '👑' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Dark / Light Theme Switcher Button */}
+        <button
+          type="button"
+          onClick={handleToggle}
+          className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-emerald-400"
+          title="Switch between Light Mode and Dark Mode"
+        >
+          {activeTheme === 'dark' ? (
+            <>
+              <Sun className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
+              <span className="hidden sm:inline">Light</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-3.5 h-3.5 text-indigo-700" />
+              <span className="hidden sm:inline">Dark</span>
+            </>
+          )}
+        </button>
 
         {/* User Profile Badge */}
         {currentUser && (
-          <div className="hidden sm:flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <div className="hidden sm:flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700">
             <div className="w-5 h-5 rounded-full bg-[#064e3b] dark:bg-emerald-600 text-white flex items-center justify-center font-mono text-[10px] font-bold">
-              {currentUser.employee_id?.slice(0, 3) || 'EMP'}
+              👑
             </div>
             <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-900 dark:text-white">
-              <span>{currentUser.full_name || currentUser.employee_id}</span>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 font-bold">
-                {currentUser.status}
+              <span>{currentUser.full_name || 'Admin'}</span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-600 text-white font-bold">
+                FULL ACCESS
               </span>
             </div>
           </div>
         )}
 
-        {/* System Connected Badge */}
-        <div className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
-          <Activity className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-400 font-bold animate-pulse" />
-          <span className="text-xs font-mono text-emerald-900 dark:text-emerald-300 font-bold">Knowledge: Connected</span>
-        </div>
-
         {/* Admin Portal Button */}
         <button
-          onClick={() => window.location.href = '/admin'}
+          onClick={onNavigateAdminPortal || (() => window.location.href = '/admin')}
           className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs transition shadow-sm cursor-pointer"
-          title="Open Admin Console (/admin)"
+          title="Open Admin Console"
         >
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>Admin Portal</span>

@@ -13,7 +13,8 @@ import {
   FileCode, 
   ShieldCheck, 
   Sliders,
-  MapPin
+  MapPin,
+  Settings
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
 
@@ -44,7 +45,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabChange,
-  activeRole = 'Business Development',
+  activeRole = 'Admin',
   userPermissions = [],
   userStatus = 'Active'
 }) => {
@@ -57,7 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'competitors' as NavTab, label: 'Competitors Profile', icon: Swords, badge: 'Intel' },
     { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Layers, badge: 'Queue' },
     { id: 'costing' as NavTab, label: 'BidMaster Costing Engine', icon: Calculator, badge: '244 Rates' },
-    { id: 'admin_kb' as NavTab, label: 'Documents Vault (Admin)', icon: FileCode, badge: 'Vault' },
+    { id: 'admin' as NavTab, label: 'Admin Portal & Users', icon: ShieldCheck, badge: 'Admin' },
+    { id: 'admin_config' as NavTab, label: 'Backend API & AI Config', icon: Sliders, badge: 'Config' },
   ];
 
   return (
@@ -76,7 +78,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id || 
-              (item.id === 'master_company' && activeTab === 'companies');
+              (item.id === 'master_company' && activeTab === 'companies') ||
+              (item.id === 'admin' && activeTab === 'admin_kb');
 
             return (
               <button
@@ -117,17 +120,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Sliders className="w-4 h-4" />
+          <Settings className="w-4 h-4" />
           <span>System Settings</span>
         </button>
 
         <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 space-y-1 text-left">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-900 dark:text-white">Tender AI Engine Online</span>
+            <span className="text-[11px] font-bold text-slate-900 dark:text-white">Admin Privileges Active</span>
             <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-ping" />
           </div>
           <p className="text-[10px] text-slate-600 dark:text-slate-300 font-medium leading-tight">
-            Pan-India Sector Tenders & Combined JV Eligibility Active.
+            Full permissions enabled across all 6 stages & settings.
           </p>
         </div>
       </div>
