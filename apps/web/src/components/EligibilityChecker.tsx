@@ -71,7 +71,7 @@ export const EligibilityChecker: React.FC = () => {
   const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-divija-02');
   const [selectedCategory, setSelectedCategory] = useState<string>('RHDS');
   const [tenderFile, setTenderFile] = useState<File | null>(null);
-  const [tenderTitleInput, setTenderTitleInput] = useState<string>('RUDSICO AMRUT-2.0 Sewerage Package 44 Alwar Town (Cost: ₹36.53 Cr)');
+  const [tenderTitleInput, setTenderTitleInput] = useState<string>('');
   const [analyzing, setAnalyzing] = useState<boolean>(false);
   const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
   const [report, setReport] = useState<DynamicTenderEvaluationReport | null>(null);
@@ -125,10 +125,8 @@ export const EligibilityChecker: React.FC = () => {
     }
   };
 
-  // Run initial analysis on mount
-  useEffect(() => {
-    handleRunAnalysis();
-  }, [selectedCategory, selectedJvPartnerId]);
+  // Only run analysis when triggered by user
+  // (removed auto-triggering on mount with dummy data)
 
   const desireComp = companies.find(c => c.type === 'Desire Energy') || { name: 'Desire Energy Solutions Pvt. Ltd.', average_turnover: 300.93, net_worth: 95.0 };
   const jvComp = companies.find(c => c.id === selectedJvPartnerId) || { name: 'Divija Construction', average_turnover: 37.01, net_worth: 6.58 };
