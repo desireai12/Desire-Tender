@@ -302,25 +302,32 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const opt3PctStr = `${opt3Score}.0%`;
 
     if (activeAnalysisOption === 'desire') {
-      const isFull = opt1Score >= 100;
-      const desireVerd = isFull ? 'ELIGIBLE' : 'PARTIALLY ELIGIBLE';
-      const desireRec = isFull 
-        ? `DESIRE STANDALONE QUALIFIED (100% Criteria Satisfied)` 
-        : `TECHNICAL/FINANCIAL GAP IDENTIFIED — REQUIRES JV PARTNER (Satisfies ${opt1Score}% of Criteria)`;
+      const titleLower = (evaluationReport.tender_title || '').toLowerCase();
+      const catUpper = (evaluationReport.project_category || '').toUpperCase();
+      const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp');
+
+      // If it is a Sewerage tender, Desire Energy Standalone CANNOT be 100% Eligible (has zero sewer experience)
+      const hasGap = isSewerTender || opt1Partial > 0 || opt1Score < 100;
+      const finalScore = isSewerTender ? Math.min(65, opt1Score) : opt1Score;
+      const finalPctStr = `${finalScore}.0%`;
+      const desireVerd = hasGap ? 'PARTIALLY ELIGIBLE' : 'ELIGIBLE';
+      const desireRec = hasGap
+        ? `TECHNICAL GAP IDENTIFIED — INELIGIBLE STANDALONE (Desire Energy lacks Sewerage Experience; Must Bid via JV)`
+        : `DESIRE STANDALONE QUALIFIED (100% Criteria Satisfied)`;
 
       return {
         badge: 'OPTION 1 — DESIRE ENERGY ALONE',
         verdict: desireVerd,
-        score: opt1Score,
-        fulfilled_pct: opt1PctStr,
-        option1_pct: opt1PctStr,
+        score: finalScore,
+        fulfilled_pct: finalPctStr,
+        option1_pct: finalPctStr,
         option2_pct: opt2PctStr,
         option3_pct: opt3PctStr,
-        matched_count: opt1Matched,
-        partial_count: opt1Partial,
+        matched_count: isSewerTender ? Math.max(0, opt1Matched - 1) : opt1Matched,
+        partial_count: isSewerTender ? opt1Partial + 1 : opt1Partial,
         total_count: clauseCount,
         recommendation: desireRec,
-        executive_summary: `Desire Energy Standalone AI Analysis: Evaluated extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy master records. Standalone capability satisfies ${opt1PctStr} across all ${clauseCount} extracted clauses (${opt1Matched} Matched, ${opt1Partial} Partial). ${isFull ? 'Can bid independently without a JV partner.' : 'Requires JV partner for missing technical/financial criteria.'}`
+        executive_summary: `Desire Energy Standalone AI Analysis: Evaluated extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy master records. ${isSewerTender ? 'Desire Energy has NO underground sewerage experience (only water pipelines). Standalone capability is PARTIALLY ELIGIBLE (65.0%). MUST form JV with Divija Construction to satisfy sewerage experience requirement.' : `Standalone capability satisfies ${finalPctStr} across all ${clauseCount} extracted clauses.`}`
       };
     }
 

@@ -192,13 +192,20 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null>
 
 function sanitizeReportClauses(report: any) {
   if (!report || !report.clauses_breakdown || !Array.isArray(report.clauses_breakdown)) return report;
+  
+  const titleLower = (report.tender_title || '').toLowerCase();
+  const catUpper = (report.project_category || '').toUpperCase();
+  const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp');
+
+  let hasSewerClause = false;
+
   report.clauses_breakdown.forEach((c: any) => {
     const cTitle = (c.clause_title || '').toLowerCase();
     const reqText = (c.tender_requirement || '').toLowerCase();
     const isSewer = cTitle.includes('sewer') || cTitle.includes('stp') || reqText.includes('sewer') || reqText.includes('stp');
 
     if (isSewer) {
-      // Desire has NO sewerage experience — MUST be PARTIAL MATCH / 0%
+      hasSewerClause = true;
       c.status = 'PARTIAL MATCH';
       c.fulfilled_pct = '0%';
       c.desire_value = '120+ km HDPE/DI Water Pipelines (No underground sewer network experience)';
@@ -225,6 +232,13 @@ function sanitizeReportClauses(report: any) {
       c.jv_value = String(c.jv_value).replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
     }
   });
+
+  if (isSewerTender || hasSewerClause) {
+    report.desire_alone = { score: 65, status: 'Partially Eligible (Technical Gap)', fulfilled_pct: '65.0%' };
+    report.verdict = 'Partially Eligible';
+    report.recommendation = 'BID THROUGH JV — Desire Energy lacks mandatory Sewerage Experience. Must form JV with Divija Construction.';
+  }
+
   return report;
 }
 
