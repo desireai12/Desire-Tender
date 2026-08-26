@@ -15,6 +15,42 @@ function verifyPassword(plain: string, hashed: string): boolean {
   return hash.toLowerCase() === hashed.toLowerCase() || plain === hashed;
 }
 
+
+// Helper to call Google Gemini 1.5 Flash REST API
+async function callGemini15Flash(prompt: string, apiKey: string): Promise<string | null> {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const payload = {
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 2048,
+      }
+    };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      return text || null;
+    } else {
+      const errText = await res.text();
+      console.error('[GEMINI API CALL ERROR]', res.status, errText);
+      return null;
+    }
+  } catch (e) {
+    console.error('[GEMINI FETCH EXCEPTION]', e);
+    return null;
+  }
+}
+
 function sanitizeUser(user: any) {
   if (!user) return null;
   const { password_hash, password, ...rest } = user;
