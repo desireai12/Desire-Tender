@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Sidebar, NavTab } from '@/components/Sidebar';
 import { DashboardView } from '@/components/DashboardView';
+import { IndiaTendersSectorView, IndiaTenderItem } from '@/components/IndiaTendersSectorView';
+import { EligibilityChecker } from '@/components/EligibilityChecker';
 import { AdminKnowledgeBase } from '@/components/AdminKnowledgeBase';
 import { AdminBackendConfig } from '@/components/AdminBackendConfig';
 import { TenderWizard } from '@/components/TenderWizard';
@@ -54,7 +56,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isInitializingSession, setIsInitializingSession] = useState<boolean>(true);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     try {
@@ -89,6 +91,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [activeRole, setActiveRole] = useState<DepartmentRole>('Business Development');
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([DEFAULT_SEED_TENDER]);
+  const [selectedTenderToAnalyze, setSelectedTenderToAnalyze] = useState<IndiaTenderItem | null>(null);
 
   // RESTORE AUTHENTICATION SESSION ON MOUNT (AUTO-LOAD WORKSPACE WITHOUT USER LOGIN)
   useEffect(() => {
@@ -183,6 +186,11 @@ export default function Home() {
     setViewMode('user');
     setActiveRole('Business Development');
     setActiveTab('dashboard');
+  };
+
+  // Import Tender from India Sector Explorer into Queue / Engine
+  const handleImportTender = (tender: IndiaTenderItem) => {
+    setSelectedTenderToAnalyze(tender);
   };
 
   // PERSIST NEW TENDER LIVE TO DATABASE & API
@@ -343,12 +351,23 @@ export default function Home() {
         />
 
         {/* Tab Content View Container */}
-        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+        <main className="flex-1 p-5 sm:p-7 max-w-7xl mx-auto w-full space-y-6">
           {activeTab === 'dashboard' && (
             <DashboardView 
               onNavigate={(tab) => setActiveTab(tab)} 
               tendersCount={tendersQueue.length}
             />
+          )}
+
+          {activeTab === 'india_tenders' && (
+            <IndiaTendersSectorView
+              onNavigate={(tab) => setActiveTab(tab)}
+              onImportTender={handleImportTender}
+            />
+          )}
+
+          {activeTab === 'eligibility' && (
+            <EligibilityChecker />
           )}
 
           {activeTab === 'wizard' && (
@@ -367,7 +386,7 @@ export default function Home() {
             />
           )}
 
-                    {activeTab === 'companies' && (
+          {(activeTab === 'companies' || activeTab === 'master_company') && (
             <CompanyDetailsView />
           )}
 
@@ -387,7 +406,7 @@ export default function Home() {
             <SettingsView activeRole={activeRole} onProviderChange={setProvider} />
           )}
 
-          {activeTab === 'admin' && (
+          {(activeTab === 'admin' || activeTab === 'admin_kb') && (
             <AdminKnowledgeBase activeRole={activeRole} />
           )}
 

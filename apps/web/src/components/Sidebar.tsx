@@ -3,6 +3,7 @@
 import React from 'react';
 import { 
   LayoutDashboard, 
+  Globe2,
   Sparkles, 
   GitMerge, 
   Building2, 
@@ -11,12 +12,14 @@ import {
   Calculator, 
   FileCode, 
   ShieldCheck, 
-  Sliders
+  Sliders,
+  MapPin
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
 
 export type NavTab = 
   | 'dashboard' 
+  | 'india_tenders'
   | 'eligibility' 
   | 'wizard' 
   | 'combine'
@@ -46,7 +49,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userStatus = 'Active'
 }) => {
   const navItems = [
-    { id: 'dashboard' as NavTab, label: 'Dashboard Overview', icon: LayoutDashboard, badge: 'Home' },
+    { id: 'dashboard' as NavTab, label: 'Home Overview', icon: LayoutDashboard, badge: 'Home' },
+    { id: 'india_tenders' as NavTab, label: 'India Tenders (Sector-Wise)', icon: Globe2, badge: 'Pan-India' },
     { id: 'eligibility' as NavTab, label: 'Eligibility Analysis', icon: Sparkles, badge: 'AI Dynamic' },
     { id: 'wizard' as NavTab, label: 'JV / Combine Analysis', icon: GitMerge, badge: 'Engine' },
     { id: 'master_company' as NavTab, label: 'Company Details (Master)', icon: Building2, badge: 'Master DB' },
@@ -57,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-56 glass-card bg-white/95 dark:bg-[#0b1426] backdrop-blur-md border-r border-slate-200 dark:border-slate-800 p-3 flex flex-col justify-between hidden md:flex shrink-0 min-h-[calc(100vh-55px)] transition-colors duration-200">
+    <aside className="w-60 glass-card bg-white/95 dark:bg-[#0b1426] backdrop-blur-md border-r border-slate-200 dark:border-slate-800 p-3 flex flex-col justify-between hidden md:flex shrink-0 min-h-[calc(100vh-55px)] transition-colors duration-200">
       <div className="space-y-4">
         {/* Navigation Section Title */}
         <div className="px-3 pt-1 flex items-center justify-between">
@@ -71,7 +75,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = activeTab === item.id || 
+              (item.id === 'master_company' && activeTab === 'companies');
 
             return (
               <button
@@ -122,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-ping" />
           </div>
           <p className="text-[10px] text-slate-600 dark:text-slate-300 font-medium leading-tight">
-            Master Company DB & Combined JV Eligibility Active.
+            Pan-India Sector Tenders & Combined JV Eligibility Active.
           </p>
         </div>
       </div>
