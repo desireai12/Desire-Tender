@@ -189,6 +189,33 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null>
   return null;
 }
 
+
+function sanitizeReportClauses(report: any) {
+  if (!report || !report.clauses_breakdown || !Array.isArray(report.clauses_breakdown)) return report;
+  report.clauses_breakdown.forEach((c: any) => {
+    if (c.status === 'MATCH') {
+      c.fulfilled_pct = '100%';
+    } else if (c.fulfilled_pct) {
+      const match = String(c.fulfilled_pct).match(/(\d+(\.\d+)?)/);
+      if (match) {
+        const val = parseFloat(match[1]);
+        c.fulfilled_pct = val >= 100 ? '100%' : `${val}%`;
+      } else {
+        c.fulfilled_pct = '100%';
+      }
+    } else {
+      c.fulfilled_pct = '100%';
+    }
+    if (c.desire_value) {
+      c.desire_value = String(c.desire_value).replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
+    }
+    if (c.jv_value) {
+      c.jv_value = String(c.jv_value).replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
+    }
+  });
+  return report;
+}
+
 let GLOBAL_SERVER_COMPANIES: any[] = [
   {
     id: 'comp-desire-01', name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', type: 'Desire Energy',
@@ -400,12 +427,13 @@ Return valid JSON (no markdown wrapping):
           not_matching: cb.filter((c: any) => c.status === 'NOT MATCHING').length,
           data_missing: 0
         };
+        const cleanAi = sanitizeReportClauses(aiResult);
         return NextResponse.json({
           status: 'success',
           is_rejected_non_tender: false,
           message: 'Gemini AI tender evaluation complete.',
-          evaluation_report: aiResult,
-          report: aiResult
+          evaluation_report: cleanAi,
+          report: cleanAi
         });
       }
 

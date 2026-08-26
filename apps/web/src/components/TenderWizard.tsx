@@ -790,13 +790,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                           <span className="font-semibold text-slate-900">{item.clause_title}</span>
                         </td>
                         <td className="p-3 text-slate-600">{item.tender_requirement}</td>
-                        {activeAnalysisOption === 'desire' && <td className="p-3 text-teal-800 font-mono font-medium">{item.desire_value}</td>}
-                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-800 font-bold font-mono font-medium">{item.jv_value}</td>}
+                        {activeAnalysisOption === 'desire' && <td className="p-3 text-teal-800 font-mono font-medium">{cleanDVal}</td>}
+                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-800 font-bold font-mono font-medium">{cleanJVal}</td>}
                         {activeAnalysisOption === 'combined' && (
                           <>
-                            <td className="p-3 text-teal-800 font-mono">{item.desire_value}</td>
-                            <td className="p-3 text-teal-800 font-bold font-mono">{item.jv_value}</td>
-                            <td className="p-3 text-slate-900 font-mono font-bold">{item.combined_value}</td>
+                            <td className="p-3 text-teal-800 font-mono">{cleanDVal}</td>
+                            <td className="p-3 text-teal-800 font-bold font-mono">{cleanJVal}</td>
+                            <td className="p-3 text-slate-900 font-mono font-bold">{cleanCVal}</td>
                             <td className="p-3 text-slate-700 font-medium font-mono text-[11px]">{item.applicable_jv_rule}</td>
                           </>
                         )}
@@ -822,7 +822,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                           </span>
                         </td>
                         <td className="p-3 font-mono font-bold text-teal-800 font-semibold">
-                          {itemFulfilledPct}
+                          {statusVal === 'MATCH' ? '100.0%' : (parseFloat(itemFulfilledPct) >= 100 ? '100.0%' : itemFulfilledPct)}
                         </td>
                         <td className="p-3 text-slate-700 font-medium text-[11px]">{item.gap_notes}</td>
                         <td className="p-3 text-slate-600 font-mono text-[11px]">{item.required_doc}</td>
