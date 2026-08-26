@@ -50,6 +50,7 @@ export interface DynamicTenderEvaluationReport {
   verdict: 'Eligible' | 'Conditional' | 'Ineligible';
   eligibility_score: number;
   overall_health: 'Green' | 'Yellow' | 'Red';
+  is_rejected_non_tender?: boolean;
   recommendation: string;
   executive_summary: string;
   desire_alone: { score: number; status: string; fulfilled_pct: string };
@@ -261,6 +262,29 @@ export const EligibilityChecker: React.FC = () => {
           </button>
         </div>
       </form>
+
+      
+      {/* Non-Tender Document Rejection Alert */}
+      {report && report.is_rejected_non_tender && (
+        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border-2 border-rose-400 dark:border-rose-700 space-y-3 animate-fadeIn">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-rose-900 dark:text-rose-100">
+                Document Rejected — Non-Tender Document Detected
+              </h3>
+              <p className="text-xs text-rose-700 dark:text-rose-300 font-medium">
+                The uploaded file is identified as a Commercial Tax Invoice / Billing Receipt.
+              </p>
+            </div>
+          </div>
+          <div className="p-4 rounded-xl bg-white/80 dark:bg-black/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-900 dark:text-rose-200 leading-relaxed font-medium">
+            {report.executive_summary}
+          </div>
+        </div>
+      )}
 
       {/* AI Summary Dashboard Cards */}
       {report && perspective && (
