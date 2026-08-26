@@ -16,39 +16,47 @@ function verifyPassword(plain: string, hashed: string): boolean {
 }
 
 
-// Helper to call Google Gemini 1.5 Flash REST API
+// Helper to call Google Gemini REST API supporting new AQ. and AIzaSy keys with multi-model fallback
 async function callGemini15Flash(prompt: string, apiKey: string): Promise<string | null> {
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const payload = {
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 2048,
+  const models = ['gemini-3-flash-preview', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
+  
+  for (const m of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`;
+      const payload = {
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 2048,
+        }
+      };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey.trim()
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          console.log(`[GEMINI SUCCESS WITH ${m}] Output generated.`);
+          return text;
+        }
+      } else {
+        console.warn(`[GEMINI ${m} RETRY] HTTP status: ${res.status}`);
       }
-    };
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      return text || null;
-    } else {
-      const errText = await res.text();
-      console.error('[GEMINI API CALL ERROR]', res.status, errText);
-      return null;
+    } catch (e) {
+      console.warn(`[GEMINI ${m} EXCEPTION]`, e);
     }
-  } catch (e) {
-    console.error('[GEMINI FETCH EXCEPTION]', e);
-    return null;
   }
+  return null;
 }
 
 function sanitizeUser(user: any) {
