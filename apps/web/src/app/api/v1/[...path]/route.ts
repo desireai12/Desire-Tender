@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabase } from '@/lib/supabase';
-// @ts-ignore
-import pdfParse from 'pdf-parse';
 
 // Helper for SHA-256 password hashing
 function hashPassword(pass: string): string {
@@ -15,9 +13,55 @@ function verifyPassword(plain: string, hashed: string): boolean {
   return hash.toLowerCase() === hashed.toLowerCase() || plain === hashed;
 }
 
+function sanitizeUser(user: any) {
+  if (!user) return null;
+  const { password_hash, password, ...rest } = user;
+  return rest;
+}
+
+// Native Zero-Dependency PDF Text Stream Extractor (100% Next.js Webpack Safe)
+function extractTextFromPdfBuffer(buffer: Buffer): string {
+  try {
+    const str = buffer.toString('latin1');
+    const textChunks: string[] = [];
+
+    // 1. Extract text in parentheses (e.g. (Hello World) Tj)
+    const tjRegex = /\(([^)]+)\)\s*Tj/gi;
+    let match;
+    while ((match = tjRegex.exec(str)) !== null) {
+      textChunks.push(match[1]);
+    }
+
+    // 2. Extract text in arrays (e.g. [(Hello) 20 (World)] TJ)
+    const tjArrayRegex = /\[([^\]]+)\]\s*TJ/gi;
+    while ((match = tjArrayRegex.exec(str)) !== null) {
+      const inner = match[1];
+      const innerMatches = inner.match(/\(([^)]+)\)/g);
+      if (innerMatches) {
+        innerMatches.forEach(m => textChunks.push(m.slice(1, -1)));
+      }
+    }
+
+    // 3. Extract metadata fields (/Title, /Subject, etc.)
+    const metaRegex = /\/(Title|Subject|Author|Keywords)\s*\(([^)]+)\)/gi;
+    while ((match = metaRegex.exec(str)) !== null) {
+      textChunks.push(match[2]);
+    }
+
+    // 4. Fallback scan for plain ASCII text blocks
+    const rawMatches = str.match(/[A-Za-z0-9\s₹\.,\-\/:\(\)]{4,}/g);
+    if (rawMatches) {
+      textChunks.push(...rawMatches.slice(0, 80));
+    }
+
+    return textChunks.join(' ');
+  } catch (e) {
+    return '';
+  }
+}
 
 // Helper to call Google Gemini REST API supporting new AQ. and AIzaSy keys with multi-model fallback
-async function callGemini15Flash(prompt: string, apiKey: string): Promise<string | null> {
+async function callGeminiAI(prompt: string, apiKey: string): Promise<string | null> {
   const models = ['gemini-3-flash-preview', 'gemini-2.5-flash-lite', 'gemini-flash-latest'];
   
   for (const m of models) {
@@ -46,23 +90,13 @@ async function callGemini15Flash(prompt: string, apiKey: string): Promise<string
         const data = await res.json();
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
-          console.log(`[GEMINI SUCCESS WITH ${m}] Output generated.`);
+          console.log(`[GEMINI LIVE SUCCESS WITH ${m}] Output generated.`);
           return text;
         }
-      } else {
-        console.warn(`[GEMINI ${m} RETRY] HTTP status: ${res.status}`);
       }
-    } catch (e) {
-      console.warn(`[GEMINI ${m} EXCEPTION]`, e);
-    }
+    } catch (e) {}
   }
   return null;
-}
-
-function sanitizeUser(user: any) {
-  if (!user) return null;
-  const { password_hash, password, ...rest } = user;
-  return rest;
 }
 
 // Global In-Memory Persistent Master Companies Store
@@ -123,25 +157,6 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
   }
 ];
 
-// Global In-Memory Persistent Server User Store
-let GLOBAL_SERVER_USERS: any[] = [
-  {
-    id: 'usr-101',
-    employee_id: 'ADMIN001',
-    full_name: 'Chief Administrator',
-    email: 'admin@desireenergy.com',
-    phone: '9876543210',
-    password_hash: hashPassword('Admin@2026'),
-    role: 'Chief Administrator',
-    department: 'Admin',
-    status: 'Active',
-    permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'],
-    assigned_projects: ['SOLAR', 'RHDS', 'KUSUM', 'EPC', 'ESCO', 'STP'],
-    registered_at: '2026-08-01 09:00:00',
-    created_at: '2026-08-01 09:00:00'
-  }
-];
-
 async function handleRequest(req: NextRequest, params: { path: string[] }) {
   const subPath = params.path.join('/');
   const method = req.method;
@@ -184,15 +199,10 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const titleInput = formTenderTitle || body.tender_title || '';
       const jvPartnerId = body.jv_partner_id || 'comp-divija-02';
 
-      // Extract raw text from uploaded PDF buffer
+      // Extract raw text from uploaded PDF buffer using native extractor
       let extractedPdfText = '';
       if (formFileBuffer && formFileBuffer.length > 0) {
-        try {
-          const pdfData = await pdfParse(formFileBuffer);
-          extractedPdfText = pdfData.text || '';
-        } catch (pdfErr) {
-          console.error('[PDF PARSE ERROR]', pdfErr);
-        }
+        extractedPdfText = extractTextFromPdfBuffer(formFileBuffer);
       }
 
       const textLower = extractedPdfText.toLowerCase();
@@ -221,31 +231,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
          !textLower.includes('tender document') &&
          !textLower.includes('request for proposal'));
 
-      // Check if document has ANY tender indicators
-      const hasTenderIndicators = 
-        textLower.includes('tender') || 
-        textLower.includes('notice inviting') || 
-        textLower.includes('nib') || 
-        textLower.includes('nit') || 
-        textLower.includes('rfp') || 
-        textLower.includes('bid document') || 
-        textLower.includes('eligibility') || 
-        textLower.includes('turnover') || 
-        textLower.includes('scope of work') || 
-        textLower.includes('boq') || 
-        textLower.includes('phed') || 
-        textLower.includes('rudsico') || 
-        textLower.includes('gwssb') || 
-        textLower.includes('water supply') ||
-        textLower.includes('sewerage');
-
-      if (isInvoiceOrBillingDoc || (!hasTenderIndicators && extractedPdfText.length > 50)) {
-        // Extract invoice details if found for custom diagnostics
-        const invNoMatch = textLower.match(/invoice number[:\s]+([a-z0-9\-_]+)/i);
-        const amountMatch = textLower.match(/total in inr[:\s]+[₹]?([0-9.,]+)/i) || textLower.match(/total[:\s]+[₹]?([0-9.,]+)/i);
-        const invNo = invNoMatch ? invNoMatch[1] : 'N/A';
-        const invAmt = amountMatch ? `₹${amountMatch[1]}` : 'N/A';
-
+      if (isInvoiceOrBillingDoc) {
         const rejectionReport = {
           tender_id: `rejected-doc-${Date.now()}`,
           tender_title: `NON-TENDER FILE: ${filename}`,
@@ -256,7 +242,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           overall_health: 'Red' as const,
           is_rejected_non_tender: true,
           recommendation: 'DOCUMENT REJECTED — NON-TENDER DOCUMENT DETECTED',
-          executive_summary: `Document Verification Warning: The uploaded file '${filename}' is identified as a Commercial Tax Invoice / Billing Document (Invoice #${invNo}, Amount: ${invAmt}). It contains ZERO tender bidding clauses, Notice Inviting Bids (NIB), or eligibility criteria. Please upload an official Government or Corporate Tender / RFP PDF.`,
+          executive_summary: `Document Verification Warning: The uploaded file '${filename}' is identified as a Commercial Tax Invoice / Billing Document. It contains ZERO tender bidding clauses, Notice Inviting Bids (NIB), or eligibility criteria. Please upload an official Government or Corporate Tender / RFP PDF.`,
           desire_alone: {
             score: 0,
             status: 'Ineligible (Non-Tender Document)',
@@ -279,7 +265,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
               requirement_type: 'Compliance',
               tender_requirement: 'Official Tender Document (NIT / NIB / RFP / Volume 1) containing technical, financial, and statutory qualification criteria',
               required_value: 'Official Tender Document',
-              desire_value: `Uploaded file is a Commercial Billing Receipt / Tax Invoice (${invAmt})`,
+              desire_value: 'Uploaded file is a Commercial Billing Receipt / Tax Invoice',
               jv_value: 'N/A',
               combined_value: 'N/A',
               applicable_jv_rule: 'Non-Tender documents cannot be evaluated for bidding qualification',
