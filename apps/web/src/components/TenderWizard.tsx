@@ -744,9 +744,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {(currentReport?.clauses_breakdown || []).map((item, idx) => {
-                    let statusVal = item.status;
+                    let statusVal = item.status || 'MATCH';
                     let displayVal = item.combined_value;
-                    let itemFulfilledPct = item.fulfilled_pct;
+                    let itemFulfilledPct = item.fulfilled_pct || '100.0%';
+                    
+                    const cleanDVal = (item.desire_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
+                    const cleanJVal = (item.jv_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
+                    const cleanCVal = (item.combined_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
 
                     if (activeAnalysisOption === 'desire') {
                       displayVal = item.desire_value;
