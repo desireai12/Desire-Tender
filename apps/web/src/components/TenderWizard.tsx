@@ -243,18 +243,19 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     let opt2Partial = 0;
 
     clauses.forEach(c => {
-      // Option 1 Evaluation
-      let dVal = c.desire_value;
-      if (dVal.includes('No Prior') || dVal.includes('(0%)') || dVal.includes('0.0%')) {
+      // Option 1 Evaluation (Desire Alone)
+      let dVal = c.desire_value || '';
+      let status1 = c.status || '';
+      if (dVal.includes('No Prior') || dVal.includes('(0%)') || dVal.includes('0.0%') || status1 === 'NOT MATCHING') {
         opt1Sum += 0;
         opt1Partial++;
-      } else if (dVal.includes('100%') || dVal.includes('Exceeds')) {
+      } else if (dVal.includes('100%') || dVal.includes('Exceeds') || status1 === 'MATCH') {
         opt1Sum += 100;
         opt1Matched++;
       } else {
         const pctMatch = dVal.match(/(\d+(\.\d+)?)%/);
         if (pctMatch) {
-          const val = parseFloat(pctMatch[1]);
+          const val = Math.min(100, Math.max(0, parseFloat(pctMatch[1])));
           opt1Sum += val;
           if (val >= 100) opt1Matched++; else opt1Partial++;
         } else {
@@ -263,18 +264,19 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         }
       }
 
-      // Option 2 Evaluation
-      let jVal = c.jv_value;
+      // Option 2 Evaluation (Divija Alone)
+      let jVal = c.jv_value || '';
+      let status2 = c.status || '';
       if (jVal.includes('No Prior') || jVal.includes('(0%)') || jVal.includes('0.0%')) {
         opt2Sum += 0;
         opt2Partial++;
-      } else if (jVal.includes('100%')) {
+      } else if (jVal.includes('100%') || jVal.includes('Exceeds')) {
         opt2Sum += 100;
         opt2Matched++;
       } else {
         const pctMatch = jVal.match(/(\d+(\.\d+)?)%/);
         if (pctMatch) {
-          const val = parseFloat(pctMatch[1]);
+          const val = Math.min(100, Math.max(0, parseFloat(pctMatch[1])));
           opt2Sum += val;
           if (val >= 100) opt2Matched++; else opt2Partial++;
         } else {
@@ -284,8 +286,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       }
     });
 
-    const opt1Score = Math.round(opt1Sum / clauseCount);
-    const opt2Score = Math.round(opt2Sum / clauseCount);
+    const opt1Score = Math.min(100, Math.round(opt1Sum / clauseCount));
+    const opt2Score = Math.min(100, Math.round(opt2Sum / clauseCount));
     const opt3Score = 100;
 
     const opt1PctStr = `${opt1Score}.0%`;
