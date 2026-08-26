@@ -264,30 +264,31 @@ export const EligibilityChecker: React.FC = () => {
       </form>
 
       
-      {/* Non-Tender Document Rejection Alert */}
+            {/* Non-Tender Document Rejection Alert */}
       {report && report.is_rejected_non_tender && (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border-2 border-rose-400 dark:border-rose-700 space-y-3 animate-fadeIn">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-200">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-rose-900 dark:text-rose-100">
-                Document Rejected — Non-Tender Document Detected
-              </h3>
-              <p className="text-xs text-rose-700 dark:text-rose-300 font-medium">
-                The uploaded file is identified as a Commercial Tax Invoice / Billing Receipt.
-              </p>
-            </div>
+        <div className="p-8 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border-2 border-rose-400 dark:border-rose-700 space-y-4 animate-fadeIn text-center">
+          <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/80 text-rose-700 dark:text-rose-300 flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-8 h-8" />
           </div>
-          <div className="p-4 rounded-xl bg-white/80 dark:bg-black/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-900 dark:text-rose-200 leading-relaxed font-medium">
+          <div className="space-y-1">
+            <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-rose-200 text-rose-900 border border-rose-300 uppercase">
+              Match Score: 0% — Ineligible (Non-Tender File)
+            </span>
+            <h3 className="text-xl font-bold text-rose-900 dark:text-rose-100 pt-2">
+              Document Rejected — Non-Tender Document Detected
+            </h3>
+            <p className="text-xs text-rose-700 dark:text-rose-300 font-medium max-w-lg mx-auto leading-relaxed">
+              The AI Document Verification Engine verified that this file is an Invoice, Bill, or Receipt and contains ZERO tender bidding clauses or qualification criteria.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs text-slate-800 dark:text-slate-200 font-mono text-left max-w-2xl mx-auto leading-relaxed">
             {report.executive_summary}
           </div>
         </div>
       )}
 
       {/* AI Summary Dashboard Cards */}
-      {report && perspective && (
+      {report && !report.is_rejected_non_tender && perspective && (
         <div className="space-y-6">
           {/* 3 Dynamic Analysis Options Selection Tabs */}
           <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
