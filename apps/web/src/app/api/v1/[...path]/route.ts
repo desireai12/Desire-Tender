@@ -342,7 +342,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const jS = (jvComp as any).solvency_amount || 10.0;
       const cT = dT + jT;
 
-      const KEY_B64 = 'QVEuQWI4Uk42SjJHWk9LMklGMGJzUzNIYnRPd0FDc0xKQk9EU3RwV0lMdkVfUnJsb0cwaGc=';
+      const KEY_B64 = 'QVEuQWI4Uk42S01UVnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
       const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
       
       // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
