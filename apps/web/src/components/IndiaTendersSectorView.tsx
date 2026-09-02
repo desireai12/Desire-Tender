@@ -351,11 +351,13 @@ const SAMPLE_TENDERS: IndiaTenderItem[] = [
 interface IndiaTendersSectorViewProps {
   onNavigate?: (tab: NavTab) => void;
   onImportTender?: (tender: IndiaTenderItem) => void;
+  onSelectForBidding?: (tender: IndiaTenderItem) => void;
 }
 
 export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
   onNavigate,
-  onImportTender
+  onImportTender,
+  onSelectForBidding
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState<string>('ALL');
@@ -842,11 +844,27 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (onSelectForBidding) {
+                          onSelectForBidding(tender);
+                        } else if (onNavigate) {
+                          onNavigate('tender_tracker');
+                        }
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1 cursor-pointer"
+                      title="Select this tender for bidding in Tender Tracker"
+                    >
+                      <Bookmark className="w-3.5 h-3.5" />
+                      <span>Select for Bidding</span>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleLaunchEligibility(tender);
                       }}
-                      className="px-3.5 py-1.5 rounded-lg bg-[#064e3b] dark:bg-[#059669] hover:bg-emerald-900 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1 cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1 cursor-pointer"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Check Eligibility</span>
                     </button>
                   </div>

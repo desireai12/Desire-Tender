@@ -1,5 +1,5 @@
 import io
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF
 from typing import List, Dict, Any
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter

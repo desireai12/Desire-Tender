@@ -21,6 +21,7 @@ import { DepartmentRole } from '@/lib/types';
 export type NavTab = 
   | 'dashboard' 
   | 'india_tenders'
+  | 'tender_tracker'
   | 'eligibility' 
   | 'wizard' 
   | 'combine'
@@ -52,11 +53,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     { id: 'dashboard' as NavTab, label: 'Home Overview', icon: LayoutDashboard, badge: 'Home' },
     { id: 'india_tenders' as NavTab, label: 'India Tenders (Sector-Wise)', icon: Globe2, badge: 'Pan-India' },
+    { id: 'tender_tracker' as NavTab, label: 'Tender Bidding Tracker', icon: Layers, badge: 'Live Tracker' },
     { id: 'eligibility' as NavTab, label: 'Eligibility Analysis', icon: Sparkles, badge: 'AI Dynamic' },
     { id: 'wizard' as NavTab, label: 'JV / Combine Analysis', icon: GitMerge, badge: 'Engine' },
     { id: 'master_company' as NavTab, label: 'Company Details (Master)', icon: Building2, badge: 'Master DB' },
     { id: 'competitors' as NavTab, label: 'Competitors Profile', icon: Swords, badge: 'Intel' },
-    { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: Layers, badge: 'Queue' },
+    { id: 'lifecycle' as NavTab, label: 'Tender Process Queue', icon: FileCode, badge: 'Queue' },
     { id: 'costing' as NavTab, label: 'BidMaster Costing Engine', icon: Calculator, badge: '244 Rates' },
     { id: 'admin' as NavTab, label: 'Admin Portal & Users', icon: ShieldCheck, badge: 'Admin' },
     { id: 'admin_config' as NavTab, label: 'Backend API & AI Config', icon: Sliders, badge: 'Config' },

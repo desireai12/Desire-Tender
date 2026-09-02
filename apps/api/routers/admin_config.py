@@ -1,5 +1,6 @@
 import time
 import json
+import uuid
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -195,7 +196,7 @@ async def create_project(payload: CreateProjectPayload):
 
     # Audit log
     audit_sql = "INSERT INTO public.audit_logs (id, actor, action, target, details, timestamp) VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP);"
-    execute_write(audit_sql, (f"aud-{int(time.time())}", "admin", "Project Created", new_proj["name"], f"Created project {new_proj['type']} for {new_proj['client']}"))
+    execute_write(audit_sql, (str(uuid.uuid4()), "admin", "Project Created", new_proj["name"], f"Created project {new_proj['type']} for {new_proj['client']}"))
 
     return {
         "status": "success",
@@ -302,7 +303,7 @@ async def update_ai_config(payload: UpdateAIConfigPayload):
         updated_at = CURRENT_TIMESTAMP;
     """
     
-    cfg_id = existing.get("id") if existing else f"cfg-{cat.lower()}"
+    cfg_id = existing.get("id") if existing else str(uuid.uuid4())
     execute_write(
         sql,
         (cfg_id, cat, payload.system_instruction, payload.eligibility_logic or "Verify company qualifications", payload.costing_methodology or "Use historical BOQ rates", next_ver, json.dumps(history))
@@ -311,7 +312,7 @@ async def update_ai_config(payload: UpdateAIConfigPayload):
     # Security Audit Log
     execute_write(
         "INSERT INTO public.audit_logs (id, actor, action, target, details, timestamp) VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP);",
-        (f"aud-{int(time.time())}", "admin", "AI Prompt Updated", cat, f"Updated AI instructions to version {next_ver}")
+        (str(uuid.uuid4()), "admin", "AI Prompt Updated", cat, f"Updated AI instructions to version {next_ver}")
     )
 
     return {
@@ -351,15 +352,22 @@ async def rotate_or_add_credential(payload: RotateCredentialPayload):
         updated_at = CURRENT_TIMESTAMP;
     """
 
+    cred_id = payload.id.strip()
+    try:
+        uuid.UUID(cred_id)
+    except ValueError:
+        existing_cred = fetch_one("SELECT id FROM public.credentials WHERE provider = %s", (payload.provider,))
+        cred_id = existing_cred["id"] if existing_cred else str(uuid.uuid4())
+
     execute_write(
         sql,
-        (payload.id, payload.provider, "API Credential", masked, "Active (Encrypted AES-256)", timestamp, True, payload.notes or "Added via Admin Vault")
+        (cred_id, payload.provider, "API Credential", masked, "Active (Encrypted AES-256)", timestamp, True, payload.notes or "Added via Admin Vault")
     )
 
     # Security Audit Log
     execute_write(
         "INSERT INTO public.audit_logs (id, actor, action, target, details, timestamp) VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP);",
-        (f"aud-{int(time.time())}", "admin", "API Credential Rotated", payload.provider, f"Updated masked key: {masked}")
+        (str(uuid.uuid4()), "admin", "API Credential Rotated", payload.provider, f"Updated masked key: {masked}")
     )
 
     return {

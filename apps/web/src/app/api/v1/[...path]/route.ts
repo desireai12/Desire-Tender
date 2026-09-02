@@ -147,8 +147,8 @@ function buildRejection(filename: string) {
 // ─── HIGH-CAPACITY GEMINI CALLER ───────────────────────────────────────────
 async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null> {
   const models = [
-    'gemini-3.5-flash',
     'gemini-3.6-flash',
+    'gemini-3.5-flash',
     'gemini-3.7-flash',
     'gemini-flash-latest',
     'gemini-2.5-flash',

@@ -2,6 +2,7 @@ import time
 import re
 import json
 import hashlib
+import uuid
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -75,7 +76,7 @@ async def register_account(payload: RegisterPayload):
     if existing_email:
         raise HTTPException(status_code=400, detail=f"Email '{email_clean}' is already registered.")
 
-    usr_id = f"usr-{int(time.time())}"
+    usr_id = str(uuid.uuid4())
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     pass_hash = hash_password(password_clean)
     perms = json.dumps(["eligibility"])

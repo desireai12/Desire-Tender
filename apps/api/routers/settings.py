@@ -38,7 +38,7 @@ async def get_current_settings():
         provider = db_settings.get("default_llm_provider") or config.get("provider", "gemini")
         gemini_key = db_settings.get("gemini_api_key") or config.get("gemini_key", "")
         openai_key = db_settings.get("openai_api_key") or config.get("openai_key", "")
-        gemini_model = db_settings.get("gemini_model") or config.get("gemini_model", "gemini-1.5-flash")
+        gemini_model = db_settings.get("gemini_model") or config.get("gemini_model", "gemini-3.6-flash")
         openai_model = db_settings.get("openai_model") or config.get("openai_model", "gpt-4o-mini")
         
         # Keep runtime config in sync
@@ -53,7 +53,7 @@ async def get_current_settings():
         provider = config.get("provider", "gemini")
         gemini_key = config.get("gemini_key", "")
         openai_key = config.get("openai_key", "")
-        gemini_model = config.get("gemini_model", "gemini-1.5-flash")
+        gemini_model = config.get("gemini_model", "gemini-3.6-flash")
         openai_model = config.get("openai_model", "gpt-4o-mini")
 
     masked_gemini = f"••••••••{gemini_key[-4:]}" if len(gemini_key) > 4 else ("Configured" if gemini_key else "Not Configured")
@@ -104,7 +104,7 @@ async def update_settings(payload: SettingsUpdateRequest):
             payload.default_llm_provider or updated.get("provider", "gemini"),
             payload.gemini_api_key if payload.gemini_api_key else None,
             payload.openai_api_key if payload.openai_api_key else None,
-            payload.gemini_model or updated.get("gemini_model", "gemini-1.5-flash"),
+            payload.gemini_model or updated.get("gemini_model", "gemini-3.6-flash"),
             payload.openai_model or updated.get("openai_model", "gpt-4o-mini"),
         )
     )

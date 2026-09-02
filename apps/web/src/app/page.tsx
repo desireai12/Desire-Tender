@@ -17,6 +17,7 @@ import { CostingEstimatorView } from '@/components/CostingEstimatorView';
 import { SettingsView } from '@/components/SettingsView';
 import { LoginLanding } from '@/components/LoginLanding';
 import { AdminPortal } from '@/components/AdminPortal';
+import { TenderTrackerDashboard, TrackedTender, INITIAL_TRACKED_TENDERS } from '@/components/TenderTrackerDashboard';
 import { DepartmentRole, TenderProcess, UserProfile } from '@/lib/types';
 import { ShieldAlert, Loader2, Sparkles } from 'lucide-react';
 import { getActiveUserSession, saveUserSession, clearUserSession } from '@/lib/store';
@@ -72,6 +73,7 @@ export default function Home() {
   const [isInitializingSession, setIsInitializingSession] = useState<boolean>(true);
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [trackedTenders, setTrackedTenders] = useState<TrackedTender[]>(INITIAL_TRACKED_TENDERS);
 
   useEffect(() => {
     try {
@@ -187,6 +189,44 @@ export default function Home() {
   // Import Tender from India Sector Explorer into Queue / Engine
   const handleImportTender = (tender: IndiaTenderItem) => {
     setSelectedTenderToAnalyze(tender);
+  };
+
+  const handleSelectForBidding = (item: IndiaTenderItem) => {
+    const existing = trackedTenders.find(t => t.id === item.id || t.nit_number === item.nit_number);
+    if (!existing) {
+      const newTracked: TrackedTender = {
+        id: item.id || `tr-${Date.now()}`,
+        nit_number: item.nit_number,
+        title: item.title,
+        authority: item.authority,
+        state: item.state,
+        district: item.district,
+        sector: item.sector,
+        estimated_cost_cr: item.estimated_cost_cr,
+        emd_lakhs: item.emd_lakhs,
+        emd_status: 'Pending',
+        due_date: item.due_date,
+        stage: '1_IDENTIFIED',
+        assigned_department: 'Tender Team',
+        assigned_lead: `${currentUser?.full_name || 'Tender Lead'}`,
+        win_probability_pct: item.eligibility_match_pct,
+        jv_partner_needed: item.desire_qual_status === 'JV Recommended',
+        remarks: `Selected from Pan-India Open Tenders. Scope highlights: ${item.scope_highlights.slice(0, 2).join('; ')}`,
+        audit_logs: [
+          {
+            timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            actor: currentUser?.full_name || 'Tender Officer',
+            role: activeRole,
+            action: 'Selected for Bidding',
+            stage_changed_to: 'Identified / Discovered',
+            notes: `Added from Pan-India sector tenders list (${item.sector}). Est Value: ₹${item.estimated_cost_cr} Cr.`
+          }
+        ],
+        portal_url: item.portal_url
+      };
+      setTrackedTenders([newTracked, ...trackedTenders]);
+    }
+    setActiveTab('tender_tracker');
   };
 
   // Role Change Handler
@@ -349,6 +389,16 @@ export default function Home() {
             <IndiaTendersSectorView
               onNavigate={(tab) => setActiveTab(tab)}
               onImportTender={handleImportTender}
+              onSelectForBidding={handleSelectForBidding}
+            />
+          )}
+
+          {activeTab === 'tender_tracker' && (
+            <TenderTrackerDashboard
+              tenders={trackedTenders}
+              activeRole={activeRole}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              onUpdateTendersList={(updated) => setTrackedTenders(updated)}
             />
           )}
 
