@@ -84,15 +84,15 @@ export interface TrackedTender {
 }
 
 export const WORKFLOW_STAGES = [
-  { id: '1_IDENTIFIED', stepIndex: 1, label: 'Identified / Discovered', icon: Search, color: 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/80 dark:text-blue-200 dark:border-blue-700' },
-  { id: '2_PRE_BID', stepIndex: 2, label: 'Pre-Bid & Queries', icon: Clock3, color: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-700' },
-  { id: '3_JV_ALIGNMENT', stepIndex: 3, label: 'JV Alignment & Deed', icon: UserCheck, color: 'bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/80 dark:text-purple-200 dark:border-purple-700' },
-  { id: '4_EMD_COMPLIANCE', stepIndex: 4, label: 'EMD & Docs Prepared', icon: ShieldAlert, color: 'bg-indigo-100 text-indigo-900 border-indigo-300 dark:bg-indigo-950/80 dark:text-indigo-200 dark:border-indigo-700' },
-  { id: '5_SUBMITTED', stepIndex: 5, label: 'Bid Submitted (e-Proc)', icon: Send, color: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-200 dark:border-emerald-700' },
-  { id: '6_TECHNICAL_EVAL', stepIndex: 6, label: 'Technical Scrutiny', icon: Activity, color: 'bg-cyan-100 text-cyan-900 border-cyan-300 dark:bg-cyan-950/80 dark:text-cyan-200 dark:border-cyan-700' },
-  { id: '7_FINANCIAL_OPENING', stepIndex: 7, label: 'Financial Opening (L1)', icon: BarChart3, color: 'bg-teal-100 text-teal-900 border-teal-300 dark:bg-teal-950/80 dark:text-teal-200 dark:border-teal-700' },
+  { id: '1_IDENTIFIED', stepIndex: 1, label: 'Identified / Discovered', icon: Search, color: 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-700' },
+  { id: '2_PRE_BID', stepIndex: 2, label: 'Pre-Bid & Queries', icon: Clock3, color: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700' },
+  { id: '3_JV_ALIGNMENT', stepIndex: 3, label: 'JV Alignment & Deed', icon: UserCheck, color: 'bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-700' },
+  { id: '4_EMD_COMPLIANCE', stepIndex: 4, label: 'EMD & Docs Prepared', icon: ShieldAlert, color: 'bg-indigo-100 text-indigo-900 border-indigo-300 dark:bg-indigo-950 dark:text-indigo-200 dark:border-indigo-700' },
+  { id: '5_SUBMITTED', stepIndex: 5, label: 'Bid Submitted (e-Proc)', icon: Send, color: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-700' },
+  { id: '6_TECHNICAL_EVAL', stepIndex: 6, label: 'Technical Scrutiny', icon: Activity, color: 'bg-cyan-100 text-cyan-900 border-cyan-300 dark:bg-cyan-950 dark:text-cyan-200 dark:border-cyan-700' },
+  { id: '7_FINANCIAL_OPENING', stepIndex: 7, label: 'Financial Opening (L1)', icon: BarChart3, color: 'bg-teal-100 text-teal-900 border-teal-300 dark:bg-teal-950 dark:text-teal-200 dark:border-teal-700' },
   { id: '8_AWARDED_WON', stepIndex: 8, label: 'Awarded / LoA (Won)', icon: Trophy, color: 'bg-emerald-600 text-white font-extrabold border-emerald-500 dark:bg-emerald-500 dark:text-slate-950' },
-  { id: '9_DROPPED', stepIndex: 9, label: 'Dropped / Regretted', icon: XCircle, color: 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/80 dark:text-rose-200 dark:border-rose-700' }
+  { id: '9_DROPPED', stepIndex: 9, label: 'Dropped / Regretted', icon: XCircle, color: 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-700' }
 ];
 
 export const INITIAL_TRACKED_TENDERS: TrackedTender[] = [
@@ -252,11 +252,10 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   const [selectedSector, setSelectedSector] = useState<string>('ALL');
   const [selectedStage, setSelectedStage] = useState<string>('ALL');
   const [selectedState, setSelectedState] = useState<string>('ALL');
-  const [viewMode, setViewMode] = useState<'board' | 'table' | 'master'>('board');
+  const [viewMode, setViewMode] = useState<'board' | 'table'>('board');
 
   // Modal State for Updating Status
   const [editingTender, setEditingTender] = useState<TrackedTender | null>(null);
-  const [modalTab, setModalTab] = useState<'stage' | 'emd' | 'logs'>('stage');
   const [updateStage, setUpdateStage] = useState<TrackedTender['stage']>('1_IDENTIFIED');
   const [updateQuotedCost, setUpdateQuotedCost] = useState<number>(0);
   const [updateEMDStatus, setUpdateEMDStatus] = useState<TrackedTender['emd_status']>('Pending');
@@ -276,7 +275,6 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
   const handleOpenUpdateModal = (tender: TrackedTender) => {
     setEditingTender(tender);
-    setModalTab('stage');
     setUpdateStage(tender.stage);
     setUpdateQuotedCost(tender.quoted_bid_cost_cr || tender.estimated_cost_cr);
     setUpdateEMDStatus(tender.emd_status);
@@ -418,24 +416,24 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-12 animate-fadeIn text-slate-900 dark:text-slate-100 font-sans">
-      {/* ─── HEADER BANNER & KPI STATS ────────────────────────────────────────── */}
-      <div className="glass-card bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-950 text-white p-6 sm:p-7 rounded-3xl shadow-2xl relative overflow-hidden border border-emerald-900/40">
+      {/* ─── SOLID HIGH-CONTRAST TOP BANNER ───────────────────────────────────── */}
+      <div className="bg-[#064e3b] dark:bg-[#06172e] text-white p-6 sm:p-7 rounded-3xl shadow-2xl relative overflow-hidden border border-emerald-700 dark:border-slate-800">
         <div className="absolute right-0 top-0 opacity-15 pointer-events-none transform translate-x-12 -translate-y-8">
-          <Layers className="w-96 h-96 text-emerald-400" />
+          <Layers className="w-96 h-96 text-emerald-300" />
         </div>
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 tracking-wider">
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-400/30 text-emerald-200 border border-emerald-300/40 tracking-wider">
                 ⚡ DYNAMIC BIDDING TRACKER & PIPELINE
               </span>
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
-            <h1 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+            <h1 className="font-display text-2xl sm:text-4xl font-black tracking-tight text-white">
               Pan-India Tender Bidding Dashboard
             </h1>
-            <p className="text-xs sm:text-sm text-slate-200 max-w-2xl font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm text-emerald-100 dark:text-slate-200 max-w-2xl font-bold leading-relaxed">
               Track open tenders selected across India, manage EMD/BG instruments, log professional stage transitions, and analyze win margins.
             </p>
           </div>
@@ -444,7 +442,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             {onNavigateTab && (
               <button
                 onClick={() => onNavigateTab('india_tenders')}
-                className="flex items-center space-x-2 px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition-all shadow-lg shadow-emerald-900/40 hover:scale-[1.02] cursor-pointer"
+                className="flex items-center space-x-2 px-5 py-3 rounded-2xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-black transition-all shadow-lg shadow-emerald-950/40 hover:scale-[1.02] cursor-pointer"
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
                 <span>Select Pan-India Tenders</span>
@@ -452,7 +450,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             )}
             <button
               onClick={handleExportCSV}
-              className="flex items-center space-x-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/30 transition cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>Export CSV Report</span>
@@ -460,56 +458,56 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
           </div>
         </div>
 
-        {/* Top KPI Cards with High Contrast Text */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 mt-6 border-t border-white/15">
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white">
-            <div className="flex items-center justify-between text-slate-200 text-xs font-bold mb-1">
+        {/* Top KPI Cards with Solid Dark Backgrounds & Bright Text */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 mt-6 border-t border-white/20">
+          <div className="p-4 rounded-2xl bg-[#022c22] dark:bg-slate-800/90 border border-emerald-500/40 dark:border-slate-700 text-white shadow-md">
+            <div className="flex items-center justify-between text-emerald-200 dark:text-slate-300 text-xs font-extrabold mb-1">
               <span>Total Pipeline Value</span>
               <IndianRupee className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-black font-mono text-white tracking-tight">
               ₹{kpis.totalPipelineValueCr.toFixed(2)} Cr
             </div>
-            <div className="text-[11px] text-emerald-300 font-bold font-mono mt-1">
+            <div className="text-[11px] text-emerald-300 font-extrabold font-mono mt-1">
               Across {kpis.totalCount} selected tenders
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white">
-            <div className="flex items-center justify-between text-slate-200 text-xs font-bold mb-1">
+          <div className="p-4 rounded-2xl bg-[#022c22] dark:bg-slate-800/90 border border-emerald-500/40 dark:border-slate-700 text-white shadow-md">
+            <div className="flex items-center justify-between text-cyan-200 dark:text-slate-300 text-xs font-extrabold mb-1">
               <span>Bids Submitted</span>
-              <Send className="w-4 h-4 text-cyan-300" />
+              <Send className="w-4 h-4 text-cyan-400" />
             </div>
             <div className="text-2xl font-black font-mono text-white tracking-tight">
               {kpis.submittedCount} Tenders
             </div>
-            <div className="text-[11px] text-cyan-300 font-bold font-mono mt-1">
+            <div className="text-[11px] text-cyan-300 font-extrabold font-mono mt-1">
               Active e-Procurement bids
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white">
-            <div className="flex items-center justify-between text-slate-200 text-xs font-bold mb-1">
+          <div className="p-4 rounded-2xl bg-[#022c22] dark:bg-slate-800/90 border border-emerald-500/40 dark:border-slate-700 text-white shadow-md">
+            <div className="flex items-center justify-between text-amber-200 dark:text-slate-300 text-xs font-extrabold mb-1">
               <span>EMD & BG Locked</span>
-              <ShieldAlert className="w-4 h-4 text-amber-300" />
+              <ShieldAlert className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-2xl font-black font-mono text-white tracking-tight">
               ₹{kpis.emdLockedLakhs.toFixed(2)} L
             </div>
-            <div className="text-[11px] text-amber-300 font-bold font-mono mt-1">
+            <div className="text-[11px] text-amber-300 font-extrabold font-mono mt-1">
               Bank Guarantees & DDs
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white">
-            <div className="flex items-center justify-between text-slate-200 text-xs font-bold mb-1">
+          <div className="p-4 rounded-2xl bg-[#022c22] dark:bg-slate-800/90 border border-emerald-500/40 dark:border-slate-700 text-white shadow-md">
+            <div className="flex items-center justify-between text-emerald-200 dark:text-slate-300 text-xs font-extrabold mb-1">
               <span>Awarded / Won</span>
-              <Trophy className="w-4 h-4 text-emerald-300" />
+              <Trophy className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-black font-mono text-white tracking-tight">
               {kpis.wonCount} ({kpis.totalCount > 0 ? Math.round((kpis.wonCount / kpis.totalCount)*100) : 0}%)
             </div>
-            <div className="text-[11px] text-emerald-300 font-bold font-mono mt-1">
+            <div className="text-[11px] text-emerald-300 font-extrabold font-mono mt-1">
               ₹{kpis.wonValueCr.toFixed(2)} Cr Contract Value
             </div>
           </div>
@@ -517,20 +515,20 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
       </div>
 
       {/* ─── CONTROLS & HIGH-CONTRAST FILTERS ────────────────────────────────── */}
-      <div className="glass-card bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border-2 border-slate-300 dark:border-slate-800 shadow-sm space-y-4 text-slate-900 dark:text-slate-100">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Search Box */}
           <div className="relative w-full md:w-96">
-            <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500 dark:text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-600 dark:text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tender title, NIT, authority, city..."
-              className="w-full pl-10 pr-9 py-2.5 text-xs font-bold rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-10 pr-9 py-2.5 text-xs font-extrabold rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-600 dark:placeholder-slate-400 focus:outline-none focus:border-emerald-500"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-3 text-slate-400 hover:text-slate-700 dark:hover:text-white">
+              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-3 text-slate-500 hover:text-slate-900 dark:hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -542,7 +540,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             <select
               value={selectedSector}
               onChange={(e) => setSelectedSector(e.target.value)}
-              className="px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none cursor-pointer"
+              className="px-3.5 py-2.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-extrabold focus:outline-none cursor-pointer"
             >
               <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">All Sectors</option>
               <option value="JJM & Rural Water" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">JJM & Rural Water</option>
@@ -555,7 +553,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             <select
               value={selectedStage}
               onChange={(e) => setSelectedStage(e.target.value)}
-              className="px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none cursor-pointer"
+              className="px-3.5 py-2.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-extrabold focus:outline-none cursor-pointer"
             >
               <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">All Workflow Stages</option>
               {WORKFLOW_STAGES.map(s => (
@@ -564,16 +562,16 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             </select>
 
             {/* Layout Toggle */}
-            <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-300 dark:border-slate-700">
+            <div className="flex items-center rounded-xl bg-slate-200 dark:bg-slate-800 p-1 border border-slate-300 dark:border-slate-700">
               <button
                 onClick={() => setViewMode('board')}
-                className={`px-3 py-1.5 text-xs font-extrabold rounded-lg transition cursor-pointer ${viewMode === 'board' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-700 dark:text-slate-300'}`}
+                className={`px-3 py-1.5 text-xs font-black rounded-lg transition cursor-pointer ${viewMode === 'board' ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-800 dark:text-slate-200'}`}
               >
                 Kanban
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`px-3 py-1.5 text-xs font-extrabold rounded-lg transition cursor-pointer ${viewMode === 'table' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-700 dark:text-slate-300'}`}
+                className={`px-3 py-1.5 text-xs font-black rounded-lg transition cursor-pointer ${viewMode === 'table' ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-800 dark:text-slate-200'}`}
               >
                 Table List
               </button>
@@ -593,34 +591,34 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             return (
               <div 
                 key={stage.id}
-                className="flex flex-col rounded-2xl bg-slate-100/90 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 p-3.5 min-w-[290px] shadow-sm"
+                className="flex flex-col rounded-2xl bg-slate-100 dark:bg-[#0b1628] border-2 border-slate-300 dark:border-slate-800 p-4 min-w-[290px] shadow-sm"
               >
                 {/* Stage Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-slate-300 dark:border-slate-800 mb-3">
+                <div className="flex items-center justify-between pb-3 border-b-2 border-slate-300 dark:border-slate-800 mb-3">
                   <div className="flex items-center space-x-2">
-                    <div className={`p-1.5 rounded-lg border font-bold ${stage.color}`}>
+                    <div className={`p-1.5 rounded-lg border font-extrabold ${stage.color}`}>
                       <StageIcon className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
+                      <h3 className="text-xs font-black text-slate-900 dark:text-white">
                         {stage.label}
                       </h3>
-                      <span className="text-[10px] text-slate-600 dark:text-slate-300 font-mono font-bold">
+                      <span className="text-[10px] text-slate-700 dark:text-slate-300 font-mono font-extrabold">
                         {stageTenders.length} {stageTenders.length === 1 ? 'tender' : 'tenders'}
                       </span>
                     </div>
                   </div>
                   {totalStageValCr > 0 && (
-                    <span className="text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    <span className="text-[11px] font-mono font-black px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                       ₹{totalStageValCr.toFixed(1)} Cr
                     </span>
                   )}
                 </div>
 
                 {/* Cards Container */}
-                <div className="space-y-3 flex-1 overflow-y-auto max-h-[650px] pr-1">
+                <div className="space-y-3.5 flex-1 overflow-y-auto max-h-[650px] pr-1">
                   {stageTenders.length === 0 ? (
-                    <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-800 text-center text-slate-500 dark:text-slate-400 text-xs py-10 font-bold">
+                    <div className="p-4 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-800 text-center text-slate-600 dark:text-slate-400 text-xs py-10 font-extrabold bg-white/50 dark:bg-slate-900/40">
                       No tenders in this stage
                     </div>
                   ) : (
@@ -631,44 +629,44 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                       return (
                         <div
                           key={tender.id}
-                          className="glass-card bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl transition duration-200 space-y-3.5 group relative"
+                          className="bg-white dark:bg-[#111e36] p-4.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-xl hover:border-emerald-500 dark:hover:border-emerald-400 transition-all duration-200 space-y-3.5 group relative"
                         >
                           {/* Top Bar: NIT & State */}
-                          <div className="flex items-center justify-between text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-300">
-                            <span className="truncate max-w-[170px] bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                          <div className="flex items-center justify-between text-[10px] font-mono font-black text-emerald-900 dark:text-emerald-300">
+                            <span className="truncate max-w-[170px] bg-emerald-100 dark:bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-800">
                               {tender.nit_number}
                             </span>
-                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold shrink-0 border border-slate-200 dark:border-slate-600">
+                            <span className="px-2.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-black shrink-0 border border-slate-400 dark:border-slate-600">
                               {tender.state}
                             </span>
                           </div>
 
                           {/* Tender Title & Authority with Crisp High-Contrast Text */}
                           <div>
-                            <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition">
+                            <h4 className="text-xs font-black text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition">
                               {tender.title}
                             </h4>
-                            <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-1 flex items-center space-x-1">
-                              <Building2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
+                            <p className="text-[11px] text-slate-800 dark:text-slate-200 font-bold mt-1.5 flex items-center space-x-1">
+                              <Building2 className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400 shrink-0" />
                               <span className="truncate">{tender.authority}</span>
                             </p>
                           </div>
 
                           {/* Financial Metric Box */}
-                          <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-750 text-xs">
+                          <div className="grid grid-cols-2 gap-2.5 p-3 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs">
                             <div>
-                              <span className="text-[9px] font-mono text-slate-600 dark:text-slate-400 font-bold block uppercase">
+                              <span className="text-[9px] font-mono text-slate-700 dark:text-slate-300 font-black block uppercase">
                                 Est. Value
                               </span>
-                              <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">
+                              <span className="font-black text-slate-900 dark:text-white font-mono text-sm">
                                 ₹{tender.estimated_cost_cr} Cr
                               </span>
                             </div>
                             <div>
-                              <span className="text-[9px] font-mono text-slate-600 dark:text-slate-400 font-bold block uppercase">
+                              <span className="text-[9px] font-mono text-slate-700 dark:text-slate-300 font-black block uppercase">
                                 EMD Deposit
                               </span>
-                              <span className="font-extrabold text-amber-800 dark:text-amber-300 font-mono text-sm">
+                              <span className="font-black text-amber-900 dark:text-amber-300 font-mono text-sm">
                                 ₹{tender.emd_lakhs} L
                               </span>
                             </div>
@@ -676,13 +674,13 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
                           {/* Progress Meter Bar */}
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center justify-between text-[10px] font-black text-slate-900 dark:text-slate-100">
                               <span>Win Probability</span>
-                              <span className="font-mono text-emerald-700 dark:text-emerald-400 font-extrabold">{tender.win_probability_pct}%</span>
+                              <span className="font-mono text-emerald-800 dark:text-emerald-300 font-black">{tender.win_probability_pct}%</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                               <div 
-                                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                                className="h-full bg-gradient-to-r from-emerald-600 to-teal-400 rounded-full transition-all duration-500"
                                 style={{ width: `${tender.win_probability_pct}%` }}
                               />
                             </div>
@@ -690,36 +688,36 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
                           {/* EMD Badge & Lead Officer */}
                           <div className="flex items-center justify-between text-[11px] font-bold pt-1">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold border ${
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black border ${
                               tender.emd_status === 'Paid (DD/BG Issued)' 
-                                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                                : 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                                ? 'bg-emerald-100 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                                : 'bg-amber-100 text-amber-950 dark:bg-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-800'
                             }`}>
                               EMD: {tender.emd_status}
                             </span>
 
-                            <span className="text-slate-800 dark:text-slate-200 font-bold truncate max-w-[120px]">
+                            <span className="text-slate-900 dark:text-white font-black truncate max-w-[120px]">
                               👤 {tender.assigned_lead.split(' ')[0]}
                             </span>
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2">
+                          <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
                             <button
                               onClick={() => handleOpenUpdateModal(tender)}
-                              className="flex-1 flex items-center justify-center space-x-1.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 dark:bg-emerald-950/80 dark:hover:bg-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 text-xs font-extrabold transition cursor-pointer"
+                              className="flex-1 flex items-center justify-center space-x-1.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-xs font-black transition cursor-pointer shadow-xs"
                             >
-                              <Edit3 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-300" />
+                              <Edit3 className="w-3.5 h-3.5 text-white" />
                               <span>Update Status & Notes</span>
                             </button>
 
                             {currStageIndex < WORKFLOW_STAGES.length - 2 && !isWinning && (
                               <button
                                 onClick={(e) => handleAdvanceNextStage(tender, e)}
-                                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 transition cursor-pointer"
+                                className="p-2 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-emerald-600 hover:text-white text-slate-900 dark:text-slate-100 transition cursor-pointer font-black"
                                 title="Advance to Next Stage"
                               >
-                                <ArrowRight className="w-4 h-4" />
+                                <ArrowRight className="w-4 h-4 stroke-[3]" />
                               </button>
                             )}
                           </div>
@@ -736,11 +734,11 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
       {/* ─── HIGH-CONTRAST TABLE VIEW ────────────────────────────────────────── */}
       {viewMode === 'table' && (
-        <div className="glass-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-300 dark:border-slate-800 shadow-md overflow-hidden text-slate-900 dark:text-slate-100">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-200 font-mono text-[10px] uppercase tracking-wider font-extrabold">
+                <tr className="bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-[10px] uppercase tracking-wider font-black">
                   <th className="p-4">NIT & Title</th>
                   <th className="p-4">Authority & Location</th>
                   <th className="p-4">Sector</th>
@@ -751,10 +749,10 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-900 dark:text-slate-100">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-900 dark:text-slate-100">
                 {filteredTenders.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-slate-500 dark:text-slate-400 font-bold">
+                    <td colSpan={8} className="p-8 text-center text-slate-600 dark:text-slate-400 font-black">
                       No matching tender bidding trackers found.
                     </td>
                   </tr>
@@ -762,39 +760,39 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                   filteredTenders.map(t => {
                     const stageObj = WORKFLOW_STAGES.find(s => s.id === t.stage);
                     return (
-                      <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                      <tr key={t.id} className="hover:bg-slate-100 dark:hover:bg-slate-800/80 transition">
                         <td className="p-4 max-w-xs">
-                          <div className="font-mono text-[10px] font-bold text-emerald-800 dark:text-emerald-300">{t.nit_number}</div>
-                          <div className="font-bold text-slate-900 dark:text-white line-clamp-1 mt-0.5">{t.title}</div>
+                          <div className="font-mono text-[10px] font-black text-emerald-900 dark:text-emerald-300">{t.nit_number}</div>
+                          <div className="font-black text-slate-900 dark:text-white line-clamp-1 mt-0.5">{t.title}</div>
                         </td>
                         <td className="p-4 max-w-xs">
-                          <div className="font-bold text-slate-900 dark:text-slate-100 truncate">{t.authority}</div>
-                          <div className="text-[10px] text-slate-600 dark:text-slate-300 font-semibold">{t.district}, {t.state}</div>
+                          <div className="font-black text-slate-900 dark:text-white truncate">{t.authority}</div>
+                          <div className="text-[10px] text-slate-700 dark:text-slate-300 font-bold">{t.district}, {t.state}</div>
                         </td>
                         <td className="p-4">
-                          <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                          <span className="px-2.5 py-1 rounded-md text-[10px] font-black bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700">
                             {t.sector}
                           </span>
                         </td>
-                        <td className="p-4 font-mono font-extrabold text-slate-900 dark:text-white text-sm">
+                        <td className="p-4 font-mono font-black text-slate-900 dark:text-white text-sm">
                           ₹{t.estimated_cost_cr} Cr
                         </td>
                         <td className="p-4">
-                          <div className="font-mono font-extrabold text-amber-800 dark:text-amber-300 text-sm">₹{t.emd_lakhs} L</div>
-                          <div className="text-[10px] text-slate-600 dark:text-slate-300 font-bold">{t.emd_status}</div>
+                          <div className="font-mono font-black text-amber-900 dark:text-amber-300 text-sm">₹{t.emd_lakhs} L</div>
+                          <div className="text-[10px] text-slate-800 dark:text-slate-200 font-extrabold">{t.emd_status}</div>
                         </td>
                         <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-xl text-[10px] font-extrabold border ${stageObj?.color || ''}`}>
+                          <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black border ${stageObj?.color || ''}`}>
                             {stageObj?.label || t.stage}
                           </span>
                         </td>
-                        <td className="p-4 font-bold text-slate-900 dark:text-slate-100">
+                        <td className="p-4 font-black text-slate-900 dark:text-white">
                           {t.assigned_lead}
                         </td>
                         <td className="p-4 text-right">
                           <button
                             onClick={() => handleOpenUpdateModal(t)}
-                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition cursor-pointer"
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-xs transition cursor-pointer"
                           >
                             Update Status
                           </button>
@@ -811,23 +809,23 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
       {/* ─── STATUS UPDATE & AUDIT LOG MODAL ──────────────────────────────────── */}
       {editingTender && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="glass-card bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden my-8">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl border-2 border-slate-300 dark:border-slate-700 shadow-2xl overflow-hidden my-8 text-slate-900 dark:text-slate-100">
             {/* Modal Header */}
-            <div className="p-6 bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-950 text-white flex items-start justify-between">
+            <div className="p-6 bg-[#064e3b] dark:bg-[#06172e] text-white flex items-start justify-between">
               <div className="space-y-1">
-                <span className="text-[10px] font-mono font-extrabold uppercase px-2.5 py-0.5 rounded bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                <span className="text-[10px] font-mono font-black uppercase px-2.5 py-0.5 rounded bg-emerald-400/30 text-emerald-200 border border-emerald-300/40">
                   {editingTender.nit_number}
                 </span>
-                <h3 className="text-base font-extrabold text-white mt-1 line-clamp-1">
+                <h3 className="text-base font-black text-white mt-1 line-clamp-1">
                   {editingTender.title}
                 </h3>
-                <p className="text-xs text-slate-300 font-medium">
+                <p className="text-xs text-emerald-100 dark:text-slate-200 font-bold">
                   {editingTender.authority} • Est: ₹{editingTender.estimated_cost_cr} Cr
                 </p>
               </div>
-              <button onClick={() => setEditingTender(null)} className="p-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition">
-                <X className="w-5 h-5" />
+              <button onClick={() => setEditingTender(null)} className="p-1.5 rounded-xl text-white hover:bg-white/20 transition">
+                <X className="w-5 h-5 stroke-[2.5]" />
               </button>
             </div>
 
@@ -836,40 +834,40 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Workflow Stage */}
                 <div>
-                  <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                  <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                     Procurement Workflow Stage *
                   </label>
                   <select
                     value={updateStage}
                     onChange={(e) => setUpdateStage(e.target.value as TrackedTender['stage'])}
-                    className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full text-xs font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                   >
                     {WORKFLOW_STAGES.map(s => (
-                      <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{s.label}</option>
+                      <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">{s.label}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* EMD Deposit Status */}
                 <div>
-                  <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                  <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                     EMD Deposit Status
                   </label>
                   <select
                     value={updateEMDStatus}
                     onChange={(e) => setUpdateEMDStatus(e.target.value as TrackedTender['emd_status'])}
-                    className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full text-xs font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                   >
-                    <option value="Pending" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Pending EMD Payment</option>
-                    <option value="Paid (DD/BG Issued)" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Paid (DD / BG Issued)</option>
-                    <option value="Exempted" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Exempted under MSME / Class-A</option>
-                    <option value="Refunded" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Refunded by Department</option>
+                    <option value="Pending" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Pending EMD Payment</option>
+                    <option value="Paid (DD/BG Issued)" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Paid (DD / BG Issued)</option>
+                    <option value="Exempted" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Exempted under MSME / Class-A</option>
+                    <option value="Refunded" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Refunded by Department</option>
                   </select>
                 </div>
 
                 {/* Quoted Bid Cost */}
                 <div>
-                  <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                  <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                     Quoted Bid Amount (₹ Crores)
                   </label>
                   <input
@@ -877,13 +875,13 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                     step="0.01"
                     value={updateQuotedCost}
                     onChange={(e) => setUpdateQuotedCost(Number(e.target.value))}
-                    className="w-full text-xs font-mono font-extrabold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full text-xs font-mono font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
 
                 {/* EMD Instrument Number */}
                 <div>
-                  <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                  <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                     EMD DD / Bank Guarantee No.
                   </label>
                   <input
@@ -891,32 +889,32 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                     value={updateEMDInst}
                     onChange={(e) => setUpdateEMDInst(e.target.value)}
                     placeholder="e.g. BG-KOTAK-99210-2026"
-                    className="w-full text-xs font-mono font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full text-xs font-mono font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
 
                 {/* Assigned Department */}
                 <div>
-                  <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                  <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                     Assigned Department
                   </label>
                   <select
                     value={updateDept}
                     onChange={(e) => setUpdateDept(e.target.value as DepartmentRole)}
-                    className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full text-xs font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                   >
-                    <option value="Tender Team" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Tender Team</option>
-                    <option value="Estimation Team" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Estimation Team</option>
-                    <option value="Engineering" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Engineering</option>
-                    <option value="Business Development" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Business Development</option>
-                    <option value="Management" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Management</option>
-                    <option value="Finance" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">Finance</option>
+                    <option value="Tender Team" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Tender Team</option>
+                    <option value="Estimation Team" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Estimation Team</option>
+                    <option value="Engineering" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Engineering</option>
+                    <option value="Business Development" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Business Development</option>
+                    <option value="Management" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Management</option>
+                    <option value="Finance" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold">Finance</option>
                   </select>
                 </div>
 
                 {/* Assigned Lead */}
                 <div>
-                  <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                  <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                     Assigned Lead Officer
                   </label>
                   <input
@@ -924,14 +922,14 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                     value={updateLead}
                     onChange={(e) => setUpdateLead(e.target.value)}
                     placeholder="e.g. Ankit Purohit (Head Tender)"
-                    className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                    className="w-full text-xs font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Remarks */}
               <div>
-                <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                   Current Tender Status Summary & Remarks
                 </label>
                 <textarea
@@ -939,13 +937,13 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                   value={updateRemarks}
                   onChange={(e) => setUpdateRemarks(e.target.value)}
                   placeholder="Enter current status summary..."
-                  className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                  className="w-full text-xs font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               {/* Audit Log Note */}
               <div>
-                <label className="text-xs font-extrabold text-slate-900 dark:text-slate-100 block mb-1">
+                <label className="text-xs font-black text-slate-900 dark:text-white block mb-1">
                   Add Timestamped Audit Log Entry
                 </label>
                 <input
@@ -953,42 +951,42 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                   value={updateNotes}
                   onChange={(e) => setUpdateNotes(e.target.value)}
                   placeholder="e.g. Uploaded digitally signed financial proposal to e-procurement portal."
-                  className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
+                  className="w-full text-xs font-black px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               {/* Previous Audit Logs History */}
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                <h4 className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center space-x-1.5">
-                  <Activity className="w-4 h-4 text-emerald-500" />
+              <div className="pt-3 border-t-2 border-slate-200 dark:border-slate-800 space-y-2">
+                <h4 className="text-xs font-black text-slate-900 dark:text-white flex items-center space-x-1.5">
+                  <Activity className="w-4 h-4 text-emerald-600" />
                   <span>Audit History & Status Log</span>
                 </h4>
                 <div className="space-y-2 max-h-36 overflow-y-auto text-xs pr-1">
                   {editingTender.audit_logs.map((log, idx) => (
-                    <div key={idx} className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100">
-                      <div className="flex items-center justify-between text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 mb-1">
-                        <span className="font-extrabold text-emerald-700 dark:text-emerald-300">{log.actor} ({log.role})</span>
+                    <div key={idx} className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white">
+                      <div className="flex items-center justify-between text-[10px] font-mono font-black text-slate-700 dark:text-slate-300 mb-1">
+                        <span className="font-black text-emerald-800 dark:text-emerald-300">{log.actor} ({log.role})</span>
                         <span>{log.timestamp}</span>
                       </div>
-                      <div className="font-extrabold text-xs text-slate-900 dark:text-white">{log.action}</div>
-                      <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5">{log.notes}</p>
+                      <div className="font-black text-xs text-slate-900 dark:text-white">{log.action}</div>
+                      <p className="text-[11px] text-slate-800 dark:text-slate-200 font-bold mt-0.5">{log.notes}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="pt-4 flex items-center justify-end space-x-3 border-t-2 border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setEditingTender(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                  className="px-4 py-2.5 rounded-xl text-xs font-black text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg shadow-emerald-900/30 cursor-pointer flex items-center space-x-1.5"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Save Status Update</span>
