@@ -42,7 +42,12 @@ import {
   Users,
   ChevronDown,
   FileSpreadsheet,
-  CheckSquare
+  CheckSquare,
+  Globe2,
+  Radio,
+  RefreshCw,
+  Play,
+  Square
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
 import { NavTab } from './Sidebar';
@@ -219,6 +224,9 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   const [activeSubView, setActiveSubView] = useState<SubViewType>('overall');
   const [trackerTenders, setTrackerTenders] = useState<TrackedTender[]>(propTenders || INITIAL_TRACKED_TENDERS);
 
+  // Dynamic Overall Tenders with Live Govt Portal Ingestion
+  const [allOverallTenders, setAllOverallTenders] = useState<any[]>(overallTendersRaw as any[]);
+
   // Overall Tenders Filters & Pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedState, setSelectedState] = useState('ALL');
@@ -231,9 +239,114 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   // Selected tender for details modal (bidders, etc.)
   const [inspectingTender, setInspectingTender] = useState<any | null>(null);
 
+  // ─── GOVERNMENT PORTALS SCANNER MODAL STATE ───────────────────────────
+  const [showGovtScannerModal, setShowGovtScannerModal] = useState(false);
+  const [isScanningGovtPortals, setIsScanningGovtPortals] = useState(false);
+  const [scannerStates, setScannerStates] = useState<string[]>(['Rajasthan', 'Haryana', 'Uttar Pradesh']);
+  const [scannerKeywords, setScannerKeywords] = useState<string[]>([
+    'Solar', 'STP or treatment', 'Water Supply', 'Sewerage', 'JJM', 'Irrigation', 'SCADA'
+  ]);
+  const [customKeywordInput, setCustomKeywordInput] = useState('');
+  const [minThresholdCr, setMinThresholdCr] = useState<number>(10.0);
+  const [discoveredScanResults, setDiscoveredScanResults] = useState<any[]>([]);
+  const [scanStatusMessage, setScanStatusMessage] = useState<string>('');
+  const [scanError, setScanError] = useState<string>('');
+
+  const AVAILABLE_GOVT_PORTALS = [
+    { name: 'Rajasthan', url: 'https://eproc.rajasthan.gov.in/nicgep/app' },
+    { name: 'Haryana', url: 'https://etenders.hry.nic.in/nicgep/app' },
+    { name: 'Uttar Pradesh', url: 'https://etender.up.nic.in/nicgep/app' },
+    { name: 'Madhya Pradesh', url: 'https://mptenders.gov.in/nicgep/app' },
+    { name: 'Delhi', url: 'https://govtprocurement.delhi.gov.in/nicgep/app' },
+    { name: 'Maharashtra', url: 'https://mahatenders.gov.in/nicgep/app' },
+    { name: 'Punjab', url: 'https://eproc.punjab.gov.in/nicgep/app' },
+    { name: 'Odisha', url: 'https://tendersodisha.gov.in/nicgep/app' },
+    { name: 'Tamil Nadu', url: 'https://tntenders.gov.in/nicgep/app' },
+    { name: 'Central (All India)', url: 'https://etenders.gov.in/eprocure/app' }
+  ];
+
+  const KEYWORD_GROUP_PRESETS: Record<string, string[]> = {
+    'Water Supply & JJM': ['Water Supply', 'Supply Scheme', 'RWSS', 'UWSS', 'WSS', 'Drinking Water', 'JJM', 'Turnkey', 'Augmentation', 'Amrut', 'Tubewell', 'Intake Well'],
+    'STP & Wastewater': ['STP or treatment', 'FSTP', 'Sewerage', 'Sewer', 'Reuse', 'SBM', 'Swachh bharat mission', 'waste', 'CETP OR ETP', 'ZLD', 'TTP'],
+    'Solar & Renewable': ['SOLAR', 'Solar Energy Based', 'Solar Based', 'SPV', 'Dual Pumps', 'Solar Pumps', 'Pumping System', 'Solar Based Micro Irrigation', 'REIL (CPPP)'],
+    'Irrigation & Canal': ['Irrigation', 'Lift Irrigation', 'Micro Irrigation', 'PDN, PIPE DISTRIBUTION NETWORK', 'Canal'],
+    'SCADA & Automation': ['SCADA', 'Automation', 'PLC', 'Centralized Water Management', 'IOT Based'],
+    'ESCO & Efficiency': ['ESCO', 'Energy Efficient', 'PPP Model', 'Pumps']
+  };
+
+  const handleRunLivePortalScan = async () => {
+    if (scannerStates.length === 0) {
+      setScanError('Please select at least one State Portal.');
+      return;
+    }
+    if (scannerKeywords.length === 0) {
+      setScanError('Please select or enter at least one keyword.');
+      return;
+    }
+
+    setIsScanningGovtPortals(true);
+    setScanError('');
+    setDiscoveredScanResults([]);
+    setScanStatusMessage(`Connecting to ${scannerStates.join(', ')} portals with ${scannerKeywords.length} keywords (Threshold ≥ ₹${minThresholdCr} Cr)...`);
+
+    try {
+      const res = await fetch('/api/v1/scraper/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          states: scannerStates,
+          keywords: scannerKeywords,
+          min_value_cr: minThresholdCr,
+          max_per_kw: 6,
+          auto_update_tracker: true
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`Scraper returned status ${res.status}`);
+      }
+
+      const data = await res.json();
+      const discovered = data.tenders || [];
+      setDiscoveredScanResults(discovered);
+
+      if (discovered.length > 0) {
+        setScanStatusMessage(`Scan Complete: Found ${discovered.length} high-value tenders (≥ ₹${minThresholdCr} Cr). Automatically updated Tracker!`);
+        // Merge into local allOverallTenders state immediately
+        setAllOverallTenders(prev => {
+          const existingIds = new Set(prev.map(t => t.tender_id));
+          const newOnes = discovered.filter((t: any) => !existingIds.has(t.tender_id));
+          return [...newOnes, ...prev];
+        });
+      } else {
+        setScanStatusMessage(`Scan Complete: All active tenders found in this cycle had value < ₹${minThresholdCr} Cr (filtered out by your rule).`);
+      }
+    } catch (err: any) {
+      setScanError(`Scan Error: ${err.message || 'Failed to connect to government portals'}`);
+    } finally {
+      setIsScanningGovtPortals(false);
+    }
+  };
+
+  const toggleScannerState = (stateName: string) => {
+    setScannerStates(prev => 
+      prev.includes(stateName) ? prev.filter(s => s !== stateName) : [...prev, stateName]
+    );
+  };
+
+  const toggleScannerKeyword = (kw: string) => {
+    setScannerKeywords(prev => 
+      prev.includes(kw) ? prev.filter(k => k !== kw) : [...prev, kw]
+    );
+  };
+
+  const addPresetKeywords = (kws: string[]) => {
+    setScannerKeywords(prev => Array.from(new Set([...prev, ...kws])));
+  };
+
   // Filter Overall Tenders
   const filteredOverallTenders = useMemo(() => {
-    return (overallTendersRaw as any[]).filter(t => {
+    return allOverallTenders.filter(t => {
       // Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -355,7 +468,14 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 self-start sm:self-auto shrink-0">
+        <div className="flex items-center space-x-2 self-start sm:self-auto shrink-0 flex-wrap gap-y-2">
+          <button
+            onClick={() => setShowGovtScannerModal(true)}
+            className="px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-bold flex items-center space-x-2 shadow-lg shadow-emerald-500/25 transition-all cursor-pointer"
+          >
+            <Globe2 className="w-4 h-4 text-emerald-950 animate-pulse" />
+            <span>Scan Govt Portals (≥ ₹10 Cr)</span>
+          </button>
           <button
             onClick={() => handleExportCSV(filteredOverallTenders, 'Desire_Tender_Tracker_Export')}
             className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 text-xs font-semibold flex items-center space-x-2 transition-all cursor-pointer"
@@ -380,7 +500,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
         <div className="glass-card bg-white dark:bg-[#0b1426] p-4 rounded-xl border border-slate-200 dark:border-slate-800">
           <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase">Master Tenders</div>
           <div className="text-xl font-bold text-slate-900 dark:text-white mt-1">
-            {(trackerSummaryRaw as any).total_tenders?.toLocaleString() || '2,954'}
+            {allOverallTenders.length.toLocaleString()}
           </div>
           <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">₹4,17,258 Cr Total Value</div>
         </div>
@@ -1288,6 +1408,303 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ─── MODAL: GOVERNMENT PORTALS LIVE SCANNER ─────────────────── */}
+      {showGovtScannerModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-[#0b1426] w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 my-8">
+            {/* Modal Header */}
+            <div className="p-6 bg-gradient-to-r from-[#064e3b] via-[#047857] to-[#0f766e] text-white flex items-start justify-between">
+              <div>
+                <div className="flex items-center space-x-2 text-xs font-mono text-emerald-200 uppercase font-semibold">
+                  <Globe2 className="w-4 h-4 animate-spin-slow" />
+                  <span>State Government GePNIC Portal Ingestion Engine</span>
+                </div>
+                <h3 className="text-xl font-bold mt-1">
+                  Live Government Tender Scanner
+                </h3>
+                <p className="text-xs text-emerald-100/80 mt-1 max-w-xl">
+                  Automated query against state e-Procurement portals. Extracts tender details, parses values, and enforces your strict rule: <b>Tender Value &ge; ₹10 Crores</b>.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowGovtScannerModal(false)}
+                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+              {/* Step 1: Select State Portals */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                    <span>1. Target Government Portals ({scannerStates.length} Selected)</span>
+                  </label>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => setScannerStates(AVAILABLE_GOVT_PORTALS.map(p => p.name))}
+                      className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-slate-400">•</span>
+                    <button
+                      onClick={() => setScannerStates(['Rajasthan', 'Haryana', 'Uttar Pradesh'])}
+                      className="text-[11px] font-semibold text-slate-500 hover:underline cursor-pointer"
+                    >
+                      Reset (Top 3)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                  {AVAILABLE_GOVT_PORTALS.map(portal => {
+                    const isSelected = scannerStates.includes(portal.name);
+                    return (
+                      <button
+                        key={portal.name}
+                        onClick={() => toggleScannerState(portal.name)}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-900 dark:text-emerald-200 shadow-sm'
+                            : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold">{portal.name}</span>
+                          {isSelected ? (
+                            <CheckSquare className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          ) : (
+                            <Square className="w-3.5 h-3.5 text-slate-400" />
+                          )}
+                        </div>
+                        <span className="text-[9px] font-mono text-slate-400 truncate mt-1">
+                          {portal.url.replace('https://', '').split('/')[0]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step 2: Keywords Configuration */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    2. Operational Search Keywords ({scannerKeywords.length} Active)
+                  </label>
+                  <span className="text-[11px] text-slate-500">
+                    From your <i>Tender Keywords.xlsx</i> protocol
+                  </span>
+                </div>
+
+                {/* Preset Category Buttons */}
+                <div className="flex flex-wrap gap-1.5">
+                  {Object.entries(KEYWORD_GROUP_PRESETS).map(([groupName, kws]) => (
+                    <button
+                      key={groupName}
+                      onClick={() => addPresetKeywords(kws)}
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-300 transition-all cursor-pointer flex items-center space-x-1"
+                    >
+                      <Plus className="w-3 h-3 text-emerald-600" />
+                      <span>{groupName} ({kws.length})</span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const all = Object.values(KEYWORD_GROUP_PRESETS).flat();
+                      setScannerKeywords(Array.from(new Set(all)));
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950 dark:hover:bg-emerald-900 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 transition-all cursor-pointer"
+                  >
+                    Load All 50 Keywords
+                  </button>
+                </div>
+
+                {/* Active Keywords Tags */}
+                <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-1.5 min-h-[50px] max-h-36 overflow-y-auto">
+                  {scannerKeywords.map(kw => (
+                    <span
+                      key={kw}
+                      className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 font-medium"
+                    >
+                      <span>{kw}</span>
+                      <button
+                        onClick={() => toggleScannerKeyword(kw)}
+                        className="text-slate-400 hover:text-rose-500 cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+
+                {/* Custom Keyword Input */}
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={customKeywordInput}
+                    onChange={(e) => setCustomKeywordInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && customKeywordInput.trim()) {
+                        e.preventDefault();
+                        if (!scannerKeywords.includes(customKeywordInput.trim())) {
+                          setScannerKeywords([...scannerKeywords, customKeywordInput.trim()]);
+                        }
+                        setCustomKeywordInput('');
+                      }
+                    }}
+                    placeholder="Type custom keyword and press Enter (e.g., CETP, Micro Irrigation, AMRUT)..."
+                    className="flex-1 px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button
+                    onClick={() => {
+                      if (customKeywordInput.trim() && !scannerKeywords.includes(customKeywordInput.trim())) {
+                        setScannerKeywords([...scannerKeywords, customKeywordInput.trim()]);
+                        setCustomKeywordInput('');
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Step 3: Value Threshold Filter */}
+              <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <div className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                    Minimum Tender Value Rule
+                  </div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                    Tenders with estimated value below this amount will be automatically discarded.
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">&ge; ₹</span>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    max="1000"
+                    value={minThresholdCr}
+                    onChange={(e) => setMinThresholdCr(parseFloat(e.target.value) || 10.0)}
+                    className="w-20 px-2 py-1.5 rounded-lg text-sm font-bold text-center bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Crores</span>
+                </div>
+              </div>
+
+              {/* Live Status and Execution Bar */}
+              {scanStatusMessage && (
+                <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-800 dark:text-slate-200 flex items-center space-x-2">
+                  {isScanningGovtPortals ? (
+                    <RefreshCw className="w-4 h-4 text-emerald-500 animate-spin shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  )}
+                  <span>{scanStatusMessage}</span>
+                </div>
+              )}
+
+              {scanError && (
+                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{scanError}</span>
+                </div>
+              )}
+
+              {/* Discovered Tenders Results Table */}
+              {discoveredScanResults.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase text-emerald-600 dark:text-emerald-400">
+                      Discovered High-Value Tenders (&ge; ₹{minThresholdCr} Cr) ({discoveredScanResults.length})
+                    </span>
+                    <span className="text-[11px] text-slate-400">Merged into Tracker</span>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
+                    {discoveredScanResults.map((item, idx) => (
+                      <div key={idx} className="p-3 bg-white dark:bg-slate-900 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-850">
+                        <div className="space-y-1 max-w-xl">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
+                              {item.tender_id}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                              {item.state}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                              {item.sector}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-700 dark:text-slate-300 line-clamp-1">
+                            {item.title}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            Due: {item.due_date || 'N/A'} • Dept: {item.department}
+                          </div>
+                        </div>
+
+                        <div className="text-right space-y-1 shrink-0 ml-4">
+                          <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                            ₹{item.value_cr} Cr
+                          </div>
+                          {onSelectTenderForAnalysis && (
+                            <button
+                              onClick={() => {
+                                setShowGovtScannerModal(false);
+                                onSelectTenderForAnalysis(item);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-bold cursor-pointer"
+                            >
+                              AI Audit
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <div className="text-xs text-slate-500">
+                Portals: {scannerStates.length} • Keywords: {scannerKeywords.length} • Rule: &ge; ₹{minThresholdCr} Cr
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowGovtScannerModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleRunLivePortalScan}
+                  disabled={isScanningGovtPortals}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center space-x-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isScanningGovtPortals ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Scanning Live Portals...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 fill-current" />
+                      <span>Launch Live Portal Scan</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

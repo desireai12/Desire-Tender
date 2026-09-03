@@ -1,18 +1,18 @@
 {
-  "total_tenders": 2954,
-  "total_value_cr": 417258.44,
+  "total_tenders": 2956,
+  "total_value_cr": 514688.83,
   "total_progress_items": 29,
   "total_bonb_items": 63,
   "total_om_items": 184,
   "total_order_booking_items": 43,
   "state_breakdown": {
+    "Haryana": 636,
+    "Rajasthan": 482,
     "Uttar Pradesh": 347,
-    "Rajasthan": 481,
     "Gujarat": 444,
     "Madhya Pradesh": 237,
     "Hp": 25,
     "Assam": 56,
-    "Haryana": 635,
     "Chandigarh": 5,
     "Tamil Nadu": 97,
     "Punjab": 79,
@@ -35,16 +35,17 @@
     "Karnataka": 58
   },
   "sector_breakdown": {
+    "Solar & Renewable Energy": 120,
+    "O&M Water & Civil Assets": 171,
     "Turnkey EPC & Civil": 1061,
-    "Solar & Renewable Energy": 119,
     "Smart Water, SCADA & Automation": 72,
     "STP & Sewerage Network": 941,
     "Canal, Dam & Irrigation": 292,
-    "O&M Water & Civil Assets": 170,
     "Water Transmission & Pipelines": 298,
     "JJM & Rural Water Supply": 1
   },
   "status_breakdown": {
+    "Live": 168,
     "Cancelled": 464,
     "Financial Bid Opening": 523,
     "Technical Evaluation": 125,
@@ -53,7 +54,6 @@
     "Financial Evaluation": 126,
     "Awarded (AOC)": 212,
     "Retender": 78,
-    "Opening in Progress": 266,
-    "Live": 166
+    "Opening in Progress": 266
   }
 }
