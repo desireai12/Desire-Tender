@@ -158,11 +158,11 @@ export async function crawlStateGePNICPortal(
 
       // 3. Extract direct tender links
       const directLinks: { href: string; title: string }[] = [];
-      const linkRegex = /<a\s+[^>]*href=["']([^"']*component=%24DirectLink[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
+      const linkRegex = /<a\s+[^>]*href=["']([^"']*component=%24DirectLink[^"']*sp=[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
       let linkMatch;
       while ((linkMatch = linkRegex.exec(searchHtml)) !== null) {
         const titleClean = linkMatch[2].replace(/<[^>]+>/g, '').trim();
-        if (titleClean && !titleClean.toLowerCase().includes('back')) {
+        if (titleClean && !titleClean.toLowerCase().includes('back') && !titleClean.toLowerCase().includes('more...')) {
           directLinks.push({ href: linkMatch[1], title: titleClean });
         }
       }

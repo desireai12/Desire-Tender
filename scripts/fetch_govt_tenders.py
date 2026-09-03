@@ -137,9 +137,9 @@ class GePNICGovtFetcher:
                 with opener.open(post_req, timeout=15) as r:
                     res_html = r.read().decode('utf-8', errors='ignore')
 
-                # 3. Extract direct links to tender details
-                links = re.findall(r'<a\s+[^>]*href=["\']([^"\']*component=%24DirectLink[^"\']*)["\'][^>]*>(.*?)</a>', res_html, re.DOTALL | re.IGNORECASE)
-                links = [l for l in links if 'Back' not in l[1]]
+                # 3. Extract direct links to tender details (must have sp= parameter)
+                links = re.findall(r'<a\s+[^>]*href=["\']([^"\']*component=%24DirectLink[^"\']*sp=[^"\']*)["\'][^>]*>(.*?)</a>', res_html, re.DOTALL | re.IGNORECASE)
+                links = [l for l in links if 'Back' not in l[1] and 'More...' not in l[1]]
                 print(f"  Found {len(links)} tenders for '{kw}' on {state_name}")
 
                 for href, text in links[:max_tenders_per_kw]:
