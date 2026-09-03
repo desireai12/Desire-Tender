@@ -493,6 +493,38 @@ Return valid JSON (no markdown wrapping):
       if (method === 'POST') return NextResponse.json({ status: 'success', message: 'Tender saved.' });
     }
 
+    // ═══ FORWARD UNHANDLED ROUTES TO PYTHON FASTAPI BACKEND ═══════════════
+    const FASTAPI_URL = process.env.FASTAPI_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    try {
+      const targetUrl = `${FASTAPI_URL}/api/v1/${subPath}${req.nextUrl.search || ''}`;
+      const forwardHeaders: Record<string, string> = {};
+      req.headers.forEach((value, key) => {
+        if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
+          forwardHeaders[key] = value;
+        }
+      });
+
+      let forwardBody: any = undefined;
+      if (method !== 'GET' && method !== 'HEAD') {
+        forwardBody = JSON.stringify(body);
+        forwardHeaders['content-type'] = 'application/json';
+      }
+
+      const backendRes = await fetch(targetUrl, {
+        method,
+        headers: forwardHeaders,
+        body: forwardBody,
+        cache: 'no-store'
+      });
+
+      const data = await backendRes.json().catch(() => null);
+      if (data !== null) {
+        return NextResponse.json(data, { status: backendRes.status });
+      }
+    } catch (proxyErr) {
+      // Backend not reachable
+    }
+
     return NextResponse.json({ detail: `Route /api/v1/${subPath} not found` }, { status: 404 });
   } catch (error: any) {
     return NextResponse.json({ detail: `Internal Server Error: ${error.message}` }, { status: 500 });
@@ -503,5 +535,8 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
   return handleRequest(req, params);
 }
 export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
+  return handleRequest(req, params);
+}
+export async function DELETE(req: NextRequest, { params }: { params: { path: string[] } }) {
   return handleRequest(req, params);
 }

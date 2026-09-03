@@ -1,4 +1,4 @@
-﻿import os
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -47,9 +47,10 @@ print(f"Key prefix looks like standard Google AI Studio format (AIzaSy...): {gem
 try:
     from langchain_google_genai import ChatGoogleGenerativeAI
     llm = ChatGoogleGenerativeAI(
-        model=os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),
+        model=os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
         google_api_key=gemini_key,
         temperature=0.1,
+        timeout=15,
     )
     response = llm.invoke("Reply with exactly the word: OK")
     print(f"GEMINI CALL SUCCESSFUL - response: {response.content!r}")

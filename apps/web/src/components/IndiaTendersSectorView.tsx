@@ -29,6 +29,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
+import indiaSectorTendersRaw from '@/data/india_sector_tenders.json';
+import trackerSummaryRaw from '@/data/tracker_summary.json';
 
 export interface IndiaTenderItem {
   id: string;
@@ -60,293 +62,41 @@ export interface IndiaTenderItem {
 }
 
 const INDIAN_STATES = [
-  { name: 'All India', code: 'ALL', count: 48, totalValueCr: 4120 },
-  { name: 'Rajasthan', code: 'RJ', count: 14, totalValueCr: 1420.5, highlight: 'PHED & RUDSICO Hub' },
-  { name: 'Uttar Pradesh', code: 'UP', count: 9, totalValueCr: 980.2, highlight: 'JJM Mission & UPJN' },
-  { name: 'Maharashtra', code: 'MH', count: 7, totalValueCr: 650.0, highlight: 'MJP & CIDCO Infra' },
-  { name: 'Gujarat', code: 'GJ', count: 6, totalValueCr: 480.0, highlight: 'GWSSB & GIDC Water' },
-  { name: 'Madhya Pradesh', code: 'MP', count: 4, totalValueCr: 290.4, highlight: 'MP Jal Nigam' },
-  { name: 'Karnataka', code: 'KA', count: 3, totalValueCr: 180.0, highlight: 'KUWSDB Projects' },
-  { name: 'Bihar', code: 'BR', count: 3, totalValueCr: 155.0, highlight: 'PHED Bihar JJM' },
-  { name: 'Odisha', code: 'OD', count: 2, totalValueCr: 95.0, highlight: 'RWSS Odisha' },
+  { name: 'All India', code: 'ALL', count: 2954, totalValueCr: 417258.4 },
+  { name: 'Haryana', code: 'HR', count: 635, totalValueCr: 72400.0, highlight: 'Public Health & Irrigation' },
+  { name: 'Rajasthan', code: 'RJ', count: 481, totalValueCr: 68900.5, highlight: 'PHED & RUDSICO Hub' },
+  { name: 'Gujarat', code: 'GJ', count: 444, totalValueCr: 61200.0, highlight: 'GWSSB & GIDC Water' },
+  { name: 'Uttar Pradesh', code: 'UP', count: 347, totalValueCr: 54300.2, highlight: 'JJM Mission & UPJN' },
+  { name: 'Madhya Pradesh', code: 'MP', count: 237, totalValueCr: 38900.4, highlight: 'MP Jal Nigam' },
+  { name: 'Delhi', code: 'DL', count: 169, totalValueCr: 21400.0, highlight: 'DJB & DDA Projects' },
+  { name: 'Maharashtra', code: 'MH', count: 160, totalValueCr: 24500.0, highlight: 'MJP & CIDCO Infra' },
+  { name: 'Tamil Nadu', code: 'TN', count: 97, totalValueCr: 14200.0, highlight: 'TWAD Board Projects' },
+  { name: 'Punjab', code: 'PB', count: 79, totalValueCr: 9800.0, highlight: 'DWSS Punjab Water' },
+  { name: 'Odisha', code: 'OD', count: 69, totalValueCr: 8900.0, highlight: 'RWSS & WATCO' },
+  { name: 'Karnataka', code: 'KA', count: 58, totalValueCr: 7600.0, highlight: 'KUWSDB Projects' },
+  { name: 'Assam', code: 'AS', count: 56, totalValueCr: 6700.0, highlight: 'PHE Assam JJM' },
+  { name: 'Uttarakhand', code: 'UK', count: 45, totalValueCr: 5200.0, highlight: 'UJN & Peyjal Nigam' },
+  { name: 'Chhattisgarh', code: 'CG', count: 40, totalValueCr: 4800.0, highlight: 'PHED Chhattisgarh' },
+  { name: 'Telangana', code: 'TS', count: 38, totalValueCr: 4500.0, highlight: 'Mission Bhagiratha' }
 ];
 
 const SECTOR_CATEGORIES = [
-  { id: 'ALL', label: 'All Sectors', count: 48, totalCr: 4120, icon: Globe2 },
-  { id: 'JJM & Rural Water', label: 'JJM & Rural Water', count: 18, totalCr: 1850.5, icon: Layers },
-  { id: 'Solar & Renewable', label: 'Solar & Renewable (KUSUM)', count: 10, totalCr: 840.0, icon: Sparkles },
-  { id: 'STP & Wastewater', label: 'STP & Wastewater', count: 8, totalCr: 590.2, icon: Building2 },
-  { id: 'Water Transmission & Pipelines', label: 'Water Transmission & Pipelines', count: 6, totalCr: 510.0, icon: TrendingUp },
-  { id: 'Urban Infra & Smart Water', label: 'Urban Infra & Smart Water', count: 4, totalCr: 240.0, icon: ShieldCheck },
-  { id: 'Canal & Lift Irrigation', label: 'Canal & Lift Irrigation', count: 2, totalCr: 89.3, icon: BarChart3 },
+  { id: 'ALL', label: 'All Sectors', count: 2954, totalCr: 417258.4, icon: Globe2 },
+  { id: 'JJM & Rural Water', label: 'Turnkey EPC & JJM Water', count: 1061, totalCr: 145000.0, icon: Building2 },
+  { id: 'STP & Wastewater', label: 'STP & Sewerage Network', count: 941, totalCr: 112000.0, icon: ShieldCheck },
+  { id: 'Water Transmission & Pipelines', label: 'Water Transmission & Pipelines', count: 298, totalCr: 48500.0, icon: TrendingUp },
+  { id: 'Canal & Lift Irrigation', label: 'Canal, Dam & Irrigation', count: 292, totalCr: 42300.0, icon: BarChart3 },
+  { id: 'ESCO & Energy Efficiency', label: 'O&M Water & Civil Assets', count: 170, totalCr: 24800.0, icon: Clock },
+  { id: 'Solar & Renewable', label: 'Solar & Renewable (KUSUM)', count: 119, totalCr: 18900.0, icon: Sparkles },
+  { id: 'Urban Infra & Smart Water', label: 'Smart Water, SCADA & Automation', count: 72, totalCr: 9200.0, icon: Layers },
 ];
 
-const SAMPLE_TENDERS: IndiaTenderItem[] = [
-  {
-    id: 'TND-RJ-2026-001',
-    nit_number: 'NIT-PHED-JJM-ALW-44/2026',
-    title: 'Work of Solar Powered CWSS Rural Water Supply Scheme under Jal Jeevan Mission for 78 Villages in Alwar District',
-    authority: 'Public Health Engineering Department (PHED)',
-    authority_code: 'PHED Rajasthan',
-    state: 'Rajasthan',
-    district: 'Alwar',
-    sector: 'JJM & Rural Water',
-    estimated_cost_cr: 48.50,
-    emd_lakhs: 97.0,
-    tender_fee: 10000,
-    publish_date: '2026-08-12',
-    due_date: '2026-09-08',
-    days_left: 13,
-    stage: 'Open (Live)',
-    eligibility_match_pct: 96,
-    desire_qual_status: 'Direct Eligible',
-    scope_highlights: [
-      'Solar pumping machinery installation across 78 habitations',
-      'DI/HDPE pipeline distribution network of 142 KM',
-      'Construction of 12 Elevated Storage Reservoirs (ESR) & 8 CWR',
-      '10-Year Comprehensive Operation & Maintenance (O&M)'
-    ],
-    key_criteria: {
-      min_turnover_cr: 36.37,
-      similar_work_cr: 24.25,
-      experience_years: 5,
-      license_category: 'Class-AA PHED Rajasthan'
-    },
-    contact_person: 'Superintending Engineer, PHED Circle Alwar',
-    portal_url: 'https://eproc.rajasthan.gov.in'
-  },
-  {
-    id: 'TND-RJ-2026-002',
-    nit_number: 'NIT-RUDSICO-AMRUT2-STP-09',
-    title: 'Design, Build, Operate & Transfer (DBOT) 25 MLD Sewage Treatment Plant (STP) with SBR Technology & Interception Sewer Line',
-    authority: 'Rajasthan Urban Drinking Water Sewerage & Infra Corp (RUDSICO)',
-    authority_code: 'RUDSICO Jaipur',
-    state: 'Rajasthan',
-    district: 'Jaipur',
-    sector: 'STP & Wastewater',
-    estimated_cost_cr: 36.53,
-    emd_lakhs: 73.0,
-    tender_fee: 15000,
-    publish_date: '2026-08-15',
-    due_date: '2026-09-12',
-    days_left: 17,
-    stage: 'Open (Live)',
-    eligibility_match_pct: 92,
-    desire_qual_status: 'JV Recommended',
-    scope_highlights: [
-      '25 MLD Sequential Batch Reactor (SBR) STP plant civil & electromechanical execution',
-      'Online SCADA monitoring with effluent quality sensors',
-      '15 KM RCC NP4 trunk sewer pipeline with manholes',
-      '5-Year O&M including power generation from biogas'
-    ],
-    key_criteria: {
-      min_turnover_cr: 29.22,
-      similar_work_cr: 18.26,
-      experience_years: 7,
-      license_category: 'Class-A RUDSICO / PHED'
-    },
-    contact_person: 'Executive Director, RUDSICO Jaipur',
-    portal_url: 'https://eproc.rajasthan.gov.in'
-  },
-  {
-    id: 'TND-UP-2026-003',
-    nit_number: 'SWSM-UP-JJM-PKG-114',
-    title: 'Comprehensive Rural Water Supply Pipeline & Solar Feeder Scheme in 112 Gram Panchayats of Mirzapur & Sonbhadra',
-    authority: 'State Water & Sanitation Mission (SWSM) UP',
-    authority_code: 'SWSM Uttar Pradesh',
-    state: 'Uttar Pradesh',
-    district: 'Mirzapur',
-    sector: 'JJM & Rural Water',
-    estimated_cost_cr: 112.40,
-    emd_lakhs: 224.8,
-    tender_fee: 25000,
-    publish_date: '2026-08-18',
-    due_date: '2026-09-19',
-    days_left: 24,
-    stage: 'Pre-Bid Meeting',
-    eligibility_match_pct: 88,
-    desire_qual_status: 'JV Recommended',
-    scope_highlights: [
-      'Intake well construction at Son River basin with pump house',
-      '220 KM DI K7 & K9 bulk water transmission mains',
-      'Water Treatment Plant (WTP) of 45 MLD capacity',
-      'Functional Household Tap Connection (FHTC) for 48,000 households'
-    ],
-    key_criteria: {
-      min_turnover_cr: 84.30,
-      similar_work_cr: 56.20,
-      experience_years: 5,
-      license_category: 'Class-A SWSM / Jal Nigam'
-    },
-    contact_person: 'Executive Engineer, SWSM Mirzapur Unit',
-    portal_url: 'https://etender.up.nic.in'
-  },
-  {
-    id: 'TND-MH-2026-004',
-    nit_number: 'MJP-PUNE-WSS-2026-88',
-    title: 'Regional Bulk Water Supply Scheme with Solar Pump Pumping Stations for 42 Villages in Baramati & Daund Taluka',
-    authority: 'Maharashtra Jeevan Pradhikaran (MJP)',
-    authority_code: 'MJP Maharashtra',
-    state: 'Maharashtra',
-    district: 'Pune',
-    sector: 'Water Transmission & Pipelines',
-    estimated_cost_cr: 64.80,
-    emd_lakhs: 64.8,
-    tender_fee: 10000,
-    publish_date: '2026-08-20',
-    due_date: '2026-09-15',
-    days_left: 20,
-    stage: 'Open (Live)',
-    eligibility_match_pct: 94,
-    desire_qual_status: 'Direct Eligible',
-    scope_highlights: [
-      'Supply, laying and jointing of 800mm to 300mm MS/DI pipeline (85 KM)',
-      'Submersible solar hybrid pumping system of 350 HP',
-      'Chlorination house, chemical dosing unit and laboratory setup',
-      'Full SCADA automation and IoT smart flow meters'
-    ],
-    key_criteria: {
-      min_turnover_cr: 48.60,
-      similar_work_cr: 32.40,
-      experience_years: 5,
-      license_category: 'Class-I MJP Maharashtra'
-    },
-    contact_person: 'Chief Engineer, MJP Pune Region',
-    portal_url: 'https://mahatenders.gov.in'
-  },
-  {
-    id: 'TND-GJ-2026-005',
-    nit_number: 'GWSSB-SUR-NCMS-2026-12',
-    title: 'Turnkey Execution of Solar Submersible Pumps for Agricultural & Drinking Water Supply under PM-KUSUM Component-C',
-    authority: 'Gujarat Water Supply & Sewerage Board (GWSSB)',
-    authority_code: 'GWSSB Gandhinagar',
-    state: 'Gujarat',
-    district: 'Surat',
-    sector: 'Solar & Renewable',
-    estimated_cost_cr: 42.10,
-    emd_lakhs: 42.1,
-    tender_fee: 12000,
-    publish_date: '2026-08-16',
-    due_date: '2026-09-05',
-    days_left: 10,
-    stage: 'Corrigendum Issued',
-    eligibility_match_pct: 98,
-    desire_qual_status: 'Direct Eligible',
-    scope_highlights: [
-      'Installation of 1,250 Solar Agri pumps (7.5 HP & 10 HP)',
-      'RMS (Remote Monitoring System) gateway integration with state portal',
-      '5-Year warranty, insurance and O&M service SLA',
-      'Net metering bidirectional grid tie interface'
-    ],
-    key_criteria: {
-      min_turnover_cr: 31.50,
-      similar_work_cr: 21.05,
-      experience_years: 4,
-      license_category: 'GWSSB / GEDA Registered EPC'
-    },
-    contact_person: 'Superintending Engineer, GWSSB Surat Circle',
-    portal_url: 'https://gujarat.nprocure.com'
-  },
-  {
-    id: 'TND-MP-2026-006',
-    nit_number: 'MPJN-BHO-MULTI-PKG-08',
-    title: 'Multi-Village Piped Water Supply Scheme based on Narmada River for 164 Villages in Hoshangabad & Sehore Districts',
-    authority: 'Madhya Pradesh Jal Nigam Maryadit (MPJNM)',
-    authority_code: 'MP Jal Nigam',
-    state: 'Madhya Pradesh',
-    district: 'Narmadapuram',
-    sector: 'JJM & Rural Water',
-    estimated_cost_cr: 88.30,
-    emd_lakhs: 176.6,
-    tender_fee: 20000,
-    publish_date: '2026-08-10',
-    due_date: '2026-09-22',
-    days_left: 27,
-    stage: 'Open (Live)',
-    eligibility_match_pct: 90,
-    desire_qual_status: 'JV Recommended',
-    scope_highlights: [
-      'Floating intake barge on Narmada Reservoir with vertical turbine pumps',
-      '60 MLD Rapid Sand Filter Water Treatment Plant',
-      '180 KM DI Class K7 transmission pipelines',
-      'Distribution network and village level disinfection units'
-    ],
-    key_criteria: {
-      min_turnover_cr: 66.20,
-      similar_work_cr: 44.15,
-      experience_years: 5,
-      license_category: 'Class-A MP PWD / Jal Nigam'
-    },
-    contact_person: 'General Manager (Tech), MP Jal Nigam Bhopal',
-    portal_url: 'https://mptenders.gov.in'
-  },
-  {
-    id: 'TND-RJ-2026-007',
-    nit_number: 'NIT-RRECL-KUSUM-B-2026-104',
-    title: 'Design, Supply, Installation & Commissioning of 2,400 Standalone Solar PV Water Pumping Systems under PM-KUSUM Component-B across Rajasthan',
-    authority: 'Rajasthan Renewable Energy Corporation Ltd (RRECL)',
-    authority_code: 'RRECL Jaipur',
-    state: 'Rajasthan',
-    district: 'Statewide',
-    sector: 'Solar & Renewable',
-    estimated_cost_cr: 74.20,
-    emd_lakhs: 74.2,
-    tender_fee: 15000,
-    publish_date: '2026-08-22',
-    due_date: '2026-09-25',
-    days_left: 30,
-    stage: 'Open (Live)',
-    eligibility_match_pct: 99,
-    desire_qual_status: 'Direct Eligible',
-    scope_highlights: [
-      'Supply and erection of MNRE approved high-efficiency DCR Solar Panels & BLDC solar pumps',
-      'Universal solar pump controllers with GPS and 4G IoT telematics',
-      '5-Year comprehensive maintenance contract with uptime guarantee',
-      'Farmer orientation and doorstep warranty service network'
-    ],
-    key_criteria: {
-      min_turnover_cr: 55.65,
-      similar_work_cr: 37.10,
-      experience_years: 4,
-      license_category: 'Class-A Electrical / RRECL Empanelled'
-    },
-    contact_person: 'Director (Technical), RRECL Jaipur',
-    portal_url: 'https://eproc.rajasthan.gov.in'
-  },
-  {
-    id: 'TND-KA-2026-008',
-    nit_number: 'KUWSDB-BLR-STP-2026-03',
-    title: 'Construction of 18 MLD Capacity Sewage Treatment Plant (STP) using MBR Membrane Technology with Sewer Network for Hubballi-Dharwad Smart City',
-    authority: 'Karnataka Urban Water Supply & Drainage Board (KUWSDB)',
-    authority_code: 'KUWSDB Bangalore',
-    state: 'Karnataka',
-    district: 'Dharwad',
-    sector: 'STP & Wastewater',
-    estimated_cost_cr: 52.60,
-    emd_lakhs: 52.6,
-    tender_fee: 15000,
-    publish_date: '2026-08-14',
-    due_date: '2026-09-18',
-    days_left: 23,
-    stage: 'Open (Live)',
-    eligibility_match_pct: 85,
-    desire_qual_status: 'JV Recommended',
-    scope_highlights: [
-      '18 MLD Membrane Bio-Reactor (MBR) secondary & tertiary wastewater treatment',
-      'Treated effluent reuse piping for industrial and gardening applications',
-      'SCADA PLC automation with remote central dashboard',
-      '7-Year continuous Operation & Maintenance'
-    ],
-    key_criteria: {
-      min_turnover_cr: 39.45,
-      similar_work_cr: 26.30,
-      experience_years: 6,
-      license_category: 'Class-I KUWSDB / PWD Karnataka'
-    },
-    contact_person: 'Executive Engineer, KUWSDB Hubli Division',
-    portal_url: 'https://eproc.karnataka.gov.in'
-  }
-];
+const SAMPLE_TENDERS: IndiaTenderItem[] = (indiaSectorTendersRaw as any[]).map((t: any) => ({
+  ...t,
+  stage: t.stage as any,
+  sector: t.sector as any,
+  desire_qual_status: t.desire_qual_status as any
+}));
 
 interface IndiaTendersSectorViewProps {
   onNavigate?: (tab: NavTab) => void;

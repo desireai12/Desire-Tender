@@ -177,6 +177,12 @@ Return ONLY valid JSON matching this schema:
             })
 
             content = response.content
+            if isinstance(content, list):
+                content = "".join(p.get("text", "") if isinstance(p, dict) else str(p) for p in content)
+            elif not isinstance(content, str):
+                content = str(content)
+            content = content.strip()
+
             if content.startswith("```json"):
                 content = content.replace("```json", "", 1).rsplit("```", 1)[0].strip()
             elif content.startswith("```"):

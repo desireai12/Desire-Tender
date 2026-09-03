@@ -33,6 +33,8 @@ class LLMFactory:
                 model=target_model,
                 google_api_key=active_key,
                 temperature=temperature,
+                timeout=30,
+                max_retries=2,
             )
         elif selected_provider == "openai":
             target_model = model_name or config.get("openai_model") or settings.OPENAI_MODEL
@@ -43,6 +45,8 @@ class LLMFactory:
                 model=target_model,
                 api_key=active_key,
                 temperature=temperature,
+                timeout=30,
+                max_retries=2,
             )
         else:
             raise ValueError(f"Unsupported LLM provider: {selected_provider}")

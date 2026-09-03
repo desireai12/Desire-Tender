@@ -399,6 +399,10 @@ export default function Home() {
               activeRole={activeRole}
               onNavigateTab={(tab) => setActiveTab(tab)}
               onUpdateTendersList={(updated) => setTrackedTenders(updated)}
+              onSelectTenderForAnalysis={(tender) => {
+                setSelectedTenderToAnalyze(tender);
+                setActiveTab('eligibility');
+              }}
             />
           )}
 
