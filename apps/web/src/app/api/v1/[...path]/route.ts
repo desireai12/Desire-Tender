@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import zlib from 'zlib';
 import { supabase } from '@/lib/supabase';
+import { STATE_PORTALS, KEYWORD_CATEGORIES, crawlStateGePNICPortal } from '@/lib/gepnic-crawler';
 
 function hashPassword(pass: string): string {
   return crypto.createHash('sha256').update(pass.trim()).digest('hex');
@@ -491,6 +492,67 @@ Return valid JSON (no markdown wrapping):
     if (subPath === 'tenders') {
       if (method === 'GET') return NextResponse.json({ status: 'success', tenders: [] });
       if (method === 'POST') return NextResponse.json({ status: 'success', message: 'Tender saved.' });
+    }
+
+    // ═══ GOVERNMENT PORTALS SCRAPER (RUNS NATIVELY ON VERCEL) ══════════════
+    if (subPath === 'scraper/config' && method === 'GET') {
+      const allKws = Object.values(KEYWORD_CATEGORIES).flat();
+      return NextResponse.json({
+        status: 'online',
+        default_min_value_cr: 10.0,
+        available_portals: Object.keys(STATE_PORTALS),
+        keyword_categories: KEYWORD_CATEGORIES,
+        all_keywords: Array.from(new Set(allKws)).sort()
+      });
+    }
+
+    if (subPath === 'scraper/scan' && method === 'POST') {
+      const states: string[] = body?.states || ['Rajasthan', 'Haryana'];
+      const keywords: string[] = body?.keywords || ['Solar', 'STP or treatment', 'Water Supply'];
+      const minValueCr: number = parseFloat(body?.min_value_cr) || 10.0;
+      const maxPerKw: number = parseInt(body?.max_per_kw) || 6;
+
+      const allDiscovered: any[] = [];
+      for (const state of states) {
+        const portalUrl = STATE_PORTALS[state];
+        if (!portalUrl) continue;
+        try {
+          const results = await crawlStateGePNICPortal(state, portalUrl, keywords, minValueCr, maxPerKw);
+          allDiscovered.push(...results);
+        } catch (crawlErr) {
+          // Continue with next state
+        }
+      }
+
+      // Automatically sync into Supabase if connected
+      if (supabase && allDiscovered.length > 0) {
+        try {
+          await supabase.from('tenders').upsert(
+            allDiscovered.map(t => ({
+              tender_id: t.tender_id,
+              title: t.title,
+              state: t.state,
+              sector: t.sector,
+              amount_inr: t.amount_inr,
+              value_cr: t.value_cr,
+              department: t.department,
+              due_date: t.due_date,
+              status: t.status,
+              source: 'GePNIC Portal'
+            })),
+            { onConflict: 'tender_id' }
+          );
+        } catch (e) {}
+      }
+
+      return NextResponse.json({
+        success: true,
+        states_scanned: states,
+        keywords_searched: keywords,
+        min_value_cr_filter: minValueCr,
+        total_matches_found: allDiscovered.length,
+        tenders: allDiscovered
+      });
     }
 
     // ═══ FORWARD UNHANDLED ROUTES TO PYTHON FASTAPI BACKEND ═══════════════
