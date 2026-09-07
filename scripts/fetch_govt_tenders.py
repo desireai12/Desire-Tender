@@ -137,7 +137,7 @@ class GePNICGovtFetcher:
         portal_url: str,
         keywords: List[str],
         min_value_cr: float = 10.0,
-        max_tenders_per_kw: int = 20
+        max_tenders_per_kw: int = 50
     ) -> List[Dict[str, Any]]:
         print(f"\n========================================================")
         print(f"Connecting to {state_name} GePNIC Portal: {portal_url}")

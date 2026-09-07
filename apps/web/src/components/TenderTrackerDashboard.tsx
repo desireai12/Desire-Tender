@@ -324,7 +324,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
           states: scannerStates,
           keywords: scannerKeywords,
           min_value_cr: minThresholdCr,
-          max_per_kw: 6,
+          max_per_kw: 50,
           auto_update_tracker: true
         })
       });
