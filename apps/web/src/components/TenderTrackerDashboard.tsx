@@ -1736,6 +1736,8 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             </div>
           </div>
         </div>
+      )}
+
       {/* Floating Portal Navigation Toast */}
       {portalToast && (
         <div className="fixed bottom-6 right-6 z-50 animate-bounce-in flex items-center space-x-3 px-4 py-3 bg-slate-900 text-white rounded-2xl shadow-2xl border border-emerald-500/40 text-xs font-medium backdrop-blur-md">
