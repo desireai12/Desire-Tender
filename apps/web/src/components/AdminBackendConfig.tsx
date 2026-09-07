@@ -762,10 +762,10 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   key={cat}
                   type="button"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`py-3 px-4 rounded-xl border font-mono font-bold text-xs text-center transition-all ${
+                  className={`py-3 px-4 rounded-xl border font-mono font-bold text-xs text-center transition-all cursor-pointer ${
                     selectedCategory === cat
-                      ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border-cyan-400 shadow-md shadow-cyan-500/20'
-                      : 'bg-slate-50/40 text-slate-700 font-medium border-slate-200 hover:border-slate-300'
+                      ? 'bg-emerald-700 dark:bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-900/20'
+                      : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                   }`}
                 >
                   {cat}
@@ -848,7 +848,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
                   <div key={idx} className="p-3.5 rounded-xl bg-slate-50/60 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
+                        <span className="px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                           {hist.version}
                         </span>
                         <span className="font-semibold text-slate-900">{hist.notes}</span>

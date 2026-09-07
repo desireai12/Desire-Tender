@@ -143,12 +143,12 @@ export const CombineAnalysisView: React.FC = () => {
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-teal-100 text-teal-900 border border-teal-300 font-bold font-semibold border border-teal-200">
+          <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
             <GitMerge className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-wide">JV & Combine Eligibility Engine</h1>
-            <p className="text-xs text-slate-700 font-medium">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">JV & Combine Eligibility Engine</h1>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
               Evaluate Desire Alone vs JV Partner Alone vs Combined JV Eligibility under {selectedCategory} & Tender-specific rules.
             </p>
           </div>
@@ -219,110 +219,110 @@ export const CombineAnalysisView: React.FC = () => {
         {/* Desire Energy Alone */}
         <div className="glass-card p-5 rounded-2xl border border-slate-200 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200">
+            <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold">
               Desire Energy Alone
             </span>
-            <span className="text-xs font-bold font-mono text-teal-800 font-semibold">
+            <span className="text-xs font-bold font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
               {evaluation?.desire_alone?.fulfilled_pct || '501.5%'}
             </span>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-slate-900 line-clamp-1">{desireComp.name}</h3>
-            <p className="text-xs text-slate-700 font-medium mt-1">Standalone capability evaluation</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{desireComp.name}</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1">Standalone capability evaluation</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 space-y-1.5 font-mono text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Avg Turnover:</span>
-              <span className="font-bold text-slate-900">₹{desireComp.average_turnover || 300.93} Cr</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Avg Turnover:</span>
+              <span className="font-bold text-slate-900 dark:text-white">₹{desireComp.average_turnover || 300.93} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Net Worth:</span>
-              <span className="font-bold text-teal-800 font-bold">₹{desireComp.net_worth || 95.0} Cr</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Net Worth:</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-bold">₹{desireComp.net_worth || 95.0} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Status:</span>
-              <span className="font-bold text-emerald-800 font-bold">{evaluation?.desire_alone?.status || 'Eligible'}</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Status:</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-bold">{evaluation?.desire_alone?.status || 'Eligible'}</span>
             </div>
           </div>
         </div>
 
         {/* JV Partner Alone */}
-        <div className="glass-card p-5 rounded-2xl border border-slate-200 space-y-4">
+        <div className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426] space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-300 font-bold font-bold border border-teal-500/30">
+            <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold">
               JV Partner Alone
             </span>
-            <span className="text-xs font-bold font-mono text-teal-800 font-bold">
+            <span className="text-xs font-bold font-mono text-emerald-700 dark:text-emerald-400 font-bold">
               {evaluation?.jv_alone?.fulfilled_pct || '61.7%'}
             </span>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-slate-900 line-clamp-1">{jvComp.name}</h3>
-            <p className="text-xs text-slate-700 font-medium mt-1">Partner standalone capability evaluation</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{jvComp.name}</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1">Partner standalone capability evaluation</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 space-y-1.5 font-mono text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Avg Turnover:</span>
-              <span className="font-bold text-slate-900">₹{jvComp.average_turnover || 37.01} Cr</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Avg Turnover:</span>
+              <span className="font-bold text-slate-900 dark:text-white">₹{jvComp.average_turnover || 37.01} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Net Worth:</span>
-              <span className="font-bold text-teal-800 font-bold">₹{jvComp.net_worth || 6.58} Cr</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Net Worth:</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-bold">₹{jvComp.net_worth || 6.58} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Status:</span>
-              <span className="font-bold text-amber-900 font-bold">{evaluation?.jv_alone?.status || 'Partially Eligible'}</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Status:</span>
+              <span className="font-bold text-amber-700 dark:text-amber-400 font-bold">{evaluation?.jv_alone?.status || 'Partially Eligible'}</span>
             </div>
           </div>
         </div>
 
         {/* Combined JV (DESPL + Partner) */}
-        <div className="glass-card p-5 rounded-2xl border border-teal-300 bg-gradient-to-br from-cyan-500/10 to-teal-500/5 space-y-4 shadow-xl shadow-cyan-500/10">
+        <div className="glass-card p-5 rounded-2xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20 space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-800 text-white font-bold">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-700 text-white font-bold">
               Combined JV
             </span>
-            <span className="text-xs font-bold font-mono text-teal-800">
+            <span className="text-xs font-bold font-mono text-emerald-800 dark:text-emerald-300 font-bold">
               {evaluation?.combined_jv?.fulfilled_pct || '563.2%'}
             </span>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Combined Consortium Result</h3>
-            <p className="text-xs text-slate-600 mt-1">Pooled turnover, credentials & JV rules compliance</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Combined Consortium Result</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Pooled turnover, credentials & JV rules compliance</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 border border-teal-200 space-y-1.5 font-mono text-xs">
+          <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Combined Turnover:</span>
-              <span className="font-bold text-teal-800">₹{((desireComp.average_turnover||300.93) + (jvComp.average_turnover||37.01)).toFixed(2)} Cr</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Combined Turnover:</span>
+              <span className="font-bold text-emerald-800 dark:text-emerald-300">₹{((desireComp.average_turnover||300.93) + (jvComp.average_turnover||37.01)).toFixed(2)} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Combined Net Worth:</span>
-              <span className="font-bold text-teal-800 font-bold">₹{((desireComp.net_worth||95) + (jvComp.net_worth||6.58)).toFixed(2)} Cr</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Combined Net Worth:</span>
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 font-bold">₹{((desireComp.net_worth||95) + (jvComp.net_worth||6.58)).toFixed(2)} Cr</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-700 font-medium">Final Verdict:</span>
-              <span className="font-bold text-emerald-800 font-bold">{evaluation?.combined_jv?.status || 'Eligible Through JV'}</span>
+              <span className="text-slate-600 dark:text-slate-400 font-medium">Final Verdict:</span>
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 font-bold">{evaluation?.combined_jv?.status || 'Eligible Through JV'}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Comprehensive Comparative Matrix Table (Section 3 & 4 Requirement) */}
-      <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
+      <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426] space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-teal-100 text-teal-900 border border-teal-300 font-bold font-semibold">
+            <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 font-semibold">
               <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Combined Eligibility Breakdown Matrix</h2>
-              <p className="text-xs text-slate-700 font-medium">Tender Requirement vs Desire Contribution vs JV Contribution vs Combined Result</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Combined Eligibility Breakdown Matrix</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Tender Requirement vs Desire Contribution vs JV Contribution vs Combined Result</p>
             </div>
           </div>
         </div>

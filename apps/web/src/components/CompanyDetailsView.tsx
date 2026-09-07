@@ -212,15 +212,15 @@ export const CompanyDetailsView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
         <div>
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-teal-100 text-teal-900 border border-teal-300 font-bold font-semibold border border-teal-200">
+            <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 font-semibold">
               <Building2 className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 tracking-wide">Master Company Database</h1>
-              <p className="text-xs text-slate-700 font-medium">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Master Company Database</h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                 Centralized corporate records for Desire Energy, JV Partners, Competitors, and Bidding Consortiums.
               </p>
             </div>
@@ -229,7 +229,7 @@ export const CompanyDetailsView: React.FC = () => {
 
         <button
           onClick={handleOpenAdd}
-          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 transition-all shrink-0"
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-900/20 transition-all shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Add Master Company</span>
@@ -237,15 +237,15 @@ export const CompanyDetailsView: React.FC = () => {
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-card p-4 rounded-xl border border-slate-200">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-700 font-medium absolute left-3 top-3" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           <input
             type="text"
             placeholder="Search company name, GST, profile..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
@@ -254,10 +254,10 @@ export const CompanyDetailsView: React.FC = () => {
             <button
               key={type}
               onClick={() => setSelectedTypeFilter(type)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer ${
                 selectedTypeFilter === type
-                  ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-300 font-semibold'
-                  : 'bg-white/5 text-slate-700 font-medium hover:text-slate-900 hover:bg-white/10'
+                  ? 'bg-emerald-700 dark:bg-emerald-600 text-white font-bold shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               {type}
@@ -268,15 +268,15 @@ export const CompanyDetailsView: React.FC = () => {
 
       {/* Loading State */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center p-12 glass-card rounded-2xl border border-slate-200 space-y-3">
-          <Loader2 className="w-8 h-8 text-teal-800 font-semibold animate-spin" />
-          <span className="text-xs text-slate-700 font-medium font-mono">Loading master companies database...</span>
+        <div className="flex flex-col items-center justify-center p-12 glass-card rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 bg-white dark:bg-[#0b1426]">
+          <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium font-mono">Loading master companies database...</span>
         </div>
       ) : filteredCompanies.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 glass-card rounded-2xl border border-slate-200 text-center space-y-3">
-          <Building2 className="w-10 h-10 text-slate-600" />
-          <h3 className="text-sm font-semibold text-slate-900">No Companies Found</h3>
-          <p className="text-xs text-slate-700 font-medium max-w-md">
+        <div className="flex flex-col items-center justify-center p-12 glass-card rounded-2xl border border-slate-200 dark:border-slate-800 text-center space-y-3 bg-white dark:bg-[#0b1426]">
+          <Building2 className="w-10 h-10 text-slate-400" />
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">No Companies Found</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
             No company profiles match your current search or filter criteria. Click "Add Master Company" to create one.
           </p>
         </div>
@@ -286,7 +286,7 @@ export const CompanyDetailsView: React.FC = () => {
           {filteredCompanies.map((comp) => (
             <div
               key={comp.id}
-              className="glass-card p-5 rounded-2xl border border-slate-200 hover:border-teal-200 transition-all flex flex-col justify-between space-y-4 group"
+              className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426] hover:border-emerald-500/50 transition-all flex flex-col justify-between space-y-4 group shadow-sm"
             >
               {/* Top Meta */}
               <div className="space-y-3">
@@ -295,12 +295,12 @@ export const CompanyDetailsView: React.FC = () => {
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider ${
                         comp.type === 'Desire Energy'
-                          ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold border border-teal-200'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
                           : comp.type === 'JV Partner'
-                          ? 'bg-teal-100 text-teal-900 border border-teal-300 font-bold font-bold border border-teal-500/30'
+                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-300 dark:border-purple-800'
                           : comp.type === 'Competitor'
-                          ? 'bg-purple-500/20 text-purple-800 border border-purple-200'
-                          : 'bg-slate-500/20 text-slate-600 border border-slate-500/30'
+                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
+                          : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
                       }`}
                     >
                       {comp.type}

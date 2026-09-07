@@ -97,33 +97,13 @@ html.dark body::before {
 html.dark header, 
 html.dark aside,
 html.dark nav,
-html.dark .glass-card,
-html.dark .bg-white,
-html.dark .bg-slate-50,
-html.dark .bg-slate-100,
-html.dark .bg-slate-200 {
+html.dark .glass-card {
   background-color: #0d1527 !important;
   border-color: #1e293b !important;
-  color: #ffffff !important;
 }
 
-/* FORCE ALL TYPOGRAPHY TO PURE WHITE / LIGHT SLATE IN DARK MODE */
-html.dark body,
-html.dark main,
-html.dark div,
-html.dark section,
-html.dark article,
-html.dark p,
-html.dark span,
-html.dark li,
-html.dark label,
-html.dark td,
-html.dark th,
-html.dark button,
-html.dark input,
-html.dark select,
-html.dark textarea {
-  color: #f8fafc !important;
+html.dark body {
+  color: #f8fafc;
 }
 
 html.dark h1, 
@@ -132,55 +112,6 @@ html.dark h3,
 html.dark h4, 
 html.dark h5, 
 html.dark h6 {
-  color: #ffffff !important;
-  font-weight: 700 !important;
-}
-
-html.dark .text-slate-900, 
-html.dark .text-slate-800, 
-html.dark .text-slate-700, 
-html.dark .text-slate-600 {
-  color: #f8fafc !important;
-}
-
-html.dark .text-slate-500, 
-html.dark .text-slate-400 {
-  color: #cbd5e1 !important;
-}
-
-/* SPECIFIC COLOR HIGHLIGHT CONTAINERS IN DARK MODE */
-html.dark .bg-emerald-50, 
-html.dark .bg-emerald-100 {
-  background-color: rgba(6, 78, 59, 0.85) !important;
-  border-color: #10b981 !important;
-  color: #ffffff !important;
-}
-
-html.dark .bg-rose-50, 
-html.dark .bg-rose-100 {
-  background-color: rgba(136, 19, 55, 0.85) !important;
-  border-color: #f43f5e !important;
-  color: #ffffff !important;
-}
-
-html.dark .bg-amber-50, 
-html.dark .bg-amber-100 {
-  background-color: rgba(120, 53, 15, 0.85) !important;
-  border-color: #f59e0b !important;
-  color: #ffffff !important;
-}
-
-html.dark .bg-teal-50, 
-html.dark .bg-teal-100 {
-  background-color: rgba(19, 78, 74, 0.85) !important;
-  border-color: #14b8a6 !important;
-  color: #ffffff !important;
-}
-
-html.dark .bg-purple-50, 
-html.dark .bg-purple-100 {
-  background-color: rgba(88, 28, 135, 0.85) !important;
-  border-color: #c084fc !important;
   color: #ffffff !important;
 }
 

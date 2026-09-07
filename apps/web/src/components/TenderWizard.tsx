@@ -667,71 +667,71 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           </div>
 
           {/* DYNAMIC VERDICT BANNER FOR SELECTED OPTION */}
-          <div className="glass-card p-6 rounded-2xl border border-teal-200 bg-gradient-to-r from-slate-900 via-aqua-950/60 to-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center space-x-3">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-200">
+          <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+            <div className="space-y-1.5">
+              <div className="flex items-center space-x-3 flex-wrap gap-y-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
                   perspective.verdict.includes('ELIGIBLE') && !perspective.verdict.includes('PARTIALLY')
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-amber-100 text-amber-900 font-bold border border-amber-200'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                    : 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
                 }`}>
                   {perspective.verdict}
                 </span>
-                <span className="text-xs font-mono text-teal-800 font-semibold">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
+                <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900">{currentReport.tender_title}</h2>
-              <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">{perspective.executive_summary}</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{currentReport.tender_title}</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 shrink-0 text-center space-y-1">
-              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Recommendation</span>
-              <span className="text-xs font-bold text-teal-800 block">{perspective.recommendation}</span>
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] shrink-0 text-center space-y-1">
+              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Recommendation</span>
+              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 block">{perspective.recommendation}</span>
             </div>
           </div>
 
           {/* Dynamic Criteria Summary Stats Across All Extracted Clauses WITH ZERO DISCREPANCY */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-            <div className="glass-card p-3 rounded-xl border border-slate-200">
-              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Total Criteria</span>
-              <span className="text-sm font-bold text-slate-900">
+            <div className="glass-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
+              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Total Criteria</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
                 {perspective.total_count}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
-              <span className="text-[10px] font-mono text-emerald-800 font-bold uppercase block">Matched</span>
-              <span className="text-sm font-bold text-emerald-800">
+            <div className="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/40">
+              <span className="text-[10px] font-mono text-emerald-800 dark:text-emerald-300 font-bold uppercase block">Matched</span>
+              <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
                 {perspective.matched_count}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
-              <span className="text-[10px] font-mono text-amber-700 uppercase block">Partial Match</span>
-              <span className="text-sm font-bold text-amber-900 font-bold">
+            <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50 dark:bg-amber-950/40">
+              <span className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-bold uppercase block">Partial Match</span>
+              <span className="text-sm font-bold text-amber-900 dark:text-amber-200 font-bold">
                 {perspective.partial_count}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-rose-500/20 bg-rose-500/5">
-              <span className="text-[10px] font-mono text-rose-800 font-bold uppercase block">Not Matching</span>
-              <span className="text-sm font-bold text-rose-800">0</span>
+            <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/40">
+              <span className="text-[10px] font-mono text-rose-800 dark:text-rose-300 font-bold uppercase block">Not Matching</span>
+              <span className="text-sm font-bold text-rose-800 dark:text-rose-300">0</span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-slate-500/20 bg-slate-500/5">
-              <span className="text-[10px] font-mono text-slate-700 font-medium uppercase block">Data Missing</span>
-              <span className="text-sm font-bold text-slate-600">0</span>
+            <div className="glass-card p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Data Missing</span>
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">0</span>
             </div>
           </div>
 
           {/* DYNAMIC CLAUSE-LEVEL AI TABLE ACCORDING TO SELECTED OPTION */}
-          <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
+          <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-slate-900">Extracted Tender Clause Analysis ({currentReport?.clauses_breakdown?.length || 0} Clauses Extracted)</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-100 text-teal-100 font-medium border border-teal-300 font-bold border border-teal-200">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Extracted Tender Clause Analysis ({currentReport?.clauses_breakdown?.length || 0} Clauses Extracted)</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold">
                   {perspective.badge}
                 </span>
               </div>
-              <span className="text-xs text-slate-700 font-medium font-mono">Dynamic AI Matching Engine</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium font-mono">Dynamic AI Matching Engine</span>
             </div>
 
             <div className="overflow-x-auto">
