@@ -7,12 +7,14 @@ import time
 import urllib.request
 import urllib.parse
 import http.cookiejar
+from typing import List, Dict, Any, Optional
 
 # Ensure UTF-8 output
 sys.stdout.reconfigure(encoding='utf-8')
 
-OVERALL_PATH = r"d:\MAIL DATA\OneDrive - Desire Energy Solutions Pvt Ltd\Tender\Desire-Tender\apps\web\src\data\overall_tenders.json"
-SUMMARY_PATH = r"d:\MAIL DATA\OneDrive - Desire Energy Solutions Pvt Ltd\Tender\Desire-Tender\apps\web\src\data\tracker_summary.json"
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+OVERALL_PATH = os.path.join(ROOT_DIR, "apps", "web", "src", "data", "overall_tenders.json")
+SUMMARY_PATH = os.path.join(ROOT_DIR, "apps", "web", "src", "data", "tracker_summary.json")
 
 STATE_PORTALS = {
     "Rajasthan": "https://eproc.rajasthan.gov.in/nicgep/app",
@@ -52,25 +54,45 @@ KEYWORD_CATEGORIES = {
     ]
 }
 
-def clean_currency_to_cr(val_str):
+def clean_currency_to_cr(val_str) -> float:
     if not val_str:
         return 0.0
-    s = str(val_str).replace(",", "").replace("₹", "").replace("&#8377;", "").strip()
+    s = str(val_str).replace(",", "").replace("₹", "").replace("&#8377;", "").replace("Rs.", "").replace("Rs", "").strip()
     s = re.sub(r'[^\d.]+', '', s)
     try:
         num = float(s)
-        # In GePNIC, 'Tender Value in ₹' is in absolute Rupees.
-        # 1 Crore = 10,000,000 Rupees.
-        # E.g., 121,100,000 -> 12.11 Cr; 97,398 -> 0.01 Cr.
-        return round(num / 10000000.0, 2)
+        if num <= 0:
+            return 0.0
+        # In GePNIC, values are in absolute Rupees.
+        # 1 Cr = 10,000,000 INR
+        if num >= 100000:
+            return round(num / 10000000.0, 2)
+        return round(num, 2)
     except:
         return 0.0
 
-def clean_sector_from_title(title, work_type=""):
+def extract_value_from_text(text: str) -> float:
+    if not text:
+        return 0.0
+    cr_match = re.search(r'([0-9]+(?:\.[0-9]+)?)\s*(?:cr|crore|crores)', text, re.IGNORECASE)
+    if cr_match:
+        try:
+            return round(float(cr_match.group(1)), 2)
+        except:
+            pass
+    lakh_match = re.search(r'([0-9]+(?:\.[0-9]+)?)\s*(?:lac|lacs|lakh|lakhs)', text, re.IGNORECASE)
+    if lakh_match:
+        try:
+            return round(float(lakh_match.group(1)) / 100.0, 2)
+        except:
+            pass
+    return 0.0
+
+def clean_sector_from_title(title: str, work_type: str = "") -> str:
     t = (title + " " + work_type).upper()
     if any(k in t for k in ["STP", "SEW", "EFFLUENT", "CETP", "ETP", "DRAIN", "SLUDGE", "WASTE WATER", "TREATMENT"]):
         return "STP & Sewerage Network"
-    if any(k in t for k in ["SOLAR", "RENEW", "KUSUM", "PV", "BESS"]):
+    if any(k in t for k in ["SOLAR", "RENEW", "KUSUM", "PV", "BESS", "SPV"]):
         return "Solar & Renewable Energy"
     if any(k in t for k in ["O&M", "OPERATION", "MAINTENANCE"]):
         return "O&M Water & Civil Assets"
@@ -84,6 +106,7 @@ def clean_sector_from_title(title, work_type=""):
         return "Water Transmission & Pipelines"
     return "Turnkey EPC & Civil"
 
+
 class GePNICGovtFetcher:
     def __init__(self):
         self.ctx = ssl.create_default_context()
@@ -95,24 +118,49 @@ class GePNICGovtFetcher:
             'Accept-Language': 'en-US,en;q=0.5',
         }
 
-    def fetch_portal_tenders(self, state_name, portal_url, keywords, min_value_cr=10.0, max_tenders_per_kw=10):
+    def _parse_detail_page(self, html: str) -> Dict[str, str]:
+        info = {}
+        rows = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL | re.IGNORECASE)
+        for row in rows:
+            tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.DOTALL | re.IGNORECASE)
+            clean_tds = [re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', td)).strip() for td in tds]
+            for i in range(0, len(clean_tds) - 1, 2):
+                k = clean_tds[i].replace('&#8377;', '₹').replace('&nbsp;', ' ').strip()
+                v = clean_tds[i+1].replace('&#8377;', '₹').replace('&nbsp;', ' ').strip()
+                if k and v:
+                    info[k] = v
+        return info
+
+    def fetch_portal_tenders(
+        self,
+        state_name: str,
+        portal_url: str,
+        keywords: List[str],
+        min_value_cr: float = 10.0,
+        max_tenders_per_kw: int = 20
+    ) -> List[Dict[str, Any]]:
         print(f"\n========================================================")
         print(f"Connecting to {state_name} GePNIC Portal: {portal_url}")
         print(f"Keywords to search: {keywords}")
         print(f"Threshold Filter: >= ₹{min_value_cr} Cr")
         print(f"========================================================")
 
-        cj = http.cookiejar.CookieJar()
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj), urllib.request.HTTPSHandler(context=self.ctx))
         base_domain = portal_url.split("/nicgep")[0]
-
+        portal_search_page = f"{portal_url}?page=FrontEndAdvancedSearch&service=page"
         discovered_tenders = []
         seen_tender_ids = set()
 
         for kw in keywords:
             print(f"\n[{state_name}] Searching Keyword: '{kw}'...")
             try:
-                # 1. Fetch homepage to get active session and seedids
+                # Fresh cookie session per keyword
+                cj = http.cookiejar.CookieJar()
+                opener = urllib.request.build_opener(
+                    urllib.request.HTTPCookieProcessor(cj),
+                    urllib.request.HTTPSHandler(context=self.ctx)
+                )
+
+                # 1. Fetch homepage
                 req = urllib.request.Request(portal_url, headers=self.headers)
                 with opener.open(req, timeout=12) as r:
                     html = r.read().decode('utf-8', errors='ignore')
@@ -137,106 +185,112 @@ class GePNICGovtFetcher:
                 with opener.open(post_req, timeout=15) as r:
                     res_html = r.read().decode('utf-8', errors='ignore')
 
-                # 3. Extract direct links to tender details (must have sp= parameter)
-                links = re.findall(r'<a\s+[^>]*href=["\']([^"\']*component=%24DirectLink[^"\']*sp=[^"\']*)["\'][^>]*>(.*?)</a>', res_html, re.DOTALL | re.IGNORECASE)
-                links = [l for l in links if 'Back' not in l[1] and 'More...' not in l[1]]
-                print(f"  Found {len(links)} tenders for '{kw}' on {state_name}")
+                # 3. Extract all rows from results table
+                rows = re.findall(r'<tr[^>]*class=["\'](?:even|odd)[\'"][^>]*>(.*?)</tr>', res_html, re.DOTALL | re.IGNORECASE)
+                print(f"  Found {len(rows)} tenders in search table for '{kw}' on {state_name}")
 
-                for href, text in links[:max_tenders_per_kw]:
-                    raw_title = re.sub(r'<[^>]+>', '', text).strip()
-                    detail_url = urllib.parse.urljoin(base_domain, href.replace('&amp;', '&'))
+                for idx, row in enumerate(rows[:max_tenders_per_kw]):
+                    tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.DOTALL | re.IGNORECASE)
+                    if len(tds) < 6:
+                        continue
 
-                    try:
-                        req_det = urllib.request.Request(detail_url, headers={'User-Agent': self.headers['User-Agent'], 'Referer': portal_url})
-                        with opener.open(req_det, timeout=12) as r:
-                            det_html = r.read().decode('utf-8', errors='ignore')
+                    clean_tds = [re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', td)).strip() for td in tds]
+                    link_match = re.search(r'<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', row, re.DOTALL | re.IGNORECASE)
+                    href = link_match.group(1) if link_match else ""
 
-                        # Extract table details
-                        rows = re.findall(r'<tr[^>]*>(.*?)</tr>', det_html, re.DOTALL | re.IGNORECASE)
-                        tender_info = {}
-                        for row in rows:
-                            tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.DOTALL | re.IGNORECASE)
-                            clean_tds = [re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', td)).strip() for td in tds]
-                            for i in range(0, len(clean_tds) - 1, 2):
-                                key = clean_tds[i].replace('&#8377;', '₹').strip()
-                                val = clean_tds[i+1].replace('&#8377;', '₹').strip()
-                                if key and val:
-                                    tender_info[key] = val
+                    full_col4 = clean_tds[4]
+                    # Extract Tender ID
+                    id_match = re.search(r'\[([0-9]{4}_[A-Z0-9_]+)\]', full_col4)
+                    if id_match:
+                        tender_id = id_match.group(1)
+                    else:
+                        id_fallback = re.search(r'([0-9]{4}_[A-Z0-9_]+)', full_col4)
+                        tender_id = id_fallback.group(1) if id_fallback else f"{state_name[:2].upper()}-{int(time.time()*1000)%1000000}"
 
-                        tender_id = tender_info.get('Tender ID') or ""
-                        if not tender_id:
-                            # Try to find from title bracket e.g. [2026_PHCJA_593210_1]
-                            id_match = re.search(r'\[([0-9]{4}_[A-Z0-9_]+)\]', raw_title)
-                            tender_id = id_match.group(1) if id_match else f"{state_name[:2].upper()}-{int(time.time()*1000)%1000000}"
+                    if tender_id in seen_tender_ids:
+                        continue
 
-                        if tender_id in seen_tender_ids:
-                            continue
+                    clean_title = re.sub(r'\[.*?\]', '', full_col4).strip() or full_col4
+                    pub_date = clean_tds[1]
+                    due_date = clean_tds[2]
+                    dept = clean_tds[5]
 
-                        # Extract Tender Value
-                        val_raw = ""
-                        for k, v in tender_info.items():
-                            if 'tender value' in k.lower() or 'estimated value' in k.lower():
-                                val_raw = v
-                                break
+                    val_cr = 0.0
 
-                        val_cr = clean_currency_to_cr(val_raw)
-                        
-                        # Extract EMD Amount
-                        emd_raw = ""
-                        for k, v in tender_info.items():
-                            if 'emd amount' in k.lower():
-                                emd_raw = v
-                                break
-                        emd_cr = clean_currency_to_cr(emd_raw)
+                    # 1. Check title/text for mentioned cost
+                    val_from_title = extract_value_from_text(clean_title)
+                    if val_from_title > 0:
+                        val_cr = val_from_title
 
-                        # If tender value was zero / not stated but EMD is present (standard 2% of contract value in Indian govt tenders)
-                        if val_cr <= 0.0 and emd_cr >= 0.20:
-                            val_cr = round(emd_cr * 50.0, 2)
-                            print(f"  [Estimated Value from EMD ₹{emd_raw}]: ~₹{val_cr} Cr")
+                    # 2. Fetch detail page
+                    if href:
+                        det_url = urllib.parse.urljoin(base_domain, href.replace('&amp;', '&'))
+                        try:
+                            det_req = urllib.request.Request(
+                                det_url,
+                                headers={
+                                    'User-Agent': self.headers['User-Agent'],
+                                    'Referer': portal_url,
+                                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                                }
+                            )
+                            with opener.open(det_req, timeout=10) as det_r:
+                                det_html = det_r.read().decode('utf-8', errors='ignore')
 
-                        clean_title = tender_info.get('Title') or tender_info.get('Work Description') or raw_title
-                        clean_title = re.sub(r'\[.*?\]', '', clean_title).strip() or raw_title
+                            parsed_info = self._parse_detail_page(det_html)
+                            
+                            # Check Tender Value in parsed info
+                            for k, v in parsed_info.items():
+                                if 'tender value' in k.lower() or 'estimated value' in k.lower():
+                                    val_parsed = clean_currency_to_cr(v)
+                                    if val_parsed > 0:
+                                        val_cr = val_parsed
+                                        break
 
-                        dept = tender_info.get('Organisation Chain') or tender_info.get('Tender Inviting Authority') or f"{state_name} Govt"
-                        loc = tender_info.get('Location') or state_name
-                        due_date = tender_info.get('Bid Submission End Date') or ""
-                        pre_bid = tender_info.get('Pre Bid Meeting Date') or ""
+                            # If value was 0, check EMD Amount
+                            if val_cr <= 0.0:
+                                for k, v in parsed_info.items():
+                                    if 'emd amount' in k.lower():
+                                        emd_cr = clean_currency_to_cr(v)
+                                        if emd_cr >= 0.20:
+                                            val_cr = round(emd_cr * 50.0, 2)
+                                        break
+                        except Exception:
+                            pass
 
-                        # CRITICAL RULE ENFORCEMENT: Tender Value >= 10 Cr
-                        if val_cr >= min_value_cr:
-                            print(f"  >>> MATCH (>= ₹10 Cr): [{tender_id}] ₹{val_cr} Cr | {clean_title[:60]}")
-                            item = {
-                                "id": f"govt-{tender_id}",
-                                "sr_no": str(len(seen_tender_ids) + 1),
-                                "tender_id": tender_id,
-                                "title": clean_title,
-                                "location": loc,
-                                "state": state_name,
-                                "raw_state": state_name,
-                                "amount_inr": round(val_cr * 10000000.0, 2),
-                                "value_cr": val_cr,
-                                "pre_bid_date": pre_bid,
-                                "due_date": due_date,
-                                "department": dept,
-                                "type_of_work": tender_info.get('Product Category') or kw,
-                                "sector": clean_sector_from_title(clean_title, kw),
-                                "status": "Live",
-                                "raw_status": "Live",
-                                "document_link": detail_url,
-                                "summary_sheet": "",
-                                "bidders": [],
-                                "bidders_count": 0,
-                                "l1_price_info": "",
-                                "remarks": f"Auto-ingested from {state_name} GePNIC portal for keyword: '{kw}' (Value >= ₹{min_value_cr} Cr)"
-                            }
-                            discovered_tenders.append(item)
-                            seen_tender_ids.add(tender_id)
-                        else:
-                            print(f"  [Skipped < ₹10 Cr]: [{tender_id}] ₹{val_cr} Cr")
-
-                    except Exception as det_err:
-                        # Silently continue on single tender error
-                        pass
+                    # 3. Value Filter Evaluation
+                    if val_cr >= min_value_cr:
+                        print(f"  >>> MATCH (>= ₹{min_value_cr} Cr): [{tender_id}] ₹{val_cr} Cr | {clean_title[:50]}")
+                        item = {
+                            "id": f"govt-{tender_id}",
+                            "sr_no": str(len(seen_tender_ids) + 1),
+                            "tender_id": tender_id,
+                            "title": clean_title,
+                            "location": state_name,
+                            "state": state_name,
+                            "raw_state": state_name,
+                            "amount_inr": round(val_cr * 10000000.0, 2),
+                            "value_cr": val_cr,
+                            "pre_bid_date": "",
+                            "due_date": due_date,
+                            "department": dept,
+                            "type_of_work": kw,
+                            "sector": clean_sector_from_title(clean_title, kw),
+                            "status": "Live",
+                            "raw_status": "Live",
+                            "document_link": portal_search_page,
+                            "portal_search_url": portal_search_page,
+                            "portal_url": portal_url,
+                            "summary_sheet": "",
+                            "bidders": [],
+                            "bidders_count": 0,
+                            "l1_price_info": "",
+                            "remarks": f"Live ingest from {state_name} GePNIC for '{kw}' (Value ₹{val_cr} Cr >= ₹{min_value_cr} Cr)"
+                        }
+                        discovered_tenders.append(item)
+                        seen_tender_ids.add(tender_id)
+                    else:
+                        print(f"  [Skipped < ₹{min_value_cr} Cr]: [{tender_id}] ₹{val_cr} Cr | {clean_title[:45]}")
 
             except Exception as kw_err:
                 print(f"  Error on keyword '{kw}': {kw_err}")
@@ -244,7 +298,78 @@ class GePNICGovtFetcher:
         print(f"\n[{state_name}] Scan Completed: Discovered {len(discovered_tenders)} high-value (>= ₹{min_value_cr} Cr) tenders.")
         return discovered_tenders
 
-def update_tracker_json(new_tenders):
+
+class FirecrawlGovtFetcher:
+    """Optional Firecrawl API engine for robust cloud scraping with residential proxies."""
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key or os.getenv("FIRECRAWL_API_KEY", "")
+
+    def is_configured(self) -> bool:
+        return bool(self.api_key and self.api_key.strip())
+
+    def fetch_portal_tenders(
+        self,
+        state_name: str,
+        portal_url: str,
+        keywords: List[str],
+        min_value_cr: float = 10.0
+    ) -> List[Dict[str, Any]]:
+        if not self.is_configured():
+            print("Firecrawl API key not configured. Falling back to native GePNIC fetcher.")
+            native = GePNICGovtFetcher()
+            return native.fetch_portal_tenders(state_name, portal_url, keywords, min_value_cr)
+
+        print(f"Using Firecrawl API for {state_name} ({portal_url})...")
+        try:
+            results = []
+            for kw in keywords:
+                payload = {
+                    "url": portal_url,
+                    "formats": ["json"],
+                    "jsonOptions": {
+                        "prompt": f"Extract all government tenders on this page for keyword: {kw}. Return tender_id, title, department, estimated_value_in_rupees, and due_date."
+                    },
+                    "actions": [
+                        {"type": "write", "text": kw, "selector": "input[name='SearchDescription']"},
+                        {"type": "click", "selector": "input[name='Go']"},
+                        {"type": "wait", "milliseconds": 3000}
+                    ]
+                }
+                req = urllib.request.Request(
+                    "https://api.firecrawl.dev/v1/scrape",
+                    data=json.dumps(payload).encode('utf-8'),
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json"
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=40) as response:
+                    data = json.loads(response.read().decode('utf-8'))
+                    extracted = data.get("data", {}).get("json", {}).get("tenders", [])
+                    for t in extracted:
+                        val_cr = clean_currency_to_cr(t.get("estimated_value_in_rupees", 0))
+                        if val_cr >= min_value_cr:
+                            results.append({
+                                "id": f"govt-{t.get('tender_id')}",
+                                "tender_id": t.get("tender_id"),
+                                "title": t.get("title"),
+                                "location": state_name,
+                                "state": state_name,
+                                "value_cr": val_cr,
+                                "due_date": t.get("due_date"),
+                                "department": t.get("department"),
+                                "sector": clean_sector_from_title(t.get("title", ""), kw),
+                                "status": "Live",
+                                "document_link": f"{portal_url}?page=FrontEndAdvancedSearch&service=page"
+                            })
+            return results
+        except Exception as e:
+            print(f"Firecrawl API error: {e}. Falling back to native fetcher...")
+            native = GePNICGovtFetcher()
+            return native.fetch_portal_tenders(state_name, portal_url, keywords, min_value_cr)
+
+
+def update_tracker_json(new_tenders: List[Dict[str, Any]]) -> int:
     if not new_tenders:
         print("No new tenders to update.")
         return 0
@@ -297,19 +422,15 @@ def update_tracker_json(new_tenders):
     print(f"SUCCESS: Added {added_count} new tenders! Master Tracker now has {len(existing)} tenders.")
     return added_count
 
+
 if __name__ == "__main__":
     fetcher = GePNICGovtFetcher()
-    
-    # Run test scan on Rajasthan and Haryana with top operational keywords
-    test_keywords = ["Solar", "STP", "Water Supply", "Sewerage", "JJM"]
+    test_keywords = ["Solar", "STP", "Water Supply", "JJM"]
     
     all_found = []
     for state in ["Rajasthan", "Haryana"]:
         portal = STATE_PORTALS[state]
-        tenders = fetcher.fetch_portal_tenders(state, portal, test_keywords, min_value_cr=10.0, max_tenders_per_kw=6)
+        tenders = fetcher.fetch_portal_tenders(state, portal, test_keywords, min_value_cr=0.01, max_tenders_per_kw=5)
         all_found.extend(tenders)
 
-    if all_found:
-        update_tracker_json(all_found)
-    else:
-        print("No tenders >= ₹10 Cr found in this sample batch.")
+    print(f"\nTotal Discovered: {len(all_found)}")

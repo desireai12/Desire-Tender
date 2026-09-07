@@ -47,6 +47,7 @@ import {
   Radio,
   RefreshCw,
   Play,
+  Copy,
   Square
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
@@ -251,6 +252,32 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   const [discoveredScanResults, setDiscoveredScanResults] = useState<any[]>([]);
   const [scanStatusMessage, setScanStatusMessage] = useState<string>('');
   const [scanError, setScanError] = useState<string>('');
+  const [portalToast, setPortalToast] = useState<string | null>(null);
+
+  const handleOpenPortalTender = (tender: any) => {
+    const tenderId = tender.tender_id || tender.nit_number || tender.id;
+    if (tenderId && typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(tenderId);
+    }
+    setPortalToast(`Copied Tender ID "${tenderId}" to clipboard! Opening state portal search...`);
+    setTimeout(() => setPortalToast(null), 4500);
+
+    const STATE_PORTAL_SEARCH_MAP: Record<string, string> = {
+      'Rajasthan': 'https://eproc.rajasthan.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Haryana': 'https://etenders.hry.nic.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Uttar Pradesh': 'https://etender.up.nic.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Madhya Pradesh': 'https://mptenders.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Delhi': 'https://govtprocurement.delhi.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Maharashtra': 'https://mahatenders.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Punjab': 'https://eproc.punjab.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Odisha': 'https://tendersodisha.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Tamil Nadu': 'https://tntenders.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
+      'Central (All India)': 'https://etenders.gov.in/eprocure/app?page=FrontEndAdvancedSearch&service=page'
+    };
+
+    const targetUrl = tender.portal_search_url || STATE_PORTAL_SEARCH_MAP[tender.state] || tender.document_link || 'https://eproc.rajasthan.gov.in/nicgep/app';
+    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const AVAILABLE_GOVT_PORTALS = [
     { name: 'Rajasthan', url: 'https://eproc.rajasthan.gov.in/nicgep/app' },
@@ -766,9 +793,14 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                       </td>
 
                       <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">
-                        <div className="truncate max-w-[150px]" title={t.tender_id}>
-                          {t.tender_id || '—'}
-                        </div>
+                        <button
+                          onClick={() => handleOpenPortalTender(t)}
+                          className="text-left group flex items-center space-x-1 hover:text-emerald-600 transition-colors cursor-pointer"
+                          title="Click to copy Tender ID & open government portal"
+                        >
+                          <span className="truncate max-w-[135px]">{t.tender_id || '—'}</span>
+                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 shrink-0" />
+                        </button>
                         <div className="text-[10px] font-normal text-slate-500 dark:text-slate-400 truncate" title={t.department}>
                           {t.department || '—'}
                         </div>
@@ -834,17 +866,13 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center space-x-1.5">
-                          {t.document_link ? (
-                            <a
-                              href={t.document_link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                              title="Open Document / SharePoint"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
-                          ) : null}
+                          <button
+                            onClick={() => handleOpenPortalTender(t)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 dark:bg-slate-800 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer"
+                            title="Copy Tender ID & Open State Portal"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </button>
 
                           <button
                             onClick={() => {
@@ -1707,6 +1735,20 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
               </div>
             </div>
           </div>
+        </div>
+      {/* Floating Portal Navigation Toast */}
+      {portalToast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-bounce-in flex items-center space-x-3 px-4 py-3 bg-slate-900 text-white rounded-2xl shadow-2xl border border-emerald-500/40 text-xs font-medium backdrop-blur-md">
+          <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="w-3.5 h-3.5" />
+          </div>
+          <span>{portalToast}</span>
+          <button 
+            onClick={() => setPortalToast(null)}
+            className="text-slate-400 hover:text-white ml-2 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
     </div>

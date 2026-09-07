@@ -4,13 +4,13 @@ from typing import List, Optional
 import os
 import sys
 
-# Add root directory to sys.path so we can import scripts.fetch_govt_tenders
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
 from scripts.fetch_govt_tenders import (
     GePNICGovtFetcher,
+    FirecrawlGovtFetcher,
     update_tracker_json,
     STATE_PORTALS,
     KEYWORD_CATEGORIES
@@ -20,10 +20,12 @@ router = APIRouter(prefix="/scraper", tags=["Government Portals Scraper"])
 
 class ScanRequest(BaseModel):
     states: List[str] = Field(default=["Rajasthan", "Haryana"], description="State portals to scan")
-    keywords: List[str] = Field(default=["Solar", "STP", "Water Supply", "Sewerage"], description="Keywords to query")
+    keywords: List[str] = Field(default=["Solar", "STP", "Water Supply", "JJM"], description="Keywords to query")
     min_value_cr: float = Field(default=10.0, description="Minimum tender value threshold in ₹ Crores (default: 10 Cr)")
-    max_per_kw: int = Field(default=8, description="Max tenders to inspect per keyword per portal")
+    max_per_kw: int = Field(default=15, description="Max tenders to inspect per keyword per portal")
     auto_update_tracker: bool = Field(default=True, description="Whether to merge newly discovered tenders into tracker")
+    use_firecrawl: bool = Field(default=False, description="Whether to use Firecrawl API engine if available")
+    firecrawl_api_key: Optional[str] = Field(default=None, description="Optional Firecrawl API key")
 
 @router.get("/config")
 def get_scraper_config():
@@ -33,18 +35,26 @@ def get_scraper_config():
         flat_keywords.extend(kws)
     unique_kws = sorted(list(set(flat_keywords)))
 
+    firecrawl_key_env = bool(os.getenv("FIRECRAWL_API_KEY", "").strip())
+
     return {
         "status": "online",
         "default_min_value_cr": 10.0,
         "available_portals": list(STATE_PORTALS.keys()),
+        "portal_urls": STATE_PORTALS,
         "keyword_categories": KEYWORD_CATEGORIES,
-        "all_keywords": unique_kws
+        "all_keywords": unique_kws,
+        "firecrawl_available": firecrawl_key_env
     }
 
 @router.post("/scan")
 def run_live_portal_scan(req: ScanRequest):
     """Executes live GePNIC portal search, parses values, and filters >= min_value_cr."""
-    fetcher = GePNICGovtFetcher()
+    if req.use_firecrawl:
+        fetcher = FirecrawlGovtFetcher(api_key=req.firecrawl_api_key)
+    else:
+        fetcher = GePNICGovtFetcher()
+
     all_discovered = []
 
     for state in req.states:
