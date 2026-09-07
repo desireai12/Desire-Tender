@@ -245,7 +245,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   const [isScanningGovtPortals, setIsScanningGovtPortals] = useState(false);
   const [scannerStates, setScannerStates] = useState<string[]>(['Rajasthan', 'Haryana', 'Uttar Pradesh']);
   const [scannerKeywords, setScannerKeywords] = useState<string[]>([
-    'Solar', 'STP or treatment', 'Water Supply', 'Sewerage', 'JJM', 'Irrigation', 'SCADA'
+    'Turnkey', 'Augmentation', 'Solar', 'STP', 'Water Supply', 'JJM', 'Distribution', 'Sewerage', 'Sub-stations', 'Irrigation', 'SCADA'
   ]);
   const [customKeywordInput, setCustomKeywordInput] = useState('');
   const [minThresholdCr, setMinThresholdCr] = useState<number>(10.0);
