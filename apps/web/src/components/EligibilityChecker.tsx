@@ -173,6 +173,7 @@ export const EligibilityChecker: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
         <div className="flex items-center space-x-3">
           <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
             <Sparkles className="w-6 h-6 animate-pulse" />
@@ -187,7 +188,7 @@ export const EligibilityChecker: React.FC = () => {
       </div>
 
       {/* Upload Tender & Analysis Toolbar */}
-      <form onSubmit={handleRunAnalysis} className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4">
+      <form onSubmit={handleRunAnalysis} className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* File Upload Box */}
           <div className="md:col-span-2 space-y-1">
