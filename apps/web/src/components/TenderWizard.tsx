@@ -216,154 +216,177 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     if (!evaluationReport) {
       return {
         badge: 'OPTION 1 — DESIRE ENERGY ALONE',
+        entityName: 'Desire Energy Alone',
         verdict: 'PROCESSING',
         score: 0,
         fulfilled_pct: '0%',
         option1_pct: '0%',
         option2_pct: '0%',
         option3_pct: '100%',
+        summary_counts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
+        total_count: 0,
         matched_count: 0,
         partial_count: 0,
-        total_count: 0,
+        not_matching_count: 0,
+        data_missing_count: 0,
+        evaluatedClauses: [],
+        tabScores: { desire: '0%', jv: '0%', combined: '100%' },
         recommendation: 'Analyzing tender clauses...',
         executive_summary: 'Processing AI Report...'
       };
     }
 
     const clauses = evaluationReport.clauses_breakdown || [];
-    const desireSolvency = (desireComp as any).solvency_amount || (desireComp as any).solvency || 72.18;
-    const clauseCount = clauses.length || 10;
+    const totalCount = clauses.length || 1;
 
-    let opt1Sum = 0;
-    let opt1Matched = 0;
-    let opt1Partial = 0;
+    // Helper to evaluate a specific perspective with exact clause-by-clause scoring
+    const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
+      const evaluated = clauses.map(c => {
+        let val = c.combined_value;
+        let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.status;
+        let pct = 100;
 
-    let opt2Sum = 0;
-    let opt2Matched = 0;
-    let opt2Partial = 0;
-
-    clauses.forEach(c => {
-      const cTitle = (c.clause_title || '').toLowerCase();
-      const reqText = (c.tender_requirement || '').toLowerCase();
-      const isSewerageReq = cTitle.includes('sewer') || cTitle.includes('stp') || reqText.includes('sewer') || reqText.includes('stp');
-
-      // Option 1 Evaluation (Desire Alone)
-      let dVal = c.desire_value || '';
-      const hasDesireSewerGap = isSewerageReq && (dVal.toLowerCase().includes('no ') || dVal.toLowerCase().includes('water pipeline') || dVal.toLowerCase().includes('0%'));
-
-      if (hasDesireSewerGap || dVal.includes('No Prior') || dVal.includes('(0%)') || dVal.includes('0.0%') || c.status === 'NOT MATCHING') {
-        opt1Sum += 0;
-        opt1Partial++;
-      } else if ((dVal.includes('100%') || dVal.includes('Exceeds')) && !isSewerageReq) {
-        opt1Sum += 100;
-        opt1Matched++;
-      } else if (c.status === 'MATCH' && !isSewerageReq) {
-        opt1Sum += 100;
-        opt1Matched++;
-      } else {
-        const pctMatch = dVal.match(/(\d+(\.\d+)?)%/);
-        if (pctMatch && !isSewerageReq) {
-          const val = Math.min(100, Math.max(0, parseFloat(pctMatch[1])));
-          opt1Sum += val;
-          if (val >= 100) opt1Matched++; else opt1Partial++;
+        if (mode === 'desire') {
+          val = c.desire_value || '';
+          const lowerVal = val.toLowerCase();
+          if (lowerVal.includes('data not') || lowerVal.includes('missing')) {
+            status = 'DATA NOT AVAILABLE';
+            pct = 0;
+          } else if (lowerVal.includes('lacks') || lowerVal.includes('not met') || lowerVal.includes('0%') || lowerVal.includes('no experience') || lowerVal.includes('ineligible')) {
+            status = 'NOT MATCHING';
+            pct = 0;
+          } else if (lowerVal.includes('partial') || lowerVal.includes('50%') || lowerVal.includes('75%') || lowerVal.includes('requires jv') || lowerVal.includes('pooled')) {
+            status = 'PARTIAL MATCH';
+            pct = 50;
+          } else {
+            status = 'MATCH';
+            pct = 100;
+          }
+        } else if (mode === 'jv') {
+          val = c.jv_value || '';
+          const lowerVal = val.toLowerCase();
+          if (lowerVal.includes('data not') || lowerVal.includes('missing')) {
+            status = 'DATA NOT AVAILABLE';
+            pct = 0;
+          } else if (lowerVal.includes('lacks') || lowerVal.includes('not met') || lowerVal.includes('0%') || lowerVal.includes('no experience') || lowerVal.includes('cannot bid')) {
+            status = 'NOT MATCHING';
+            pct = 0;
+          } else if (lowerVal.includes('partial') || lowerVal.includes('60%') || lowerVal.includes('61%') || lowerVal.includes('50%') || lowerVal.includes('70%')) {
+            status = 'PARTIAL MATCH';
+            pct = 50;
+          } else {
+            status = 'MATCH';
+            pct = 100;
+          }
         } else {
-          opt1Sum += isSewerageReq ? 0 : 75;
-          opt1Partial++;
+          // Combined
+          status = c.status === 'MATCH' ? 'MATCH' : c.status === 'PARTIAL MATCH' ? 'PARTIAL MATCH' : 'NOT MATCHING';
+          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
         }
-      }
 
-      // Option 2 Evaluation (Divija Alone)
-      let jVal = c.jv_value || '';
-      if (jVal.includes('No Prior') || jVal.includes('(0%)') || jVal.includes('0.0%')) {
-        opt2Sum += 0;
-        opt2Partial++;
-      } else if (jVal.includes('100%') || jVal.includes('Exceeds') || (isSewerageReq && (jVal.includes('136 km') || jVal.includes('Sewer')))) {
-        opt2Sum += 100;
-        opt2Matched++;
-      } else {
-        const pctMatch = jVal.match(/(\d+(\.\d+)?)%/);
-        if (pctMatch) {
-          const val = Math.min(100, Math.max(0, parseFloat(pctMatch[1])));
-          opt2Sum += val;
-          if (val >= 100) opt2Matched++; else opt2Partial++;
-        } else {
-          opt2Sum += 60;
-          opt2Partial++;
+        return {
+          ...c,
+          active_val: val,
+          active_status: status,
+          active_pct: pct
+        };
+      });
+
+      const matched = evaluated.filter(c => c.active_status === 'MATCH').length;
+      const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
+      const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
+      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
+
+      const score = Math.round(((matched * 100) + (partial * 50)) / totalCount);
+
+      return {
+        score,
+        pctStr: `${score}%`,
+        evaluated,
+        counts: {
+          total_criteria: totalCount,
+          matched,
+          partial,
+          not_matching: notMatching,
+          data_missing: missing
         }
-      }
-    });
+      };
+    };
 
-    const opt1Score = Math.min(100, Math.round(opt1Sum / clauseCount));
-    const opt2Score = Math.min(100, Math.round(opt2Sum / clauseCount));
-    const opt3Score = 100;
+    const desireEval = evaluatePerspective('desire');
+    const jvEval = evaluatePerspective('jv');
+    const combinedEval = evaluatePerspective('combined');
 
-    const opt1PctStr = `${opt1Score}.0%`;
-    const opt2PctStr = `${opt2Score}.0%`;
-    const opt3PctStr = `${opt3Score}.0%`;
+    const activeEval = activeAnalysisOption === 'desire' ? desireEval : activeAnalysisOption === 'jv' ? jvEval : combinedEval;
+
+    let badge = 'OPTION 3 — DESIRE + JV COMBINED';
+    let entityName = 'Combined JV Consortium';
+    let verdict = 'Eligible Through JV';
+    let recommendation = `BID (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
 
     if (activeAnalysisOption === 'desire') {
-      const titleLower = (evaluationReport.tender_title || '').toLowerCase();
-      const catUpper = (evaluationReport.project_category || '').toUpperCase();
-      const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp');
-
-      // If it is a Sewerage tender, Desire Energy Standalone CANNOT be 100% Eligible (has zero sewer experience)
-      const hasGap = isSewerTender || opt1Partial > 0 || opt1Score < 100;
-      const finalScore = isSewerTender ? Math.min(65, opt1Score) : opt1Score;
-      const finalPctStr = `${finalScore}.0%`;
-      const desireVerd = hasGap ? 'PARTIALLY ELIGIBLE' : 'ELIGIBLE';
-      const desireRec = hasGap
-        ? `TECHNICAL GAP IDENTIFIED — INELIGIBLE STANDALONE (Desire Energy lacks Sewerage Experience; Must Bid via JV)`
-        : `DESIRE STANDALONE QUALIFIED (100% Criteria Satisfied)`;
-
-      return {
-        badge: 'OPTION 1 — DESIRE ENERGY ALONE',
-        verdict: desireVerd,
-        score: finalScore,
-        fulfilled_pct: finalPctStr,
-        option1_pct: finalPctStr,
-        option2_pct: opt2PctStr,
-        option3_pct: opt3PctStr,
-        matched_count: isSewerTender ? Math.max(0, opt1Matched - 1) : opt1Matched,
-        partial_count: isSewerTender ? opt1Partial + 1 : opt1Partial,
-        total_count: clauseCount,
-        recommendation: desireRec,
-        executive_summary: `Desire Energy Standalone AI Analysis: Evaluated extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy master records. ${isSewerTender ? 'Desire Energy has NO underground sewerage experience (only water pipelines). Standalone capability is PARTIALLY ELIGIBLE (65.0%). MUST form JV with Divija Construction to satisfy sewerage experience requirement.' : `Standalone capability satisfies ${finalPctStr} across all ${clauseCount} extracted clauses.`}`
-      };
-    }
-
-    if (activeAnalysisOption === 'jv') {
-      const isFull = opt2Score >= 100;
-      const jvVerd = isFull ? 'ELIGIBLE' : 'PARTIALLY ELIGIBLE';
-
-      return {
-        badge: `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`,
-        verdict: jvVerd,
-        score: opt2Score,
-        fulfilled_pct: opt2PctStr,
-        option1_pct: opt1PctStr,
-        option2_pct: opt2PctStr,
-        option3_pct: opt3PctStr,
-        matched_count: opt2Matched,
-        partial_count: opt2Partial,
-        total_count: clauseCount,
-        recommendation: `DIVIJA ALONE INSUFFICIENT (${jvComp.name} Satisfies ${opt2PctStr} of Criteria)`,
-        executive_summary: `${jvComp.name} Standalone AI Analysis: Evaluated extracted tender clauses against ${jvComp.name} master data. Partner alone satisfies ${opt2PctStr} of bid criteria across all ${clauseCount} extracted clauses (${opt2Matched} Matched, ${opt2Partial} Partial). Lacks Lead Member license, solvency & bid capacity; cannot bid without Desire Energy.`
-      };
+      badge = 'OPTION 1 — DESIRE ENERGY ALONE';
+      entityName = 'Desire Energy Alone';
+      if (activeEval.score >= 90) {
+        verdict = 'Eligible Standalone';
+        recommendation = `BID STANDALONE (Desire Energy satisfies ${activeEval.pctStr} of criteria)`;
+      } else if (activeEval.score >= 60) {
+        verdict = 'Partially Eligible Standalone';
+        recommendation = `REVIEW / JV RECOMMENDED (Desire Energy satisfies ${activeEval.pctStr} of criteria)`;
+      } else {
+        verdict = 'Ineligible Standalone';
+        recommendation = `JV MANDATORY (Desire Energy satisfies only ${activeEval.pctStr} of criteria)`;
+      }
+    } else if (activeAnalysisOption === 'jv') {
+      badge = `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`;
+      entityName = `${jvComp.name} Alone`;
+      if (activeEval.score >= 90) {
+        verdict = 'Eligible Standalone';
+        recommendation = `PARTNER ELIGIBLE (${jvComp.name} satisfies ${activeEval.pctStr} of criteria)`;
+      } else if (activeEval.score >= 60) {
+        verdict = 'Partially Eligible Standalone';
+        recommendation = `LEAD MEMBER REQUIRED (${jvComp.name} satisfies ${activeEval.pctStr} of criteria)`;
+      } else {
+        verdict = 'Ineligible Standalone';
+        recommendation = `INSUFFICIENT (${jvComp.name} satisfies only ${activeEval.pctStr} of criteria)`;
+      }
+    } else {
+      if (activeEval.score >= 90) {
+        verdict = 'Fully Eligible (Joint Venture)';
+        recommendation = `BID (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
+      } else {
+        verdict = 'Partially Eligible Through JV';
+        recommendation = `REVIEW GAPS (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
+      }
     }
 
     return {
-      badge: 'OPTION 3 — DESIRE + JV COMBINED CONSORTIUM',
-      verdict: 'ELIGIBLE THROUGH JV',
-      score: opt3Score,
-      fulfilled_pct: opt3PctStr,
-      option1_pct: opt1PctStr,
-      option2_pct: opt2PctStr,
-      option3_pct: opt3PctStr,
-      matched_count: clauseCount,
-      partial_count: 0,
-      total_count: clauseCount,
-      recommendation: 'BID (Fully Eligible Through Joint Venture)',
-      executive_summary: `Combined Consortium AI Analysis: Desire Energy provides ₹${desireComp.average_turnover} Cr Turnover + Class-A License + ₹${desireSolvency} Cr Solvency (Lead 51%), and ${jvComp.name} provides mandatory Sewerage/STP Work Experience (Partner 49%). Combined consortium achieves ${opt3PctStr} full eligibility across all ${clauseCount} extracted clauses.`
+      badge,
+      entityName,
+      verdict,
+      score: activeEval.score,
+      fulfilled_pct: activeEval.pctStr,
+      option1_pct: desireEval.pctStr,
+      option2_pct: jvEval.pctStr,
+      option3_pct: combinedEval.pctStr,
+      recommendation,
+      executive_summary: activeAnalysisOption === 'desire'
+        ? `Desire Energy Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy credentials (₹${desireComp.average_turnover} Cr avg turnover, ₹${desireComp.net_worth} Cr net worth). Desire Energy satisfies ${activeEval.pctStr} of requirements with ${activeEval.counts.matched} criteria fully met and ${activeEval.counts.partial} partial.`
+        : activeAnalysisOption === 'jv'
+        ? `${jvComp.name} Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses against ${jvComp.name} company credentials (₹${jvComp.average_turnover} Cr avg turnover, ₹${jvComp.net_worth} Cr net worth). Partner satisfies ${activeEval.pctStr} of requirements with ${activeEval.counts.matched} criteria met.`
+        : `Combined Consortium AI Analysis: Evaluated ${totalCount} extracted tender clauses against Desire Energy + ${jvComp.name} master data with 100% turnover pooling. Combined consortium achieves ${activeEval.pctStr} qualification across all financial, technical, and licensing criteria.`,
+      summary_counts: activeEval.counts,
+      total_count: activeEval.counts.total_criteria,
+      matched_count: activeEval.counts.matched,
+      partial_count: activeEval.counts.partial,
+      not_matching_count: activeEval.counts.not_matching,
+      data_missing_count: activeEval.counts.data_missing,
+      evaluatedClauses: activeEval.evaluated,
+      tabScores: {
+        desire: desireEval.pctStr,
+        jv: jvEval.pctStr,
+        combined: combinedEval.pctStr
+      }
     };
   };
 
@@ -674,13 +697,15 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
-                  perspective.verdict.includes('ELIGIBLE') && !perspective.verdict.includes('PARTIALLY')
+                  perspective.verdict.includes('Eligible') && !perspective.verdict.includes('Ineligible')
                     ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
                     : 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
                 }`}>
                   {perspective.verdict}
                 </span>
-                <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold">Match Score: {perspective.score}% ({perspective.fulfilled_pct})</span>
+                <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold">
+                  Match Score: {perspective.fulfilled_pct}
+                </span>
               </div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">{currentReport.tender_title}</h2>
               <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
@@ -697,28 +722,32 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             <div className="glass-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
               <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Total Criteria</span>
               <span className="text-sm font-bold text-slate-900 dark:text-white">
-                {perspective.total_count}
+                {perspective.summary_counts.total_criteria}
               </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/40">
-              <span className="text-[10px] font-mono text-emerald-800 dark:text-emerald-300 font-bold uppercase block">Matched</span>
+              <span className="text-[10px] font-mono text-emerald-800 dark:text-emerald-300 font-bold uppercase block">Matched (100%)</span>
               <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
-                {perspective.matched_count}
+                {perspective.summary_counts.matched}
               </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50 dark:bg-amber-950/40">
-              <span className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-bold uppercase block">Partial Match</span>
+              <span className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-bold uppercase block">Partial Match (50%)</span>
               <span className="text-sm font-bold text-amber-900 dark:text-amber-200 font-bold">
-                {perspective.partial_count}
+                {perspective.summary_counts.partial}
               </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/40">
-              <span className="text-[10px] font-mono text-rose-800 dark:text-rose-300 font-bold uppercase block">Not Matching</span>
-              <span className="text-sm font-bold text-rose-800 dark:text-rose-300">0</span>
+              <span className="text-[10px] font-mono text-rose-800 dark:text-rose-300 font-bold uppercase block">Not Matching (0%)</span>
+              <span className="text-sm font-bold text-rose-800 dark:text-rose-300">
+                {perspective.summary_counts.not_matching}
+              </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
               <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Data Missing</span>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">0</span>
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                {perspective.summary_counts.data_missing}
+              </span>
             </div>
           </div>
 
@@ -726,7 +755,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Extracted Tender Clause Analysis ({currentReport?.clauses_breakdown?.length || 0} Clauses Extracted)</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Extracted Tender Clause Analysis ({perspective.evaluatedClauses.length} Clauses Evaluated)</h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold">
                   {perspective.badge}
                 </span>
@@ -740,13 +769,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   <tr className="border-b border-slate-200 text-slate-700 font-medium font-mono text-[10px] uppercase tracking-wider bg-slate-100 border border-slate-200">
                     <th className="p-3">Clause & Page</th>
                     <th className="p-3">Tender Requirement</th>
-                    {activeAnalysisOption === 'desire' && <th className="p-3 text-teal-800">Desire Energy Value</th>}
+                    {activeAnalysisOption === 'desire' && <th className="p-3 text-teal-800 font-bold">Desire Energy Value</th>}
                     {activeAnalysisOption === 'jv' && <th className="p-3 text-teal-800 font-bold">{jvComp.name} Value</th>}
                     {activeAnalysisOption === 'combined' && (
                       <>
-                        <th className="p-3 text-teal-800">Desire Energy</th>
+                        <th className="p-3 text-teal-800 font-bold">Desire Energy</th>
                         <th className="p-3 text-teal-800 font-bold">JV Partner</th>
-                        <th className="p-3 text-slate-900">Combined Result</th>
+                        <th className="p-3 text-slate-900 font-bold">Combined Result</th>
                         <th className="p-3">Applicable JV Rule</th>
                       </>
                     )}
@@ -757,52 +786,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {(currentReport?.clauses_breakdown || []).map((item, idx) => {
-                    let statusVal = item.status || 'MATCH';
-                    let displayVal = item.combined_value;
-                    let itemFulfilledPct = item.fulfilled_pct || '100.0%';
-                    
-                    const cleanDVal = (item.desire_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
-                    const cleanJVal = (item.jv_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
-                    const cleanCVal = (item.combined_value || '').replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
-
-                    const isSewerClause = (item.clause_title || '').toLowerCase().includes('sewer') || (item.clause_title || '').toLowerCase().includes('stp') || (item.tender_requirement || '').toLowerCase().includes('sewer');
-
-                    if (activeAnalysisOption === 'desire') {
-                      displayVal = item.desire_value;
-                      if (isSewerClause || item.desire_value.includes('No Prior') || item.desire_value.includes('No underground') || item.desire_value.includes('(0%)') || item.desire_value.includes('0.0%')) {
-                        statusVal = 'PARTIAL MATCH';
-                        itemFulfilledPct = '0.0%';
-                      } else if (item.desire_value.includes('100%') || item.desire_value.includes('Exceeds')) {
-                        statusVal = 'MATCH';
-                        itemFulfilledPct = '100.0%';
-                      } else {
-                        const pctMatch = item.desire_value.match(/(\d+(\.\d+)?)%/);
-                        if (pctMatch) {
-                          itemFulfilledPct = `${pctMatch[1]}%`;
-                          statusVal = parseFloat(pctMatch[1]) >= 100 ? 'MATCH' : 'PARTIAL MATCH';
-                        }
-                      }
-                    } else if (activeAnalysisOption === 'jv') {
-                      displayVal = item.jv_value;
-                      if (item.jv_value.includes('No Prior') || item.jv_value.includes('(0%)') || item.jv_value.includes('0.0%')) {
-                        statusVal = 'NOT MATCHING';
-                        itemFulfilledPct = '0.0%';
-                      } else if (item.jv_value.includes('100%')) {
-                        statusVal = 'MATCH';
-                        itemFulfilledPct = '100.0%';
-                      } else {
-                        const pctMatch = item.jv_value.match(/(\d+(\.\d+)?)%/);
-                        if (pctMatch) {
-                          itemFulfilledPct = `${pctMatch[1]}%`;
-                          statusVal = parseFloat(pctMatch[1]) >= 100 ? 'MATCH' : 'PARTIAL MATCH';
-                        } else {
-                          statusVal = 'PARTIAL MATCH';
-                          itemFulfilledPct = '50.0%';
-                        }
-                      }
-                    }
-
+                  {perspective.evaluatedClauses.map((item, idx) => {
+                    const statusVal = item.active_status;
                     return (
                       <tr key={idx} className="hover:bg-white/5 transition-colors">
                         <td className="p-3">
@@ -810,13 +795,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                           <span className="font-semibold text-slate-900">{item.clause_title}</span>
                         </td>
                         <td className="p-3 text-slate-600">{item.tender_requirement}</td>
-                        {activeAnalysisOption === 'desire' && <td className="p-3 text-teal-800 font-mono font-medium">{cleanDVal}</td>}
-                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-800 font-bold font-mono font-medium">{cleanJVal}</td>}
+                        {activeAnalysisOption === 'desire' && <td className="p-3 text-teal-800 font-mono font-medium">{item.active_val}</td>}
+                        {activeAnalysisOption === 'jv' && <td className="p-3 text-teal-800 font-bold font-mono font-medium">{item.active_val}</td>}
                         {activeAnalysisOption === 'combined' && (
                           <>
-                            <td className="p-3 text-teal-800 font-mono">{cleanDVal}</td>
-                            <td className="p-3 text-teal-800 font-bold font-mono">{cleanJVal}</td>
-                            <td className="p-3 text-slate-900 font-mono font-bold">{cleanCVal}</td>
+                            <td className="p-3 text-teal-800 font-mono">{item.desire_value}</td>
+                            <td className="p-3 text-teal-800 font-bold font-mono">{item.jv_value}</td>
+                            <td className="p-3 text-slate-900 font-mono font-bold">{item.combined_value}</td>
                             <td className="p-3 text-slate-700 font-medium font-mono text-[11px]">{item.applicable_jv_rule}</td>
                           </>
                         )}
@@ -829,9 +814,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                                 ? 'bg-amber-100 text-amber-900 font-bold border border-amber-200'
                                 : statusVal === 'NOT MATCHING'
                                 ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                                : statusVal === 'DATA NOT AVAILABLE'
-                                ? 'bg-slate-500/20 text-slate-600 border border-slate-500/30'
-                                : 'bg-purple-500/20 text-purple-800 border border-purple-200'
+                                : 'bg-slate-100 text-slate-700 border border-slate-300'
                             }`}
                           >
                             {statusVal === 'MATCH' && <CheckCircle2 className="w-3 h-3" />}
@@ -842,7 +825,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                           </span>
                         </td>
                         <td className="p-3 font-mono font-bold text-teal-800 font-semibold">
-                          {statusVal === 'MATCH' ? '100.0%' : (parseFloat(itemFulfilledPct) >= 100 ? '100.0%' : itemFulfilledPct)}
+                          {item.active_pct}%
                         </td>
                         <td className="p-3 text-slate-700 font-medium text-[11px]">{item.gap_notes}</td>
                         <td className="p-3 text-slate-600 font-mono text-[11px]">{item.required_doc}</td>
