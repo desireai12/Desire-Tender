@@ -1705,8 +1705,18 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                               EMD: ₹{item.emd_lakhs} L
                             </div>
                           ) : null}
-                          {onSelectTenderForAnalysis && (
-                            <div className="pt-1">
+                          <div className="flex items-center justify-end space-x-1.5 pt-1">
+                            <a
+                              href={item.document_link || AVAILABLE_GOVT_PORTALS.find(p => p.name === item.state)?.url || 'https://etenders.gov.in/eprocure/app'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 flex items-center space-x-1"
+                              title={`Open ${item.state} official e-procurement portal in new tab`}
+                            >
+                              <span>Govt Portal</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                            {onSelectTenderForAnalysis && (
                               <button
                                 onClick={() => {
                                   setShowGovtScannerModal(false);
@@ -1716,8 +1726,8 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                               >
                                 AI Audit
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

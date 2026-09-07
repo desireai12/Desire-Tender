@@ -26,11 +26,14 @@ import {
   X,
   Share2,
   Bookmark,
-  ChevronDown
+  ChevronDown,
+  Copy,
+  Check,
+  ChevronLeft,
+  ArrowRight
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 import indiaSectorTendersRaw from '@/data/india_sector_tenders.json';
-import trackerSummaryRaw from '@/data/tracker_summary.json';
 
 export interface IndiaTenderItem {
   id: string;
@@ -61,41 +64,61 @@ export interface IndiaTenderItem {
   portal_url?: string;
 }
 
-const INDIAN_STATES = [
-  { name: 'All India', code: 'ALL', count: 2954, totalValueCr: 417258.4 },
-  { name: 'Haryana', code: 'HR', count: 635, totalValueCr: 72400.0, highlight: 'Public Health & Irrigation' },
-  { name: 'Rajasthan', code: 'RJ', count: 481, totalValueCr: 68900.5, highlight: 'PHED & RUDSICO Hub' },
-  { name: 'Gujarat', code: 'GJ', count: 444, totalValueCr: 61200.0, highlight: 'GWSSB & GIDC Water' },
-  { name: 'Uttar Pradesh', code: 'UP', count: 347, totalValueCr: 54300.2, highlight: 'JJM Mission & UPJN' },
-  { name: 'Madhya Pradesh', code: 'MP', count: 237, totalValueCr: 38900.4, highlight: 'MP Jal Nigam' },
-  { name: 'Delhi', code: 'DL', count: 169, totalValueCr: 21400.0, highlight: 'DJB & DDA Projects' },
-  { name: 'Maharashtra', code: 'MH', count: 160, totalValueCr: 24500.0, highlight: 'MJP & CIDCO Infra' },
-  { name: 'Tamil Nadu', code: 'TN', count: 97, totalValueCr: 14200.0, highlight: 'TWAD Board Projects' },
-  { name: 'Punjab', code: 'PB', count: 79, totalValueCr: 9800.0, highlight: 'DWSS Punjab Water' },
-  { name: 'Odisha', code: 'OD', count: 69, totalValueCr: 8900.0, highlight: 'RWSS & WATCO' },
-  { name: 'Karnataka', code: 'KA', count: 58, totalValueCr: 7600.0, highlight: 'KUWSDB Projects' },
-  { name: 'Assam', code: 'AS', count: 56, totalValueCr: 6700.0, highlight: 'PHE Assam JJM' },
-  { name: 'Uttarakhand', code: 'UK', count: 45, totalValueCr: 5200.0, highlight: 'UJN & Peyjal Nigam' },
-  { name: 'Chhattisgarh', code: 'CG', count: 40, totalValueCr: 4800.0, highlight: 'PHED Chhattisgarh' },
-  { name: 'Telangana', code: 'TS', count: 38, totalValueCr: 4500.0, highlight: 'Mission Bhagiratha' }
+const STATE_PORTAL_MAP: Record<string, string> = {
+  'Rajasthan': 'https://eproc.rajasthan.gov.in/nicgep/app',
+  'Haryana': 'https://etenders.hry.nic.in/nicgep/app',
+  'Uttar Pradesh': 'https://etender.up.nic.in/nicgep/app',
+  'Madhya Pradesh': 'https://mptenders.gov.in/nicgep/app',
+  'Delhi': 'https://govtprocurement.delhi.gov.in/nicgep/app',
+  'Maharashtra': 'https://mahatenders.gov.in/nicgep/app',
+  'Gujarat': 'https://tender.nprocure.com',
+  'Punjab': 'https://eproc.punjab.gov.in/nicgep/app',
+  'Odisha': 'https://tendersodisha.gov.in/nicgep/app',
+  'Tamil Nadu': 'https://tntenders.gov.in/nicgep/app',
+  'Karnataka': 'https://eproc.karnataka.gov.in',
+  'Assam': 'https://assamtenders.gov.in/nicgep/app',
+  'Uttarakhand': 'https://uktenders.gov.in/nicgep/app',
+  'Chhattisgarh': 'https://eproc.cgstate.gov.in',
+  'Telangana': 'https://tender.telangana.gov.in',
+  'All India': 'https://etenders.gov.in/eprocure/app'
+};
+
+const INDIAN_STATES_BASE = [
+  { name: 'All India', code: 'ALL', highlight: 'Pan-India Overview' },
+  { name: 'Haryana', code: 'HR', highlight: 'Public Health & Irrigation' },
+  { name: 'Rajasthan', code: 'RJ', highlight: 'PHED & RUDSICO Hub' },
+  { name: 'Gujarat', code: 'GJ', highlight: 'GWSSB & GIDC Water' },
+  { name: 'Uttar Pradesh', code: 'UP', highlight: 'JJM Mission & UPJN' },
+  { name: 'Madhya Pradesh', code: 'MP', highlight: 'MP Jal Nigam' },
+  { name: 'Delhi', code: 'DL', highlight: 'DJB & DDA Projects' },
+  { name: 'Maharashtra', code: 'MH', highlight: 'MJP & CIDCO Infra' },
+  { name: 'Tamil Nadu', code: 'TN', highlight: 'TWAD Board Projects' },
+  { name: 'Punjab', code: 'PB', highlight: 'DWSS Punjab Water' },
+  { name: 'Odisha', code: 'OD', highlight: 'RWSS & WATCO' },
+  { name: 'Karnataka', code: 'KA', highlight: 'KUWSDB Projects' },
+  { name: 'Assam', code: 'AS', highlight: 'PHE Assam JJM' },
+  { name: 'Uttarakhand', code: 'UK', highlight: 'UJN & Peyjal Nigam' },
+  { name: 'Chhattisgarh', code: 'CG', highlight: 'PHED Chhattisgarh' },
+  { name: 'Telangana', code: 'TS', highlight: 'Mission Bhagiratha' }
 ];
 
-const SECTOR_CATEGORIES = [
-  { id: 'ALL', label: 'All Sectors', count: 2954, totalCr: 417258.4, icon: Globe2 },
-  { id: 'JJM & Rural Water', label: 'Turnkey EPC & JJM Water', count: 1061, totalCr: 145000.0, icon: Building2 },
-  { id: 'STP & Wastewater', label: 'STP & Sewerage Network', count: 941, totalCr: 112000.0, icon: ShieldCheck },
-  { id: 'Water Transmission & Pipelines', label: 'Water Transmission & Pipelines', count: 298, totalCr: 48500.0, icon: TrendingUp },
-  { id: 'Canal & Lift Irrigation', label: 'Canal, Dam & Irrigation', count: 292, totalCr: 42300.0, icon: BarChart3 },
-  { id: 'ESCO & Energy Efficiency', label: 'O&M Water & Civil Assets', count: 170, totalCr: 24800.0, icon: Clock },
-  { id: 'Solar & Renewable', label: 'Solar & Renewable (KUSUM)', count: 119, totalCr: 18900.0, icon: Sparkles },
-  { id: 'Urban Infra & Smart Water', label: 'Smart Water, SCADA & Automation', count: 72, totalCr: 9200.0, icon: Layers },
+const SECTOR_CATEGORIES_BASE = [
+  { id: 'ALL', label: 'All Sectors', icon: Globe2 },
+  { id: 'Water Transmission & Pipelines', label: 'Water Transmission & Pipelines', icon: TrendingUp },
+  { id: 'JJM & Rural Water', label: 'Turnkey EPC & JJM Water', icon: Building2 },
+  { id: 'STP & Wastewater', label: 'STP & Sewerage Network', icon: ShieldCheck },
+  { id: 'Canal & Lift Irrigation', label: 'Canal, Dam & Irrigation', icon: BarChart3 },
+  { id: 'ESCO & Energy Efficiency', label: 'O&M Water & Civil Assets', icon: Clock },
+  { id: 'Solar & Renewable', label: 'Solar & Renewable (KUSUM)', icon: Sparkles },
+  { id: 'Urban Infra & Smart Water', label: 'Smart Water, SCADA & Automation', icon: Layers },
 ];
 
 const SAMPLE_TENDERS: IndiaTenderItem[] = (indiaSectorTendersRaw as any[]).map((t: any) => ({
   ...t,
   stage: t.stage as any,
   sector: t.sector as any,
-  desire_qual_status: t.desire_qual_status as any
+  desire_qual_status: t.desire_qual_status as any,
+  portal_url: t.portal_url || STATE_PORTAL_MAP[t.state] || STATE_PORTAL_MAP['All India']
 }));
 
 interface IndiaTendersSectorViewProps {
@@ -115,13 +138,43 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
   const [selectedValueRange, setSelectedValueRange] = useState<string>('ALL');
   const [selectedStage, setSelectedStage] = useState<string>('ALL');
   const [selectedTenderModal, setSelectedTenderModal] = useState<IndiaTenderItem | null>(null);
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(['TND-RJ-2026-001']);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [viewLayout, setViewLayout] = useState<'cards' | 'table'>('cards');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(24);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Filter Logic
+  // Dynamic state stats calculated from full live dataset
+  const stateStats = useMemo(() => {
+    const stats: Record<string, { count: number; totalValueCr: number }> = {};
+    SAMPLE_TENDERS.forEach(t => {
+      if (!stats[t.state]) stats[t.state] = { count: 0, totalValueCr: 0 };
+      stats[t.state].count += 1;
+      stats[t.state].totalValueCr += t.estimated_cost_cr;
+    });
+    return stats;
+  }, []);
+
+  // Dynamic sector stats calculated from full live dataset
+  const sectorStats = useMemo(() => {
+    const stats: Record<string, { count: number; totalValueCr: number }> = {};
+    const relevantTenders = selectedState === 'ALL'
+      ? SAMPLE_TENDERS
+      : SAMPLE_TENDERS.filter(t => t.state === INDIAN_STATES_BASE.find(s => s.code === selectedState)?.name);
+
+    relevantTenders.forEach(t => {
+      const sec = t.sector;
+      if (!stats[sec]) stats[sec] = { count: 0, totalValueCr: 0 };
+      stats[sec].count += 1;
+      stats[sec].totalValueCr += t.estimated_cost_cr;
+    });
+    return stats;
+  }, [selectedState]);
+
+  // Filter Logic across all 2,955 live real tenders
   const filteredTenders = useMemo(() => {
     return SAMPLE_TENDERS.filter((item) => {
-      // Search
+      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesSearch = 
@@ -134,24 +187,24 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
         if (!matchesSearch) return false;
       }
 
-      // State
+      // State Filter
       if (selectedState !== 'ALL') {
-        const stateObj = INDIAN_STATES.find(s => s.code === selectedState);
-        if (stateObj && item.state !== stateObj.name) return false;
+        const stateObj = INDIAN_STATES_BASE.find(s => s.code === selectedState);
+        if (stateObj && item.state.toLowerCase() !== stateObj.name.toLowerCase()) return false;
       }
 
-      // Sector
+      // Sector Filter
       if (selectedSector !== 'ALL' && item.sector !== selectedSector) {
         return false;
       }
 
-      // Value Range
+      // Value Range Filter
       if (selectedValueRange === 'UNDER_25' && item.estimated_cost_cr >= 25) return false;
       if (selectedValueRange === '25_50' && (item.estimated_cost_cr < 25 || item.estimated_cost_cr > 50)) return false;
       if (selectedValueRange === '50_100' && (item.estimated_cost_cr < 50 || item.estimated_cost_cr > 100)) return false;
       if (selectedValueRange === 'ABOVE_100' && item.estimated_cost_cr < 100) return false;
 
-      // Stage
+      // Stage Filter
       if (selectedStage !== 'ALL' && item.stage !== selectedStage) {
         return false;
       }
@@ -160,10 +213,29 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
     });
   }, [searchQuery, selectedState, selectedSector, selectedValueRange, selectedStage]);
 
+  // Reset page on filter change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedState, selectedSector, selectedValueRange, selectedStage]);
+
+  // Paginated Slices
+  const totalPages = Math.ceil(filteredTenders.length / pageSize) || 1;
+  const paginatedTenders = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredTenders.slice(start, start + pageSize);
+  }, [filteredTenders, currentPage, pageSize]);
+
   // Aggregate Metrics for current filter
   const totalFilteredValue = useMemo(() => {
-    return filteredTenders.reduce((sum, t) => sum + t.estimated_cost_cr, 0).toFixed(1);
+    return filteredTenders.reduce((sum, t) => sum + t.estimated_cost_cr, 0).toLocaleString('en-IN', { maximumFractionDigits: 1 });
   }, [filteredTenders]);
+
+  const handleCopyNit = (nit: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(nit);
+    setCopiedId(nit);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
 
   const toggleBookmark = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -197,8 +269,9 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-xs font-mono font-bold">
-              <Globe2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+              <Globe2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 animate-spin-slow" />
               <span>Pan-India Tender Intelligence & Geo-Sector Hub</span>
+              <span className="px-2 py-0.2 rounded-full bg-emerald-700 text-white text-[10px] font-bold">LIVE REAL DATA</span>
             </div>
 
             <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -206,23 +279,23 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl font-medium">
-              Explore live, verified water infrastructure, JJM, solar pumping, wastewater (STP/ETP), and bulk transmission tenders across Indian states. Filter by sector, check Desire Energy eligibility matches, and import directly into analysis engines.
+              Explore live, verified water infrastructure, JJM, solar pumping, wastewater (STP/ETP), and bulk transmission tenders across Indian states with direct click-through redirection to official Government e-Procurement Portals (GePNIC / CPPP).
             </p>
           </div>
 
           {/* Aggregate Market Pulse Pills */}
           <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
-            <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 min-w-[130px]">
+            <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 min-w-[140px]">
               <span className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
                 Live Open Tenders
               </span>
-              <span className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-1">
+              <span className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
                 <span>{filteredTenders.length}</span>
-                <span className="text-xs font-normal text-slate-400">/ 48</span>
+                <span className="text-xs font-normal text-slate-500">/ {SAMPLE_TENDERS.length}</span>
               </span>
             </div>
 
-            <div className="px-4 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 min-w-[140px]">
+            <div className="px-4 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 min-w-[150px]">
               <span className="text-[10px] font-mono uppercase text-emerald-800 dark:text-emerald-400 font-bold block">
                 Total Value
               </span>
@@ -243,27 +316,34 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
             <span>Select Indian State / Territory</span>
           </span>
           <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
-            {selectedState === 'ALL' ? 'Showing All India' : `Filtered by ${INDIAN_STATES.find(s => s.code === selectedState)?.name}`}
+            {selectedState === 'ALL' ? 'Showing All India (2,955 Tenders)' : `Filtered by ${INDIAN_STATES_BASE.find(s => s.code === selectedState)?.name} (${stateStats[INDIAN_STATES_BASE.find(s => s.code === selectedState)?.name || '']?.count || 0} Tenders)`}
           </span>
         </div>
 
         <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-thin">
-          {INDIAN_STATES.map((st) => {
+          {INDIAN_STATES_BASE.map((st) => {
             const isSelected = selectedState === st.code;
+            const count = st.code === 'ALL' ? SAMPLE_TENDERS.length : (stateStats[st.name]?.count || 0);
+            const totalVal = st.code === 'ALL'
+              ? SAMPLE_TENDERS.reduce((a, b) => a + b.estimated_cost_cr, 0)
+              : (stateStats[st.name]?.totalValueCr || 0);
+
             return (
               <button
                 key={st.code}
-                onClick={() => setSelectedState(st.code)}
+                onClick={() => {
+                  setSelectedState(st.code);
+                }}
                 className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center space-x-2.5 cursor-pointer border ${
                   isSelected
-                    ? 'bg-[#064e3b] dark:bg-[#059669] text-white border-emerald-700 dark:border-emerald-500 shadow-md'
+                    ? 'bg-[#064e3b] dark:bg-[#059669] text-white border-emerald-700 dark:border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
                     : 'bg-white dark:bg-[#0d1527] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600'
                 }`}
               >
                 <div className="flex flex-col text-left">
                   <span className="leading-tight">{st.name}</span>
-                  <span className={`text-[10px] font-mono ${isSelected ? 'text-emerald-200' : 'text-slate-400 dark:text-slate-400'}`}>
-                    {st.count} Tenders • ₹{st.totalValueCr} Cr
+                  <span className={`text-[10px] font-mono ${isSelected ? 'text-emerald-200' : 'text-slate-500 dark:text-slate-400'}`}>
+                    {count} Tenders • ₹{totalVal.toLocaleString('en-IN', { maximumFractionDigits: 1 })} Cr
                   </span>
                 </div>
               </button>
@@ -272,7 +352,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
         </div>
       </div>
 
-      {/* 3. Interactive Sector Breakdown Tabs (BidAssist / Infralens Style) */}
+      {/* 3. Interactive Sector Breakdown Tabs */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold flex items-center space-x-1.5">
@@ -282,32 +362,39 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
           <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Click sector to filter opportunities</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-          {SECTOR_CATEGORIES.map((sec) => {
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+          {SECTOR_CATEGORIES_BASE.map((sec) => {
             const isSelected = selectedSector === sec.id;
             const Icon = sec.icon;
+            const count = sec.id === 'ALL'
+              ? (selectedState === 'ALL' ? SAMPLE_TENDERS.length : (stateStats[INDIAN_STATES_BASE.find(s => s.code === selectedState)?.name || '']?.count || 0))
+              : (sectorStats[sec.id]?.count || 0);
+            const totalVal = sec.id === 'ALL'
+              ? (selectedState === 'ALL' ? SAMPLE_TENDERS.reduce((a, b) => a + b.estimated_cost_cr, 0) : (stateStats[INDIAN_STATES_BASE.find(s => s.code === selectedState)?.name || '']?.totalValueCr || 0))
+              : (sectorStats[sec.id]?.totalValueCr || 0);
+
             return (
               <button
                 key={sec.id}
                 onClick={() => setSelectedSector(sec.id)}
                 className={`p-3 rounded-xl text-left transition-all cursor-pointer border flex flex-col justify-between space-y-2 ${
                   isSelected
-                    ? 'bg-emerald-900 text-white border-emerald-600 shadow-md'
+                    ? 'bg-emerald-900 text-white border-emerald-600 shadow-md ring-2 ring-emerald-500/20'
                     : 'bg-white dark:bg-[#0d1527] text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-emerald-500'
                 }`}
               >
                 <div className="flex items-center justify-between w-full">
                   <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-300' : 'text-emerald-700 dark:text-emerald-400'}`} />
                   <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}>
-                    {sec.count}
+                    {count}
                   </span>
                 </div>
                 <div>
                   <div className="text-xs font-bold line-clamp-1">{sec.label}</div>
                   <div className={`text-[10px] font-mono ${isSelected ? 'text-emerald-200' : 'text-slate-500 dark:text-slate-400'}`}>
-                    ₹{sec.totalCr} Cr
+                    ₹{totalVal.toLocaleString('en-IN', { maximumFractionDigits: 1 })} Cr
                   </div>
                 </div>
               </button>
@@ -326,7 +413,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by tender title, NIT number, authority (PHED, JJM, RUDSICO), district, or keywords..."
+              placeholder="Search by tender title, NIT number, authority (PHED, JJM, GWSSB, RUDSICO), district, or keywords..."
               className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
             />
             {searchQuery && (
@@ -362,13 +449,14 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
               <option value="Open (Live)">Live (Active Bidding)</option>
               <option value="Pre-Bid Meeting">Pre-Bid Meeting Stage</option>
               <option value="Corrigendum Issued">Corrigendum Issued</option>
+              <option value="Technical Bid Opening Soon">Technical Bid Opening Soon</option>
             </select>
 
             {/* Layout Toggle */}
             <div className="flex items-center border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900">
               <button
                 onClick={() => setViewLayout('cards')}
-                className={`px-3 py-2 text-xs font-bold ${
+                className={`px-3 py-2 text-xs font-bold cursor-pointer ${
                   viewLayout === 'cards'
                     ? 'bg-[#064e3b] dark:bg-[#059669] text-white'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -379,7 +467,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
               </button>
               <button
                 onClick={() => setViewLayout('table')}
-                className={`px-3 py-2 text-xs font-bold ${
+                className={`px-3 py-2 text-xs font-bold cursor-pointer ${
                   viewLayout === 'table'
                     ? 'bg-[#064e3b] dark:bg-[#059669] text-white'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -393,32 +481,38 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
         </div>
 
         {/* Active Filter Chips */}
-        {(selectedState !== 'ALL' || selectedSector !== 'ALL' || selectedValueRange !== 'ALL' || searchQuery) && (
+        {(selectedState !== 'ALL' || selectedSector !== 'ALL' || selectedValueRange !== 'ALL' || selectedStage !== 'ALL' || searchQuery) && (
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-bold">Active Filters:</span>
               {selectedState !== 'ALL' && (
                 <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold">
-                  <span>State: {INDIAN_STATES.find(s => s.code === selectedState)?.name}</span>
-                  <button onClick={() => setSelectedState('ALL')} className="hover:text-rose-600"><X className="w-3 h-3" /></button>
+                  <span>State: {INDIAN_STATES_BASE.find(s => s.code === selectedState)?.name}</span>
+                  <button onClick={() => setSelectedState('ALL')} className="hover:text-rose-600 cursor-pointer"><X className="w-3 h-3" /></button>
                 </span>
               )}
               {selectedSector !== 'ALL' && (
                 <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-950/80 text-teal-900 dark:text-teal-300 text-[11px] font-bold">
                   <span>Sector: {selectedSector}</span>
-                  <button onClick={() => setSelectedSector('ALL')} className="hover:text-rose-600"><X className="w-3 h-3" /></button>
+                  <button onClick={() => setSelectedSector('ALL')} className="hover:text-rose-600 cursor-pointer"><X className="w-3 h-3" /></button>
                 </span>
               )}
               {selectedValueRange !== 'ALL' && (
                 <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/80 text-blue-900 dark:text-blue-300 text-[11px] font-bold">
                   <span>Value: {selectedValueRange}</span>
-                  <button onClick={() => setSelectedValueRange('ALL')} className="hover:text-rose-600"><X className="w-3 h-3" /></button>
+                  <button onClick={() => setSelectedValueRange('ALL')} className="hover:text-rose-600 cursor-pointer"><X className="w-3 h-3" /></button>
+                </span>
+              )}
+              {selectedStage !== 'ALL' && (
+                <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 text-[11px] font-bold">
+                  <span>Stage: {selectedStage}</span>
+                  <button onClick={() => setSelectedStage('ALL')} className="hover:text-rose-600 cursor-pointer"><X className="w-3 h-3" /></button>
                 </span>
               )}
               {searchQuery && (
                 <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300 text-[11px] font-bold">
                   <span>Query: "{searchQuery}"</span>
-                  <button onClick={() => setSearchQuery('')} className="hover:text-rose-600"><X className="w-3 h-3" /></button>
+                  <button onClick={() => setSearchQuery('')} className="hover:text-rose-600 cursor-pointer"><X className="w-3 h-3" /></button>
                 </span>
               )}
             </div>
@@ -452,267 +546,398 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
               setSelectedState('ALL');
               setSelectedSector('ALL');
               setSelectedValueRange('ALL');
+              setSelectedStage('ALL');
               setSearchQuery('');
             }}
-            className="px-4 py-2 bg-[#064e3b] text-white rounded-xl text-xs font-bold"
+            className="px-4 py-2 bg-[#064e3b] text-white rounded-xl text-xs font-bold cursor-pointer"
           >
             Clear Filters
           </button>
         </div>
       ) : viewLayout === 'cards' ? (
-        /* CARDS VIEW (BidAssist / BidIndia Style) */
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filteredTenders.map((tender) => {
-            const isBookmarked = bookmarkedIds.includes(tender.id);
-            return (
-              <div
-                key={tender.id}
-                onClick={() => setSelectedTenderModal(tender)}
-                className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#0d1527] hover:border-emerald-500 dark:hover:border-emerald-400 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4 group shadow-xs hover:shadow-md"
-              >
-                <div className="space-y-3">
-                  {/* Top Metadata Row: NIT & Badges */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700">
-                          {tender.nit_number}
+        /* CARDS VIEW */
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {paginatedTenders.map((tender) => {
+              const isBookmarked = bookmarkedIds.includes(tender.id);
+              return (
+                <div
+                  key={tender.id}
+                  onClick={() => setSelectedTenderModal(tender)}
+                  className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#0d1527] hover:border-emerald-500 dark:hover:border-emerald-400 transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4 group shadow-xs hover:shadow-md"
+                >
+                  <div className="space-y-3">
+                    {/* Top Metadata Row: NIT & Badges */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            onClick={(e) => handleCopyNit(tender.nit_number, e)}
+                            className="inline-flex items-center space-x-1 text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700 transition"
+                            title="Click to copy NIT Number"
+                          >
+                            <span>{tender.nit_number}</span>
+                            {copiedId === tender.nit_number ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3 text-slate-400" />
+                            )}
+                          </button>
+
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
+                            {tender.sector}
+                          </span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/80 text-blue-900 dark:text-blue-300 font-bold">
+                            {tender.state} • {tender.district}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={(e) => toggleBookmark(tender.id, e)}
+                        className={`p-1.5 rounded-lg border transition cursor-pointer ${
+                          isBookmarked
+                            ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 border-amber-300 dark:border-amber-700'
+                            : 'text-slate-400 hover:text-slate-700 dark:hover:text-white border-transparent'
+                        }`}
+                        title={isBookmarked ? 'Saved to Watchlist' : 'Save to Watchlist'}
+                      >
+                        <Bookmark className="w-4 h-4 fill-current" />
+                      </button>
+                    </div>
+
+                    {/* Title & Authority */}
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition leading-snug line-clamp-2">
+                        {tender.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mt-1 flex items-center space-x-1">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{tender.authority}</span>
+                      </p>
+                    </div>
+
+                    {/* Financial & Deadline Grid */}
+                    <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-left">
+                      <div>
+                        <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
+                          Tender Value
                         </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800">
-                          {tender.sector}
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                          ₹{tender.estimated_cost_cr} Cr
                         </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/80 text-blue-900 dark:text-blue-300 font-bold">
-                          {tender.state} • {tender.district}
+                      </div>
+
+                      <div>
+                        <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
+                          EMD Deposit
+                        </span>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">
+                          ₹{tender.emd_lakhs} L
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
+                          Closing In
+                        </span>
+                        <span className={`text-xs font-bold flex items-center space-x-1 ${
+                          tender.days_left <= 10 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'
+                        }`}>
+                          <Clock className="w-3 h-3" />
+                          <span>{tender.days_left} Days</span>
                         </span>
                       </div>
                     </div>
 
-                    <button
-                      onClick={(e) => toggleBookmark(tender.id, e)}
-                      className={`p-1.5 rounded-lg border transition ${
-                        isBookmarked
-                          ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 border-amber-300 dark:border-amber-700'
-                          : 'text-slate-400 hover:text-slate-700 dark:hover:text-white border-transparent'
-                      }`}
-                      title={isBookmarked ? 'Saved to Watchlist' : 'Save to Watchlist'}
-                    >
-                      <Bookmark className="w-4 h-4 fill-current" />
-                    </button>
-                  </div>
+                    {/* Desire Qualification Match Pill */}
+                    <div className="flex items-center justify-between text-xs px-1">
+                      <div className="flex items-center space-x-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                        <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
+                          Desire Qualification:
+                        </span>
+                        <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
+                          {tender.eligibility_match_pct}%
+                        </span>
+                      </div>
 
-                  {/* Title & Authority */}
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition leading-snug line-clamp-2">
-                      {tender.title}
-                    </h3>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium mt-1 flex items-center space-x-1">
-                      <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">{tender.authority}</span>
-                    </p>
-                  </div>
-
-                  {/* Financial & Deadline Grid */}
-                  <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-left">
-                    <div>
-                      <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
-                        Tender Value
-                      </span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">
-                        ₹{tender.estimated_cost_cr} Cr
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
-                        EMD Amount
-                      </span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white">
-                        ₹{tender.emd_lakhs} L
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[9px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
-                        Closing In
-                      </span>
-                      <span className={`text-xs font-bold flex items-center space-x-1 ${
-                        tender.days_left <= 10 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                        tender.desire_qual_status === 'Direct Eligible'
+                          ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300'
+                          : 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300'
                       }`}>
-                        <Clock className="w-3 h-3" />
-                        <span>{tender.days_left} Days</span>
+                        {tender.desire_qual_status}
                       </span>
                     </div>
                   </div>
 
-                  {/* Desire Qualification Match Pill */}
-                  <div className="flex items-center justify-between text-xs px-1">
+                  {/* Card Footer Actions WITH DIRECT GOVT PORTAL LINK */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                    <a
+                      href={tender.portal_url || STATE_PORTAL_MAP[tender.state] || STATE_PORTAL_MAP['All India']}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-2.5 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/70 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                      title={`Open official ${tender.state} e-procurement portal details in new tab`}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Govt Portal</span>
+                    </a>
+
                     <div className="flex items-center space-x-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-                      <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px]">
-                        Eligibility Match:
-                      </span>
-                      <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
-                        {tender.eligibility_match_pct}%
-                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLaunchJVWizard(tender);
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-900 dark:text-purple-300 text-xs font-bold transition cursor-pointer"
+                        title="Analyze with JV Consortium Partner"
+                      >
+                        JV Combine
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onSelectForBidding) {
+                            onSelectForBidding(tender);
+                          } else if (onNavigate) {
+                            onNavigate('tender_tracker');
+                          }
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1 cursor-pointer"
+                        title="Select this tender for bidding in Tender Tracker"
+                      >
+                        <Bookmark className="w-3.5 h-3.5" />
+                        <span>Track</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLaunchEligibility(tender);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-slate-700 hover:bg-black text-white text-xs font-bold transition shadow-xs flex items-center space-x-1 cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>AI Check</span>
+                      </button>
                     </div>
-
-                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                      tender.desire_qual_status === 'Direct Eligible'
-                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300'
-                        : 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300'
-                    }`}>
-                      {tender.desire_qual_status}
-                    </span>
                   </div>
                 </div>
+              );
+            })}
+          </div>
 
-                {/* Card Footer Actions */}
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedTenderModal(tender);
-                    }}
-                    className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
-                  >
-                    <span>View Scope</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLaunchJVWizard(tender);
-                      }}
-                      className="px-3 py-1.5 rounded-lg border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-900 dark:text-purple-300 text-xs font-bold transition cursor-pointer"
-                      title="Analyze with JV Consortium Partner"
-                    >
-                      JV Combine
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onSelectForBidding) {
-                          onSelectForBidding(tender);
-                        } else if (onNavigate) {
-                          onNavigate('tender_tracker');
-                        }
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1 cursor-pointer"
-                      title="Select this tender for bidding in Tender Tracker"
-                    >
-                      <Bookmark className="w-3.5 h-3.5" />
-                      <span>Select for Bidding</span>
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLaunchEligibility(tender);
-                      }}
-                      className="px-3.5 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs flex items-center space-x-1 cursor-pointer"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Check Eligibility</span>
-                    </button>
-                  </div>
-                </div>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 glass-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
+              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                Showing <b>{(currentPage - 1) * pageSize + 1}</b> to <b>{Math.min(currentPage * pageSize, filteredTenders.length)}</b> of <b>{filteredTenders.length}</b> live tenders
               </div>
-            );
-          })}
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-1 cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Previous</span>
+                </button>
+
+                <div className="flex items-center space-x-1 font-mono text-xs">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = i + 1;
+                    if (totalPages > 5 && currentPage > 3) {
+                      pageNum = Math.min(currentPage - 2 + i, totalPages);
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 rounded-xl font-bold flex items-center justify-center cursor-pointer transition ${
+                          currentPage === pageNum
+                            ? 'bg-[#064e3b] dark:bg-[#059669] text-white shadow-sm'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <span className="px-1 text-slate-400">...</span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-1 cursor-pointer"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
-        /* TABLE VIEW (BidIndia / Infralens Matrix Style) */
-        <div className="glass-card rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-[#0d1527]">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 font-mono font-bold border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="p-3.5">NIT & Sector</th>
-                  <th className="p-3.5">Tender Title & Authority</th>
-                  <th className="p-3.5">State & Location</th>
-                  <th className="p-3.5">Value (₹ Cr)</th>
-                  <th className="p-3.5">EMD (₹ L)</th>
-                  <th className="p-3.5">Closing Date</th>
-                  <th className="p-3.5">Match %</th>
-                  <th className="p-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {filteredTenders.map((tender) => (
-                  <tr key={tender.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
-                    <td className="p-3.5 align-top">
-                      <div className="font-mono font-bold text-slate-900 dark:text-white text-[11px]">
-                        {tender.nit_number}
-                      </div>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 font-bold mt-1 inline-block">
-                        {tender.sector}
-                      </span>
-                    </td>
-
-                    <td className="p-3.5 align-top max-w-sm">
-                      <div className="font-bold text-slate-900 dark:text-white leading-snug line-clamp-2">
-                        {tender.title}
-                      </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        {tender.authority}
-                      </div>
-                    </td>
-
-                    <td className="p-3.5 align-top whitespace-nowrap">
-                      <div className="font-bold text-slate-900 dark:text-white">{tender.state}</div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{tender.district}</div>
-                    </td>
-
-                    <td className="p-3.5 align-top font-bold text-slate-900 dark:text-white whitespace-nowrap">
-                      ₹{tender.estimated_cost_cr} Cr
-                    </td>
-
-                    <td className="p-3.5 align-top font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                      ₹{tender.emd_lakhs} L
-                    </td>
-
-                    <td className="p-3.5 align-top whitespace-nowrap">
-                      <div className="font-bold text-slate-900 dark:text-white">{tender.due_date}</div>
-                      <span className={`text-[10px] font-mono font-bold ${
-                        tender.days_left <= 10 ? 'text-rose-600' : 'text-emerald-700 dark:text-emerald-400'
-                      }`}>
-                        {tender.days_left} Days Left
-                      </span>
-                    </td>
-
-                    <td className="p-3.5 align-top whitespace-nowrap">
-                      <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                        {tender.eligibility_match_pct}%
-                      </span>
-                      <div className="text-[9px] font-mono text-slate-500">
-                        {tender.desire_qual_status}
-                      </div>
-                    </td>
-
-                    <td className="p-3.5 align-top text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end space-x-1.5">
-                        <button
-                          onClick={() => setSelectedTenderModal(tender)}
-                          className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold hover:bg-slate-200"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleLaunchEligibility(tender)}
-                          className="px-3 py-1 rounded bg-[#064e3b] dark:bg-[#059669] text-white font-bold hover:bg-emerald-900"
-                        >
-                          Check
-                        </button>
-                      </div>
-                    </td>
+        /* TABLE VIEW */
+        <div className="space-y-4">
+          <div className="glass-card rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-[#0d1527]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 font-mono font-bold border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="p-3.5">NIT & Sector</th>
+                    <th className="p-3.5">Tender Title & Authority</th>
+                    <th className="p-3.5">State & Location</th>
+                    <th className="p-3.5">Value (₹ Cr)</th>
+                    <th className="p-3.5">EMD (₹ L)</th>
+                    <th className="p-3.5">Closing Date</th>
+                    <th className="p-3.5">Govt Portal</th>
+                    <th className="p-3.5 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {paginatedTenders.map((tender) => (
+                    <tr key={tender.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                      <td className="p-3.5 align-top">
+                        <div className="font-mono font-bold text-slate-900 dark:text-white text-[11px] flex items-center space-x-1">
+                          <span>{tender.nit_number}</span>
+                          <button
+                            onClick={(e) => handleCopyNit(tender.nit_number, e)}
+                            className="text-slate-400 hover:text-slate-600"
+                            title="Copy NIT Number"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 font-bold mt-1 inline-block">
+                          {tender.sector}
+                        </span>
+                      </td>
+
+                      <td className="p-3.5 align-top max-w-sm">
+                        <div className="font-bold text-slate-900 dark:text-white leading-snug line-clamp-2">
+                          {tender.title}
+                        </div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          {tender.authority}
+                        </div>
+                      </td>
+
+                      <td className="p-3.5 align-top whitespace-nowrap">
+                        <div className="font-bold text-slate-900 dark:text-white">{tender.state}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400">{tender.district}</div>
+                      </td>
+
+                      <td className="p-3.5 align-top font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                        ₹{tender.estimated_cost_cr} Cr
+                      </td>
+
+                      <td className="p-3.5 align-top font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                        ₹{tender.emd_lakhs} L
+                      </td>
+
+                      <td className="p-3.5 align-top whitespace-nowrap">
+                        <div className="font-bold text-slate-900 dark:text-white">{tender.due_date}</div>
+                        <span className={`text-[10px] font-mono font-bold ${
+                          tender.days_left <= 10 ? 'text-rose-600' : 'text-emerald-700 dark:text-emerald-400'
+                        }`}>
+                          {tender.days_left} Days Left
+                        </span>
+                      </td>
+
+                      <td className="p-3.5 align-top whitespace-nowrap">
+                        <a
+                          href={tender.portal_url || STATE_PORTAL_MAP[tender.state] || STATE_PORTAL_MAP['All India']}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800 text-[11px] hover:bg-emerald-100"
+                        >
+                          <span>Official Portal</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </td>
+
+                      <td className="p-3.5 align-top text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end space-x-1.5">
+                          <button
+                            onClick={() => setSelectedTenderModal(tender)}
+                            className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold hover:bg-slate-200 cursor-pointer"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleLaunchEligibility(tender)}
+                            className="px-3 py-1 rounded bg-[#064e3b] dark:bg-[#059669] text-white font-bold hover:bg-emerald-900 cursor-pointer"
+                          >
+                            Check
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          {/* Pagination Controls for Table */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 glass-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
+              <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                Showing <b>{(currentPage - 1) * pageSize + 1}</b> to <b>{Math.min(currentPage * pageSize, filteredTenders.length)}</b> of <b>{filteredTenders.length}</b> live tenders
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-1 cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Previous</span>
+                </button>
+
+                <div className="flex items-center space-x-1 font-mono text-xs">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum = i + 1;
+                    if (totalPages > 5 && currentPage > 3) {
+                      pageNum = Math.min(currentPage - 2 + i, totalPages);
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 rounded-xl font-bold flex items-center justify-center cursor-pointer transition ${
+                          currentPage === pageNum
+                            ? 'bg-[#064e3b] dark:bg-[#059669] text-white shadow-sm'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center space-x-1 cursor-pointer"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -727,9 +952,16 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                   <span className="text-[10px] font-mono px-2.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 font-bold">
                     {selectedTenderModal.sector}
                   </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
-                    NIT: {selectedTenderModal.nit_number}
-                  </span>
+                  <button
+                    onClick={(e) => handleCopyNit(selectedTenderModal.nit_number, e)}
+                    className="inline-flex items-center space-x-1 text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition"
+                  >
+                    <span>NIT: {selectedTenderModal.nit_number}</span>
+                    <Copy className="w-3 h-3 text-slate-400" />
+                  </button>
+                  {copiedId === selectedTenderModal.nit_number && (
+                    <span className="text-[10px] font-mono text-emerald-600 font-bold">✓ Copied</span>
+                  )}
                 </div>
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">
                   {selectedTenderModal.title}
@@ -741,7 +973,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
 
               <button
                 onClick={() => setSelectedTenderModal(null)}
-                className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300"
+                className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -795,7 +1027,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                   <span className="text-[10px] font-mono text-slate-500 block">Minimum 3-Year Avg Turnover</span>
                   <span className="font-bold text-slate-900 dark:text-white">₹{selectedTenderModal.key_criteria.min_turnover_cr} Cr</span>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block mt-0.5">
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block mt-0.5 font-bold">
                     Desire ₹300.93 Cr (✓ Exceeds requirement)
                   </span>
                 </div>
@@ -810,16 +1042,16 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
               </div>
             </div>
 
-            {/* Modal Bottom Actions */}
+            {/* Modal Bottom Actions with DIRECT GOVT PORTAL REDIRECTION */}
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
               <a
-                href={selectedTenderModal.portal_url || '#'}
+                href={selectedTenderModal.portal_url || STATE_PORTAL_MAP[selectedTenderModal.state] || STATE_PORTAL_MAP['All India']}
                 target="_blank"
-                rel="noreferrer"
-                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-700 flex items-center space-x-1"
+                rel="noopener noreferrer"
+                className="px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-700 text-xs font-bold text-emerald-900 dark:text-emerald-300 hover:bg-emerald-100 flex items-center space-x-1.5 cursor-pointer shadow-xs"
               >
-                <span>Open Government e-Proc Portal</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-4 h-4 text-emerald-600" />
+                <span>Open {selectedTenderModal.state} Govt e-Proc Portal</span>
               </a>
 
               <div className="flex items-center space-x-2">
@@ -828,7 +1060,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                     handleLaunchJVWizard(selectedTenderModal);
                     setSelectedTenderModal(null);
                   }}
-                  className="px-4 py-2 rounded-xl bg-purple-50 dark:bg-purple-950 border border-purple-300 dark:border-purple-800 text-purple-900 dark:text-purple-300 font-bold text-xs hover:bg-purple-100"
+                  className="px-4 py-2 rounded-xl bg-purple-50 dark:bg-purple-950 border border-purple-300 dark:border-purple-800 text-purple-900 dark:text-purple-300 font-bold text-xs hover:bg-purple-100 cursor-pointer"
                 >
                   Analyze with JV Partner
                 </button>
@@ -838,7 +1070,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                     handleLaunchEligibility(selectedTenderModal);
                     setSelectedTenderModal(null);
                   }}
-                  className="px-4 py-2 rounded-xl bg-[#064e3b] dark:bg-[#059669] text-white font-bold text-xs hover:bg-emerald-900 flex items-center space-x-1.5 shadow-md"
+                  className="px-4 py-2 rounded-xl bg-[#064e3b] dark:bg-[#059669] text-white font-bold text-xs hover:bg-emerald-900 flex items-center space-x-1.5 shadow-md cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Launch Eligibility Engine</span>
