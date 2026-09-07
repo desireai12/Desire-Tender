@@ -54,22 +54,22 @@ KEYWORD_CATEGORIES = {
     ]
 }
 
-def clean_currency_to_cr(val_str) -> float:
+def clean_currency_to_inr(val_str) -> float:
     if not val_str:
         return 0.0
     s = str(val_str).replace(",", "").replace("₹", "").replace("&#8377;", "").replace("Rs.", "").replace("Rs", "").strip()
     s = re.sub(r'[^\d.]+', '', s)
     try:
         num = float(s)
-        if num <= 0:
-            return 0.0
-        # In GePNIC, values are in absolute Rupees.
-        # 1 Cr = 10,000,000 INR
-        if num >= 100000:
-            return round(num / 10000000.0, 2)
-        return round(num, 2)
+        return num if num > 0 else 0.0
     except:
         return 0.0
+
+def clean_currency_to_cr(val_str) -> float:
+    inr = clean_currency_to_inr(val_str)
+    if inr <= 0:
+        return 0.0
+    return round(inr / 10000000.0, 4)
 
 def extract_value_from_text(text: str) -> float:
     if not text:
@@ -216,6 +216,9 @@ class GePNICGovtFetcher:
                     dept = clean_tds[5]
 
                     val_cr = 0.0
+                    emd_cr = 0.0
+                    emd_raw = ""
+                    is_estimated_from_emd = False
 
                     # 1. Check title/text for mentioned cost
                     val_from_title = extract_value_from_text(clean_title)
@@ -239,6 +242,13 @@ class GePNICGovtFetcher:
 
                             parsed_info = self._parse_detail_page(det_html)
                             
+                            # Extract EMD Amount
+                            for k, v in parsed_info.items():
+                                if 'emd amount' in k.lower():
+                                    emd_raw = v
+                                    emd_cr = clean_currency_to_cr(v)
+                                    break
+
                             # Check Tender Value in parsed info
                             for k, v in parsed_info.items():
                                 if 'tender value' in k.lower() or 'estimated value' in k.lower():
@@ -247,20 +257,17 @@ class GePNICGovtFetcher:
                                         val_cr = val_parsed
                                         break
 
-                            # If value was 0, check EMD Amount
-                            if val_cr <= 0.0:
-                                for k, v in parsed_info.items():
-                                    if 'emd amount' in k.lower():
-                                        emd_cr = clean_currency_to_cr(v)
-                                        if emd_cr >= 0.20:
-                                            val_cr = round(emd_cr * 50.0, 2)
-                                        break
+                            # If value was 0, calculate estimated project value from 2% EMD
+                            if val_cr <= 0.0 and emd_cr >= 0.20:
+                                val_cr = round(emd_cr * 50.0, 2)
+                                is_estimated_from_emd = True
                         except Exception:
                             pass
 
                     # 3. Value Filter Evaluation
                     if val_cr >= min_value_cr:
-                        print(f"  >>> MATCH (>= ₹{min_value_cr} Cr): [{tender_id}] ₹{val_cr} Cr | {clean_title[:50]}")
+                        emd_text = f" | EMD: ₹{emd_cr} Cr" if emd_cr > 0 else ""
+                        print(f"  >>> MATCH (>= ₹{min_value_cr} Cr): [{tender_id}] ₹{val_cr} Cr{emd_text} | {clean_title[:50]}")
                         item = {
                             "id": f"govt-{tender_id}",
                             "sr_no": str(len(seen_tender_ids) + 1),
@@ -271,6 +278,10 @@ class GePNICGovtFetcher:
                             "raw_state": state_name,
                             "amount_inr": round(val_cr * 10000000.0, 2),
                             "value_cr": val_cr,
+                            "emd_cr": round(emd_cr, 2),
+                            "emd_lakhs": round(emd_cr * 100.0, 2),
+                            "emd_raw": emd_raw,
+                            "is_estimated_from_emd": is_estimated_from_emd,
                             "pre_bid_date": "",
                             "due_date": due_date,
                             "department": dept,
@@ -285,7 +296,7 @@ class GePNICGovtFetcher:
                             "bidders": [],
                             "bidders_count": 0,
                             "l1_price_info": "",
-                            "remarks": f"Live ingest from {state_name} GePNIC for '{kw}' (Value ₹{val_cr} Cr >= ₹{min_value_cr} Cr)"
+                            "remarks": f"Live ingest from {state_name} GePNIC for '{kw}' (Value ₹{val_cr} Cr, EMD ₹{emd_cr} Cr)"
                         }
                         discovered_tenders.append(item)
                         seen_tender_ids.add(tender_id)

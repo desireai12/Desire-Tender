@@ -8,6 +8,10 @@ export interface GovtTenderResult {
   raw_state: string;
   amount_inr: number;
   value_cr: number;
+  emd_cr?: number;
+  emd_lakhs?: number;
+  emd_raw?: string;
+  is_estimated_from_emd?: boolean;
   pre_bid_date: string;
   due_date: string;
   department: string;
@@ -235,8 +239,10 @@ export async function crawlStateGePNICPortal(
             }
           }
           const emdCr = cleanCurrencyToCr(emdRaw);
+          let isEstimatedFromEmd = false;
           if (valCr <= 0.0 && emdCr >= 0.20) {
             valCr = Math.round(emdCr * 50 * 100) / 100;
+            isEstimatedFromEmd = true;
           }
 
           // STRICT RULE ENFORCEMENT: Tender Value >= minValueCr (Default: 10 Cr)
@@ -258,6 +264,10 @@ export async function crawlStateGePNICPortal(
               raw_state: stateName,
               amount_inr: Math.round(valCr * 10000000),
               value_cr: valCr,
+              emd_cr: emdCr > 0 ? emdCr : undefined,
+              emd_lakhs: emdCr > 0 ? Math.round(emdCr * 100 * 100) / 100 : undefined,
+              emd_raw: emdRaw || undefined,
+              is_estimated_from_emd: isEstimatedFromEmd,
               pre_bid_date: preBid,
               due_date: dueDate,
               department: dept,
@@ -265,12 +275,12 @@ export async function crawlStateGePNICPortal(
               sector: cleanSectorFromTitle(cleanTitle, kw),
               status: 'Live',
               raw_status: 'Live',
-              document_link: detailUrl,
+              document_link: `${portalUrl}?page=FrontEndAdvancedSearch&service=page`,
               summary_sheet: '',
               bidders: [],
               bidders_count: 0,
               l1_price_info: '',
-              remarks: `Live ingested from ${stateName} GePNIC portal for keyword: '${kw}' (Value >= ₹${minValueCr} Cr)`
+              remarks: `Live ingested from ${stateName} GePNIC portal for keyword: '${kw}' (Value ₹${valCr} Cr, EMD ₹${emdCr} Cr)`
             };
 
             discovered.push(tenderObj);

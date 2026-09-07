@@ -831,7 +831,18 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
 
                       <td className="p-3 text-right font-mono font-bold text-slate-900 dark:text-white">
                         {t.value_cr > 0 ? (
-                          <>₹{t.value_cr.toFixed(2)} Cr</>
+                          <>
+                            <div>₹{t.value_cr.toFixed(2)} Cr</div>
+                            {t.emd_cr > 0 ? (
+                              <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${t.emd_cr} Cr`}>
+                                EMD: ₹{t.emd_cr.toFixed(2)} Cr
+                              </div>
+                            ) : t.emd_lakhs > 0 ? (
+                              <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${t.emd_lakhs} Lakhs`}>
+                                EMD: ₹{t.emd_lakhs} L
+                              </div>
+                            ) : null}
+                          </>
                         ) : t.amount_inr > 0 ? (
                           <>₹{(t.amount_inr / 10000000).toFixed(2)} Cr</>
                         ) : (
@@ -1400,6 +1411,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
               </div>
               <div className="text-[11px] text-slate-500">
                 Department: {inspectingTender.department} • Value: ₹{inspectingTender.value_cr} Cr
+                {inspectingTender.emd_cr > 0 && ` • EMD: ₹${inspectingTender.emd_cr} Cr`}
               </div>
             </div>
 
@@ -1680,20 +1692,31 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                           </div>
                         </div>
 
-                        <div className="text-right space-y-1 shrink-0 ml-4">
-                          <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                        <div className="text-right space-y-0.5 shrink-0 ml-4">
+                          <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                             ₹{item.value_cr} Cr
                           </div>
+                          {item.emd_cr > 0 ? (
+                            <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${item.emd_cr} Cr`}>
+                              EMD: ₹{item.emd_cr} Cr
+                            </div>
+                          ) : item.emd_lakhs > 0 ? (
+                            <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${item.emd_lakhs} Lakhs`}>
+                              EMD: ₹{item.emd_lakhs} L
+                            </div>
+                          ) : null}
                           {onSelectTenderForAnalysis && (
-                            <button
-                              onClick={() => {
-                                setShowGovtScannerModal(false);
-                                onSelectTenderForAnalysis(item);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-bold cursor-pointer"
-                            >
-                              AI Audit
-                            </button>
+                            <div className="pt-1">
+                              <button
+                                onClick={() => {
+                                  setShowGovtScannerModal(false);
+                                  onSelectTenderForAnalysis(item);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-bold cursor-pointer"
+                              >
+                                AI Audit
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
