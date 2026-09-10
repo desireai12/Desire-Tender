@@ -109,7 +109,7 @@ function isNonTenderDocument(filename: string, text: string): boolean {
 
   // Filename based explicit tender bypass
   const tenderFilenameHints = ['tender', 'nit', 'nib', 'rfp', 'pkg', 'package', 'banaskantha', 'vapi', 'alwar', 'junagadh', 'gwssb', 'wrd', 'phed', 'rudsico', 'scheme', 'epc', 'boq', 'vol', 'upload'];
-  if (tenderFilenameHints.some(hint => fn.includes(hint))) {
+  if (tenderFilenameHints.some(hint => fl.includes(hint))) {
     return false;
   }
 

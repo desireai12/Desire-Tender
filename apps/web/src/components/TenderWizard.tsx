@@ -228,7 +228,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       }, 400);
     } else {
       setAnalysisProgress(0);
-      setAnalysisError('Tender analysis returned an empty report. Please verify the uploaded document or retry.');
+      setAnalysisError(prev => prev || 'Tender analysis returned an empty report. Please verify the uploaded document or retry.');
       setCurrentStep(1);
     }
   };
