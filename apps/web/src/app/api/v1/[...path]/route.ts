@@ -584,39 +584,57 @@ Return valid JSON (no markdown wrapping):
 
         const partnerRecommendations = [
           {
+            company_id: 'comp-vhp-04',
             partner_id: 'comp-vhp-04',
+            company_name: 'VINOD H PATEL',
             partner_name: 'VINOD H PATEL',
+            rank: 1,
             type: 'JV Partner',
             turnover_cr: 191.39,
             net_worth_cr: 33.37,
             solvency_cr: 25.0,
             key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
-            match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88,
-            suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' : 'Strong Financial & High Turnover Partner'
+            reason: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.',
+            suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' : 'Strong Financial & High Turnover Partner',
+            equity_suggestion: 'Desire 75% : Partner 25%',
+            fills_gaps: ['Bulk Water Pipelines', 'GWSSB Credentials'],
+            match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88
           },
           {
+            company_id: 'comp-aapl-05',
             partner_id: 'comp-aapl-05',
+            company_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
             partner_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
+            rank: 2,
             type: 'JV Partner',
             turnover_cr: 35.22,
             net_worth_cr: 14.27,
             solvency_cr: 10.0,
             key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
-            match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 97 : 85,
-            suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 'Best Match for Piped Distribution Networks, House Connections & Lift Irrigation' : 'Specialized Water Supply & Lift Irrigation Partner'
+            reason: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.',
+            suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 'Best Match for Piped Distribution Networks, House Connections & Lift Irrigation' : 'Specialized Water Supply & Lift Irrigation Partner',
+            equity_suggestion: 'Desire 75% : Partner 25%',
+            fills_gaps: ['Piped Distribution', 'Lift Irrigation'],
+            match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 97 : 85
           },
           {
+            company_id: 'comp-divija-02',
             partner_id: 'comp-divija-02',
+            company_name: 'DIVIJA CONSTRUCTION',
             partner_name: 'DIVIJA CONSTRUCTION',
+            rank: 3,
             type: 'JV Partner',
             turnover_cr: 37.01,
             net_worth_cr: 6.58,
             solvency_cr: 10.0,
             key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
-            match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 72,
-            suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 'Best Match for Sewerage, STP Networks & AMRUT 2.0 Projects' : 'Underground Utilities & Drainage Partner'
+            reason: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.',
+            suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 'Best Match for Sewerage, STP Networks & AMRUT 2.0 Projects' : 'Underground Utilities & Drainage Partner',
+            equity_suggestion: 'Desire 75% : Partner 25%',
+            fills_gaps: ['Sewerage Network', 'STP Experience'],
+            match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 72
           }
-        ].sort((a, b) => b.match_score - a.match_score);
+        ].sort((a, b) => b.match_score - a.match_score).map((r, i) => ({ ...r, rank: i + 1 }));
 
         aiResult.partner_recommendations = partnerRecommendations;
         aiResult.recommended_partner_id = partnerRecommendations[0].partner_id;

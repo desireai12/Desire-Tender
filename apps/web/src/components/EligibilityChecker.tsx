@@ -248,34 +248,37 @@ export const EligibilityChecker: React.FC = () => {
       entityName = 'Desire Energy Alone';
       if (activeEval.score >= 90) {
         verdict = 'Eligible Standalone';
-        recommendation = `BID STANDALONE (Desire Energy satisfies ${activeEval.pctStr} of criteria)`;
+        recommendation = `BID STANDALONE — Desire Energy satisfies ${activeEval.pctStr} of criteria (No JV Consortium Required)`;
       } else if (activeEval.score >= 60) {
         verdict = 'Partially Eligible Standalone';
-        recommendation = `REVIEW / JV RECOMMENDED (Desire Energy satisfies ${activeEval.pctStr} of criteria)`;
+        recommendation = `REVIEW / JV RECOMMENDED — Desire Energy satisfies ${activeEval.pctStr} of criteria`;
       } else {
         verdict = 'Ineligible Standalone';
-        recommendation = `JV MANDATORY (Desire Energy satisfies only ${activeEval.pctStr} of criteria)`;
+        recommendation = `JV MANDATORY — Desire Energy satisfies only ${activeEval.pctStr} of criteria`;
       }
     } else if (activeAnalysisOption === 'jv') {
       badge = `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`;
       entityName = `${jvComp.name} Alone`;
       if (activeEval.score >= 90) {
-        verdict = 'Eligible Standalone';
-        recommendation = `PARTNER ELIGIBLE (${jvComp.name} satisfies ${activeEval.pctStr} of criteria)`;
+        verdict = 'Partner Qualified Standalone';
+        recommendation = `PARTNER QUALIFIED — ${jvComp.name} satisfies ${activeEval.pctStr} standalone. (For Desire Energy to bid this tender, bid as Lead via Option 3 Consortium)`;
       } else if (activeEval.score >= 60) {
         verdict = 'Partially Eligible Standalone';
-        recommendation = `LEAD MEMBER REQUIRED (${jvComp.name} satisfies ${activeEval.pctStr} of criteria)`;
+        recommendation = `LEAD MEMBER REQUIRED — ${jvComp.name} satisfies ${activeEval.pctStr} of criteria`;
       } else {
         verdict = 'Ineligible Standalone';
-        recommendation = `INSUFFICIENT (${jvComp.name} satisfies only ${activeEval.pctStr} of criteria)`;
+        recommendation = `INSUFFICIENT — ${jvComp.name} satisfies only ${activeEval.pctStr} of criteria`;
       }
     } else {
-      if (activeEval.score >= 90) {
-        verdict = 'Fully Eligible (Joint Venture)';
-        recommendation = `BID THROUGH JV (Consortium achieves ${activeEval.pctStr} qualification)`;
+      if (desireEval.score >= 90) {
+        verdict = 'Fully Eligible Consortium (Desire Already 100% Standalone Qualified)';
+        recommendation = `BID STANDALONE OR CONSORTIUM — Desire Energy is ${desireEval.pctStr} Standalone Qualified. Formed JV with ${jvComp.name} for financial pooling.`;
+      } else if (activeEval.score >= 90) {
+        verdict = 'Fully Eligible Through JV Consortium';
+        recommendation = `BID THROUGH JV CONSORTIUM — Desire Energy + ${jvComp.name} satisfies ${activeEval.pctStr} of criteria.`;
       } else {
         verdict = 'Partially Eligible Through JV';
-        recommendation = `REVIEW GAPS (Consortium achieves ${activeEval.pctStr} qualification)`;
+        recommendation = `REVIEW GAPS — Consortium achieves ${activeEval.pctStr} qualification.`;
       }
     }
 
