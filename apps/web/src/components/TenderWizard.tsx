@@ -306,7 +306,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
       const evaluated = clauses.map(c => {
         let val = c.combined_value;
-        let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.status;
+        let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.status as any) || 'MATCH';
         let pct = 100;
 
         // Desire standalone capability on this clause
@@ -325,9 +325,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
         if (jVal.includes('data not') || jVal.includes('missing')) {
           jStatus = 'DATA NOT AVAILABLE';
-        } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible')) {
+        } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
           jStatus = 'NOT MATCHING';
-        } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('gap')) {
+        } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('63%') || jVal.includes('67%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('75%') || jVal.includes('gap') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
           jStatus = 'PARTIAL MATCH';
         }
 
@@ -408,7 +408,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         recommendation = `BID STANDALONE — Desire Energy satisfies ${activeEval.pctStr} of criteria (No JV Consortium Required)`;
       } else if (activeEval.score >= 60) {
         verdict = 'Partially Eligible Standalone';
-        recommendation = `REVIEW / JV RECOMMENDED — Desire Energy satisfies ${activeEval.pctStr} of criteria`;
+        recommendation = `REVIEW / JV RECOMMENDED — Desire Energy satisfies ${activeEval.pctStr} of criteria (Partner fills remaining gaps)`;
       } else {
         verdict = 'Ineligible Standalone';
         recommendation = `JV MANDATORY — Desire Energy satisfies only ${activeEval.pctStr} of criteria`;
@@ -417,14 +417,14 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       badge = `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`;
       entityName = `${jvComp.name} Alone`;
       if (activeEval.score >= 90) {
-        verdict = 'Partner Qualified Standalone';
-        recommendation = `PARTNER QUALIFIED — ${jvComp.name} satisfies ${activeEval.pctStr} standalone. (For Desire Energy to bid this tender, bid as Lead via Option 3 Consortium)`;
+        verdict = 'Partner Fully Qualified Standalone';
+        recommendation = `PARTNER QUALIFIED STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone. (For Desire Energy to bid, form Option 3 Consortium as Lead).`;
       } else if (activeEval.score >= 60) {
-        verdict = 'Partially Eligible Standalone';
-        recommendation = `LEAD MEMBER REQUIRED — ${jvComp.name} satisfies ${activeEval.pctStr} of criteria`;
+        verdict = 'Partner Partially Eligible Standalone (Incomplete Alone)';
+        recommendation = `PARTNER INCOMPLETE STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone (cannot bid alone due to gaps). Must join Desire Energy as Lead Member via Option 3 Consortium.`;
       } else {
-        verdict = 'Ineligible Standalone';
-        recommendation = `INSUFFICIENT — ${jvComp.name} satisfies only ${activeEval.pctStr} of criteria`;
+        verdict = 'Partner Ineligible Standalone';
+        recommendation = `INSUFFICIENT STANDALONE — ${jvComp.name} satisfies only ${activeEval.pctStr} standalone. Must join Desire Energy via Option 3 Consortium.`;
       }
     } else {
       if (desireEval.score >= 90) {
@@ -959,6 +959,39 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               <span className="text-sm font-bold text-slate-700">
                 {perspective.summary_counts.data_missing}
               </span>
+            </div>
+          </div>
+
+          {/* CONSORTIUM WIN STRATEGY & SYNERGY RATIONALE BOX */}
+          <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2.5 shadow-md border border-slate-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-emerald-400 font-mono text-xs font-bold">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>CONSORTIUM BIDDING STRATEGY & SYNERGY RATIONALE</span>
+              </div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold">
+                Combined Score: {perspective.option3_pct}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-lg bg-slate-800/80 border border-slate-700 space-y-1">
+                <span className="text-[10px] font-mono text-teal-300 font-bold block uppercase">1. Desire Energy Standalone ({perspective.option1_pct})</span>
+                <p className="text-slate-300 font-medium leading-relaxed">
+                  Desire brings ₹300.93 Cr avg turnover, ₹95 Cr net worth, 14 years ESCO/Solar/Pumping credentials, and Lead Equity Share ({desireEquityRatio}%).
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-slate-800/80 border border-slate-700 space-y-1">
+                <span className="text-[10px] font-mono text-amber-300 font-bold block uppercase">2. {jvComp.name} Standalone ({perspective.option2_pct})</span>
+                <p className="text-slate-300 font-medium leading-relaxed">
+                  {jvComp.name} has ₹{jvComp.average_turnover} Cr turnover & local civil licenses, but cannot bid alone ({perspective.option2_pct} standalone match score due to financial/technical gaps).
+                </p>
+              </div>
+              <div className="p-3 rounded-lg bg-emerald-950/70 border border-emerald-700/80 space-y-1">
+                <span className="text-[10px] font-mono text-emerald-300 font-bold block uppercase">3. Option 3 Synergy (100% Qualification)</span>
+                <p className="text-emerald-100 font-medium leading-relaxed">
+                  Pooling financials creates ₹{pooledTurnover} Cr turnover & ₹{pooledNetWorth} Cr net worth. Partner bridges specific local civil gaps, securing 100% total qualification.
+                </p>
+              </div>
             </div>
           </div>
 

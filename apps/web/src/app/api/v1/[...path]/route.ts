@@ -507,12 +507,18 @@ DOCUMENT TEXT (Filename: "${filename}"):
 INSTRUCTIONS FOR EXTRACTING CLAUSES:
 Step 1: Determine if this is a valid Tender Document (NIT/NIB/RFP/EOI/PQ). If it is an Invoice, Bill, Receipt, or Resume, set "is_rejected_non_tender": true.
 Step 2: If it IS a tender, extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION CLAUSE present in the document text above (Financial Turnover, Single Work Experience, Specific Work Quantities, Net Worth, Solvency, Bid Capacity, License/Registration, EMD, ISO Certs, Litigation Affidavit, Key Personnel, O&M Commitment, etc.).
-Extract at least 6 to 15 distinct clauses found in the tender document.
+Extract at least 8 to 15 distinct clauses found in the tender document.
 
 Step 3: Evaluate EACH extracted clause for:
-- Desire Energy Standalone capability
-- ${jvName} Standalone capability
-- Combined Consortium (Desire ${desireSharePct} + ${jvName} ${jvSharePct})
+- Desire Energy Standalone capability ("desire_value")
+- ${jvName} Standalone capability ("jv_value")
+- Combined Consortium (Desire ${desireSharePct}% + ${jvName} ${jvSharePct}%) ("combined_value")
+
+CRITICAL STANDALONE EVALUATION RULES:
+- Evaluate ${jvName}'s standalone capability ("jv_value" and "jv_alone.score") REALISTICALLY against all tender criteria.
+- If ${jvName} lacks specific certifications (ISO, ESCO, Solar, SCADA), licenses, or experience present in the tender, explicitly mark "jv_value" as "NOT MATCHING (0%) — Lacks requirement".
+- If ${jvName} only partially meets a financial limit (e.g. turnover of ₹191.39 Cr vs ₹300 Cr required), mark "jv_value" as "PARTIAL MATCH (63% of requirement)".
+- Do NOT artificially grant 100% to "jv_alone" unless ${jvName} genuinely satisfies 100% of all tender requirements alone.
 
 Return valid JSON (no markdown wrapping):
 {
@@ -522,7 +528,7 @@ Return valid JSON (no markdown wrapping):
   "verdict": "Eligible" | "Conditional" | "Ineligible",
   "eligibility_score": number from 0 to 100,
   "overall_health": "Green" | "Yellow" | "Red",
-  "recommendation": "string — clear bidding recommendation",
+  "recommendation": "string — clear bidding recommendation with consortium rationale",
   "executive_summary": "string — comprehensive summary of AI eligibility audit",
   "desire_alone": {"score": number, "status": "string", "fulfilled_pct": "string"},
   "jv_alone": {"score": number, "status": "string", "fulfilled_pct": "string"},
@@ -535,7 +541,7 @@ Return valid JSON (no markdown wrapping):
       "tender_requirement": "exact requirement statement",
       "required_value": "numeric required value with unit",
       "desire_value": "Desire Energy actual metric and percentage (e.g. Rs.300.93 Cr (100%))",
-      "jv_value": "${jvName} actual metric and percentage",
+      "jv_value": "${jvName} actual metric and percentage (e.g. Rs.191.39 Cr (63% - PARTIAL MATCH) or Lacks certification (0% - NOT MATCHING))",
       "combined_value": "Combined capability description",
       "applicable_jv_rule": "JV pooling rule applied",
       "status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
@@ -1005,13 +1011,13 @@ Return valid JSON (no markdown wrapping):
               clause_no: 'ITB 5.1',
               clause_title: 'Pumping Station, Sump & Electro-Mechanical Installation',
               page_ref: 'Page 25, Vol 1',
-              tender_requirement: 'Design, supply, installation & commissioning of >= 250 HP VT / Horizontal Pumping Machinery',
+              tender_requirement: 'Design, supply, installation & commissioning of >= 250 HP VT / Horizontal Pumping Machinery with SCADA',
               desire_value: '14 Years ESCO & High-Head Pumping Machinery O&M (100% Match)',
-              jv_value: `${jvName}: Civil pump houses and sump structure experience (100% Match)`,
+              jv_value: `${jvName}: Civil pump houses experience (Lacks specialized E&M SCADA pumping credentials - 0% NOT MATCHING)`,
               combined_value: 'Complete Electro-Mechanical + Civil Pump House consortium strength (100% Match)',
               applicable_jv_rule: 'Specialized lead member pump credentials fulfill E&M clause',
               status: 'MATCH' as const,
-              gap_notes: 'Desire Energy specialized pump division directly meets criteria.',
+              gap_notes: 'Desire Energy specialized pump division directly meets criteria while partner provides civil structure.',
               required_doc: 'Pumping Station Commissioning Reports + OEM Authorization'
             },
             {
@@ -1043,7 +1049,7 @@ Return valid JSON (no markdown wrapping):
         recommendation: `BID THROUGH JV (Consortium achieves 100% qualification with ${partnerRecommendations[0].partner_name})`,
         executive_summary: `AI Tender Analysis: Successfully extracted ${dynamicClauses.length} technical and financial qualification clauses for '${titleInput || filename}'. Evaluated standalone capability and optimal consortium synergy against registered JV partners.`,
         desire_alone: { score: 85, status: 'Partially Eligible Standalone', fulfilled_pct: '85%' },
-        jv_alone: { score: 80, status: 'Partially Eligible Standalone', fulfilled_pct: '80%' },
+        jv_alone: { score: 67, status: 'Partially Eligible Standalone (Incomplete Alone)', fulfilled_pct: '67%' },
         combined_jv: { score: 100, status: 'Fully Eligible (Joint Venture)', fulfilled_pct: '100%' },
         partner_recommendations: partnerRecommendations,
         recommended_partner_id: partnerRecommendations[0].partner_id,
@@ -1064,10 +1070,10 @@ Return valid JSON (no markdown wrapping):
         ],
         summary_counts: {
           total_criteria: dynamicClauses.length,
-          matched: dynamicClauses.filter(c => c.status === 'MATCH').length,
-          partial: dynamicClauses.filter(c => c.status === 'PARTIAL MATCH').length,
-          not_matching: dynamicClauses.filter(c => c.status === 'NOT MATCHING').length,
-          data_missing: dynamicClauses.filter(c => c.status === 'DATA NOT AVAILABLE').length
+          matched: dynamicClauses.filter(c => (c.status as string) === 'MATCH').length,
+          partial: dynamicClauses.filter(c => (c.status as string) === 'PARTIAL MATCH').length,
+          not_matching: dynamicClauses.filter(c => (c.status as string) === 'NOT MATCHING').length,
+          data_missing: dynamicClauses.filter(c => (c.status as string) === 'DATA NOT AVAILABLE').length
         },
         created_at: new Date().toISOString()
       };
