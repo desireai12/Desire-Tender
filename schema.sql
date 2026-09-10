@@ -217,15 +217,82 @@ CREATE TABLE IF NOT EXISTS public.jv_evaluations (
     remarks TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+
+
+-- 13. SEED AUTHORITATIVE DESIRE ENERGY & JV TENDER KNOWLEDGE BASE
+INSERT INTO public.users (employee_id, full_name, email, phone, password_hash, role, department, status, permissions)
+VALUES 
+('EMP005', 'Dharmesh Khandelwal', 'dharmeshkhandelwal@desireenergy.com', '7230037296', 'Dharmesh@EMP005#2026', 'Director & JV Lead', 'Tender Team', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb)
+ON CONFLICT (employee_id) DO NOTHING;
+
+INSERT INTO public.knowledge_base (id, title, category, file_name, file_url, description, status, chunks_count, created_at)
+VALUES
+('kb-alwar-jv-01', 'M/s DESPL - DIVIJA CONSTRUCTIONS JV Technical Bid (Alwar Sewerage AMRUT 2.0)', 'Joint Venture & Technical Bid', 'PQ_Upload_Alwar.pdf', '/documents/PQ_Upload_Alwar.pdf', 'Authoritative Technical & PQ Bid for Alwar Package 44, RUDSICO NIT 01/2026-27 (Value: Rs 36.53 Cr)', 'Active', 15, CURRENT_TIMESTAMP),
+('kb-alwar-tender-02', 'RUDSICO Notice Inviting Bids - Alwar Town Sewerage Package 44', 'Tender Document', 'AlwarPKG44 (1).pdf', '/documents/AlwarPKG44 (1).pdf', 'Official Bidding Document for Sewerage Works Wards 39 & 61 in Alwar Town (Cost: Rs 36.53 Cr, EMD: Rs 73.06 Lakhs)', 'Active', 12, CURRENT_TIMESTAMP),
+('kb-desire-fin-03', 'Desire Energy Solutions Pvt Ltd Audited Financials (FY 2021-2025)', 'Financial', 'Audited_Financials_DESPL_FY21_25.pdf', '/documents/Audited_Financials_DESPL_FY21_25.pdf', 'Audited Financial Statements (Average Turnover: Rs 300.93 Cr, Net Worth: Rs 95.0 Cr, Solvency: Rs 50.0 Cr)', 'Active', 10, CURRENT_TIMESTAMP),
+('kb-divija-exp-04', 'Divija Construction Sewerage & Sewage Pumping Station Work Orders', 'Past Experience', 'Divija_Construction_Sewerage_WorkOrders.pdf', '/documents/Divija_Construction_Sewerage_WorkOrders.pdf', 'JDA Jaipur Work Orders for 8 MLD & 1 MLD Sewage Pumping Stations and 136+ km Sewer lines (Rs 24.69 Cr & Rs 18.97 Cr)', 'Active', 8, CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
+
+-- 14. MASTER COMPANIES DATABASE TABLE
+CREATE TABLE IF NOT EXISTS public.companies (
+    id VARCHAR(100) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100) NOT NULL DEFAULT 'JV Partner', -- 'Desire Energy', 'JV Partner', 'Competitor', 'Other'
+    profile TEXT,
+    registered_address TEXT,
+    corporate_address TEXT,
+    contact_details JSONB DEFAULT '{}'::jsonb,
+    cin_registration VARCHAR(100),
+    gst_number VARCHAR(50),
+    pan_number VARCHAR(50),
+    annual_turnover JSONB DEFAULT '{}'::jsonb,
+    average_turnover NUMERIC DEFAULT 0,
+    net_worth NUMERIC DEFAULT 0,
+    solvency NUMERIC DEFAULT 0,
+    technical_experience TEXT,
+    past_projects JSONB DEFAULT '[]'::jsonb,
+    work_orders JSONB DEFAULT '[]'::jsonb,
+    client_details JSONB DEFAULT '[]'::jsonb,
+    sector_experience JSONB DEFAULT '[]'::jsonb,
+    equipment_machinery JSONB DEFAULT '[]'::jsonb,
+    manpower_technical_staff JSONB DEFAULT '[]'::jsonb,
+    certifications JSONB DEFAULT '[]'::jsonb,
+    statutory_docs JSONB DEFAULT '[]'::jsonb,
+    tender_experience JSONB DEFAULT '[]'::jsonb,
+    uploaded_documents JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 15. JV & COMBINED ELIGIBILITY EVALUATIONS TABLE
+CREATE TABLE IF NOT EXISTS public.jv_evaluations (
+    id VARCHAR(100) PRIMARY KEY,
+    tender_id VARCHAR(100),
+    tender_name TEXT NOT NULL,
+    project_category VARCHAR(50) NOT NULL,
+    desire_company_id VARCHAR(100),
+    jv_partner_ids JSONB DEFAULT '[]'::jsonb,
+    tender_requirements JSONB DEFAULT '[]'::jsonb,
+    desire_eligibility JSONB DEFAULT '{}'::jsonb,
+    jv_alone_eligibility JSONB DEFAULT '{}'::jsonb,
+    combined_eligibility JSONB DEFAULT '{}'::jsonb,
+    matrix_breakdown JSONB DEFAULT '[]'::jsonb,
+    final_status VARCHAR(50) DEFAULT 'Eligible Through JV',
+    remarks TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 ALTER TABLE public.companies DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jv_evaluations DISABLE ROW LEVEL SECURITY;
 
--- SEED MASTER COMPANIES DATA
-INSERT INTO public.companies (id, name, type, profile, registered_address, corporate_address, contact_details, cin_registration, gst_number, pan_number, average_turnover, net_worth, solvency, technical_experience)
+--- SEED MASTER COMPANIES DATA
+INSERT INTO public.companies (id, name, type, profile, registered_address, corporate_address, contact_details, cin_registration, gst_number, pan_number, average_turnover, net_worth, solvency, technical_experience, certifications, past_projects)
 VALUES
-('comp-desire-01', 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', 'Desire Energy', 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks.', '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan', '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan', '{"phone": "0141-4050855", "mobile": "7230037296", "email": "tenders@desireenergy.com", "contact_person": "Dharmesh Khandelwal"}'::jsonb, 'U40106RJ2011PTC034878', '08AAECD3266E1ZT', 'AAECD3266E', 300.93, 95.00, 50.00, 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants, Class-A Special PHED Registration'),
-('comp-divija-02', 'DIVIJA CONSTRUCTION', 'JV Partner', 'Govt Approved A & AA Class Contractor specializing in Sewage Treatment Plants, Sewage Pumping Stations, and Municipal Water Pipelines.', '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan', '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan', '{"phone": "9829147776", "email": "divijaconstruction@gmail.com", "contact_person": "Satish Kumar Goyal"}'::jsonb, 'GOVT-AA-CLASS-2005', '08AAFFD6567N1ZT', 'AAFFD6567N', 37.01, 6.58, 10.00, 'Executed JDA Jaipur 8 MLD & 1 MLD Sewage Pumping Stations, 136+ km Sewer lines (Work Orders Rs 24.69 Cr & Rs 18.97 Cr)'),
-('comp-lt-03', 'LARSEN & TOUBRO WATER & EFFLUENT IC', 'Competitor', 'Multinational conglomerate executing mega municipal water, STP, and industrial effluent treatment plants across India.', 'Mount Poonamallee Road, Manapakkam, Chennai - 600089', 'Mount Poonamallee Road, Manapakkam, Chennai - 600089', '{"email": "waterbids@lntecc.com", "contact_person": "Tender Desk"}'::jsonb, 'L99999MH1946PLC004768', '33AAACL0140P1ZB', 'AAACL0140P', 12500.00, 4200.00, 1000.00, 'Executed 500+ MLD STPs, Mega Intake Works, WTPs across 20+ Indian States')
+('comp-desire-01', 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', 'Desire Energy', 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks. Registered AA Class Contractor with Gujarat WRD & R&B.', '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan', '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan', '{"phone": "0141-4050855", "mobile": "7230037296", "email": "tenders@desireenergy.com", "contact_person": "Dharmesh Khandelwal"}'::jsonb, 'U40106RJ2011PTC034878', '24AAECD3266E1ZZ', 'AAECD3266E', 300.93, 95.00, 50.00, 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants, Class-A Special PHED & AA Class Gujarat WRD Registration', '["ISO 9001:2015", "CMMI Level-5", "BEE Grade-1 ESCO", "AA Class Gujarat WRD/R&B", "Electrical Contractor License"]'::jsonb, '["JJM Balotra Package", "PM-Kusum Component-B (Rs 94 Cr)", "RHDS Water Supply Network"]'::jsonb),
+('comp-aapl-05', 'ADROIT ASSOCIATES PRIVATE LIMITED', 'JV Partner', 'Specialized Water Treatment, STP, Micro Lift Irrigation & PWD Class-A Contractor with 39+ years experience in municipal water supply networks.', '01/101, Satguru Prime 11, Scheme No 140 Main Road, Indore - 452016, Madhya Pradesh', '01/101, Satguru Prime 11, Scheme No 140 Main Road, Indore - 452016, Madhya Pradesh', '{"phone": "0731-3513336", "email": "adroitprojects@gmail.com", "contact_person": "Rajendra Purandare (Director, BE Mech)"}'::jsonb, 'U45100MP2019PTC049757', '22AASCA8055A1ZV', 'AASCA8055A', 35.22, 14.27, 10.00, 'Executed Roshni-1 Multi-village Rural Water Supply Scheme Rs 46.73 Cr, Rani Durgawati Lift Irrigation Rs 20.32 Cr, Gobra Nawapara 7.6 MLD SBR STP Rs 15.48 Cr, 27 MLD Bhilai Charoda WTP', '["Class-A Unified PWD Chhattisgarh (CGeR21408)", "Class-A MP PWD", "ISO 9001:2015", "Fadnis & Gupte LLP Audited"]'::jsonb, '["Roshni-1 Water Supply Scheme (Rs 46.73 Cr)", "Rani Durgawati Lift Irrigation (Rs 20.32 Cr)", "Gobra Nawapara SBR STP (Rs 15.48 Cr)", "Rajim Town STP & Sewer (Rs 14.59 Cr)"]'::jsonb),
+('comp-vhp-04', 'VINOD H PATEL', 'JV Partner', 'Govt Approved AA Class Contractor (Gujarat WRD & R&B) specializing in Bulk Water Supply Pipelines, Pumping Stations, and Civil Infrastructure.', 'First Floor, F-21/22, Perfect Plaza, Radhanpur Road, Mehsana - 384002, Gujarat', 'First Floor, F-21/22, Perfect Plaza, Radhanpur Road, Mehsana - 384002, Gujarat', '{"phone": "02762-253598", "email": "vinodhpatel@gmail.com", "contact_person": "Patel Mit Vinodchandra / Vinod H. Patel"}'::jsonb, 'GUJ-MEH-PARTNERSHIP-1996', '24AATFV4986F1ZH', 'AATFV4986F', 191.39, 33.37, 25.00, 'Executed Palanpur Group Water Supply Package 2 (Rising/Gravity DI/PVC Pipeline & Pumping Station) worth Rs 99.41 Cr (VHP Share Rs 84.49 Cr, Escalated Rs 112.37 Cr), 150+ km DI/HDPE pipeline projects in Gujarat WRD & GWSSB', '["AA Class Civil Contractor (Gujarat WRD & R&B)", "Gujarat Electrical Contractor License", "EPF Registration", "ROF Certificate"]'::jsonb, '["Palanpur Group Water Supply Package 2 (Rs 99.41 Cr)", "Mehsana Water Pipeline Network", "Banaskantha Lift Irrigation Project"]'::jsonb),
+('comp-divija-02', 'DIVIJA CONSTRUCTION', 'JV Partner', 'Govt Approved A & AA Class Contractor specializing in Sewage Treatment Plants, Sewage Pumping Stations, and Municipal Water Pipelines.', '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan', '79/12, Shipra Path, Mansarovar, Jaipur - 302020, Rajasthan', '{"phone": "9829147776", "email": "divijaconstruction@gmail.com", "contact_person": "Satish Kumar Goyal"}'::jsonb, 'GOVT-AA-CLASS-2005', '08AAFFD6567N1ZT', 'AAFFD6567N', 37.01, 6.58, 10.00, 'Executed JDA Jaipur 8 MLD & 1 MLD Sewage Pumping Stations, 136+ km Sewer lines (Work Orders Rs 24.69 Cr & Rs 18.97 Cr)', '["ISO 9001:2015", "Class-AA DLB License"]'::jsonb, '["RUDSICO Jaipur Sewerage Scheme", "Kota Drainage Project"]'::jsonb),
+('comp-lt-03', 'LARSEN & TOUBRO WATER & EFFLUENT IC', 'Competitor', 'Multinational conglomerate executing mega municipal water, STP, and industrial effluent treatment plants across India.', 'Mount Poonamallee Road, Manapakkam, Chennai - 600089', 'Mount Poonamallee Road, Manapakkam, Chennai - 600089', '{"email": "waterbids@lntecc.com", "contact_person": "Tender Desk"}'::jsonb, 'L99999MH1946PLC004768', '33AAACL0140P1ZB', 'AAACL0140P', 12500.00, 4200.00, 1000.00, 'Executed 500+ MLD STPs, Mega Intake Works, WTPs across 20+ Indian States', '["ISO 9001", "ISO 14001", "ISO 45001"]'::jsonb, '["Mega Water Supply Projects Across India"]'::jsonb)
+
 ON CONFLICT (id) DO NOTHING;

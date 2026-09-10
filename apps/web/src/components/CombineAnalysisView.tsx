@@ -206,10 +206,16 @@ export const CombineAnalysisView: React.FC = () => {
             onChange={(e) => setJvPartnerId(e.target.value)}
             className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
           >
-            {companies.filter(c => c.type !== 'Desire Energy').map(c => (
-              <option key={c.id} value={c.id}>{c.name} ({c.type} - Avg ₹{c.average_turnover} Cr)</option>
+            {companies.filter(c => c.type === 'JV Partner').map(c => (
+              <option key={c.id} value={c.id}>{c.name} (Avg ₹{c.average_turnover} Cr | Net Worth: ₹{c.net_worth} Cr)</option>
             ))}
-            {companies.length === 0 && <option value="comp-divija-02">DIVIJA CONSTRUCTION (JV Partner - ₹37.01 Cr)</option>}
+            {companies.filter(c => c.type === 'JV Partner').length === 0 && (
+              <>
+                <option value="comp-vhp-04">VINOD H PATEL (Avg ₹191.39 Cr | Net Worth: ₹33.37 Cr)</option>
+                <option value="comp-aapl-05">ADROIT ASSOCIATES PRIVATE LIMITED (Avg ₹35.22 Cr | Net Worth: ₹14.27 Cr)</option>
+                <option value="comp-divija-02">DIVIJA CONSTRUCTION (Avg ₹37.01 Cr | Net Worth: ₹6.58 Cr)</option>
+              </>
+            )}
           </select>
         </div>
       </div>

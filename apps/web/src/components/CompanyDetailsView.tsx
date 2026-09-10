@@ -116,9 +116,197 @@ export const CompanyDetailsView: React.FC = () => {
       } catch (e) {}
     }
 
+    if (loaded.length === 0) {
+      loaded = [
+        {
+          id: 'comp-desire-01',
+          name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED',
+          type: 'Desire Energy',
+          profile: 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks. Registered AA Class Contractor with Gujarat WRD & R&B.',
+          registered_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
+          corporate_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
+          contact_details: { phone: '0141-4050855', mobile: '7230037296', email: 'tenders@desireenergy.com', contact_person: 'Dharmesh Khandelwal (Director)' },
+          cin_registration: 'U40106RJ2011PTC034878',
+          gst_number: '24AAECD3266E1ZZ',
+          pan_number: 'AAECD3266E',
+          annual_turnover: { 'FY 2021-22': 201.53, 'FY 2022-23': 201.53, 'FY 2023-24': 350.66, 'FY 2024-25': 350.60 },
+          average_turnover: 300.93,
+          net_worth: 95.00,
+          solvency: 50.00,
+          solvency_amount: 72.18,
+          technical_experience: 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants, Class-A Special PHED Registration & AA Class Gujarat WRD/R&B Registration',
+          past_projects: ['Jal Jeevan Mission Balotra Package', 'PM-Kusum Component-B Rajasthan (Rs 94 Cr)', 'RHDS Water Supply Network'],
+          work_orders: [],
+          client_details: ['PHED Rajasthan', 'RUDSICO', 'SWSM UP', 'Gujarat WRD'],
+          sector_experience: ['Rural Water Supply (JJM)', 'Solar PV Water Pumps', 'Bulk Water Pipeline EPC', 'Lift Irrigation Schemes'],
+          equipment_machinery: ['10 Heavy Excavators', '3 Vermeer HDD Machines', '15 Mobile Generator Sets', '4 Transit Mixers', '2 Concrete Batching Units'],
+          manpower_technical_staff: ['45 Degree Civil & Electrical Engineers', '120 Certified Pipeline Technicians', '8 Quality Control Managers'],
+          certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'ISO 45001:2018', 'CMMI Level-5', 'BEE Grade-1 ESCO', 'AA Class Gujarat WRD/R&B License', 'Electrical Contractor License'],
+          statutory_docs: ['GST Registration Certificate (Gujarat & Rajasthan)', 'PAN Card', 'EPF Registration', 'ESI Registration', 'Udyam Registration UDYAM-RJ-17-0025258'],
+          uploaded_documents: []
+        },
+        {
+          id: 'comp-vhp-04',
+          name: 'VINOD H PATEL',
+          type: 'JV Partner',
+          profile: 'Govt Approved AA Class Contractor (Gujarat WRD & R&B) specializing in Bulk Water Supply Pipelines, Pumping Stations, and Civil Infrastructure.',
+          registered_address: 'First Floor, F-21/22, Perfect Plaza, Radhanpur Road, Mehsana - 384002, Gujarat',
+          corporate_address: 'First Floor, F-21/22, Perfect Plaza, Radhanpur Road, Mehsana - 384002, Gujarat',
+          contact_details: { phone: '02762-253598', mobile: '9825012345', email: 'vinodhpatel@gmail.com', contact_person: 'Patel Mit Vinodchandra / Vinod H. Patel' },
+          cin_registration: 'GUJ-MEH-PARTNERSHIP-1996',
+          gst_number: '24AATFV4986F1ZH',
+          pan_number: 'AATFV4986F',
+          annual_turnover: { 'FY 2020-21': 160.90, 'FY 2021-22': 131.77, 'FY 2022-23': 249.61, 'FY 2023-24': 280.15, 'FY 2024-25': 134.55 },
+          average_turnover: 191.39,
+          net_worth: 33.37,
+          solvency: 20.00,
+          solvency_amount: 25.00,
+          technical_experience: 'Executed Palanpur Group Water Supply Package 2 (Rising/Gravity DI/PVC Pipeline & Pumping Station) worth Rs 99.41 Cr (VHP Share Rs 84.49 Cr, Escalated Rs 112.37 Cr), 150+ km DI/HDPE pipeline projects in Gujarat WRD & GWSSB',
+          past_projects: ['Palanpur Group Water Supply Package 2 (Rs 99.41 Cr)', 'Mehsana Water Pipeline Network', 'Banaskantha Lift Irrigation Project'],
+          work_orders: [],
+          client_details: ['Executive Engineer, PHED/WRD Palanpur', 'GWSSB Gujarat', 'R&B Department Gujarat'],
+          sector_experience: ['Bulk Water Supply Pipelines (DI/MS/HDPE)', 'Water Pumping Stations & Headworks', 'Irrigation & Pipeline Distribution'],
+          equipment_machinery: ['8 Heavy Excavators', '2 Fully Automatic Concrete Batching Plants', '4 Transit Mixers', '12 DG Sets', '6 Mobile Mixers', '2 Compactor Rollers'],
+          manpower_technical_staff: ['25 Degree Civil Engineers', '8 Mechanical Supervisors', '50 Certified Site Technicians'],
+          certifications: ['AA Class Civil Contractor Registration (Gujarat WRD & R&B)', 'Gujarat Electrical Contractor License', 'EPF Registration', 'ROF Registration Certificate'],
+          statutory_docs: ['GST Registration Certificate', 'PAN Card (AATFV4986F)', 'Partnership Deed', 'CA Net Worth & Turnover Certificate (UDIN: 25124129BMGTGD3142)'],
+          uploaded_documents: []
+        },
+        {
+          id: 'comp-aapl-05',
+          name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
+          type: 'JV Partner',
+          profile: 'Indore based Infrastructure & Water Engineering company with Class "A" PWD registration (Chhattisgarh & MP), executing Lift Irrigation, Water Supply, and SBR Sewage Treatment Plants since 1987. Official 25% JV Partner with Desire Energy for Vapi Karvad Project.',
+          registered_address: '01/101, Satguru Prime 11, Scheme No 140 Main Road, Indore - 452016, Madhya Pradesh',
+          corporate_address: '01/101, Satguru Prime 11, Scheme No 140 Main Road, Indore - 452016, Madhya Pradesh',
+          contact_details: { phone: '0731-4045600', mobile: '9425054321', email: 'adroitassociates@gmail.com', contact_person: 'Rajendra Purandare (Director, B.E. Mech - 39+ yrs exp)' },
+          cin_registration: 'U45100MP2019PTC049757',
+          gst_number: '23AASCA8055A1ZX',
+          pan_number: 'AASCA8055A',
+          annual_turnover: { 'FY 2020-21': 30.45, 'FY 2021-22': 32.80, 'FY 2022-23': 37.66, 'FY 2023-24': 39.01, 'FY 2024-25': 36.18 },
+          average_turnover: 35.22,
+          net_worth: 14.27,
+          solvency: 10.00,
+          solvency_amount: 10.00,
+          technical_experience: 'Executed Roshni-1 Multi-Village Rural Water Supply Scheme (Rs 46.73 Cr), Rani Durgawati Lift Irrigation Project (Rs 20.32 Cr), Gobra Nawapara 7.6 MLD SBR Sewage Treatment Plant (Rs 15.48 Cr), 100+ km DI & HDPE distribution pipelines.',
+          past_projects: [
+            'Roshni-1 Multi-Village Rural Water Supply Scheme (Rs 46.73 Cr)',
+            'Rani Durgawati Lift Irrigation Project (Rs 20.32 Cr)',
+            'Gobra Nawapara 7.6 MLD SBR STP (Rs 15.48 Cr)',
+            'Vapi Karvad Water Supply Scheme (JV with Desire Energy - 25% Share, Rs 31.80 Cr)'
+          ],
+          work_orders: [],
+          client_details: ['Madhya Pradesh Jal Nigam Maryadit (MPJNM)', 'Chhattisgarh PWD & PHE', 'WRD Madhya Pradesh', 'Vapi Notified Area Authority (VNAA)'],
+          sector_experience: ['Rural Water Supply Schemes (JJM)', 'Lift Irrigation Schemes', 'SBR Sewage Treatment Plants (STP)', 'DI & HDPE Piped Water Distribution Networks'],
+          equipment_machinery: [
+            '6 Heavy Hydraulic Excavators',
+            '2 Vermeer Directional Drilling Units',
+            '3 Concrete Transit Mixers',
+            '8 Mobile Diesel Generators (62.5 - 125 kVA)',
+            '4 High-pressure Hydrostatic Testing Pumps',
+            '3 Dewatering Submersible Pumps'
+          ],
+          manpower_technical_staff: [
+            'Rajendra Purandare (Director / Project In-Charge - B.E. Mech, 39 yrs exp)',
+            'Vandana Purandare (Director)',
+            'Jay Purandare (Director / Civil Engineer)',
+            '18 Degree Civil & Mechanical Engineers',
+            '6 Quality Control Supervisors',
+            '35 Certified Pipeline Technicians'
+          ],
+          certifications: [
+            'Class "A" Registration with PWD Chhattisgarh (CGeR21408)',
+            'Class "A" Registration with MP PWD',
+            'ISO 9001:2015 Quality Management System',
+            'EPFO Registration (MIND0128956000)',
+            'ESIC Registration (23000456120000999)'
+          ],
+          statutory_docs: [
+            'Certificate of Incorporation (CIN: U45100MP2019PTC049757)',
+            'GST Registration Certificate (MP: 23AASCA8055A1ZX / CG: 22AASCA8055A1ZV)',
+            'PAN Card (AASCA8055A)',
+            'CA Net Worth & Turnover Certificate (Fadnis & Gupte LLP - UDIN Certified)',
+            'Bank Solvency Certificate (Union Bank of India / HDFC Bank)',
+            'Joint Venture Agreement with DESPL (75% DESPL : 25% AAPL for Vapi Karvad)'
+          ],
+          uploaded_documents: [
+            'CA Certificate-AAPL.pdf',
+            'EPFO_Registration-AAPL.pdf',
+            'ESIC_Registration-AAPL.pdf',
+            'Form 26-AAPL.pdf',
+            'Form 27-AAPL.pdf',
+            'Form 3 Details of Machinery Equipment and work Plan-AAPL.pdf',
+            'Form-22-Affidavite-AAPL.pdf',
+            'Form-23-Litigation Record-AAPL.pdf',
+            'Form-24-No Contract Abandonment-AAPL.pdf',
+            'Form-28-Undertaking for Site Visit-AAPL.pdf',
+            'Form-29-Undertaking for Sub-Contractor-AAPL.pdf',
+            'GST-AAPL.pdf',
+            'PAN-AAPL.pdf',
+            'Registration-AAPL.pdf'
+          ]
+        },
+        {
+          id: 'comp-divija-02',
+          name: 'DIVIJA CONSTRUCTION',
+          type: 'JV Partner',
+          profile: 'Specialized Sewerage, Drainage & Underground Utilities Contractor.',
+          registered_address: 'Plot No. 12, Sector 5, Vidyadhar Nagar, Jaipur, Rajasthan',
+          corporate_address: 'Plot No. 12, Sector 5, Vidyadhar Nagar, Jaipur, Rajasthan',
+          contact_details: { phone: '0141-2233445', mobile: '9829011223', email: 'divija.infra@gmail.com', contact_person: 'Rajesh Sharma (Partner)' },
+          cin_registration: 'RJ-JPR-2016-09871',
+          gst_number: '08AABFD8899K1Z5',
+          pan_number: 'AABFD8899K',
+          annual_turnover: { 'FY 2021-22': 32.50, 'FY 2022-23': 36.80, 'FY 2023-24': 41.74 },
+          average_turnover: 37.01,
+          net_worth: 6.58,
+          solvency: 10.00,
+          solvency_amount: 10.00,
+          technical_experience: 'Executed 136 km Sewer Network in Jaipur DLB, 8 MLD Sewage Pumping Station, DWC & RCC NP3 Pipe Jacking',
+          past_projects: ['RUDSICO Jaipur Sewerage Scheme', 'Kota Drainage Project'],
+          work_orders: [],
+          client_details: ['RUDSICO', 'Jaipur Nagar Nigam', 'DLB Rajasthan'],
+          sector_experience: ['Underground Sewerage Network', 'STP Sewage Pumping Stations', 'Micro-tunneling'],
+          equipment_machinery: ['4 Trench Excavators', '2 Dewatering Pumps', '1 Pipe Jacking Unit'],
+          manpower_technical_staff: ['15 Civil Engineers', '40 Sewerage Technicians'],
+          certifications: ['ISO 9001:2015', 'Class-AA DLB License'],
+          statutory_docs: ['GST Registration', 'PAN Card', 'Labor License'],
+          uploaded_documents: []
+        },
+        {
+          id: 'comp-lt-03',
+          name: 'LARSEN & TOUBRO LIMITED (WATER & EFFLUENT IC)',
+          type: 'Competitor',
+          profile: 'Major Indian Infrastructure Conglomerate with dominant market share in mega water supply & STP EPC contracts.',
+          registered_address: 'L&T House, Ballard Estate, Mumbai - 400001, Maharashtra',
+          corporate_address: 'Mount Poonamallee Road, Manapakkam, Chennai - 600089, Tamil Nadu',
+          contact_details: { phone: '022-67525656', email: 'infrawater@larsentoubro.com', contact_person: 'Bidding Lead Water IC' },
+          cin_registration: 'L99999MH1946PLC004768',
+          gst_number: '27AAACL0140P1ZM',
+          pan_number: 'AAACL0140P',
+          annual_turnover: { 'FY 2021-22': 156521.00, 'FY 2022-23': 183341.00, 'FY 2023-24': 221113.00 },
+          average_turnover: 186991.67,
+          net_worth: 89115.00,
+          solvency: 5000.00,
+          solvency_amount: 5000.00,
+          technical_experience: 'Executed thousands of km DI/MS/HDPE transmission pipelines, mega lift irrigation schemes, 100+ MLD STPs across India.',
+          past_projects: ['Mega Regional Water Grid Gujarat', 'Kaleshwaram Lift Irrigation', 'Delhi STP Network'],
+          work_orders: [],
+          client_details: ['GWSSB Gujarat', 'Telangana WRD', 'DJB Delhi', 'CPWD'],
+          sector_experience: ['Mega Water Supply', 'Lift Irrigation', 'WTP / STP', 'Industrial Water Systems'],
+          equipment_machinery: ['Fleet of 500+ Heavy Machines', 'Automated HDD rigs', 'Pipeline laying barges'],
+          manpower_technical_staff: ['10,000+ Engineers and Technical Staff'],
+          certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'ISO 45001:2018', 'Special Class Contractor'],
+          statutory_docs: ['All Pan India Statutory Clearances'],
+          uploaded_documents: []
+        }
+      ];
+    }
+
     setCompanies(loaded);
     setLoading(false);
   };
+
 
   useEffect(() => {
     fetchCompanies();

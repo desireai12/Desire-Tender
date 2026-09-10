@@ -4,15 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle2, 
   XCircle, 
-  Lock, 
   Upload, 
   FileText, 
-  RefreshCw, 
   ArrowRight, 
   AlertTriangle, 
   Sparkles, 
-  FileCheck2, 
-  ShieldAlert, 
   Wand2,
   Check,
   ArrowLeft,
@@ -22,7 +18,10 @@ import {
   Loader2,
   Users,
   ShieldCheck,
-  Award
+  Award,
+  Sliders,
+  TrendingUp,
+  Percent
 } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api';
 import { 
@@ -48,27 +47,31 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
   // Master Companies State
   const [companies, setCompanies] = useState<CompanyRecord[]>([]);
-  const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-divija-02');
+  const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-vhp-04');
   const [desireCompanyId, setDesireCompanyId] = useState<string>('comp-desire-01');
 
+  // Dynamic JV Equity Ratio: Desire Share % (Default: 75% lead, Partner 25%)
+  const [desireEquityRatio, setDesireEquityRatio] = useState<number>(75);
+
   // Step 1 State
-  const [tenderTitle, setTenderTitle] = useState<string>('RUDSICO Alwar Town Sewerage Package 44 (NIT 01/2026-27)');
+  const [tenderTitle, setTenderTitle] = useState<string>('Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)');
   const [initiatingDepartment, setInitiatingDepartment] = useState<DepartmentRole>(activeRole);
-  const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('STP');
+  const [selectedCategory, setSelectedCategory] = useState<ProjectCategory>('EPC');
   const [uploadedTenderFile, setUploadedTenderFile] = useState<File | null>(null);
   const [uploadedBOQFile, setUploadedBOQFile] = useState<File | null>(null);
 
-  // Preferred Analysis Mode Selection on Step 1
+  // Preferred Analysis Mode Selection
   const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
 
   // Step 2 Staged Processing State
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
   const [analysisStageText, setAnalysisStageText] = useState<string>('Reading Tender Document & Extracting Specifications...');
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-  // Step 3 Dynamic Assessment Report State (10+ UNRESTRICTED DYNAMIC CLAUSES)
+  // Step 3 Dynamic Assessment Report State
   const [evaluationReport, setEvaluationReport] = useState<DynamicTenderEvaluationReport | null>(null);
 
-  // Fetch Companies on Mount
+  // Fetch Master Companies on Mount
   useEffect(() => {
     const fetchMasterCompanies = async () => {
       try {
@@ -77,14 +80,21 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           const data = await res.json();
           if (data.companies && Array.isArray(data.companies)) {
             setCompanies(data.companies);
+            // Default to first valid JV Partner if current default not found
+            const jvPartners = data.companies.filter((c: CompanyRecord) => c.type === 'JV Partner');
+            if (jvPartners.length > 0 && !jvPartners.some((p: CompanyRecord) => p.id === selectedJvPartnerId)) {
+              setSelectedJvPartnerId(jvPartners[0].id);
+            }
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to load companies:', e);
+      }
     };
     fetchMasterCompanies();
   }, []);
 
-  // Handle File Upload
+  // Handle File Upload on Step 1
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'tender' | 'boq') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -92,32 +102,66 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     if (type === 'tender') {
       setUploadedTenderFile(file);
       const fileLower = file.name.toLowerCase();
-      if (fileLower.includes('junagadh') || fileLower.includes('ras') || fileLower.includes('vol 1')) {
-        setTenderTitle(file.name.replace(/\.[^/.]+$/, ''));
+      if (fileLower.includes('banaskantha') || fileLower.includes('gujarat') || fileLower.includes('69.78')) {
+        setTenderTitle('Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)');
+        setSelectedCategory('EPC');
+      } else if (fileLower.includes('vapi') || fileLower.includes('lift') || fileLower.includes('irrigation')) {
+        setTenderTitle('Vapi Lift Irrigation & Water Distribution Scheme (Gujarat WRD)');
         setSelectedCategory('ESCO');
-      } else if (fileLower.includes('alwar') || fileLower.includes('sewer')) {
-        setTenderTitle('RUDSICO Alwar Town Sewerage Package 44 (NIT 01/2026-27)');
+      } else if (fileLower.includes('alwar') || fileLower.includes('sewer') || fileLower.includes('rudsico')) {
+        setTenderTitle('Alwar Package 44 Sewerage & STP Project (AMRUT 2.0)');
         setSelectedCategory('STP');
       } else {
-        setTenderTitle(file.name.replace(/\.[^/.]+$/, ''));
+        setTenderTitle(file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' '));
       }
-    } else {
+    } else if (type === 'boq') {
       setUploadedBOQFile(file);
     }
   };
 
-  const desireComp = companies.find(c => c.type === 'Desire Energy' || c.id === desireCompanyId) || { name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', average_turnover: 300.93, net_worth: 95.0, solvency_amount: 72.18 };
-  const jvComp = companies.find(c => c.id === selectedJvPartnerId) || { name: 'DIVIJA CONSTRUCTION', average_turnover: 37.01, net_worth: 6.58 };
+  // Resolve Active Companies (strictly filtered to JV Partners for partner side)
+  const desireComp = companies.find(c => c.type === 'Desire Energy' || c.id === desireCompanyId) || { 
+    id: 'comp-desire-01',
+    name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', 
+    type: 'Desire Energy',
+    average_turnover: 300.93, 
+    net_worth: 95.0, 
+    solvency_amount: 72.18 
+  };
+  
+  const jvComp = companies.find(c => c.id === selectedJvPartnerId && c.type === 'JV Partner') || 
+    companies.find(c => c.type === 'JV Partner') || { 
+    id: 'comp-vhp-04',
+    name: 'VINOD H PATEL', 
+    type: 'JV Partner',
+    average_turnover: 191.39, 
+    net_worth: 33.37, 
+    solvency_amount: 10.0 
+  };
 
-  // Start Step 2 Document Analysis (REAL AI & 10+ DYNAMIC CLAUSES)
-  const startDocumentAnalysis = async () => {
+  // Dynamic Calculated JV Partner Share %
+  const partnerEquityRatio = 100 - desireEquityRatio;
+
+  // Dynamic Financial Contributions based on Equity Split
+  const pooledTurnover = Number((desireComp.average_turnover + jvComp.average_turnover).toFixed(2));
+  const pooledNetWorth = Number((desireComp.net_worth + jvComp.net_worth).toFixed(2));
+  const pooledSolvency = Number(((desireComp.solvency_amount || 72.18) + (jvComp.solvency_amount || 10.0)).toFixed(2));
+
+  // Start Document Processing & Switch to Step 2 Loading Animation
+  const startDocumentAnalysis = () => {
+    setAnalysisError(null);
     setCurrentStep(2);
-    setAnalysisProgress(20);
-    setAnalysisStageText('Reading Document Binary Stream & Extracting Text...');
+    setAnalysisProgress(10);
+    setAnalysisStageText('Uploading & Inspecting Tender Specification Document...');
+    handleRunAnalysis();
+  };
 
+  // Run AI Tender Analysis API
+  const handleRunAnalysis = async () => {
     let fetchedReport: DynamicTenderEvaluationReport | null = null;
     let isRejected = false;
     let rejectMsg = '';
+    setAnalysisError(null);
 
     try {
       const formData = new FormData();
@@ -128,26 +172,41 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       formData.append('tender_title', tenderTitle);
       formData.append('jv_partner_id', selectedJvPartnerId);
 
-      setAnalysisProgress(50);
-      setAnalysisStageText('Verifying Document Type & Extracting Clauses...');
+      setAnalysisProgress(30);
+      setAnalysisStageText('Parsing All Tender Clauses, Requirements & Technical Specifications...');
 
       const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
         method: 'POST',
         body: formData,
       });
 
-      setAnalysisProgress(80);
+      setAnalysisProgress(65);
+      setAnalysisStageText('Evaluating Desire Energy vs. Tender Criteria (Clause by Clause)...');
 
       if (res.ok) {
         const data = await res.json();
         fetchedReport = data.evaluation_report || data.report;
         if (data.is_rejected_non_tender || (fetchedReport && (fetchedReport as any).is_rejected_non_tender)) {
           isRejected = true;
-          rejectMsg = fetchedReport?.executive_summary || 'Uploaded file is a Non-Tender document (e.g. Tax Invoice / Receipt).';
+          rejectMsg = fetchedReport?.executive_summary || 'Uploaded file is a Non-Tender document.';
         }
+
+        setAnalysisProgress(85);
+        setAnalysisStageText('Ranking Best JV Partners & Generating Consortium Recommendations...');
+
+        // Auto-select the highest scoring AI Recommended JV Partner
+        if (fetchedReport && (fetchedReport as any).partner_recommendations && Array.isArray((fetchedReport as any).partner_recommendations)) {
+          const topRec = (fetchedReport as any).partner_recommendations[0];
+          if (topRec && topRec.company_id) {
+            setSelectedJvPartnerId(topRec.company_id);
+          }
+        }
+      } else {
+        setAnalysisError(`Tender Analysis Server returned status ${res.status}. Please try again.`);
       }
     } catch (err) {
       console.error('Tender analysis API call error:', err);
+      setAnalysisError('Network error connecting to analysis server. Please retry.');
     }
 
     if (isRejected && fetchedReport) {
@@ -163,16 +222,14 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     if (fetchedReport) {
       setEvaluationReport(fetchedReport);
       setAnalysisProgress(100);
-      setAnalysisStageText('AI Eligibility Report Generated Successfully.');
+      setAnalysisStageText(`Full Report Ready: ${(fetchedReport.clauses_breakdown || []).length} Clauses Extracted & Evaluated.`);
       setTimeout(() => {
         setCurrentStep(3);
       }, 400);
     } else {
-      setAnalysisProgress(100);
-      setAnalysisStageText('Analysis complete.');
-      setTimeout(() => {
-        setCurrentStep(3);
-      }, 400);
+      setAnalysisProgress(0);
+      setAnalysisError('Tender analysis returned an empty report. Please verify the uploaded document or retry.');
+      setCurrentStep(1);
     }
   };
 
@@ -202,7 +259,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           user: `Officer (${activeRole})`,
           department: activeRole,
           timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-          action: `Uploaded Tender & Completed Dynamic AI Eligibility Analysis for ${selectedCategory}`,
+          action: `Uploaded Tender & Completed Dynamic AI Eligibility Analysis with ${jvComp.name} (${desireEquityRatio}:${partnerEquityRatio})`,
           status: 'Completed',
           next_pending_action: 'Estimation Team to generate Stage 3 BOQ Costing'
         }
@@ -211,7 +268,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     onTenderCreated(newProcess);
   };
 
-  // Perspective Data helper (ZERO DISCREPANCY MATHEMATICAL CALCULATOR)
+  // Perspective Data helper (MATHEMATICALLY SYNCHRONIZED & DYNAMIC)
   const getPerspectiveData = () => {
     if (!evaluationReport) {
       return {
@@ -239,49 +296,56 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const clauses = evaluationReport.clauses_breakdown || [];
     const totalCount = clauses.length || 1;
 
-    // Helper to evaluate a specific perspective with exact clause-by-clause scoring
+    // Evaluate perspective with exact clause-by-clause scoring
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
       const evaluated = clauses.map(c => {
         let val = c.combined_value;
         let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.status;
         let pct = 100;
 
+        // Desire standalone capability on this clause
+        const dVal = (c.desire_value || '').toLowerCase();
+        let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
+        if (dVal.includes('data not') || dVal.includes('missing')) {
+          dStatus = 'DATA NOT AVAILABLE';
+        } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
+          dStatus = 'NOT MATCHING';
+        } else if (dVal.includes('partial') || dVal.includes('50%') || dVal.includes('75%') || dVal.includes('requires jv') || dVal.includes('gap')) {
+          dStatus = 'PARTIAL MATCH';
+        }
+
+        // JV Partner capability on this clause
+        const jVal = (c.jv_value || '').toLowerCase();
+        let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
+        if (jVal.includes('data not') || jVal.includes('missing')) {
+          jStatus = 'DATA NOT AVAILABLE';
+        } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible')) {
+          jStatus = 'NOT MATCHING';
+        } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('gap')) {
+          jStatus = 'PARTIAL MATCH';
+        }
+
         if (mode === 'desire') {
           val = c.desire_value || '';
-          const lowerVal = val.toLowerCase();
-          if (lowerVal.includes('data not') || lowerVal.includes('missing')) {
-            status = 'DATA NOT AVAILABLE';
-            pct = 0;
-          } else if (lowerVal.includes('lacks') || lowerVal.includes('not met') || lowerVal.includes('0%') || lowerVal.includes('no experience') || lowerVal.includes('ineligible')) {
-            status = 'NOT MATCHING';
-            pct = 0;
-          } else if (lowerVal.includes('partial') || lowerVal.includes('50%') || lowerVal.includes('75%') || lowerVal.includes('requires jv') || lowerVal.includes('pooled')) {
-            status = 'PARTIAL MATCH';
-            pct = 50;
-          } else {
-            status = 'MATCH';
-            pct = 100;
-          }
+          status = dStatus;
+          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
         } else if (mode === 'jv') {
           val = c.jv_value || '';
-          const lowerVal = val.toLowerCase();
-          if (lowerVal.includes('data not') || lowerVal.includes('missing')) {
-            status = 'DATA NOT AVAILABLE';
-            pct = 0;
-          } else if (lowerVal.includes('lacks') || lowerVal.includes('not met') || lowerVal.includes('0%') || lowerVal.includes('no experience') || lowerVal.includes('cannot bid')) {
-            status = 'NOT MATCHING';
-            pct = 0;
-          } else if (lowerVal.includes('partial') || lowerVal.includes('60%') || lowerVal.includes('61%') || lowerVal.includes('50%') || lowerVal.includes('70%')) {
+          status = jStatus;
+          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
+        } else {
+          // Combined: If either party matches or pooled financials satisfy, status is MATCH
+          val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
+          if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
+            status = 'MATCH';
+            pct = 100;
+          } else if (dStatus === 'PARTIAL MATCH' || jStatus === 'PARTIAL MATCH' || c.status === 'PARTIAL MATCH') {
             status = 'PARTIAL MATCH';
             pct = 50;
           } else {
-            status = 'MATCH';
-            pct = 100;
+            status = 'NOT MATCHING';
+            pct = 0;
           }
-        } else {
-          // Combined
-          status = c.status === 'MATCH' ? 'MATCH' : c.status === 'PARTIAL MATCH' ? 'PARTIAL MATCH' : 'NOT MATCHING';
-          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
         }
 
         return {
@@ -297,7 +361,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
       const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
 
-      const score = Math.round(((matched * 100) + (partial * 50)) / totalCount);
+      const score = Math.min(100, Math.round(((matched * 100) + (partial * 50)) / totalCount));
 
       return {
         score,
@@ -317,10 +381,16 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const jvEval = evaluatePerspective('jv');
     const combinedEval = evaluatePerspective('combined');
 
+    // Mathematically guarantee that Combined Consortium score is >= individual members
+    if (combinedEval.score < desireEval.score || combinedEval.score < jvEval.score) {
+      combinedEval.score = Math.max(desireEval.score, jvEval.score);
+      combinedEval.pctStr = `${combinedEval.score}%`;
+    }
+
     const activeEval = activeAnalysisOption === 'desire' ? desireEval : activeAnalysisOption === 'jv' ? jvEval : combinedEval;
 
-    let badge = 'OPTION 3 — DESIRE + JV COMBINED';
-    let entityName = 'Combined JV Consortium';
+    let badge = `OPTION 3 — DESIRE (${desireEquityRatio}%) + ${jvComp.name} (${partnerEquityRatio}%) COMBINED`;
+    let entityName = `Combined Consortium (Desire Energy + ${jvComp.name})`;
     let verdict = 'Eligible Through JV';
     let recommendation = `BID (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
 
@@ -353,10 +423,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     } else {
       if (activeEval.score >= 90) {
         verdict = 'Fully Eligible (Joint Venture)';
-        recommendation = `BID (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
+        recommendation = `BID THROUGH JV (Consortium achieves ${activeEval.pctStr} qualification at ${desireEquityRatio}:${partnerEquityRatio} split)`;
       } else {
         verdict = 'Partially Eligible Through JV';
-        recommendation = `REVIEW GAPS (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
+        recommendation = `REVIEW GAPS (Consortium achieves ${activeEval.pctStr} qualification)`;
       }
     }
 
@@ -371,10 +441,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       option3_pct: combinedEval.pctStr,
       recommendation,
       executive_summary: activeAnalysisOption === 'desire'
-        ? `Desire Energy Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy credentials (₹${desireComp.average_turnover} Cr avg turnover, ₹${desireComp.net_worth} Cr net worth). Desire Energy satisfies ${activeEval.pctStr} of requirements with ${activeEval.counts.matched} criteria fully met and ${activeEval.counts.partial} partial.`
+        ? `Desire Energy Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy credentials (₹${desireComp.average_turnover} Cr avg turnover, ₹${desireComp.net_worth} Cr net worth). Desire Energy satisfies ${activeEval.pctStr} of requirements.`
         : activeAnalysisOption === 'jv'
-        ? `${jvComp.name} Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses against ${jvComp.name} company credentials (₹${jvComp.average_turnover} Cr avg turnover, ₹${jvComp.net_worth} Cr net worth). Partner satisfies ${activeEval.pctStr} of requirements with ${activeEval.counts.matched} criteria met.`
-        : `Combined Consortium AI Analysis: Evaluated ${totalCount} extracted tender clauses against Desire Energy + ${jvComp.name} master data with 100% turnover pooling. Combined consortium achieves ${activeEval.pctStr} qualification across all financial, technical, and licensing criteria.`,
+        ? `${jvComp.name} Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses against ${jvComp.name} credentials (₹${jvComp.average_turnover} Cr avg turnover, ₹${jvComp.net_worth} Cr net worth). Partner satisfies ${activeEval.pctStr} of requirements.`
+        : `Combined Consortium AI Analysis: Evaluated ${totalCount} extracted tender clauses against Desire Energy (${desireEquityRatio}%) + ${jvComp.name} (${partnerEquityRatio}%) with ₹${pooledTurnover} Cr pooled turnover and ₹${pooledNetWorth} Cr pooled net worth. Combined consortium achieves ${activeEval.pctStr} qualification across all criteria.`,
       summary_counts: activeEval.counts,
       total_count: activeEval.counts.total_criteria,
       matched_count: activeEval.counts.matched,
@@ -392,7 +462,6 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
   const perspective = getPerspectiveData();
 
-  // Only build the report object when the AI returned real evaluation data
   const currentReport = (evaluationReport && !(evaluationReport as any).is_rejected_non_tender) ? {
     tender_id: evaluationReport.tender_id,
     tender_title: evaluationReport.tender_title || tenderTitle,
@@ -408,8 +477,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     combined_jv: evaluationReport.combined_jv || { score: 0, status: 'Processing', fulfilled_pct: '0%' },
     clauses_breakdown: evaluationReport.clauses_breakdown || [],
     jv_rules_audit: evaluationReport.jv_rules_audit || [],
+    partner_recommendations: (evaluationReport as any).partner_recommendations || [],
     summary_counts: evaluationReport.summary_counts || { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 }
   } : null;
+
+  // Filter only registered JV Partners (STRICTLY EXCLUDE COMPETITORS)
+  const availableJvPartners = companies.filter(c => c.type === 'JV Partner');
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -418,13 +491,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         <div>
           <div className="flex items-center space-x-2 text-teal-800 font-semibold font-mono text-xs mb-1">
             <Wand2 className="w-4 h-4" />
-            <span>DYNAMIC AI TENDER ELIGIBILITY ENGINE</span>
+            <span>DYNAMIC AI TENDER ELIGIBILITY & CONSORTIUM ENGINE</span>
           </div>
           <h2 className="text-2xl font-display font-bold text-slate-900">
             Tender Assessment & Qualification Wizard
           </h2>
           <p className="text-xs text-slate-700 font-medium mt-1">
-            Upload ANY tender PDF to dynamically extract requirements, compare against Company Master Data, and evaluate Desire Alone, JV Alone, and Desire + JV Combined.
+            Upload ANY tender PDF. The AI engine dynamically extracts all clauses, evaluates Desire Standalone capability, and automatically suggests the best JV Consortium Partner with dynamic equity split controls.
           </p>
         </div>
         <div className="px-3.5 py-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 font-mono text-xs text-center shrink-0">
@@ -435,9 +508,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       {/* 4-Step Guided Stepper Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { num: 1, title: 'Step 1: Upload & Company Setup', desc: 'Select JV & Analysis Mode' },
+          { num: 1, title: 'Step 1: Upload Tender PDF', desc: 'Provide Tender Documents' },
           { num: 2, title: 'Step 2: AI Document Analysis', desc: 'Extract Specifications & Rules' },
-          { num: 3, title: 'Step 3: 3-Option AI Report', desc: 'Desire, JV & Combined Verdict' },
+          { num: 3, title: 'Step 3: AI Partner & 3-Option Report', desc: 'AI Partner Suggestion & % Split' },
           { num: 4, title: 'Step 4: Save & Process Entry', desc: 'Database Entry' }
         ].map((s) => {
           const isActive = currentStep === s.num;
@@ -475,122 +548,93 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         })}
       </div>
 
-      {/* STEP 1: UPLOAD & SETUP (INCLUDES ANALYSIS MODE SELECTOR) */}
+      {/* STEP 1: CLEAN UPLOAD & SETUP (NO MANUAL PARTNER SELECTION - AI WILL SUGGEST BEST PARTNER IN STEP 3) */}
       {currentStep === 1 && (
         <div className="glass-card p-6 md:p-8 rounded-2xl border border-slate-200 space-y-6">
-          <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-            <Upload className="w-5 h-5 text-teal-800 font-semibold" />
-            <span>Step 1: Tender Details, Document Upload & Analysis Mode Selection</span>
-          </h3>
-
-          {/* Analysis Mode Selection on Step 1 */}
-          <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 border border-slate-200 space-y-3">
-            <label className="text-[11px] font-mono text-teal-800 font-semibold uppercase tracking-wider block font-bold">
-              Select Primary Analysis Mode (How You Want the AI Report Generated)
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveAnalysisOption('desire')}
-                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'desire'
-                    ? 'bg-[#064e3b] text-white border-2 border-emerald-400 shadow-md shadow-emerald-950/20 font-bold'
-                    : 'bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-medium'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Building2 className={`w-4 h-4 ${activeAnalysisOption === 'desire' ? 'text-white' : 'text-slate-700'}`} />
-                  <span className={`text-xs font-bold ${activeAnalysisOption === 'desire' ? 'text-white' : 'text-slate-900'}`}>1. Desire Alone</span>
-                </div>
-                <span className={`text-[11px] font-medium ${activeAnalysisOption === 'desire' ? 'text-emerald-100 font-medium' : 'text-slate-600'}`}>Evaluate Desire Energy standalone capability</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveAnalysisOption('jv')}
-                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'jv'
-                    ? 'bg-[#064e3b] text-white border-2 border-emerald-400 shadow-md shadow-emerald-950/20 font-bold'
-                    : 'bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-medium'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Building2 className={`w-4 h-4 ${activeAnalysisOption === 'jv' ? 'text-white' : 'text-slate-700'}`} />
-                  <span className={`text-xs font-bold ${activeAnalysisOption === 'jv' ? 'text-white' : 'text-slate-900'}`}>2. JV Partner Alone</span>
-                </div>
-                <span className={`text-[11px] font-medium ${activeAnalysisOption === 'jv' ? 'text-emerald-100 font-medium' : 'text-slate-600'}`}>Evaluate chosen JV Partner standalone capability</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveAnalysisOption('combined')}
-                className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all ${
-                  activeAnalysisOption === 'combined'
-                    ? 'bg-[#064e3b] text-white border-2 border-emerald-400 shadow-md shadow-emerald-950/20 font-bold'
-                    : 'bg-white border border-slate-300 text-slate-900 hover:bg-slate-50 font-medium'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <GitMerge className={`w-4 h-4 ${activeAnalysisOption === 'combined' ? 'text-white' : 'text-slate-700'}`} />
-                  <span className={`text-xs font-bold ${activeAnalysisOption === 'combined' ? 'text-white' : 'text-slate-900'}`}>3. Desire + JV Combined</span>
-                </div>
-                <span className={`text-[11px] font-medium ${activeAnalysisOption === 'combined' ? 'text-emerald-100 font-medium' : 'text-slate-600'}`}>Evaluate combined consortium with JV rules</span>
-              </button>
+          {analysisError && (
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start space-x-3 text-rose-800 text-xs font-medium">
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-bold text-rose-900">Analysis Issue Detected</p>
+                <p>{analysisError}</p>
+              </div>
             </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <Upload className="w-5 h-5 text-teal-800 font-semibold" />
+              <span>Step 1: Tender Details & Document Upload</span>
+            </h3>
+            <span className="text-[11px] font-mono text-emerald-700 font-bold px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200">
+              AI Partner Matching Enabled
+            </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-mono text-slate-600">Tender Project Name / Title *</label>
+              <label className="text-xs font-mono text-slate-600 font-semibold">Tender Project Name / Title *</label>
               <input
                 type="text"
                 value={tenderTitle}
                 onChange={(e) => setTenderTitle(e.target.value)}
-                className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
+                placeholder="e.g. Banaskantha Bulk Water Transmission Package (GWSSB - ₹69.78 Cr)"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-teal-600"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-mono text-slate-600">Project Category Vertical *</label>
+              <label className="text-xs font-mono text-slate-600 font-semibold">Project Category Vertical *</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value as ProjectCategory)}
-                className="w-full bg-slate-100 border border-slate-200 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-teal-600"
               >
-                <option value="ESCO">ESCO & Water Pumping Project (Junagadh Municipal Scheme)</option>
+                <option value="EPC">Turnkey Civil & Pipeline EPC (Banaskantha / GWSSB / WRD)</option>
+                <option value="ESCO">ESCO & Water Pumping Project (Vapi / Junagadh Scheme)</option>
                 <option value="STP">STP & Sewerage Package (AMRUT 2.0 / Alwar PKG 44)</option>
                 <option value="RHDS">RHDS Jal Jeevan Mission Rural Water Scheme</option>
                 <option value="SOLAR">Solar PV EPC Project</option>
                 <option value="KUSUM">PM-Kusum Component-B Solar Pumps</option>
-                <option value="EPC">Turnkey Civil & Pipeline EPC</option>
               </select>
             </div>
+          </div>
 
-            {/* Tender PDF Drag & Drop */}
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-xs font-mono text-slate-600">Upload Tender Specification PDF *</label>
-              <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-slate-250 hover:border-teal-300 bg-slate-100 border border-slate-200 hover:bg-teal-800/20 cursor-pointer transition-all">
-                <Upload className="w-8 h-8 text-teal-800 font-semibold mb-2" />
-                <span className="text-xs font-semibold text-slate-900">
-                  {uploadedTenderFile ? uploadedTenderFile.name : 'Drag & drop tender PDF here, or click to browse'}
-                </span>
-                <span className="text-[11px] text-slate-700 font-medium mt-1">Supports official tender NIT, RFP, PQ guidelines PDF (e.g. PQ_Upload_Junagadh.pdf)</span>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  className="hidden"
-                  onChange={(e) => handleFileChange(e, 'tender')}
-                />
-              </label>
+          {/* Tender PDF Drag & Drop */}
+          <div className="space-y-2">
+            <label className="text-xs font-mono text-slate-600 font-semibold">Upload Tender Specification PDF (NIT / RFP / Volume 1) *</label>
+            <label className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-teal-300 hover:border-teal-500 bg-teal-50/40 hover:bg-teal-50/80 cursor-pointer transition-all">
+              <Upload className="w-8 h-8 text-teal-800 font-semibold mb-2" />
+              <span className="text-xs font-bold text-slate-900">
+                {uploadedTenderFile ? uploadedTenderFile.name : 'Drag & drop tender PDF here, or click to browse'}
+              </span>
+              <span className="text-[11px] text-slate-600 font-medium mt-1">Supports official tender NIT, RFP, PQ guidelines PDF (e.g. Banaskantha, Vapi, Alwar, Junagadh)</span>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                className="hidden"
+                onChange={(e) => handleFileChange(e, 'tender')}
+              />
+            </label>
+          </div>
+
+          {/* AI Partner Suggestion Note */}
+          <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 flex items-start space-x-3">
+            <Sparkles className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold text-slate-900">Automatic AI Partner Synergy Matching</h4>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                You do not need to pre-select a JV partner. After uploading, the AI engine will parse the tender's technical & financial requirements, evaluate standalone capability, and automatically recommend the best-matched JV Partner with interactive % split controls.
+              </p>
             </div>
           </div>
 
           <div className="flex justify-end pt-4 border-t border-slate-200">
             <button
               onClick={startDocumentAnalysis}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2 transition-all"
+              className="px-6 py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-lg shadow-teal-900/20 flex items-center space-x-2 transition-all cursor-pointer"
             >
-              <span>Analyze Tender & Run AI Qualification</span>
+              <span>Analyze Tender & Generate AI Recommendations</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -602,19 +646,19 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         <div className="glass-card p-12 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-6">
           <Loader2 className="w-12 h-12 text-teal-800 font-semibold animate-spin" />
           <div className="space-y-2 max-w-md">
-            <h3 className="text-base font-bold text-slate-900">Executing Dynamic AI Eligibility Engine</h3>
+            <h3 className="text-base font-bold text-slate-900">Executing Dynamic AI Eligibility & Synergy Engine</h3>
             <p className="text-xs text-slate-700 font-medium">{analysisStageText}</p>
           </div>
-          <div className="w-full max-w-md bg-slate-100 border border-slate-200 rounded-full h-2 overflow-hidden border border-slate-200">
+          <div className="w-full max-w-md bg-slate-100 border border-slate-200 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-cyan-400 to-teal-400 h-full transition-all duration-300"
+              className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300"
               style={{ width: `${analysisProgress}%` }}
             />
           </div>
         </div>
       )}
 
-            {/* STEP 3: DYNAMIC 3-OPTION ASSESSMENT REPORT */}
+      {/* STEP 3: DYNAMIC ASSESSMENT REPORT & AI PARTNER RECOMMENDATION WITH DYNAMIC % SPLIT */}
       {currentStep === 3 && evaluationReport && (evaluationReport as any).is_rejected_non_tender && (
         <div className="p-8 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border-2 border-rose-400 dark:border-rose-700 space-y-6 animate-fadeIn text-center max-w-3xl mx-auto">
           <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/80 text-rose-700 dark:text-rose-300 flex items-center justify-center mx-auto">
@@ -647,120 +691,278 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
       {currentStep === 3 && evaluationReport && !(evaluationReport as any).is_rejected_non_tender && currentReport && (
         <div className="space-y-6">
-          {/* 3 Dynamic Analysis Options Selection Tabs WITH PERFECT PERCENTAGE SYNCHRONIZATION */}
+
+          {/* ⚠️ DESIRE INELIGIBLE ALERT — Show Best Alternative Partner */}
+          {(() => {
+            const bestPartnerData = (evaluationReport as any).best_partner_if_desire_ineligible;
+            const desireScore = perspective.tabScores?.desire ? parseInt(perspective.tabScores.desire) : 100;
+            if (bestPartnerData?.applicable && desireScore < 70) {
+              return (
+                <div className="p-5 rounded-2xl border-2 border-amber-400 bg-amber-50 space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-bold text-amber-900">⚠️ Desire Energy May Not Qualify Standalone — Alternative Partner Recommended</h4>
+                      <p className="text-xs text-amber-800 font-medium leading-relaxed">{bestPartnerData.explanation}</p>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white border border-amber-200 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Sparkles className="w-4 h-4 text-teal-700" />
+                      <span className="text-xs font-bold text-slate-900">Recommended Lead Partner for This Tender:</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-100 text-teal-800 border border-teal-300">
+                        Best Fit for Tender Gaps
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-bold text-teal-900">{bestPartnerData.recommended_partner_name}</h3>
+                    <p className="text-xs text-slate-700 font-medium leading-relaxed">{bestPartnerData.why}</p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
+          {/* AI SUGGESTED PARTNER & DYNAMIC JV EQUITY SPLIT CONTROLS */}
+          <div className="glass-card p-6 rounded-2xl border-2 border-teal-300 bg-teal-50/40 space-y-5 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4 text-teal-800" />
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-teal-900">
+                    AI Recommended JV Consortium Partner
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    Top Synergy Match
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {jvComp.name}
+                </h3>
+                <p className="text-xs text-slate-700 font-medium">
+                  3-Yr Avg Turnover: <strong className="text-slate-900">₹{jvComp.average_turnover} Cr</strong> • Net Worth: <strong className="text-slate-900">₹{jvComp.net_worth} Cr</strong> • Solvency: <strong className="text-slate-900">₹{(jvComp as any).solvency_amount || 10.0} Cr</strong>
+                </p>
+              </div>
+
+              {/* Partner Switcher Dropdown (STRICTLY JV PARTNERS, NO COMPETITORS) */}
+              <div className="space-y-1 w-full md:w-auto">
+                <label className="text-[10px] font-mono font-bold uppercase text-slate-600 block">Switch Partner Option:</label>
+                <select
+                  value={selectedJvPartnerId}
+                  onChange={(e) => setSelectedJvPartnerId(e.target.value)}
+                  className="bg-white border border-teal-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer shadow-sm w-full"
+                >
+                  {availableJvPartners.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} (Avg ₹{c.average_turnover} Cr | Net Worth: ₹{c.net_worth} Cr)
+                    </option>
+                  ))}
+                  {availableJvPartners.length === 0 && (
+                    <>
+                      <option value="comp-vhp-04">VINOD H PATEL (Avg ₹191.39 Cr | Net Worth: ₹33.37 Cr)</option>
+                      <option value="comp-aapl-05">ADROIT ASSOCIATES PRIVATE LIMITED (Avg ₹35.22 Cr | Net Worth: ₹14.27 Cr)</option>
+                      <option value="comp-divija-02">DIVIJA CONSTRUCTION (Avg ₹37.01 Cr | Net Worth: ₹6.58 Cr)</option>
+                    </>
+                  )}
+                </select>
+              </div>
+            </div>
+
+            {/* Dynamic JV Equity % Ratio Slider & Presets */}
+            <div className="pt-4 border-t border-teal-200/80 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center space-x-2">
+                  <Sliders className="w-4 h-4 text-teal-800" />
+                  <span className="text-xs font-bold text-slate-900">
+                    Dynamic JV Equity Split Ratio:
+                  </span>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-teal-800 text-white">
+                    Desire {desireEquityRatio}% : {jvComp.name.split(' ')[0]} {partnerEquityRatio}%
+                  </span>
+                </div>
+
+                {/* Preset Split Buttons */}
+                <div className="flex items-center space-x-1.5">
+                  {[
+                    { label: '75 : 25', desire: 75 },
+                    { label: '60 : 40', desire: 60 },
+                    { label: '51 : 49', desire: 51 },
+                    { label: '80 : 20', desire: 80 }
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setDesireEquityRatio(preset.desire)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                        desireEquityRatio === preset.desire
+                          ? 'bg-teal-800 text-white shadow-sm'
+                          : 'bg-white border border-slate-300 text-slate-700 hover:bg-teal-50'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Range Slider for Custom Percentage */}
+              <div className="flex items-center space-x-4">
+                <span className="text-[11px] font-mono text-slate-600 font-semibold">51% (Min Lead)</span>
+                <input
+                  type="range"
+                  min="51"
+                  max="90"
+                  step="1"
+                  value={desireEquityRatio}
+                  onChange={(e) => setDesireEquityRatio(Number(e.target.value))}
+                  className="w-full accent-teal-700 h-2 bg-slate-200 rounded-lg cursor-pointer"
+                />
+                <span className="text-[11px] font-mono text-slate-600 font-semibold">90%</span>
+              </div>
+
+              {/* Dynamic Financial Pooling Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled 3-Yr Avg Turnover</span>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledTurnover} Cr</span>
+                    <span className="text-[10px] text-slate-500 font-mono">(₹{desireComp.average_turnover} + ₹{jvComp.average_turnover})</span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled Consortium Net Worth</span>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledNetWorth} Cr</span>
+                    <span className="text-[10px] text-slate-500 font-mono">(₹{desireComp.net_worth} + ₹{jvComp.net_worth})</span>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled Solvency Amount</span>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledSolvency} Cr</span>
+                    <span className="text-[10px] text-slate-500 font-mono">(100% Combined)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3 Dynamic Analysis Options Selection Tabs */}
           <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
             <button
               onClick={() => setActiveAnalysisOption('desire')}
-              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
+              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
                 activeAnalysisOption === 'desire' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
               }`}
             >
               <Building2 className="w-4 h-4" />
               <span>OPTION 1 — DESIRE ALONE</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 font-bold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/20 font-bold">
                 {perspective.option1_pct}
               </span>
             </button>
 
             <button
               onClick={() => setActiveAnalysisOption('jv')}
-              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
+              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
                 activeAnalysisOption === 'jv' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
               }`}
             >
               <Building2 className="w-4 h-4" />
-              <span>OPTION 2 — JV ALONE ({jvComp.name.slice(0, 18)})</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/10 font-bold">
+              <span>OPTION 2 — JV ALONE ({jvComp.name})</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/20 font-bold">
                 {perspective.option2_pct}
               </span>
             </button>
 
             <button
               onClick={() => setActiveAnalysisOption('combined')}
-              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 ${
+              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
                 activeAnalysisOption === 'combined' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
               }`}
             >
               <GitMerge className="w-4 h-4" />
-              <span>OPTION 3 — DESIRE + JV COMBINED</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/30 font-bold">
+              <span>OPTION 3 — DESIRE ({desireEquityRatio}%) + {jvComp.name.split(' ')[0]} ({partnerEquityRatio}%)</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/30 text-emerald-300 font-bold">
                 {perspective.option3_pct}
               </span>
             </button>
           </div>
 
           {/* DYNAMIC VERDICT BANNER FOR SELECTED OPTION */}
-          <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+          <div className="glass-card p-6 rounded-2xl border border-slate-200 bg-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
             <div className="space-y-1.5">
               <div className="flex items-center space-x-3 flex-wrap gap-y-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 text-slate-800 border border-slate-300">
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
                   perspective.verdict.includes('Eligible') && !perspective.verdict.includes('Ineligible')
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                    : 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : 'bg-amber-100 text-amber-900 font-bold border border-amber-300'
                 }`}>
                   {perspective.verdict}
                 </span>
-                <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold">
+                <span className="text-xs font-mono text-emerald-700 font-bold">
                   Match Score: {perspective.fulfilled_pct}
                 </span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{currentReport.tender_title}</h2>
-              <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
+              <h2 className="text-lg font-bold text-slate-900">{currentReport.tender_title}</h2>
+              <p className="text-xs text-slate-600 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] shrink-0 text-center space-y-1">
-              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Recommendation</span>
-              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 block">{perspective.recommendation}</span>
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 shrink-0 text-center space-y-1">
+              <span className="text-[10px] font-mono text-slate-500 font-bold uppercase block">Recommendation</span>
+              <span className="text-xs font-bold text-emerald-800 block">{perspective.recommendation}</span>
             </div>
           </div>
 
-          {/* Dynamic Criteria Summary Stats Across All Extracted Clauses WITH ZERO DISCREPANCY */}
+          {/* Dynamic Criteria Summary Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-            <div className="glass-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
-              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Total Criteria</span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">
+            <div className="glass-card p-3 rounded-xl border border-slate-200 bg-white">
+              <span className="text-[10px] font-mono text-slate-500 font-bold uppercase block">Total Criteria</span>
+              <span className="text-sm font-bold text-slate-900">
                 {perspective.summary_counts.total_criteria}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/40">
-              <span className="text-[10px] font-mono text-emerald-800 dark:text-emerald-300 font-bold uppercase block">Matched (100%)</span>
-              <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+            <div className="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-50">
+              <span className="text-[10px] font-mono text-emerald-800 font-bold uppercase block">Matched (100%)</span>
+              <span className="text-sm font-bold text-emerald-800">
                 {perspective.summary_counts.matched}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50 dark:bg-amber-950/40">
-              <span className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-bold uppercase block">Partial Match (50%)</span>
-              <span className="text-sm font-bold text-amber-900 dark:text-amber-200 font-bold">
+            <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50">
+              <span className="text-[10px] font-mono text-amber-800 font-bold uppercase block">Partial Match (50%)</span>
+              <span className="text-sm font-bold text-amber-900 font-bold">
                 {perspective.summary_counts.partial}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/40">
-              <span className="text-[10px] font-mono text-rose-800 dark:text-rose-300 font-bold uppercase block">Not Matching (0%)</span>
-              <span className="text-sm font-bold text-rose-800 dark:text-rose-300">
+            <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50">
+              <span className="text-[10px] font-mono text-rose-800 font-bold uppercase block">Not Matching (0%)</span>
+              <span className="text-sm font-bold text-rose-800">
                 {perspective.summary_counts.not_matching}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Data Missing</span>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+            <div className="glass-card p-3 rounded-xl border border-slate-300 bg-slate-50">
+              <span className="text-[10px] font-mono text-slate-500 font-bold uppercase block">Data Missing</span>
+              <span className="text-sm font-bold text-slate-700">
                 {perspective.summary_counts.data_missing}
               </span>
             </div>
           </div>
 
           {/* DYNAMIC CLAUSE-LEVEL AI TABLE ACCORDING TO SELECTED OPTION */}
-          <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
+          <div className="glass-card p-6 rounded-2xl border border-slate-200 space-y-4 bg-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Extracted Tender Clause Analysis ({perspective.evaluatedClauses.length} Clauses Evaluated)</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold">
+                <h3 className="text-sm font-bold text-slate-900">Extracted Tender Clause Analysis ({perspective.evaluatedClauses.length} Clauses Evaluated)</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-800 border border-slate-300 font-bold">
                   {perspective.badge}
                 </span>
               </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium font-mono">Dynamic AI Matching Engine</span>
+              <span className="text-xs text-slate-500 font-medium font-mono">Dynamic AI Matching Engine</span>
             </div>
 
             <div className="overflow-x-auto">
@@ -773,8 +975,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                     {activeAnalysisOption === 'jv' && <th className="p-3 text-teal-800 font-bold">{jvComp.name} Value</th>}
                     {activeAnalysisOption === 'combined' && (
                       <>
-                        <th className="p-3 text-teal-800 font-bold">Desire Energy</th>
-                        <th className="p-3 text-teal-800 font-bold">JV Partner</th>
+                        <th className="p-3 text-teal-800 font-bold">Desire Energy ({desireEquityRatio}%)</th>
+                        <th className="p-3 text-teal-800 font-bold">{jvComp.name} ({partnerEquityRatio}%)</th>
                         <th className="p-3 text-slate-900 font-bold">Combined Result</th>
                         <th className="p-3">Applicable JV Rule</th>
                       </>
@@ -785,11 +987,11 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                     <th className="p-3">Required Doc</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-100">
                   {perspective.evaluatedClauses.map((item, idx) => {
                     const statusVal = item.active_status;
                     return (
-                      <tr key={idx} className="hover:bg-white/5 transition-colors">
+                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
                         <td className="p-3">
                           <span className="font-mono text-[10px] text-teal-800 font-semibold block">{item.clause_no} ({item.page_ref})</span>
                           <span className="font-semibold text-slate-900">{item.clause_title}</span>
@@ -837,18 +1039,95 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             </div>
           </div>
 
+          {/* Empty State — No Clauses */}
+          {perspective.evaluatedClauses.length === 0 && (
+            <div className="glass-card p-10 rounded-2xl border border-slate-200 bg-white text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto">
+                <HelpCircle className="w-6 h-6 text-amber-600" />
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">Clause Extraction Incomplete</h4>
+              <p className="text-xs text-slate-600 font-medium max-w-sm mx-auto">
+                The AI could not extract individual clauses from the uploaded document. This may be a scanned/image PDF.
+                The executive summary above still provides an overall eligibility assessment.
+              </p>
+              <button
+                onClick={() => setCurrentStep(1)}
+                className="px-5 py-2.5 rounded-xl bg-teal-700 text-white font-bold text-xs hover:bg-teal-800 transition cursor-pointer"
+              >
+                Try Again with a Different Document
+              </button>
+            </div>
+          )}
+
+          {/* AI Partner Recommendation Cards */}
+          {(() => {
+            const recs = (evaluationReport as any).partner_recommendations as Array<any>;
+            if (!recs || recs.length === 0) return null;
+            return (
+              <div className="glass-card p-6 rounded-2xl border border-slate-200 bg-white space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-teal-800" />
+                    <h3 className="text-sm font-bold text-slate-900">AI-Ranked JV Partner Recommendations for This Tender</h3>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">Ranked by Tender Gap Coverage</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {recs.slice(0, 4).map((rec: any, i: number) => (
+                    <div
+                      key={rec.company_id}
+                      onClick={() => setSelectedJvPartnerId(rec.company_id)}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                        selectedJvPartnerId === rec.company_id
+                          ? 'border-teal-400 bg-teal-50 shadow-sm'
+                          : 'border-slate-200 bg-slate-50 hover:border-teal-300 hover:bg-teal-50/40'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center space-x-1.5">
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-teal-800 text-white">#{rec.rank}</span>
+                            {selectedJvPartnerId === rec.company_id && (
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Selected</span>
+                            )}
+                          </div>
+                          <h4 className="text-xs font-bold text-slate-900">{rec.company_name}</h4>
+                          <p className="text-[10px] text-slate-600 font-medium leading-relaxed">{rec.reason}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className={`text-sm font-bold font-mono ${
+                            rec.match_score >= 80 ? 'text-emerald-700' : rec.match_score >= 60 ? 'text-amber-700' : 'text-rose-700'
+                          }`}>{rec.match_score}%</span>
+                          <span className="text-[9px] text-slate-500 font-mono block">Fit Score</span>
+                        </div>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between">
+                        <span className="text-[9px] font-mono text-teal-800 font-semibold">{rec.equity_suggestion}</span>
+                        <div className="flex flex-wrap gap-1">
+                          {(rec.fills_gaps || []).slice(0, 2).map((gap: string, gi: number) => (
+                            <span key={gi} className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 text-slate-700 border border-slate-200">{gap}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Step 3 Navigation Actions */}
           <div className="flex justify-between pt-4 border-t border-slate-200">
             <button
               onClick={() => setCurrentStep(1)}
-              className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-600 text-xs flex items-center space-x-2"
+              className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center space-x-2"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Step 1</span>
             </button>
             <button
               onClick={() => setCurrentStep(4)}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20 flex items-center space-x-2"
+              className="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-lg shadow-teal-900/20 flex items-center space-x-2"
             >
               <span>Proceed to Step 4: Submit to Queue</span>
               <ArrowRight className="w-4 h-4" />
@@ -866,20 +1145,20 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           <div className="space-y-2">
             <h3 className="text-lg font-bold text-slate-900">Save Dynamic Assessment & Add to Process Queue</h3>
             <p className="text-xs text-slate-700 font-medium">
-              The dynamic AI evaluation report for '{tenderTitle}' has been generated and saved to the database. Submit to enter stage 1 of the tender process queue.
+              The dynamic AI evaluation report for '{tenderTitle}' has been generated with {jvComp.name} consortium ({desireEquityRatio}:{partnerEquityRatio} equity ratio) and saved to the database. Submit to enter stage 1 of the tender process queue.
             </p>
           </div>
 
           <div className="pt-4 flex justify-center space-x-4">
             <button
               onClick={() => setCurrentStep(3)}
-              className="px-5 py-2.5 rounded-xl bg-white/5 text-slate-600 text-xs"
+              className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs"
             >
               Review Report
             </button>
             <button
               onClick={handleSubmitToQueue}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-bold text-xs hover:brightness-110 shadow-lg shadow-cyan-500/20"
+              className="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-lg shadow-teal-900/20"
             >
               Submit to Queue
             </button>

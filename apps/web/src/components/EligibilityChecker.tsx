@@ -76,6 +76,7 @@ export const EligibilityChecker: React.FC = () => {
   const [analyzing, setAnalyzing] = useState<boolean>(false);
   const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
   const [report, setReport] = useState<DynamicTenderEvaluationReport | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // Fetch Companies on Mount
   useEffect(() => {
@@ -97,6 +98,7 @@ export const EligibilityChecker: React.FC = () => {
   const handleRunAnalysis = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setAnalyzing(true);
+    setAnalysisError(null);
 
     try {
       const formData = new FormData();
@@ -117,10 +119,15 @@ export const EligibilityChecker: React.FC = () => {
         const rep = data.evaluation_report || data.report;
         if (rep) {
           setReport(rep);
+        } else {
+          setAnalysisError('Tender analysis service returned an empty report.');
         }
+      } else {
+        setAnalysisError(`Tender analysis server returned error status ${res.status}.`);
       }
     } catch (e) {
       console.error('Tender analysis error:', e);
+      setAnalysisError('Failed to communicate with analysis server. Please retry.');
     } finally {
       setAnalyzing(false);
     }
@@ -145,42 +152,49 @@ export const EligibilityChecker: React.FC = () => {
         let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.status;
         let pct = 100;
 
+        // Desire evaluation on this clause
+        const dVal = (c.desire_value || '').toLowerCase();
+        let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
+        if (dVal.includes('data not') || dVal.includes('missing')) {
+          dStatus = 'DATA NOT AVAILABLE';
+        } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
+          dStatus = 'NOT MATCHING';
+        } else if (dVal.includes('partial') || dVal.includes('50%') || dVal.includes('75%') || dVal.includes('requires jv') || dVal.includes('gap')) {
+          dStatus = 'PARTIAL MATCH';
+        }
+
+        // JV evaluation on this clause
+        const jVal = (c.jv_value || '').toLowerCase();
+        let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
+        if (jVal.includes('data not') || jVal.includes('missing')) {
+          jStatus = 'DATA NOT AVAILABLE';
+        } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible')) {
+          jStatus = 'NOT MATCHING';
+        } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('gap')) {
+          jStatus = 'PARTIAL MATCH';
+        }
+
         if (mode === 'desire') {
           val = c.desire_value || '';
-          const lowerVal = val.toLowerCase();
-          if (lowerVal.includes('data not') || lowerVal.includes('missing')) {
-            status = 'DATA NOT AVAILABLE';
-            pct = 0;
-          } else if (lowerVal.includes('lacks') || lowerVal.includes('not met') || lowerVal.includes('0%') || lowerVal.includes('no experience') || lowerVal.includes('ineligible')) {
-            status = 'NOT MATCHING';
-            pct = 0;
-          } else if (lowerVal.includes('partial') || lowerVal.includes('50%') || lowerVal.includes('75%') || lowerVal.includes('requires jv') || lowerVal.includes('pooled')) {
-            status = 'PARTIAL MATCH';
-            pct = 50;
-          } else {
-            status = 'MATCH';
-            pct = 100;
-          }
+          status = dStatus;
+          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
         } else if (mode === 'jv') {
           val = c.jv_value || '';
-          const lowerVal = val.toLowerCase();
-          if (lowerVal.includes('data not') || lowerVal.includes('missing')) {
-            status = 'DATA NOT AVAILABLE';
-            pct = 0;
-          } else if (lowerVal.includes('lacks') || lowerVal.includes('not met') || lowerVal.includes('0%') || lowerVal.includes('no experience') || lowerVal.includes('cannot bid')) {
-            status = 'NOT MATCHING';
-            pct = 0;
-          } else if (lowerVal.includes('partial') || lowerVal.includes('60%') || lowerVal.includes('61%') || lowerVal.includes('50%') || lowerVal.includes('70%')) {
+          status = jStatus;
+          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
+        } else {
+          // Combined: If either party matches 100% or combined pooling matches, status is MATCH
+          val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
+          if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
+            status = 'MATCH';
+            pct = 100;
+          } else if (dStatus === 'PARTIAL MATCH' || jStatus === 'PARTIAL MATCH' || c.status === 'PARTIAL MATCH') {
             status = 'PARTIAL MATCH';
             pct = 50;
           } else {
-            status = 'MATCH';
-            pct = 100;
+            status = 'NOT MATCHING';
+            pct = 0;
           }
-        } else {
-          // Combined
-          status = c.status === 'MATCH' ? 'MATCH' : c.status === 'PARTIAL MATCH' ? 'PARTIAL MATCH' : 'NOT MATCHING';
-          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
         }
 
         return {
@@ -196,7 +210,7 @@ export const EligibilityChecker: React.FC = () => {
       const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
       const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
 
-      const score = Math.round(((matched * 100) + (partial * 50)) / totalCount);
+      const score = Math.min(100, Math.round(((matched * 100) + (partial * 50)) / totalCount));
 
       return {
         score,
@@ -216,10 +230,16 @@ export const EligibilityChecker: React.FC = () => {
     const jvEval = evaluatePerspective('jv');
     const combinedEval = evaluatePerspective('combined');
 
+    // Guarantee combined consortium score >= individual member scores
+    if (combinedEval.score < desireEval.score || combinedEval.score < jvEval.score) {
+      combinedEval.score = Math.max(desireEval.score, jvEval.score);
+      combinedEval.pctStr = `${combinedEval.score}%`;
+    }
+
     const activeEval = activeAnalysisOption === 'desire' ? desireEval : activeAnalysisOption === 'jv' ? jvEval : combinedEval;
 
-    let badge = 'OPTION 3 — DESIRE + JV COMBINED';
-    let entityName = 'Combined JV Consortium';
+    let badge = `OPTION 3 — DESIRE + ${jvComp.name} COMBINED`;
+    let entityName = `Combined JV Consortium (Desire Energy + ${jvComp.name})`;
     let verdict = 'Eligible Through JV';
     let recommendation = `BID (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
 
@@ -252,10 +272,10 @@ export const EligibilityChecker: React.FC = () => {
     } else {
       if (activeEval.score >= 90) {
         verdict = 'Fully Eligible (Joint Venture)';
-        recommendation = `BID (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
+        recommendation = `BID THROUGH JV (Consortium achieves ${activeEval.pctStr} qualification)`;
       } else {
         verdict = 'Partially Eligible Through JV';
-        recommendation = `REVIEW GAPS (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
+        recommendation = `REVIEW GAPS (Consortium achieves ${activeEval.pctStr} qualification)`;
       }
     }
 
@@ -302,6 +322,12 @@ export const EligibilityChecker: React.FC = () => {
 
       {/* Upload Tender & Analysis Toolbar */}
       <form onSubmit={handleRunAnalysis} className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
+        {analysisError && (
+          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 flex items-center space-x-3 text-rose-800 dark:text-rose-200 text-xs font-medium">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{analysisError}</span>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* File Upload Box */}
           <div className="md:col-span-2 space-y-1">
@@ -358,10 +384,16 @@ export const EligibilityChecker: React.FC = () => {
               onChange={(e) => setSelectedJvPartnerId(e.target.value)}
               className="bg-slate-100 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
             >
-              {companies.filter(c => c.type !== 'Desire Energy').map(c => (
-                <option key={c.id} value={c.id}>{c.name} ({c.type} - Avg ₹{c.average_turnover} Cr)</option>
+              {companies.filter(c => c.type === 'JV Partner').map(c => (
+                <option key={c.id} value={c.id}>{c.name} (Avg ₹{c.average_turnover} Cr | Net Worth: ₹{c.net_worth} Cr)</option>
               ))}
-              {companies.length === 0 && <option value="comp-divija-02">DIVIJA CONSTRUCTION (JV Partner - ₹37.01 Cr)</option>}
+              {companies.filter(c => c.type === 'JV Partner').length === 0 && (
+                <>
+                  <option value="comp-vhp-04">VINOD H PATEL (Avg ₹191.39 Cr | Net Worth: ₹33.37 Cr)</option>
+                  <option value="comp-aapl-05">ADROIT ASSOCIATES PRIVATE LIMITED (Avg ₹35.22 Cr | Net Worth: ₹14.27 Cr)</option>
+                  <option value="comp-divija-02">DIVIJA CONSTRUCTION (Avg ₹37.01 Cr | Net Worth: ₹6.58 Cr)</option>
+                </>
+              )}
             </select>
           </div>
 
@@ -432,7 +464,7 @@ export const EligibilityChecker: React.FC = () => {
               }`}
             >
               <Building2 className="w-4 h-4" />
-              <span>OPTION 2 — JV ALONE ({jvComp.name.slice(0, 18)})</span>
+              <span>OPTION 2 — JV ALONE ({jvComp.name})</span>
               <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
                 activeAnalysisOption === 'jv' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
               }`}>
@@ -450,7 +482,7 @@ export const EligibilityChecker: React.FC = () => {
               }`}
             >
               <GitMerge className="w-4 h-4" />
-              <span>OPTION 3 — DESIRE + JV COMBINED</span>
+              <span>OPTION 3 — DESIRE + {jvComp.name} COMBINED</span>
               <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
                 activeAnalysisOption === 'combined' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
               }`}>

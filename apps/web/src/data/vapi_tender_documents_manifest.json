@@ -1,0 +1,731 @@
+{
+  "folders_count": 21,
+  "categories": [
+    {
+      "folder_name": "1. Tender Fee",
+      "files_count": 1,
+      "files": [
+        {
+          "file_name": "Tender Fee - DD-31.79.pdf",
+          "relative_path": "Tender Fee - DD-31.79.pdf",
+          "size_kb": 363.95,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "10. List of Machineries and equipment",
+      "files_count": 2,
+      "files": [
+        {
+          "file_name": "Form 3 Details of Machinery Equipment and work Plan-AAPL.pdf",
+          "relative_path": "Form 3 Details of Machinery Equipment and work Plan-AAPL.pdf",
+          "size_kb": 1175.48,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form- 3 Details of Machinery Equipment and work Plan-DESPL.pdf",
+          "relative_path": "Form- 3 Details of Machinery Equipment and work Plan-DESPL.pdf",
+          "size_kb": 376.31,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "11. Provident Fund (EPF) Certificate",
+      "files_count": 3,
+      "files": [
+        {
+          "file_name": "EPFO_Registration-AAPL.pdf",
+          "relative_path": "EPFO_Registration-AAPL.pdf",
+          "size_kb": 490.8,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "ESIC_Registration-AAPL.pdf",
+          "relative_path": "ESIC_Registration-AAPL.pdf",
+          "size_kb": 1392.34,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "PF_ESIC-DESPL.pdf",
+          "relative_path": "PF_ESIC-DESPL.pdf",
+          "size_kb": 2289.47,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "12. Undertaking for Engaging Technical Staff & List of Machineries",
+      "files_count": 4,
+      "files": [
+        {
+          "file_name": "Form 26-AAPL.pdf",
+          "relative_path": "Form 26-AAPL.pdf",
+          "size_kb": 658.8,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form 26-DESPL.pdf",
+          "relative_path": "Form 26-DESPL.pdf",
+          "size_kb": 261.56,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form 27-AAPL.pdf",
+          "relative_path": "Form 27-AAPL.pdf",
+          "size_kb": 655.1,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form 27-DESPL.pdf",
+          "relative_path": "Form 27-DESPL.pdf",
+          "size_kb": 251.29,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "13. Turn Over (year wise) for Civil Engineering Works certified by CA as per TENDER DOC",
+      "files_count": 7,
+      "files": [
+        {
+          "file_name": "CA Certificate-AAPL.pdf",
+          "relative_path": "CA Certificate-AAPL.pdf",
+          "size_kb": 520.39,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "CA Certificate-DESPL.pdf",
+          "relative_path": "CA Certificate-DESPL.pdf",
+          "size_kb": 1065.91,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form 4-AAPL.pdf",
+          "relative_path": "Form 4-AAPL.pdf",
+          "size_kb": 801.37,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form 5-AAPL.pdf",
+          "relative_path": "Form 5-AAPL.pdf",
+          "size_kb": 1085.04,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form- 4-DESPL.pdf",
+          "relative_path": "Form- 4-DESPL.pdf",
+          "size_kb": 282.94,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-5-DESPL.pdf",
+          "relative_path": "Form-5-DESPL.pdf",
+          "size_kb": 343.02,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Turnover Certificate-AAPL.pdf",
+          "relative_path": "Turnover Certificate-AAPL.pdf",
+          "size_kb": 559.88,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "14. Details of Similar works completed in as per TENDER DOC. financial year",
+      "files_count": 4,
+      "files": [
+        {
+          "file_name": "Form 8 - AAPL.pdf",
+          "relative_path": "Form 8 - AAPL.pdf",
+          "size_kb": 1245.38,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-8 - DESPL.pdf",
+          "relative_path": "Form-8 - DESPL.pdf",
+          "size_kb": 340.17,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Roshni Certificate-AAPL.pdf",
+          "relative_path": "Roshni Certificate-AAPL.pdf",
+          "size_kb": 2109.1,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "UPPCL_Experience Certificate.pdf",
+          "relative_path": "UPPCL_Experience Certificate.pdf",
+          "size_kb": 822.89,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "15. Details of works on hand and \u201cworks tendered by bidder, found lowest (L-1) & works likely to be awarded as per TENDER DOC",
+      "files_count": 8,
+      "files": [
+        {
+          "file_name": "Bid Capacity-AAPL.pdf",
+          "relative_path": "Bid Capacity-AAPL.pdf",
+          "size_kb": 739.45,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Bid Capacity-DESPL.pdf",
+          "relative_path": "Bid Capacity-DESPL.pdf",
+          "size_kb": 274.56,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-10-AAPL.pdf",
+          "relative_path": "Form-10-AAPL.pdf",
+          "size_kb": 732.97,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-10-DESPL.pdf",
+          "relative_path": "Form-10-DESPL.pdf",
+          "size_kb": 441.2,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-7 Works on Hand on Stamp-AAPL.pdf",
+          "relative_path": "Form-7 Works on Hand on Stamp-AAPL.pdf",
+          "size_kb": 1287.96,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-7 Works on Hand on Stamp-DESPL.pdf",
+          "relative_path": "Form-7 Works on Hand on Stamp-DESPL.pdf",
+          "size_kb": 3146.67,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-7 Works on hand-AAPL.pdf",
+          "relative_path": "Form-7 Works on hand-AAPL.pdf",
+          "size_kb": 1691.45,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-7 Works on hand-DESPL.pdf",
+          "relative_path": "Form-7 Works on hand-DESPL.pdf",
+          "size_kb": 277.94,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "16. Undertaking on statement of compliance of clause 3.2",
+      "files_count": 1,
+      "files": [
+        {
+          "file_name": "Undertaking regarding Compliance of Clause 3.2.pdf",
+          "relative_path": "Undertaking regarding Compliance of Clause 3.2.pdf",
+          "size_kb": 274.25,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "17. Affidavit as per TENDER DOC",
+      "files_count": 2,
+      "files": [
+        {
+          "file_name": "Form H (Declaration) - AAPL.pdf",
+          "relative_path": "Form H (Declaration) - AAPL.pdf",
+          "size_kb": 770.21,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form H (Declaration) - DESPL.pdf",
+          "relative_path": "Form H (Declaration) - DESPL.pdf",
+          "size_kb": 1314.35,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "18. Form of Bid as per TENDER DOC",
+      "files_count": 1,
+      "files": [
+        {
+          "file_name": "Letter of submission -Karvad.pdf",
+          "relative_path": "Letter of submission -Karvad.pdf",
+          "size_kb": 328.68,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "19. Undertaking for bid Validity",
+      "files_count": 1,
+      "files": [
+        {
+          "file_name": "Undertaking for bid validity.pdf",
+          "relative_path": "Undertaking for bid validity.pdf",
+          "size_kb": 434.07,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "2. EMD",
+      "files_count": 1,
+      "files": [
+        {
+          "file_name": "EMD - BG 31.79.pdf",
+          "relative_path": "EMD - BG 31.79.pdf",
+          "size_kb": 2436.26,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "20. All the documents as per TENDER DOC",
+      "files_count": 19,
+      "files": [
+        {
+          "file_name": "A class electrical contractor license - DESPL.pdf",
+          "relative_path": "A class electrical contractor license - DESPL.pdf",
+          "size_kb": 479.3,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Balance Sheets - AAPL.pdf",
+          "relative_path": "Balance Sheets - AAPL.pdf",
+          "size_kb": 7460.05,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Balance Sheets - DESPL.pdf",
+          "relative_path": "Balance Sheets - DESPL.pdf",
+          "size_kb": 2384.78,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "BEE - DESPL.pdf",
+          "relative_path": "BEE - DESPL.pdf",
+          "size_kb": 549.52,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Bid Submission Checklist-31 (2).pdf",
+          "relative_path": "Bid Submission Checklist-31 (2).pdf",
+          "size_kb": 296.16,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "CDR Certificate - DESPL.pdf",
+          "relative_path": "CDR Certificate - DESPL.pdf",
+          "size_kb": 863.25,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "CE marking certificate - DESPL.pdf",
+          "relative_path": "CE marking certificate - DESPL.pdf",
+          "size_kb": 677.38,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "CMMI Level-5 - DESPL.pdf",
+          "relative_path": "CMMI Level-5 - DESPL.pdf",
+          "size_kb": 983.78,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-0- List and order of Submittals-31 (2).pdf",
+          "relative_path": "Form-0- List and order of Submittals-31 (2).pdf",
+          "size_kb": 249.09,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-0-Bid Submission Checklist_Memorandum.pdf",
+          "relative_path": "Form-0-Bid Submission Checklist_Memorandum.pdf",
+          "size_kb": 211.15,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "GST-Gujarat - DESPL.pdf",
+          "relative_path": "GST-Gujarat - DESPL.pdf",
+          "size_kb": 888.36,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "GST-Rajasthan - DESPL.pdf",
+          "relative_path": "GST-Rajasthan - DESPL.pdf",
+          "size_kb": 840.15,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Gujarat Electrical Contractors Licence - DESPL.pdf",
+          "relative_path": "Gujarat Electrical Contractors Licence - DESPL.pdf",
+          "size_kb": 735.9,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "ISO 9001-2015 QMS TUV - DESPL.pdf",
+          "relative_path": "ISO 9001-2015 QMS TUV - DESPL.pdf",
+          "size_kb": 289.85,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "memorandum-21 (2).pdf",
+          "relative_path": "memorandum-21 (2).pdf",
+          "size_kb": 424.48,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "memorandum-31 (2).pdf",
+          "relative_path": "memorandum-31 (2).pdf",
+          "size_kb": 424.76,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "PAN - DESPL.pdf",
+          "relative_path": "PAN - DESPL.pdf",
+          "size_kb": 455.6,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "PAN and GSTIN-AAPL.pdf",
+          "relative_path": "PAN and GSTIN-AAPL.pdf",
+          "size_kb": 1827.7,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Udyam Registration Certificate - DESPL.pdf",
+          "relative_path": "Udyam Registration Certificate - DESPL.pdf",
+          "size_kb": 633.8,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "21. Solvency certificate",
+      "files_count": 2,
+      "files": [
+        {
+          "file_name": "Solvency Certificate-AAPL.pdf",
+          "relative_path": "Solvency Certificate-AAPL.pdf",
+          "size_kb": 910.57,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Solvency Certificate-DESPL.pdf",
+          "relative_path": "Solvency Certificate-DESPL.pdf",
+          "size_kb": 208.76,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "3. Scan copies of documents as required in uploaded tender documents",
+      "files_count": 26,
+      "files": [
+        {
+          "file_name": "Form-1 DESPL.pdf",
+          "relative_path": "Form-1 DESPL.pdf",
+          "size_kb": 330.2,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-1-AAPL.pdf",
+          "relative_path": "Form-1-AAPL.pdf",
+          "size_kb": 1066.51,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-12 Joint Venture data.pdf",
+          "relative_path": "Form-12 Joint Venture data.pdf",
+          "size_kb": 268.01,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-13 DESPL.pdf",
+          "relative_path": "Form-13 DESPL.pdf",
+          "size_kb": 278.17,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-13-AAPL.pdf",
+          "relative_path": "Form-13-AAPL.pdf",
+          "size_kb": 738.93,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-14 DESPL.pdf",
+          "relative_path": "Form-14 DESPL.pdf",
+          "size_kb": 495.12,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-14-AAPL.pdf",
+          "relative_path": "Form-14-AAPL.pdf",
+          "size_kb": 2701.42,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-15 Karvad Vapi Plan.pdf",
+          "relative_path": "Form-15 Karvad Vapi Plan.pdf",
+          "size_kb": 525.71,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-15 Karvad Water Supply Organisation Chart.pdf",
+          "relative_path": "Form-15 Karvad Water Supply Organisation Chart.pdf",
+          "size_kb": 998.96,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-15 Proposed site organization and Management.pdf",
+          "relative_path": "Form-15 Proposed site organization and Management.pdf",
+          "size_kb": 319.82,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-16 - AAPL.pdf",
+          "relative_path": "Form-16 - AAPL.pdf",
+          "size_kb": 821.8,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-16 DESPL.pdf",
+          "relative_path": "Form-16 DESPL.pdf",
+          "size_kb": 306.37,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-16-Anjar Work Completion Certificate-2025.pdf",
+          "relative_path": "Form-16-Anjar Work Completion Certificate-2025.pdf",
+          "size_kb": 857.01,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-16-Roshni_Certificate-AAPL.pdf",
+          "relative_path": "Form-16-Roshni_Certificate-AAPL.pdf",
+          "size_kb": 2109.1,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-16-UPPCL_Experience Certificate.pdf",
+          "relative_path": "Form-16-UPPCL_Experience Certificate.pdf",
+          "size_kb": 822.89,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-17 Approach and Methodology with conceptual design.pdf",
+          "relative_path": "Form-17 Approach and Methodology with conceptual design.pdf",
+          "size_kb": 292.67,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-17 Methodology.pdf",
+          "relative_path": "Form-17 Methodology.pdf",
+          "size_kb": 226.4,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-2 DESPL.pdf",
+          "relative_path": "Form-2 DESPL.pdf",
+          "size_kb": 325.51,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-2-AAPL.pdf",
+          "relative_path": "Form-2-AAPL.pdf",
+          "size_kb": 801.66,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-20 DESPL.pdf",
+          "relative_path": "Form-20 DESPL.pdf",
+          "size_kb": 297.58,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-20-AAPL.pdf",
+          "relative_path": "Form-20-AAPL.pdf",
+          "size_kb": 889.48,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-23-24-MOU - DI - Karvad.pdf",
+          "relative_path": "Form-23-24-MOU - DI - Karvad.pdf",
+          "size_kb": 1618.57,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-23-24-MOU- PVC - Karvad.pdf",
+          "relative_path": "Form-23-24-MOU- PVC - Karvad.pdf",
+          "size_kb": 1662.78,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-6 AAPL.pdf",
+          "relative_path": "Form-6 AAPL.pdf",
+          "size_kb": 875.95,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-6 DESPL.pdf",
+          "relative_path": "Form-6 DESPL.pdf",
+          "size_kb": 299.15,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "JV Agreement - 31 cr.pdf",
+          "relative_path": "JV Agreement - 31 cr.pdf",
+          "size_kb": 3092.34,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "4. Income tax return",
+      "files_count": 2,
+      "files": [
+        {
+          "file_name": "ITR-AAPL.pdf",
+          "relative_path": "ITR-AAPL.pdf",
+          "size_kb": 2192.86,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "ITR-DESPL.pdf",
+          "relative_path": "ITR-DESPL.pdf",
+          "size_kb": 2433.73,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "5.  Site Visit Certificate",
+      "files_count": 1,
+      "files": [
+        {
+          "file_name": "Site Visit Certificate-Karvad-31 cr.pdf",
+          "relative_path": "Site Visit Certificate-Karvad-31 cr.pdf",
+          "size_kb": 913.02,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "6. no litigation self declared certificate",
+      "files_count": 2,
+      "files": [
+        {
+          "file_name": "Form 9 -AAPL.pdf",
+          "relative_path": "Form 9 -AAPL.pdf",
+          "size_kb": 794.22,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Form-9 -DESPL.pdf",
+          "relative_path": "Form-9 -DESPL.pdf",
+          "size_kb": 274.8,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "7. Govt. Registration certificate as per TENDER DOC",
+      "files_count": 3,
+      "files": [
+        {
+          "file_name": "AA Class Civil Contractor Registration Certificate-DESPL.pdf",
+          "relative_path": "AA Class Civil Contractor Registration Certificate-DESPL.pdf",
+          "size_kb": 10213.12,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "CG_PWD_Registration-AAPL.pdf",
+          "relative_path": "CG_PWD_Registration-AAPL.pdf",
+          "size_kb": 373.25,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "MP_PWDRegistrationCertificate-AAPL.pdf",
+          "relative_path": "MP_PWDRegistrationCertificate-AAPL.pdf",
+          "size_kb": 635.59,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "8. Partnership Deed or Memorandum as well as Articles of Association",
+      "files_count": 5,
+      "files": [
+        {
+          "file_name": "Articles of association-AAPL.pdf",
+          "relative_path": "Articles of association-AAPL.pdf",
+          "size_kb": 3803.0,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Bussiness Succession Agreement AAPL.pdf",
+          "relative_path": "Bussiness Succession Agreement AAPL.pdf",
+          "size_kb": 6709.97,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Certificate of Incorporation-AAPL.pdf",
+          "relative_path": "Certificate of Incorporation-AAPL.pdf",
+          "size_kb": 606.79,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "CIN-MOA-AOA-DESPL.pdf",
+          "relative_path": "CIN-MOA-AOA-DESPL.pdf",
+          "size_kb": 6757.42,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "MOA-AAPL.pdf",
+          "relative_path": "MOA-AAPL.pdf",
+          "size_kb": 4362.11,
+          "extension": ".pdf"
+        }
+      ]
+    },
+    {
+      "folder_name": "9. Power of Attorney (if Applicable)",
+      "files_count": 5,
+      "files": [
+        {
+          "file_name": "Board Resolution 2026-27.pdf",
+          "relative_path": "Board Resolution 2026-27.pdf",
+          "size_kb": 676.31,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "General Power of Attorney-AAPL.pdf",
+          "relative_path": "General Power of Attorney-AAPL.pdf",
+          "size_kb": 2189.08,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "General Power of Attorney-DESPL.pdf",
+          "relative_path": "General Power of Attorney-DESPL.pdf",
+          "size_kb": 836.03,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "JV_Agreement.pdf",
+          "relative_path": "JV_Agreement.pdf",
+          "size_kb": 3092.34,
+          "extension": ".pdf"
+        },
+        {
+          "file_name": "Power of Attorney for Lead Member.pdf",
+          "relative_path": "Power of Attorney for Lead Member.pdf",
+          "size_kb": 1499.66,
+          "extension": ".pdf"
+        }
+      ]
+    }
+  ]
+}
