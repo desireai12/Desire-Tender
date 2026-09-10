@@ -963,35 +963,57 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           </div>
 
           {/* CONSORTIUM WIN STRATEGY & SYNERGY RATIONALE BOX */}
-          <div className="p-4 rounded-xl bg-slate-900 text-white space-y-2.5 shadow-md border border-slate-800">
-            <div className="flex items-center justify-between">
+          <div className="p-4.5 rounded-xl bg-slate-900 text-white space-y-3 shadow-md border border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
               <div className="flex items-center space-x-2 text-emerald-400 font-mono text-xs font-bold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>CONSORTIUM BIDDING STRATEGY & SYNERGY RATIONALE</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>CONSORTIUM CLAUSE POOLING & SYNERGY AUDIT</span>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold">
-                Combined Score: {perspective.option3_pct}
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-teal-950 text-teal-300 border border-teal-800 font-semibold">
+                  {perspective.evaluatedClauses.length} Clauses Audited
+                </span>
+                <span className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold">
+                  Combined Pool Fit: {perspective.option3_pct}
+                </span>
+              </div>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 rounded-lg bg-slate-800/80 border border-slate-700 space-y-1">
-                <span className="text-[10px] font-mono text-teal-300 font-bold block uppercase">1. Desire Energy Standalone ({perspective.option1_pct})</span>
-                <p className="text-slate-300 font-medium leading-relaxed">
-                  Desire brings ₹300.93 Cr avg turnover, ₹95 Cr net worth, 14 years ESCO/Solar/Pumping credentials, and Lead Equity Share ({desireEquityRatio}%).
+              <div className="p-3 rounded-lg bg-slate-800/90 border border-slate-700 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-teal-300 font-bold uppercase">1. Desire Standalone</span>
+                  <span className="text-xs font-bold text-teal-400 font-mono">{perspective.option1_pct}</span>
+                </div>
+                <p className="text-slate-300 text-[11px] leading-relaxed font-medium">
+                  Fulfills {perspective.summary_counts.matched} of {perspective.summary_counts.total_criteria} criteria alone. Brings ₹300.93 Cr avg turnover, ₹95 Cr net worth, ESCO/Pumping credentials, and Lead Share ({desireEquityRatio}%).
                 </p>
               </div>
-              <div className="p-3 rounded-lg bg-slate-800/80 border border-slate-700 space-y-1">
-                <span className="text-[10px] font-mono text-amber-300 font-bold block uppercase">2. {jvComp.name} Standalone ({perspective.option2_pct})</span>
-                <p className="text-slate-300 font-medium leading-relaxed">
-                  {jvComp.name} has ₹{jvComp.average_turnover} Cr turnover & local civil licenses, but cannot bid alone ({perspective.option2_pct} standalone match score due to financial/technical gaps).
+
+              <div className="p-3 rounded-lg bg-slate-800/90 border border-slate-700 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-amber-300 font-bold uppercase">2. {jvComp.name.split(' ')[0]} Standalone</span>
+                  <span className="text-xs font-bold text-amber-400 font-mono">{perspective.option2_pct}</span>
+                </div>
+                <p className="text-slate-300 text-[11px] leading-relaxed font-medium">
+                  Fulfills partner-specific criteria alone. Brings ₹{jvComp.average_turnover} Cr turnover & Gujarat civil licenses, but cannot bid alone due to financial/technical gaps.
                 </p>
               </div>
-              <div className="p-3 rounded-lg bg-emerald-950/70 border border-emerald-700/80 space-y-1">
-                <span className="text-[10px] font-mono text-emerald-300 font-bold block uppercase">3. Option 3 Synergy (100% Qualification)</span>
-                <p className="text-emerald-100 font-medium leading-relaxed">
-                  Pooling financials creates ₹{pooledTurnover} Cr turnover & ₹{pooledNetWorth} Cr net worth. Partner bridges specific local civil gaps, securing 100% total qualification.
+
+              <div className="p-3 rounded-lg bg-emerald-950/80 border border-emerald-700/80 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-emerald-300 font-bold uppercase">3. Combined Consortium Pool</span>
+                  <span className="text-xs font-bold text-emerald-300 font-mono">{perspective.option3_pct}</span>
+                </div>
+                <p className="text-emerald-100 text-[11px] leading-relaxed font-medium">
+                  Pooling financials creates ₹{pooledTurnover} Cr total turnover & ₹{pooledNetWorth} Cr net worth. Partner's civil track record bridges Desire's gaps to achieve complete coverage.
                 </p>
               </div>
+            </div>
+
+            <div className="pt-1 text-[11px] text-slate-300 font-mono flex items-center space-x-1.5 bg-slate-800/40 p-2 rounded-lg border border-slate-800">
+              <span className="text-emerald-400 font-bold">📌 Clause Pooling Note:</span>
+              <span>Consortium score ({perspective.option3_pct}) is derived by clause-by-clause resource pooling across all {perspective.summary_counts.total_criteria} criteria, NOT an arithmetic addition of standalone scores.</span>
             </div>
           </div>
 
