@@ -69,10 +69,25 @@ export const CombineAnalysisView: React.FC = () => {
   const [companies, setCompanies] = useState<CompanyRecord[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('RHDS');
   const [desireCompanyId, setDesireCompanyId] = useState<string>('comp-desire-01');
-  const [jvPartnerId, setJvPartnerId] = useState<string>('comp-divija-02');
+  const [jvPartnerId, setJvPartnerId] = useState<string>('comp-aapl-05');
   const [evaluating, setEvaluating] = useState<boolean>(false);
   const [evaluation, setEvaluation] = useState<JVEvaluationResult | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  const getOptimalPartnerIdForCategory = (cat: string) => {
+    switch (cat.toUpperCase()) {
+      case 'EPC': return 'comp-vhp-04';
+      case 'RHDS': return 'comp-aapl-05';
+      case 'STP': return 'comp-divija-02';
+      case 'SOLAR':
+      case 'KUSUM': return 'comp-techno-06';
+      default: return 'comp-vhp-04';
+    }
+  };
+
+  useEffect(() => {
+    setJvPartnerId(getOptimalPartnerIdForCategory(selectedCategory));
+  }, [selectedCategory]);
 
   // Fetch Companies on Mount
   useEffect(() => {
@@ -96,9 +111,7 @@ export const CombineAnalysisView: React.FC = () => {
       setCompanies(comps);
       if (comps.length > 0) {
         const desireObj = comps.find(c => c.type === 'Desire Energy') || comps[0];
-        const jvObj = comps.find(c => c.type === 'JV Partner') || comps[1] || comps[0];
         setDesireCompanyId(desireObj.id);
-        setJvPartnerId(jvObj.id);
       }
     };
     loadMasterData();

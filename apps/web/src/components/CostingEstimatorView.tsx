@@ -119,8 +119,8 @@ export const CostingEstimatorView: React.FC = () => {
 
     setIsProcessing(true);
     setTimeout(() => {
-      const filled = autoFillBoqItems(sampleItems);
-      setAutoFilledItems(filled);
+      const filled = autoFillBoqItems(sampleItems.map((item, idx) => ({ ...item, schedule: 'Schedule A' })));
+      setAutoFilledItems(filled as any);
       setUploadedFileName('Banaskantha_Kankrej_Sample_BOQ.xlsx');
       setIsProcessing(false);
     }, 400);
@@ -141,7 +141,8 @@ export const CostingEstimatorView: React.FC = () => {
             item_description: parts[1] || `Item ${idx + 1}`,
             qty: parseFloat(parts[2]) || 1,
             unit: parts[3] || 'Nos',
-            sor_rate: parseFloat(parts[4]) || 0
+            sor_rate: parseFloat(parts[4]) || 0,
+            schedule: 'Schedule A'
           };
         }
         return {
@@ -149,12 +150,13 @@ export const CostingEstimatorView: React.FC = () => {
           item_description: line.trim(),
           qty: 1,
           unit: 'Nos',
-          sor_rate: 0
+          sor_rate: 0,
+          schedule: 'Schedule A'
         };
       });
 
       const filled = autoFillBoqItems(parsed);
-      setAutoFilledItems(filled);
+      setAutoFilledItems(filled as any);
       setUploadedFileName('Pasted_BOQ_Input.csv');
     } finally {
       setIsProcessing(false);
@@ -181,12 +183,13 @@ export const CostingEstimatorView: React.FC = () => {
             item_description: parts[1] || `Item ${idx + 1}`,
             qty: parseFloat(parts[2]) || 1,
             unit: parts[3] || 'Nos',
-            sor_rate: parseFloat(parts[4]) || 0
+            sor_rate: parseFloat(parts[4]) || 0,
+            schedule: 'Schedule A'
           };
         });
 
         const filled = autoFillBoqItems(parsed);
-        setAutoFilledItems(filled);
+        setAutoFilledItems(filled as any);
       }
       setIsProcessing(false);
     };
@@ -516,7 +519,7 @@ export const CostingEstimatorView: React.FC = () => {
                 </div>
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
                   <Calculator className="w-6 h-6 text-teal-400 shrink-0" />
-                  <span>{activeTenderData.tender_metadata.short_title || activeTenderData.tender_metadata.tender_name}</span>
+                  <span>{(activeTenderData.tender_metadata as any).short_title || (activeTenderData.tender_metadata as any).tender_name || 'Tender Document'}</span>
                 </h1>
                 <p className="text-xs text-slate-300 leading-relaxed">
                   {activeTenderKey === 'banaskantha' 
@@ -592,7 +595,7 @@ export const CostingEstimatorView: React.FC = () => {
               { id: 'om', label: `${activeTenderKey === 'banaskantha' ? '3-Year' : '5-Year'} O&M Calculator`, icon: Users },
               { id: 'machinery', label: 'Machinery & Fleet', icon: Truck },
               { id: 'strategy', label: 'Bid Strategy & Deductions', icon: SlidersHorizontal },
-              { id: 'compliance', label: `Document Pack (${activeDocManifest.total_files || (activeDocManifest.categories?.length || 0)} Files)`, icon: FileText }
+              { id: 'compliance', label: `Document Pack (${(activeDocManifest as any).total_files || (activeDocManifest.categories?.length || 0)} Files)`, icon: FileText }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = tenderTab === tab.id;

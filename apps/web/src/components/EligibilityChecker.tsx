@@ -69,14 +69,33 @@ export interface DynamicTenderEvaluationReport {
 
 export const EligibilityChecker: React.FC = () => {
   const [companies, setCompanies] = useState<CompanyRecord[]>([]);
-  const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-divija-02');
   const [selectedCategory, setSelectedCategory] = useState<string>('RHDS');
+  // Auto-select optimal partner based on sector: RHDS -> Adroit, EPC -> Vinod H Patel, STP -> Divija
+  const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-aapl-05');
   const [tenderFile, setTenderFile] = useState<File | null>(null);
   const [tenderTitleInput, setTenderTitleInput] = useState<string>('');
   const [analyzing, setAnalyzing] = useState<boolean>(false);
   const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
   const [report, setReport] = useState<DynamicTenderEvaluationReport | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  // Sector-to-Partner Auto-Selection Mapping
+  const getOptimalPartnerIdForCategory = (cat: string) => {
+    switch (cat.toUpperCase()) {
+      case 'EPC': return 'comp-vhp-04'; // Vinod H Patel (₹191.39 Cr Avg Turnover - Bulk Pipelines)
+      case 'RHDS': return 'comp-aapl-05'; // Adroit Associates (₹35.22 Cr - Roshni JJM Scheme)
+      case 'STP': return 'comp-divija-02'; // Divija Construction (₹37.01 Cr - 136 km Sewer)
+      case 'SOLAR':
+      case 'KUSUM': return 'comp-techno-06'; // Techno Electric (₹280 Cr Solar EPC)
+      default: return 'comp-vhp-04';
+    }
+  };
+
+  // Auto-update JV partner selection when category changes unless user overrides
+  useEffect(() => {
+    const optimal = getOptimalPartnerIdForCategory(selectedCategory);
+    setSelectedJvPartnerId(optimal);
+  }, [selectedCategory]);
 
   // Fetch Companies on Mount
   useEffect(() => {
@@ -133,11 +152,11 @@ export const EligibilityChecker: React.FC = () => {
     }
   };
 
-  // Only run analysis when triggered by user
-  // (removed auto-triggering on mount with dummy data)
-
   const desireComp = companies.find(c => c.type === 'Desire Energy') || { name: 'Desire Energy Solutions Pvt. Ltd.', average_turnover: 300.93, net_worth: 95.0 };
-  const jvComp = companies.find(c => c.id === selectedJvPartnerId) || { name: 'Divija Construction', average_turnover: 37.01, net_worth: 6.58 };
+  const jvComp = companies.find(c => c.id === selectedJvPartnerId) || 
+    (selectedJvPartnerId === 'comp-vhp-04' ? { name: 'Vinod H Patel & Co.', average_turnover: 191.39, net_worth: 33.37 } :
+     selectedJvPartnerId === 'comp-aapl-05' ? { name: 'Adroit Associates Pvt. Ltd.', average_turnover: 35.22, net_worth: 14.27 } :
+     { name: 'Divija Construction', average_turnover: 37.01, net_worth: 6.58 });
 
   // Dynamic clause & score evaluator for each perspective (Desire alone / JV alone / Combined)
   const getPerspectiveData = () => {
@@ -229,6 +248,20 @@ export const EligibilityChecker: React.FC = () => {
     const desireEval = evaluatePerspective('desire');
     const jvEval = evaluatePerspective('jv');
     const combinedEval = evaluatePerspective('combined');
+
+    // Sync evaluated perspective scores directly with backend report metrics to ensure 100% UI consistency across tabs & summary cards
+    if (report.desire_alone?.score !== undefined) {
+      desireEval.score = report.desire_alone.score;
+      desireEval.pctStr = report.desire_alone.fulfilled_pct || `${report.desire_alone.score}%`;
+    }
+    if (report.jv_alone?.score !== undefined) {
+      jvEval.score = report.jv_alone.score;
+      jvEval.pctStr = report.jv_alone.fulfilled_pct || `${report.jv_alone.score}%`;
+    }
+    if (report.combined_jv?.score !== undefined) {
+      combinedEval.score = report.combined_jv.score;
+      combinedEval.pctStr = report.combined_jv.fulfilled_pct || `${report.combined_jv.score}%`;
+    }
 
     // Guarantee combined consortium score >= individual member scores
     if (combinedEval.score < desireEval.score || combinedEval.score < jvEval.score) {
@@ -379,9 +412,11 @@ export const EligibilityChecker: React.FC = () => {
 
         {/* JV Partner Selection Toolbar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-slate-200 dark:border-slate-800">
-          <div className="flex items-center space-x-3 w-full sm:w-auto">
-            <GitMerge className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Select JV Partner for Evaluation:</span>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center space-x-2">
+              <GitMerge className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Select JV Partner for Evaluation:</span>
+            </div>
             <select
               value={selectedJvPartnerId}
               onChange={(e) => setSelectedJvPartnerId(e.target.value)}
@@ -392,12 +427,29 @@ export const EligibilityChecker: React.FC = () => {
               ))}
               {companies.filter(c => c.type === 'JV Partner').length === 0 && (
                 <>
-                  <option value="comp-vhp-04">VINOD H PATEL (Avg ₹191.39 Cr | Net Worth: ₹33.37 Cr)</option>
-                  <option value="comp-aapl-05">ADROIT ASSOCIATES PRIVATE LIMITED (Avg ₹35.22 Cr | Net Worth: ₹14.27 Cr)</option>
+                  <option value="comp-vhp-04">VINOD H PATEL & CO. (Avg ₹191.39 Cr | Net Worth: ₹33.37 Cr)</option>
+                  <option value="comp-aapl-05">ADROIT ASSOCIATES PVT LTD (Avg ₹35.22 Cr | Net Worth: ₹14.27 Cr)</option>
                   <option value="comp-divija-02">DIVIJA CONSTRUCTION (Avg ₹37.01 Cr | Net Worth: ₹6.58 Cr)</option>
                 </>
               )}
             </select>
+
+            {/* Optimal Partner Match Badge */}
+            {selectedJvPartnerId === getOptimalPartnerIdForCategory(selectedCategory) ? (
+              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-bold flex items-center space-x-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>OPTIMAL MATCH FOR {selectedCategory} SECTOR</span>
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 font-bold flex items-center space-x-1">
+                <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                <span>RECOMMENDED: {
+                  getOptimalPartnerIdForCategory(selectedCategory) === 'comp-vhp-04' ? 'VINOD H PATEL' :
+                  getOptimalPartnerIdForCategory(selectedCategory) === 'comp-aapl-05' ? 'ADROIT ASSOCIATES' :
+                  getOptimalPartnerIdForCategory(selectedCategory) === 'comp-divija-02' ? 'DIVIJA CONSTRUCTION' : 'TECHNO ELECTRIC'
+                }</span>
+              </span>
+            )}
           </div>
 
           <button

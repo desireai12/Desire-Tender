@@ -71,6 +71,27 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
   // Step 3 Dynamic Assessment Report State
   const [evaluationReport, setEvaluationReport] = useState<DynamicTenderEvaluationReport | null>(null);
 
+  // Sector-to-Partner Auto-Selection Effect
+  useEffect(() => {
+    switch (selectedCategory) {
+      case 'EPC':
+        setSelectedJvPartnerId('comp-vhp-04');
+        break;
+      case 'RHDS':
+        setSelectedJvPartnerId('comp-aapl-05');
+        break;
+      case 'STP':
+        setSelectedJvPartnerId('comp-divija-02');
+        break;
+      case 'SOLAR':
+      case 'KUSUM':
+        setSelectedJvPartnerId('comp-techno-06');
+        break;
+      default:
+        setSelectedJvPartnerId('comp-vhp-04');
+    }
+  }, [selectedCategory]);
+
   // Fetch Master Companies on Mount
   useEffect(() => {
     const fetchMasterCompanies = async () => {
@@ -80,11 +101,6 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           const data = await res.json();
           if (data.companies && Array.isArray(data.companies)) {
             setCompanies(data.companies);
-            // Default to first valid JV Partner if current default not found
-            const jvPartners = data.companies.filter((c: CompanyRecord) => c.type === 'JV Partner');
-            if (jvPartners.length > 0 && !jvPartners.some((p: CompanyRecord) => p.id === selectedJvPartnerId)) {
-              setSelectedJvPartnerId(jvPartners[0].id);
-            }
           }
         }
       } catch (e) {

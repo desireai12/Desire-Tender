@@ -588,12 +588,13 @@ Return valid JSON (no markdown wrapping):
         const titleLower = (aiResult.tender_title || titleInput || '').toLowerCase();
         const catUpper = (aiResult.project_category || formCategory || '').toUpperCase();
 
+        // Dynamic Sector & Keyword Matched Partner Recommendation Ranking
         const partnerRecommendations = [
           {
             company_id: 'comp-vhp-04',
             partner_id: 'comp-vhp-04',
-            company_name: 'VINOD H PATEL',
-            partner_name: 'VINOD H PATEL',
+            company_name: 'VINOD H PATEL & CO.',
+            partner_name: 'VINOD H PATEL & CO.',
             rank: 1,
             type: 'JV Partner',
             turnover_cr: 191.39,
@@ -601,10 +602,12 @@ Return valid JSON (no markdown wrapping):
             solvency_cr: 25.0,
             key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
             reason: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.',
-            suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' : 'Strong Financial & High Turnover Partner',
+            suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) 
+              ? 'BEST MATCH — Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' 
+              : 'Strong Financial & High Turnover Partner (₹191.39 Cr Avg Turnover)',
             equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Bulk Water Pipelines', 'GWSSB Credentials'],
-            match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88
+            fills_gaps: ['Bulk Water Transmission Pipelines', 'GWSSB/WRD AA Class Credentials', 'High Turnover Pooling'],
+            match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 85
           },
           {
             company_id: 'comp-aapl-05',
@@ -618,10 +621,12 @@ Return valid JSON (no markdown wrapping):
             solvency_cr: 10.0,
             key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
             reason: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.',
-            suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 'Best Match for Piped Distribution Networks, House Connections & Lift Irrigation' : 'Specialized Water Supply & Lift Irrigation Partner',
+            suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'RHDS' || catUpper === 'ESCO') 
+              ? 'BEST MATCH — Piped Water Distribution Networks, House Connections & Lift Irrigation' 
+              : 'Specialized Water Supply & Lift Irrigation Partner',
             equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Piped Distribution', 'Lift Irrigation'],
-            match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 97 : 85
+            fills_gaps: ['Piped Water Distribution Networks', 'Lift Irrigation Schemes', '25% Equity JV Synergy'],
+            match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'RHDS' || catUpper === 'ESCO') ? 97 : 82
           },
           {
             company_id: 'comp-divija-02',
@@ -635,10 +640,12 @@ Return valid JSON (no markdown wrapping):
             solvency_cr: 10.0,
             key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
             reason: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.',
-            suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 'Best Match for Sewerage, STP Networks & AMRUT 2.0 Projects' : 'Underground Utilities & Drainage Partner',
+            suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) 
+              ? 'BEST MATCH — Underground Sewerage, STP Networks & AMRUT 2.0 Projects' 
+              : 'Sub-optimal for Water Supply (Specialized for Underground Sewerage Only)',
             equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Sewerage Network', 'STP Experience'],
-            match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 72
+            fills_gaps: ['Underground Sewerage Networks', 'STP Technical Experience'],
+            match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 60
           }
         ].sort((a, b) => b.match_score - a.match_score).map((r, i) => ({ ...r, rank: i + 1 }));
 
@@ -1037,20 +1044,55 @@ Return valid JSON (no markdown wrapping):
         }
       })();
 
+      // Calculate exact dynamic scores for desire_alone, jv_alone, and combined_jv from dynamicClauses
+      let dMatched = 0, dPartial = 0;
+      let jMatched = 0, jPartial = 0;
+      let cMatched = 0, cPartial = 0;
+
+      dynamicClauses.forEach(c => {
+        const dVal = (c.desire_value || '').toLowerCase();
+        if (dVal.includes('100% match') || dVal.includes('meets 100%') || dVal.includes('verified') || dVal.includes('exceeds')) {
+          dMatched++;
+        } else if (dVal.includes('partial') || dVal.includes('gap')) {
+          dPartial++;
+        }
+
+        const jVal = (c.jv_value || '').toLowerCase();
+        if (jVal.includes('100% match') || jVal.includes('meets criteria') || jVal.includes('100% qualifying') || jVal.includes('civil contract')) {
+          jMatched++;
+        } else if (jVal.includes('partial') || jVal.includes('support') || jVal.includes('meets')) {
+          jPartial++;
+        }
+
+        if (c.status === 'MATCH') cMatched++;
+        else if (c.status === 'PARTIAL MATCH') cPartial++;
+      });
+
+      const totalC = dynamicClauses.length || 1;
+      const dScore = Math.min(100, Math.round(((dMatched * 100) + (dPartial * 50)) / totalC));
+      const jScore = Math.min(100, Math.round(((jMatched * 100) + (jPartial * 50)) / totalC));
+      const cScore = Math.min(100, Math.round(((cMatched * 100) + (cPartial * 50)) / totalC));
+
+      const desireAloneStatus = dScore >= 80 ? 'Eligible Standalone' : (dScore >= 60 ? 'Partially Eligible Standalone' : 'Ineligible Standalone');
+      const jvAloneStatus = jScore >= 80 ? 'Partner Qualified Standalone' : (jScore >= 60 ? 'Partially Eligible Standalone (Incomplete Alone)' : 'Partner Ineligible Standalone');
+      const combinedStatus = cScore >= 80 ? 'Fully Eligible (Joint Venture)' : 'Partially Eligible Through JV';
+
       const fallbackReport = {
         tender_id: `tnd-${Date.now()}`,
         tender_title: titleInput || 'Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)',
         project_category: catUpper,
         filename,
         is_rejected_non_tender: false,
-        verdict: 'Eligible Through JV',
-        eligibility_score: 100,
-        overall_health: 'Green',
-        recommendation: `BID THROUGH JV (Consortium achieves 100% qualification with ${partnerRecommendations[0].partner_name})`,
-        executive_summary: `AI Tender Analysis: Successfully extracted ${dynamicClauses.length} technical and financial qualification clauses for '${titleInput || filename}'. Evaluated standalone capability and optimal consortium synergy against registered JV partners.`,
-        desire_alone: { score: 85, status: 'Partially Eligible Standalone', fulfilled_pct: '85%' },
-        jv_alone: { score: 67, status: 'Partially Eligible Standalone (Incomplete Alone)', fulfilled_pct: '67%' },
-        combined_jv: { score: 100, status: 'Fully Eligible (Joint Venture)', fulfilled_pct: '100%' },
+        verdict: combinedStatus,
+        eligibility_score: cScore,
+        overall_health: cScore >= 80 ? 'Green' : (cScore >= 60 ? 'Yellow' : 'Red'),
+        recommendation: cScore >= 80 
+          ? `BID THROUGH JV — Consortium achieves ${cScore}% qualification with ${jvName}` 
+          : `REVIEW GAPS — Consortium achieves ${cScore}% qualification with ${jvName}`,
+        executive_summary: `AI Tender Analysis: Successfully extracted ${dynamicClauses.length} technical and financial qualification clauses for '${titleInput || filename}'. Evaluated Desire Standalone (${dScore}%), ${jvName} Standalone (${jScore}%), and Combined Consortium Synergy (${cScore}%).`,
+        desire_alone: { score: dScore, status: desireAloneStatus, fulfilled_pct: `${dScore}%` },
+        jv_alone: { score: jScore, status: jvAloneStatus, fulfilled_pct: `${jScore}%` },
+        combined_jv: { score: cScore, status: combinedStatus, fulfilled_pct: `${cScore}%` },
         partner_recommendations: partnerRecommendations,
         recommended_partner_id: partnerRecommendations[0].partner_id,
         recommended_partner_name: partnerRecommendations[0].partner_name,
@@ -1064,7 +1106,7 @@ Return valid JSON (no markdown wrapping):
           result: c.status
         })),
         jv_rules_audit: [
-          { rule: 'Lead Member Equity', requirement: '>= 51%', actual: '51% - 75%', status: 'PASSED' },
+          { rule: 'Lead Member Equity', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
           { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' },
           { rule: 'Technical Qualification', requirement: 'Single Work Experience', actual: `${jvName} brings qualifying work order`, status: 'PASSED' }
         ],
