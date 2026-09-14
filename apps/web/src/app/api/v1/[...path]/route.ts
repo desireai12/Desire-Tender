@@ -147,6 +147,14 @@ function buildRejection(filename: string) {
   };
 }
 
+function getDeterministicTenderId(titleOrFilename: string): string {
+  const clean = (titleOrFilename || 'tender')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `tnd-${clean || 'generic'}`;
+}
+
 // ─── HIGH-CAPACITY GEMINI CALLER ───────────────────────────────────────────
 async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null> {
   const models = [
@@ -166,8 +174,8 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null>
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.1,
-            topP: 0.95,
+            temperature: 0.0,
+            topP: 1.0,
             responseMimeType: 'application/json'
           }
         }),
@@ -573,7 +581,7 @@ Return valid JSON (no markdown wrapping):
           });
         }
 
-        aiResult.tender_id = `tender-${Date.now()}`;
+        aiResult.tender_id = getDeterministicTenderId(titleInput || filename);
         aiResult.filename = filename;
         aiResult.is_rejected_non_tender = false;
         aiResult.parameter_matrix = (aiResult.clauses_breakdown || []).map((c: any) => ({
@@ -1081,7 +1089,7 @@ Return valid JSON (no markdown wrapping):
       const combinedStatus = cScore >= 80 ? 'Fully Eligible (Joint Venture)' : 'Partially Eligible Through JV';
 
       const fallbackReport = {
-        tender_id: `tnd-${Date.now()}`,
+        tender_id: getDeterministicTenderId(titleInput || filename),
         tender_title: titleInput || 'Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)',
         project_category: catUpper,
         filename,
