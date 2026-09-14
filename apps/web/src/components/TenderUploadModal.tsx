@@ -31,7 +31,10 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
     setErrorMsg(null);
 
     const formData = new FormData();
-    formData.append('file', file);
+    if (file.size <= 3 * 1024 * 1024) {
+      formData.append('file', file);
+    }
+    formData.append('filename', file.name);
     formData.append('project_category', projectCategory);
 
     try {

@@ -8,6 +8,9 @@ import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
 
+export const maxDuration = 60;
+
+
 
 function hashPassword(pass: string): string {
   return crypto.createHash('sha256').update(pass.trim()).digest('hex');
