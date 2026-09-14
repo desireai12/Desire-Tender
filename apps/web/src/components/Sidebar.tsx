@@ -63,33 +63,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navSections: NavSection[] = [
     {
-      title: 'Tenders',
+      title: 'Tenders & Discovery',
       items: [
-        { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
-        { id: 'india_tenders', label: 'Search Tenders', icon: Globe2 },
-        { id: 'tender_tracker', label: 'Saved Tenders', icon: Layers },
+        { id: 'dashboard', label: 'Home Overview', icon: LayoutDashboard },
+        { id: 'india_tenders', label: 'India Tenders Directory', icon: Globe2 },
+        { id: 'tender_tracker', label: 'Live Tender Tracker', icon: Layers },
       ]
     },
     {
-      title: 'Bidding',
+      title: 'Bidding & AI Engines',
       items: [
-        { id: 'eligibility', label: 'Tender & JV Eligibility', icon: Sparkles },
-        { id: 'costing', label: 'Project Costing', icon: Calculator },
-        { id: 'lifecycle', label: 'Tender Queue', icon: FileCode },
+        { id: 'eligibility', label: 'Eligibility Analysis', icon: Sparkles },
+        { id: 'wizard', label: 'JV & Combine Engine', icon: GitMerge },
+        { id: 'costing', label: 'BidMaster Costing', icon: Calculator },
+        { id: 'lifecycle', label: 'Tender Process Queue', icon: FileCode },
       ]
     },
     {
-      title: 'Company Data',
+      title: 'Intelligence & Master DB',
       items: [
-        { id: 'master_company', label: 'Company Profiles', icon: Building2 },
-        { id: 'competitors', label: 'Competitor Info', icon: Swords },
+        { id: 'master_company', label: 'Company Master DB', icon: Building2 },
+        { id: 'competitors', label: 'Competitors Profile', icon: Swords },
       ]
     },
     {
-      title: 'Admin',
+      title: 'Administration',
       items: [
-        { id: 'admin', label: 'User Admin', icon: ShieldCheck },
-        { id: 'admin_config', label: 'System Settings', icon: Sliders },
+        { id: 'admin', label: 'Admin Portal & Users', icon: ShieldCheck },
+        { id: 'admin_config', label: 'Backend & AI Config', icon: Sliders },
       ]
     }
   ];
@@ -111,7 +112,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id || 
-                  (item.id === 'eligibility' && (activeTab === 'eligibility' || activeTab === 'wizard' || activeTab === 'combine')) ||
                   (item.id === 'master_company' && activeTab === 'companies') ||
                   (item.id === 'admin' && activeTab === 'admin_kb');
 

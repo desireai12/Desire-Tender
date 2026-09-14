@@ -440,13 +440,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <span className="text-[11px] font-mono text-slate-400">Quick Access Toolbar</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { tab: 'eligibility' as NavTab, label: 'Tender & JV Eligibility', desc: 'Standalone & JV Audit', icon: Sparkles, color: 'text-emerald-700 dark:text-emerald-400' },
-            { tab: 'master_company' as NavTab, label: 'Company Profiles', desc: 'Financial Records', icon: Building2, color: 'text-blue-700 dark:text-blue-400' },
-            { tab: 'competitors' as NavTab, label: 'Competitor Info', desc: 'Market Rivals', icon: Swords, color: 'text-amber-700 dark:text-amber-400' },
-            { tab: 'lifecycle' as NavTab, label: 'Tender Queue', desc: `${tendersCount} Active Tenders`, icon: Layers, color: 'text-emerald-800 dark:text-emerald-300' },
-            { tab: 'costing' as NavTab, label: 'Project Costing', desc: '244 BOQ Rates', icon: Calculator, color: 'text-teal-700 dark:text-teal-400' },
+            { tab: 'eligibility' as NavTab, label: 'Eligibility Engine', desc: '10+ Clauses Audit', icon: Sparkles, color: 'text-emerald-700 dark:text-emerald-400' },
+            { tab: 'wizard' as NavTab, label: 'JV / Combine Wizard', desc: 'Consortium Rules', icon: GitMerge, color: 'text-purple-700 dark:text-purple-400' },
+            { tab: 'master_company' as NavTab, label: 'Company Master DB', desc: 'Financial Records', icon: Building2, color: 'text-blue-700 dark:text-blue-400' },
+            { tab: 'competitors' as NavTab, label: 'Competitor Intel', desc: 'L&T, Wabag, Shakti', icon: Swords, color: 'text-amber-700 dark:text-amber-400' },
+            { tab: 'lifecycle' as NavTab, label: 'Tender Process Queue', desc: `${tendersCount} Stage Pipeline`, icon: Layers, color: 'text-emerald-800 dark:text-emerald-300' },
+            { tab: 'costing' as NavTab, label: 'Costing Estimator', desc: '244 BOQ Rates', icon: Calculator, color: 'text-teal-700 dark:text-teal-400' },
           ].map((item, idx) => {
             const Icon = item.icon;
             return (
