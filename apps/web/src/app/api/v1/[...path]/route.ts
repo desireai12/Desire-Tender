@@ -196,6 +196,18 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null>
 }
 
 
+function parseStatusText(valStr: string): 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' {
+  if (!valStr) return 'MATCH';
+  const u = valStr.toUpperCase();
+  if (u.includes('DATA NOT') || u.includes('MISSING')) return 'DATA NOT AVAILABLE';
+  if (u.includes('NOT MATCHING') || u.includes('0% - NOT') || u.includes('LACKS REQUIREMENT') || u.includes('0% STANDALONE') || u.includes('INELIGIBLE') || u.includes('SPECIALIZED GAP') || u.includes('CANNOT BID') || u.includes('NOT MET')) return 'NOT MATCHING';
+  if (u.includes('PARTIAL MATCH') || u.includes('PARTIAL')) {
+    if (!u.includes('NO GAP') && !u.includes('NO TECHNICAL GAP') && !u.includes('BRIDGES THIS GAP')) return 'PARTIAL MATCH';
+  }
+  if (u.includes('MATCH') || u.includes('MEETS') || u.includes('EXCEEDS') || u.includes('QUALIFYING') || u.includes('SATISFIES') || u.includes('CERTIFIED') || u.includes('REGISTERED')) return 'MATCH';
+  return 'MATCH';
+}
+
 function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
   if (!report || !report.clauses_breakdown || !Array.isArray(report.clauses_breakdown)) return report;
   
@@ -203,31 +215,25 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
   const catUpper = (report.project_category || '').toUpperCase();
   const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp');
 
-  let hasSewerClause = false;
-
   report.clauses_breakdown.forEach((c: any) => {
     const cTitle = (c.clause_title || '').toLowerCase();
     const reqText = (c.tender_requirement || '').toLowerCase();
     const isSewer = isSewerTender && (cTitle.includes('sewer') || cTitle.includes('stp') || reqText.includes('sewer') || reqText.includes('stp'));
 
     if (isSewer) {
-      hasSewerClause = true;
-      c.status = 'PARTIAL MATCH';
-      c.fulfilled_pct = '50%';
-      c.desire_value = '120+ km HDPE/DI Water Pipelines (No specialized underground sewer network experience)';
+      c.status = 'MATCH';
+      c.desire_status = 'NOT MATCHING';
+      c.jv_status = 'MATCH';
+      c.fulfilled_pct = '100%';
+      c.desire_value = '120+ km HDPE/DI Water Pipelines (Specialized gap in underground sewerage works - 0% standalone)';
+      c.jv_value = `${jvName}: 136 km Underground Sewer Network & 8 MLD Pumping Station (100% Match)`;
+      c.combined_value = `${jvName} bridges technical gap with 136 km sewer track record (100% Satisfied)`;
       c.gap_notes = `Desire Energy has a specialized gap in underground sewerage works. ${jvName} bridges this gap.`;
-    } else if (c.status === 'MATCH') {
-      c.fulfilled_pct = '100%';
-    } else if (c.fulfilled_pct) {
-      const match = String(c.fulfilled_pct).match(/(\d+(\.\d+)?)/);
-      if (match) {
-        const val = parseFloat(match[1]);
-        c.fulfilled_pct = val >= 100 ? '100%' : `${val}%`;
-      } else {
-        c.fulfilled_pct = '100%';
-      }
     } else {
-      c.fulfilled_pct = '100%';
+      if (!c.desire_status) c.desire_status = parseStatusText(c.desire_value);
+      if (!c.jv_status) c.jv_status = parseStatusText(c.jv_value);
+      if (!c.status) c.status = (c.desire_status === 'MATCH' || c.jv_status === 'MATCH') ? 'MATCH' : (c.desire_status === 'PARTIAL MATCH' || c.jv_status === 'PARTIAL MATCH') ? 'PARTIAL MATCH' : 'NOT MATCHING';
+      if (c.status === 'MATCH') c.fulfilled_pct = '100%';
     }
 
     if (c.desire_value && !isSewer) {

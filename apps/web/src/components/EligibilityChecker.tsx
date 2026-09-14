@@ -36,6 +36,8 @@ export interface ClauseBreakdownItem {
   combined_value: string;
   applicable_jv_rule: string;
   status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' | 'NOT APPLICABLE' | 'REQUIRES MANUAL REVIEW';
+  desire_status?: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE';
+  jv_status?: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE';
   fulfilled_pct: string;
   gap_notes: string;
   required_doc: string;
@@ -172,31 +174,33 @@ export const EligibilityChecker: React.FC = () => {
         let pct = 100;
 
         // Desire evaluation on this clause
-        const dVal = (c.desire_value || '').toLowerCase();
-        let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
-
-        if (dVal.includes('data not') || dVal.includes('missing')) {
-          dStatus = 'DATA NOT AVAILABLE';
-        } else if (dVal.includes('not matching') || dVal.includes('0% - not') || dVal.includes('lacks') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met')) {
-          dStatus = 'NOT MATCHING';
-        } else if (dVal.includes('partial match') || dVal.includes('partial') || dVal.includes('gap')) {
-          dStatus = 'PARTIAL MATCH';
-        } else if (dVal.includes('match') || dVal.includes('meets') || dVal.includes('exceeds') || dVal.includes('certified') || dVal.includes('registered') || dVal.includes('%')) {
-          dStatus = 'MATCH';
+        let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.desire_status || 'MATCH';
+        if (!c.desire_status) {
+          const dVal = (c.desire_value || '').toLowerCase();
+          if (dVal.includes('data not') || dVal.includes('missing')) {
+            dStatus = 'DATA NOT AVAILABLE';
+          } else if (dVal.includes('not matching') || dVal.includes('0% - not') || dVal.includes('0% standalone') || dVal.includes('lacks') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met') || dVal.includes('specialized gap')) {
+            dStatus = 'NOT MATCHING';
+          } else if (dVal.includes('partial match') || dVal.includes('partial')) {
+            dStatus = 'PARTIAL MATCH';
+          } else {
+            dStatus = 'MATCH';
+          }
         }
 
         // JV evaluation on this clause
-        const jVal = (c.jv_value || '').toLowerCase();
-        let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
-
-        if (jVal.includes('data not') || jVal.includes('missing')) {
-          jStatus = 'DATA NOT AVAILABLE';
-        } else if (jVal.includes('not matching') || jVal.includes('0% - not') || jVal.includes('lacks') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('no esco') || jVal.includes('no solar')) {
-          jStatus = 'NOT MATCHING';
-        } else if (jVal.includes('partial match') || jVal.includes('partial') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
-          jStatus = 'PARTIAL MATCH';
-        } else if (jVal.includes('match') || jVal.includes('meets') || jVal.includes('exceeds') || jVal.includes('qualifying') || jVal.includes('satisfies') || jVal.includes('certified') || jVal.includes('registered') || jVal.includes('%')) {
-          jStatus = 'MATCH';
+        let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.jv_status || 'MATCH';
+        if (!c.jv_status) {
+          const jVal = (c.jv_value || '').toLowerCase();
+          if (jVal.includes('data not') || jVal.includes('missing')) {
+            jStatus = 'DATA NOT AVAILABLE';
+          } else if (jVal.includes('not matching') || jVal.includes('0% - not') || jVal.includes('0% standalone') || jVal.includes('lacks') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('no esco') || jVal.includes('no solar')) {
+            jStatus = 'NOT MATCHING';
+          } else if (jVal.includes('partial match') || jVal.includes('partial') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
+            jStatus = 'PARTIAL MATCH';
+          } else {
+            jStatus = 'MATCH';
+          }
         }
 
         let gapNotes = c.gap_notes || '';
@@ -205,11 +209,11 @@ export const EligibilityChecker: React.FC = () => {
           status = dStatus;
           pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
           if (dStatus === 'MATCH') {
-            gapNotes = 'Desire Energy standalone fully meets and exceeds the requirement.';
+            gapNotes = 'Desire Energy standalone fully meets and exceeds requirement.';
           } else if (dStatus === 'PARTIAL MATCH') {
-            gapNotes = 'Desire Energy standalone partially meets requirement. Consortium JV bridges this requirement.';
+            gapNotes = 'Desire Energy standalone partially meets requirement.';
           } else {
-            gapNotes = 'Desire Energy lacks this specific standalone qualification. JV partner bridges this gap.';
+            gapNotes = 'Desire Energy lacks this specific standalone qualification requirement.';
           }
         } else if (mode === 'jv') {
           val = c.jv_value || '';
@@ -220,10 +224,9 @@ export const EligibilityChecker: React.FC = () => {
           } else if (jStatus === 'PARTIAL MATCH') {
             gapNotes = `${jvComp.name} standalone partially meets requirement.`;
           } else {
-            gapNotes = `${jvComp.name} lacks this standalone qualification. Desire Energy bridges this gap.`;
+            gapNotes = `${jvComp.name} lacks this specific standalone qualification requirement.`;
           }
         } else {
-          // Combined: If either party matches 100% or combined pooling matches, status is MATCH
           val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
           if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
             status = 'MATCH';
@@ -270,20 +273,6 @@ export const EligibilityChecker: React.FC = () => {
     const desireEval = evaluatePerspective('desire');
     const jvEval = evaluatePerspective('jv');
     const combinedEval = evaluatePerspective('combined');
-
-    // Sync evaluated perspective scores directly with backend report metrics to ensure 100% UI consistency across tabs & summary cards
-    if (report.desire_alone?.score !== undefined) {
-      desireEval.score = report.desire_alone.score;
-      desireEval.pctStr = report.desire_alone.fulfilled_pct || `${report.desire_alone.score}%`;
-    }
-    if (report.jv_alone?.score !== undefined) {
-      jvEval.score = report.jv_alone.score;
-      jvEval.pctStr = report.jv_alone.fulfilled_pct || `${report.jv_alone.score}%`;
-    }
-    if (report.combined_jv?.score !== undefined) {
-      combinedEval.score = report.combined_jv.score;
-      combinedEval.pctStr = report.combined_jv.fulfilled_pct || `${report.combined_jv.score}%`;
-    }
 
     // Guarantee combined consortium score >= individual member scores
     if (combinedEval.score < desireEval.score || combinedEval.score < jvEval.score) {
