@@ -332,9 +332,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         // Desire standalone capability on this clause
         const dVal = (c.desire_value || '').toLowerCase();
         let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
-        if (dVal.includes('data not') || dVal.includes('missing')) {
+        const dExplicitMatch = dVal.includes('100%') || dVal.includes('200%') || dVal.includes('240%') || dVal.includes('meets 100%') || dVal.includes('exceeds') || dVal.includes('100% match') || dVal.includes('100% - match');
+
+        if (dExplicitMatch) {
+          dStatus = 'MATCH';
+        } else if (dVal.includes('data not') || dVal.includes('missing')) {
           dStatus = 'DATA NOT AVAILABLE';
-        } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
+        } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes(' 0%') || dVal.includes('(0%)') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not matching')) {
           dStatus = 'NOT MATCHING';
         } else if (dVal.includes('partial') || dVal.includes('50%') || dVal.includes('75%') || dVal.includes('requires jv') || dVal.includes('gap')) {
           dStatus = 'PARTIAL MATCH';
@@ -343,9 +347,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         // JV Partner capability on this clause
         const jVal = (c.jv_value || '').toLowerCase();
         let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
-        if (jVal.includes('data not') || jVal.includes('missing')) {
+        const jExplicitMatch = jVal.includes('100%') || jVal.includes('200%') || jVal.includes('meets criteria') || jVal.includes('exceeds') || jVal.includes('qualifying') || jVal.includes('satisfies');
+
+        if (jExplicitMatch) {
+          jStatus = 'MATCH';
+        } else if (jVal.includes('data not') || jVal.includes('missing')) {
           jStatus = 'DATA NOT AVAILABLE';
-        } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
+        } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes(' 0%') || jVal.includes('(0%)') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
           jStatus = 'NOT MATCHING';
         } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('63%') || jVal.includes('67%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('75%') || jVal.includes('gap') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
           jStatus = 'PARTIAL MATCH';
