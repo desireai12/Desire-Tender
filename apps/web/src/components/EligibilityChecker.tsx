@@ -93,10 +93,11 @@ export const EligibilityChecker: React.FC = () => {
     }
   };
 
-  // Auto-update JV partner selection when category changes unless user overrides
+  // Auto-update JV partner selection and auto-run dynamic tender analysis on category change or initial mount
   useEffect(() => {
     const optimal = getOptimalPartnerIdForCategory(selectedCategory);
     setSelectedJvPartnerId(optimal);
+    handleRunAnalysis(undefined, selectedCategory, optimal);
   }, [selectedCategory]);
 
   // Fetch Companies on Mount
@@ -116,19 +117,22 @@ export const EligibilityChecker: React.FC = () => {
   }, []);
 
   // Run Dynamic AI Tender Analysis
-  const handleRunAnalysis = async (e?: React.FormEvent) => {
+  const handleRunAnalysis = async (e?: React.FormEvent, catOverride?: string, partnerOverride?: string) => {
     if (e) e.preventDefault();
     setAnalyzing(true);
     setAnalysisError(null);
+
+    const cat = catOverride || selectedCategory;
+    const partner = partnerOverride || selectedJvPartnerId;
 
     try {
       const formData = new FormData();
       if (tenderFile) {
         formData.append('file', tenderFile);
       }
-      formData.append('project_category', selectedCategory);
+      formData.append('project_category', cat);
       formData.append('tender_title', tenderTitleInput);
-      formData.append('jv_partner_id', selectedJvPartnerId);
+      formData.append('jv_partner_id', partner);
 
       const res = await fetch(`${API_BASE_URL}/tender/analyze`, {
         method: 'POST',
