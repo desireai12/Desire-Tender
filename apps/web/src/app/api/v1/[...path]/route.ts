@@ -77,53 +77,7 @@ function extractTextFromPdfBuffer(buffer: Buffer): string {
 
 // ─── DOCUMENT CLASSIFIER ────────────────────────────────────────────────────
 function isNonTenderDocument(filename: string, text: string): boolean {
-  const fl = (filename || '').toLowerCase();
-  const tl = (text || '').toLowerCase();
-
-  // 1. NON-TENDER FILENAME PATTERNS — Reject study roadmaps, guides, syllabi, resumes, invoices
-  const nonTenderFN = [
-    'learning', 'guide', 'roadmap', 'study', 'syllabus', 'course', 'tutorial',
-    'notes', 'textbook', 'chapter', 'assignment', 'lecture', 'exam', 'paper',
-    'resume', '_cv_', 'curriculum vitae', 'biodata', 'bio-data', 'marksheet',
-    'admit', 'hall ticket', 'offer letter', 'appointment',
-    'receipt', 'salary', 'payslip', 'payroll', 'invoice', 'bill',
-    'personal statement', 'bank statement'
-  ];
-  for (const p of nonTenderFN) {
-    if (fl.includes(p)) return true;
-  }
-
-  // 2. TEXT-BASED NON-TENDER PATTERNS (Study Guides, Syllabi, Resumes, Invoices)
-  const studyKeywords = [
-    'table of contents', 'learning outcomes', 'course outline', 'prerequisites',
-    'syllabus', 'study guide', 'chapter 1', 'chapter 2', 'lecture notes',
-    'curriculum vitae', 'educational qualification', 'date of birth',
-    'hobbies', 'personal details', 'invoice no', 'tax invoice', 'bill to',
-    'payment receipt', 'total amount due'
-  ];
-  let studyHits = 0;
-  for (const p of studyKeywords) {
-    if (tl.includes(p)) studyHits++;
-  }
-  if (studyHits >= 2) return true;
-
-  // 3. MANDATORY TENDER SIGNAL AUDIT — Document MUST contain official tender bidding terms
-  const strongTenderSignals = [
-    'notice inviting tender', 'invitation for bid', 'request for proposal',
-    'nit', 'nib', 'rfp', 'rft', 'itb', 'e-tender', 'bidding document',
-    'volume 1', 'vol 1', 'corrigendum', 'addendum', 'earnest money deposit',
-    'emd', 'bid security', 'technical bid', 'financial bid', 'bill of quantities',
-    'boq', 'pre-qualification', 'prequalification', 'contractor registration',
-    'turnover requirement', 'solvency certificate', 'joint venture agreement',
-    'jal jeevan mission', 'phed', 'rudsico', 'gwssb', 'amrut', 'esco', 'kusum'
-  ];
-
-  const hasStrongTenderSignal = strongTenderSignals.some(s => fl.includes(s) || tl.includes(s));
-  if (!hasStrongTenderSignal) {
-    // Neither filename nor text contains official tender bidding markers
-    return true;
-  }
-
+  // Let Gemini AI perform 100% of document reading and evaluation dynamically
   return false;
 }
 
@@ -470,17 +424,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         }
       }
 
-      // 2. KEYWORD CLASSIFIER — Reject invoices/resumes
-      if (isNonTenderDocument(filename, extractedPdfText)) {
-        const rejection = buildRejection(filename);
-        return NextResponse.json({
-          status: 'success',
-          is_rejected_non_tender: true,
-          message: 'Non-tender document detected and rejected.',
-          evaluation_report: rejection,
-          report: rejection
-        });
-      }
+      // 2. Direct Gemini AI Document Analysis — All uploaded documents are read by Gemini AI
+
 
       // 3. Load company credentials
       let comps = GLOBAL_SERVER_COMPANIES;
