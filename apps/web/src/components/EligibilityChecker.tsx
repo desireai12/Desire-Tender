@@ -184,9 +184,9 @@ export const EligibilityChecker: React.FC = () => {
           const dVal = (c.desire_value || '').toLowerCase();
           if (dVal.includes('data not') || dVal.includes('missing')) {
             dStatus = 'DATA NOT AVAILABLE';
-          } else if (dVal.includes('not matching') || dVal.includes('0% - not') || dVal.includes('0% standalone') || dVal.includes('lacks') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met') || dVal.includes('specialized gap')) {
+          } else if (dVal.includes('not matching') || dVal.includes('0% - not') || dVal.includes('0% standalone') || dVal.includes('lacks') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met') || dVal.includes('specialized gap') || dVal.includes('0%')) {
             dStatus = 'NOT MATCHING';
-          } else if (dVal.includes('partial match') || dVal.includes('partial')) {
+          } else if (dVal.includes('partial match') || dVal.includes('partial') || dVal.includes('below') || dVal.includes('insufficient')) {
             dStatus = 'PARTIAL MATCH';
           } else {
             dStatus = 'MATCH';
@@ -199,7 +199,7 @@ export const EligibilityChecker: React.FC = () => {
           const jVal = (c.jv_value || '').toLowerCase();
           if (jVal.includes('data not') || jVal.includes('missing')) {
             jStatus = 'DATA NOT AVAILABLE';
-          } else if (jVal.includes('not matching') || jVal.includes('0% - not') || jVal.includes('0% standalone') || jVal.includes('lacks') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('no esco') || jVal.includes('no solar')) {
+          } else if (jVal.includes('not matching') || jVal.includes('0% - not') || jVal.includes('0% standalone') || jVal.includes('lacks') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('no esco') || jVal.includes('no solar') || jVal.includes('0%')) {
             jStatus = 'NOT MATCHING';
           } else if (jVal.includes('partial match') || jVal.includes('partial') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
             jStatus = 'PARTIAL MATCH';
@@ -278,12 +278,6 @@ export const EligibilityChecker: React.FC = () => {
     const desireEval = evaluatePerspective('desire');
     const jvEval = evaluatePerspective('jv');
     const combinedEval = evaluatePerspective('combined');
-
-    // Guarantee combined consortium score >= individual member scores
-    if (combinedEval.score < desireEval.score || combinedEval.score < jvEval.score) {
-      combinedEval.score = Math.max(desireEval.score, jvEval.score);
-      combinedEval.pctStr = `${combinedEval.score}%`;
-    }
 
     const activeEval = activeAnalysisOption === 'desire' ? desireEval : activeAnalysisOption === 'jv' ? jvEval : combinedEval;
 

@@ -335,9 +335,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           const dVal = (c.desire_value || '').toLowerCase();
           if (dVal.includes('data not') || dVal.includes('missing')) {
             dStatus = 'DATA NOT AVAILABLE';
-          } else if (dVal.includes('not matching') || dVal.includes('0% - not') || dVal.includes('0% standalone') || dVal.includes('lacks') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met') || dVal.includes('specialized gap')) {
+          } else if (dVal.includes('not matching') || dVal.includes('0% - not') || dVal.includes('0% standalone') || dVal.includes('lacks') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met') || dVal.includes('specialized gap') || dVal.includes('0%')) {
             dStatus = 'NOT MATCHING';
-          } else if (dVal.includes('partial match') || dVal.includes('partial')) {
+          } else if (dVal.includes('partial match') || dVal.includes('partial') || dVal.includes('below') || dVal.includes('insufficient')) {
             dStatus = 'PARTIAL MATCH';
           } else {
             dStatus = 'MATCH';
@@ -350,7 +350,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           const jVal = (c.jv_value || '').toLowerCase();
           if (jVal.includes('data not') || jVal.includes('missing')) {
             jStatus = 'DATA NOT AVAILABLE';
-          } else if (jVal.includes('not matching') || jVal.includes('0% - not') || jVal.includes('0% standalone') || jVal.includes('lacks') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('no esco') || jVal.includes('no solar')) {
+          } else if (jVal.includes('not matching') || jVal.includes('0% - not') || jVal.includes('0% standalone') || jVal.includes('lacks') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('no esco') || jVal.includes('no solar') || jVal.includes('0%')) {
             jStatus = 'NOT MATCHING';
           } else if (jVal.includes('partial match') || jVal.includes('partial') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
             jStatus = 'PARTIAL MATCH';
@@ -429,12 +429,6 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const desireEval = evaluatePerspective('desire');
     const jvEval = evaluatePerspective('jv');
     const combinedEval = evaluatePerspective('combined');
-
-    // Mathematically guarantee that Combined Consortium score is >= individual members
-    if (combinedEval.score < desireEval.score || combinedEval.score < jvEval.score) {
-      combinedEval.score = Math.max(desireEval.score, jvEval.score);
-      combinedEval.pctStr = `${combinedEval.score}%`;
-    }
 
     const activeEval = activeAnalysisOption === 'desire' ? desireEval : activeAnalysisOption === 'jv' ? jvEval : combinedEval;
 
@@ -820,58 +814,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               </div>
             </div>
 
-            {/* Dynamic JV Equity % Ratio Slider & Presets */}
             <div className="pt-4 border-t border-teal-200/80 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center space-x-2">
-                  <Sliders className="w-4 h-4 text-teal-800" />
-                  <span className="text-xs font-bold text-slate-900">
-                    Dynamic JV Equity Split Ratio:
-                  </span>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-teal-800 text-white">
-                    Desire {desireEquityRatio}% : {jvComp.name.split(' ')[0]} {partnerEquityRatio}%
-                  </span>
-                </div>
-
-                {/* Preset Split Buttons */}
-                <div className="flex items-center space-x-1.5">
-                  {[
-                    { label: '75 : 25', desire: 75 },
-                    { label: '60 : 40', desire: 60 },
-                    { label: '51 : 49', desire: 51 },
-                    { label: '80 : 20', desire: 80 }
-                  ].map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => setDesireEquityRatio(preset.desire)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                        desireEquityRatio === preset.desire
-                          ? 'bg-teal-800 text-white shadow-sm'
-                          : 'bg-white border border-slate-300 text-slate-700 hover:bg-teal-50'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Range Slider for Custom Percentage */}
-              <div className="flex items-center space-x-4">
-                <span className="text-[11px] font-mono text-slate-600 font-semibold">51% (Min Lead)</span>
-                <input
-                  type="range"
-                  min="51"
-                  max="90"
-                  step="1"
-                  value={desireEquityRatio}
-                  onChange={(e) => setDesireEquityRatio(Number(e.target.value))}
-                  className="w-full accent-teal-700 h-2 bg-slate-200 rounded-lg cursor-pointer"
-                />
-                <span className="text-[11px] font-mono text-slate-600 font-semibold">90%</span>
-              </div>
-
               {/* Dynamic Financial Pooling Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                 <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
