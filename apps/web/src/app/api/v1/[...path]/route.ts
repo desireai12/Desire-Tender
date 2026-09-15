@@ -200,37 +200,19 @@ function parseStatusText(valStr: string): 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCH
 
 function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
   if (!report || !report.clauses_breakdown || !Array.isArray(report.clauses_breakdown)) return report;
-  
-  const titleLower = (report.tender_title || '').toLowerCase();
-  const catUpper = (report.project_category || '').toUpperCase();
-  const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp');
 
   report.clauses_breakdown.forEach((c: any) => {
-    const cTitle = (c.clause_title || '').toLowerCase();
-    const reqText = (c.tender_requirement || '').toLowerCase();
-    const isSewer = isSewerTender && (cTitle.includes('sewer') || cTitle.includes('stp') || reqText.includes('sewer') || reqText.includes('stp'));
-
-    if (isSewer) {
-      c.status = 'MATCH';
-      c.desire_status = 'NOT MATCHING';
-      c.jv_status = 'MATCH';
-      c.fulfilled_pct = '100%';
-      c.desire_value = '120+ km HDPE/DI Water Pipelines (Specialized gap in underground sewerage works - 0% standalone)';
-      c.jv_value = `${jvName}: 136 km Underground Sewer Network & 8 MLD Pumping Station (100% Match)`;
-      c.combined_value = `${jvName} bridges technical gap with 136 km sewer track record (100% Satisfied)`;
-      c.gap_notes = `Desire Energy has a specialized gap in underground sewerage works. ${jvName} bridges this gap.`;
-    } else {
-      if (!c.desire_status) c.desire_status = parseStatusText(c.desire_value);
-      if (!c.jv_status) c.jv_status = parseStatusText(c.jv_value);
-      if (!c.status) c.status = (c.desire_status === 'MATCH' || c.jv_status === 'MATCH') ? 'MATCH' : (c.desire_status === 'PARTIAL MATCH' || c.jv_status === 'PARTIAL MATCH') ? 'PARTIAL MATCH' : 'NOT MATCHING';
-      if (c.status === 'MATCH') c.fulfilled_pct = '100%';
+    if (!c.desire_status) c.desire_status = parseStatusText(c.desire_value);
+    if (!c.jv_status) c.jv_status = parseStatusText(c.jv_value);
+    if (!c.status) {
+      c.status = (c.desire_status === 'MATCH' || c.jv_status === 'MATCH')
+        ? 'MATCH'
+        : (c.desire_status === 'PARTIAL MATCH' || c.jv_status === 'PARTIAL MATCH')
+        ? 'PARTIAL MATCH'
+        : 'NOT MATCHING';
     }
-
-    if (c.desire_value && !isSewer) {
-      c.desire_value = String(c.desire_value).replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
-    }
-    if (c.jv_value && !isSewer) {
-      c.jv_value = String(c.jv_value).replace(/\(\d+% of requirement\)/gi, '(Exceeds Requirement)').replace(/\(\d{3,}%\)/gi, '(Exceeds Requirement)');
+    if (!c.fulfilled_pct) {
+      c.fulfilled_pct = c.status === 'MATCH' ? '100%' : (c.status === 'PARTIAL MATCH' ? '50%' : '0%');
     }
   });
 
@@ -446,10 +428,15 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const titleInput = formTenderTitle || body.tender_title || '';
       const jvPartnerId = formJvPartnerId || body.jv_partner_id || 'comp-vhp-04';
 
-      // 1. Extract full text from PDF
+      // 1. Extract full text from PDF / MD / TXT
       let extractedPdfText = '';
       if (formFileBuffer && formFileBuffer.length > 0) {
-        extractedPdfText = extractTextFromPdfBuffer(formFileBuffer);
+        const fnLower = (filename || '').toLowerCase();
+        if (fnLower.endsWith('.md') || fnLower.endsWith('.txt')) {
+          extractedPdfText = formFileBuffer.toString('utf-8');
+        } else {
+          extractedPdfText = extractTextFromPdfBuffer(formFileBuffer);
+        }
       }
 
       // 2. KEYWORD CLASSIFIER — Reject invoices/resumes
