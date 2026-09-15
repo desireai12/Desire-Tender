@@ -77,49 +77,39 @@ function extractTextFromPdfBuffer(buffer: Buffer): string {
 
 // ─── DOCUMENT CLASSIFIER ────────────────────────────────────────────────────
 function isNonTenderDocument(filename: string, text: string): boolean {
-  const fl = filename.toLowerCase();
-  const tl = text.toLowerCase();
+  const fl = (filename || '').toLowerCase();
+  const tl = (text || '').toLowerCase();
 
-  // Strong tender filename signals — never reject
-  const tenderFN = [
-    'tender','nit','nib','rfp','rft','eoi','pq','prequalif','itb','jjm',
-    'phed','rudsico','gwssb','amrut','esco','kusum','pkg','package',
-    'vol 1','vol-1','boq','corrigendum','addendum','nit_','_nit','bid_'
+  // Strong tender signals in filename or text — if present, it is definitely a tender
+  const tenderSignals = [
+    'tender', 'nit', 'nib', 'rfp', 'rft', 'eoi', 'pq', 'prequalif', 'itb', 'jjm',
+    'phed', 'rudsico', 'gwssb', 'amrut', 'esco', 'kusum', 'pkg', 'package',
+    'vol 1', 'vol-1', 'boq', 'corrigendum', 'addendum', 'technical bid', 'financial bid',
+    'bidding', 'work order', 'contractor', 'turnover', 'solvency', 'earnest money', 'emd',
+    'pipeline', 'water', 'sewer', 'stp', 'solar', 'pump', 'epc', 'scheme'
   ];
-  for (const p of tenderFN) if (fl.includes(p)) return false;
+  if (tenderSignals.some(s => fl.includes(s) || tl.includes(s))) {
+    return false;
+  }
 
-  // Strong non-tender filename signals — always reject
+  // Strong non-tender filename signals — reject resumes, personal bills, payslips
   const nonTenderFN = [
-    'invoice','receipt','bill','payment','salary','payslip','payroll',
-    'resume','_cv_','curriculum vitae','biodata','bio-data','marksheet',
-    'admit','hall ticket','offer letter','appointment','gst_inv','tax_inv',
-    'purchase order','po_','bank statement','statement_'
+    'receipt', 'salary', 'payslip', 'payroll',
+    'resume', '_cv_', 'curriculum vitae', 'biodata', 'bio-data', 'marksheet',
+    'admit', 'hall ticket', 'offer letter', 'appointment',
+    'personal statement', 'bank statement'
   ];
   for (const p of nonTenderFN) if (fl.includes(p)) return true;
 
-  // Text-based non-tender keywords
-  const nonTenderKeywords = [
-    'invoice no','invoice number','tax invoice','bill to','ship to',
-    'grand total','amount due','payment due','gstin','hsn code',
-    'igst','cgst','sgst','debit note','credit note',
-    'date of birth','father name','mother name',
-    'employment history','work experience','current salary',
-    'hobbies','references available','curriculum vitae'
+  // Text-based resume & personal file keywords
+  const resumeKeywords = [
+    'date of birth', 'father name', 'mother name',
+    'employment history', 'current salary',
+    'hobbies', 'references available', 'curriculum vitae'
   ];
-  let nonHits = 0;
-  for (const p of nonTenderKeywords) if (tl.includes(p)) nonHits++;
-  if (nonHits >= 1) return true;
-
-  // Filename based explicit tender bypass
-  const tenderFilenameHints = ['tender', 'nit', 'nib', 'rfp', 'pkg', 'package', 'banaskantha', 'vapi', 'alwar', 'junagadh', 'gwssb', 'wrd', 'phed', 'rudsico', 'scheme', 'epc', 'boq', 'vol', 'upload'];
-  if (tenderFilenameHints.some(hint => fl.includes(hint))) {
-    return false;
-  }
-
-  // If text is empty/short and no invoice keywords, don't reject
-  if (text.trim().length === 0) {
-    return false;
-  }
+  let resumeHits = 0;
+  for (const p of resumeKeywords) if (tl.includes(p)) resumeHits++;
+  if (resumeHits >= 2) return true;
 
   return false;
 }
@@ -158,11 +148,11 @@ function getDeterministicTenderId(titleOrFilename: string): string {
 // ─── HIGH-CAPACITY GEMINI CALLER ───────────────────────────────────────────
 async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null> {
   const models = [
-    'gemini-3.5-flash',   // ✅ confirmed working
     'gemini-3.6-flash',   // ✅ confirmed working
-    'gemini-3.7-flash',   // fallback (may recover)
-    'gemini-3.8-flash',   // fallback
-    'gemini-flash-latest' // fallback
+    'gemini-3.5-flash',   // ✅ confirmed working
+    'gemini-flash-latest', // ✅ confirmed working
+    'gemini-2.0-flash',   // fallback
+    'gemini-1.5-flash'    // fallback
   ];
 
   for (const m of models) {
@@ -493,11 +483,13 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const jvSharePct = jvComp.id === 'comp-aapl-05' ? '25%' : '49%';
       const desireSharePct = jvComp.id === 'comp-aapl-05' ? '75%' : '51%';
 
-      const KEY_B64 = 'QVEuQWI4Uk42S01UVnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
+      const KEY_B64 = 'QVEuQWI4Uk42S01UdnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
       const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
       
       // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
-      const snippet = extractedPdfText ? extractedPdfText.slice(0, 60000) : `Filename: ${filename}. Title: ${titleInput}`;
+      const snippet = (extractedPdfText && extractedPdfText.trim().length > 10)
+        ? extractedPdfText.slice(0, 60000)
+        : `Filename: "${filename}". Title: "${titleInput}". [PDF text stream snippet: "${(extractedPdfText || '').slice(0, 300)}"]`;
 
       // 4. FULL DEEP GEMINI AI PROMPT
       const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
