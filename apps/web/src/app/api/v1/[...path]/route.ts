@@ -80,36 +80,49 @@ function isNonTenderDocument(filename: string, text: string): boolean {
   const fl = (filename || '').toLowerCase();
   const tl = (text || '').toLowerCase();
 
-  // Strong tender signals in filename or text — if present, it is definitely a tender
-  const tenderSignals = [
-    'tender', 'nit', 'nib', 'rfp', 'rft', 'eoi', 'pq', 'prequalif', 'itb', 'jjm',
-    'phed', 'rudsico', 'gwssb', 'amrut', 'esco', 'kusum', 'pkg', 'package',
-    'vol 1', 'vol-1', 'boq', 'corrigendum', 'addendum', 'technical bid', 'financial bid',
-    'bidding', 'work order', 'contractor', 'turnover', 'solvency', 'earnest money', 'emd',
-    'pipeline', 'water', 'sewer', 'stp', 'solar', 'pump', 'epc', 'scheme'
-  ];
-  if (tenderSignals.some(s => fl.includes(s) || tl.includes(s))) {
-    return false;
-  }
-
-  // Strong non-tender filename signals — reject resumes, personal bills, payslips
+  // 1. NON-TENDER FILENAME PATTERNS — Reject study roadmaps, guides, syllabi, resumes, invoices
   const nonTenderFN = [
-    'receipt', 'salary', 'payslip', 'payroll',
+    'learning', 'guide', 'roadmap', 'study', 'syllabus', 'course', 'tutorial',
+    'notes', 'textbook', 'chapter', 'assignment', 'lecture', 'exam', 'paper',
     'resume', '_cv_', 'curriculum vitae', 'biodata', 'bio-data', 'marksheet',
     'admit', 'hall ticket', 'offer letter', 'appointment',
+    'receipt', 'salary', 'payslip', 'payroll', 'invoice', 'bill',
     'personal statement', 'bank statement'
   ];
-  for (const p of nonTenderFN) if (fl.includes(p)) return true;
+  for (const p of nonTenderFN) {
+    if (fl.includes(p)) return true;
+  }
 
-  // Text-based resume & personal file keywords
-  const resumeKeywords = [
-    'date of birth', 'father name', 'mother name',
-    'employment history', 'current salary',
-    'hobbies', 'references available', 'curriculum vitae'
+  // 2. TEXT-BASED NON-TENDER PATTERNS (Study Guides, Syllabi, Resumes, Invoices)
+  const studyKeywords = [
+    'table of contents', 'learning outcomes', 'course outline', 'prerequisites',
+    'syllabus', 'study guide', 'chapter 1', 'chapter 2', 'lecture notes',
+    'curriculum vitae', 'educational qualification', 'date of birth',
+    'hobbies', 'personal details', 'invoice no', 'tax invoice', 'bill to',
+    'payment receipt', 'total amount due'
   ];
-  let resumeHits = 0;
-  for (const p of resumeKeywords) if (tl.includes(p)) resumeHits++;
-  if (resumeHits >= 2) return true;
+  let studyHits = 0;
+  for (const p of studyKeywords) {
+    if (tl.includes(p)) studyHits++;
+  }
+  if (studyHits >= 2) return true;
+
+  // 3. MANDATORY TENDER SIGNAL AUDIT — Document MUST contain official tender bidding terms
+  const strongTenderSignals = [
+    'notice inviting tender', 'invitation for bid', 'request for proposal',
+    'nit', 'nib', 'rfp', 'rft', 'itb', 'e-tender', 'bidding document',
+    'volume 1', 'vol 1', 'corrigendum', 'addendum', 'earnest money deposit',
+    'emd', 'bid security', 'technical bid', 'financial bid', 'bill of quantities',
+    'boq', 'pre-qualification', 'prequalification', 'contractor registration',
+    'turnover requirement', 'solvency certificate', 'joint venture agreement',
+    'jal jeevan mission', 'phed', 'rudsico', 'gwssb', 'amrut', 'esco', 'kusum'
+  ];
+
+  const hasStrongTenderSignal = strongTenderSignals.some(s => fl.includes(s) || tl.includes(s));
+  if (!hasStrongTenderSignal) {
+    // Neither filename nor text contains official tender bidding markers
+    return true;
+  }
 
   return false;
 }
@@ -454,7 +467,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       let comps = GLOBAL_SERVER_COMPANIES;
       if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
       const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
-      const jvComp = comps.find((c: any) => c.id === jvPartnerId || c.type === 'JV Partner') || comps[1] || comps[0];
+      const jvComp = comps.find((c: any) => c.id === jvPartnerId) || comps.find((c: any) => c.type === 'JV Partner' && c.id !== 'comp-desire-01') || comps[1] || comps[0];
       const dT = desireComp.average_turnover || 300.93;
       const dNW = desireComp.net_worth || 95.0;
       const dS = (desireComp as any).solvency_amount || 72.18;
@@ -466,8 +479,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const jvName = jvComp.name || 'JV Partner';
       const jvExp = jvComp.technical_experience || 'Civil & Infrastructure Contractor';
       const jvCerts = Array.isArray(jvComp.certifications) ? jvComp.certifications.join(', ') : 'Standard ISO Certifications';
-      const jvSharePct = jvComp.id === 'comp-aapl-05' ? '25%' : '49%';
-      const desireSharePct = jvComp.id === 'comp-aapl-05' ? '75%' : '51%';
+      const jvSharePct = (jvComp.id === 'comp-aapl-05' || jvComp.id === 'comp-divija-02') ? '25%' : '49%';
+      const desireSharePct = (jvComp.id === 'comp-aapl-05' || jvComp.id === 'comp-divija-02') ? '75%' : '51%';
 
       const KEY_B64 = 'QVEuQWI4Uk42S01UdnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
       const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
