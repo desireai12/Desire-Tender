@@ -117,21 +117,22 @@ export const EligibilityChecker: React.FC = () => {
   }, []);
 
   // Run Dynamic AI Tender Analysis
-  const handleRunAnalysis = async (e?: React.FormEvent, catOverride?: string, partnerOverride?: string) => {
+  const handleRunAnalysis = async (e?: React.FormEvent, catOverride?: string, partnerOverride?: string, fileOverride?: File | null) => {
     if (e) e.preventDefault();
     setAnalyzing(true);
     setAnalysisError(null);
 
     const cat = catOverride || selectedCategory;
     const partner = partnerOverride || selectedJvPartnerId;
+    const fileToUse = fileOverride !== undefined ? fileOverride : tenderFile;
 
     try {
       const formData = new FormData();
-      if (tenderFile) {
-        formData.append('file', tenderFile);
+      if (fileToUse) {
+        formData.append('file', fileToUse);
       }
       formData.append('project_category', cat);
-      formData.append('tender_title', tenderTitleInput);
+      formData.append('tender_title', fileToUse ? fileToUse.name : tenderTitleInput);
       formData.append('jv_partner_id', partner);
 
       const res = await fetch(`${API_BASE_URL}/tender/analyze`, {
@@ -393,13 +394,14 @@ export const EligibilityChecker: React.FC = () => {
                 <Upload className="w-4 h-4 text-emerald-600 shrink-0 ml-2" />
                 <input
                   type="file"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf,.doc,.docx,.md,.txt"
                   className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) {
                       setTenderFile(f);
                       setTenderTitleInput(f.name);
+                      handleRunAnalysis(undefined, selectedCategory, selectedJvPartnerId, f);
                     }
                   }}
                 />
@@ -412,7 +414,13 @@ export const EligibilityChecker: React.FC = () => {
             <label className="text-[11px] font-mono text-slate-700 dark:text-slate-300 font-medium uppercase tracking-wider">Tender Category</label>
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => {
+                const newCat = e.target.value;
+                setSelectedCategory(newCat);
+                const optimal = getOptimalPartnerIdForCategory(newCat);
+                setSelectedJvPartnerId(optimal);
+                handleRunAnalysis(undefined, newCat, optimal, tenderFile);
+              }}
               className="w-full bg-slate-100 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="RHDS">RHDS Jal Jeevan Mission Rural Water Scheme</option>
@@ -434,7 +442,11 @@ export const EligibilityChecker: React.FC = () => {
             </div>
             <select
               value={selectedJvPartnerId}
-              onChange={(e) => setSelectedJvPartnerId(e.target.value)}
+              onChange={(e) => {
+                const newPartner = e.target.value;
+                setSelectedJvPartnerId(newPartner);
+                handleRunAnalysis(undefined, selectedCategory, newPartner, tenderFile);
+              }}
               className="bg-slate-100 dark:bg-[#15233c] border border-slate-200 dark:border-[#263752] rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
             >
               {companies.filter(c => c.type === 'JV Partner').map(c => (
