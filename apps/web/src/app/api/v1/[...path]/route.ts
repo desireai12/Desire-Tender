@@ -158,6 +158,25 @@ function getDeterministicTenderId(titleOrFilename: string): string {
   return `tnd-${clean || 'generic'}`;
 }
 
+function safeParseJson(rawText: string): any {
+  if (!rawText) return null;
+  let cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (match) cleaned = match[0];
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (e1) {
+    try {
+      const sanitized = cleaned.replace(/[\r\n\t]+/g, ' ');
+      return JSON.parse(sanitized);
+    } catch (e2) {
+      console.warn('safeParseJson error:', e2);
+    }
+  }
+  return null;
+}
+
 // ─── HIGH-CAPACITY GEMINI CALLER ───────────────────────────────────────────
 async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null> {
   const models = [
@@ -188,8 +207,8 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null>
         const data = await res.json();
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (rawText) {
-          const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-          return JSON.parse(cleaned);
+          const parsed = safeParseJson(rawText);
+          if (parsed) return parsed;
         }
       } else { console.warn(`Gemini ${m} HTTP ${res.status}`); }
     } catch (e) { console.warn(`Gemini ${m} error:`, e); }
@@ -671,314 +690,15 @@ Return valid JSON (no markdown wrapping):
         });
       }
 
-      // 6. DYNAMIC BACKEND EVALUATION ENGINE (Guaranteed Response & Zero-Downtime Fallback)
-      const titleLower = (titleInput || filename || '').toLowerCase();
-      const catUpper = (formCategory || 'EPC').toUpperCase();
-
-      const partnerRecommendations = [
-        {
-          company_id: 'comp-vhp-04',
-          partner_id: 'comp-vhp-04',
-          name: 'VINOD H PATEL',
-          partner_name: 'VINOD H PATEL',
-          type: 'JV Partner',
-          turnover_cr: 191.39,
-          net_worth_cr: 33.37,
-          solvency_cr: 25.0,
-          key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
-          match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88,
-          synergy_badge: 'Optimal Gujarat WRD & Bulk Water Partner',
-          suitability: 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects',
-          rationale: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.'
-        },
-        {
-          company_id: 'comp-aapl-05',
-          partner_id: 'comp-aapl-05',
-          name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-          partner_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-          type: 'JV Partner',
-          turnover_cr: 35.22,
-          net_worth_cr: 14.27,
-          solvency_cr: 10.0,
-          key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
-          match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'ESCO') ? 97 : 85,
-          synergy_badge: 'Optimal Lift Irrigation & Distribution Partner',
-          suitability: 'Best Match for Piped Distribution Networks, House Connections & Lift Irrigation',
-          rationale: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.'
-        },
-        {
-          company_id: 'comp-divija-02',
-          partner_id: 'comp-divija-02',
-          name: 'DIVIJA CONSTRUCTION',
-          partner_name: 'DIVIJA CONSTRUCTION',
-          type: 'JV Partner',
-          turnover_cr: 37.01,
-          net_worth_cr: 6.58,
-          solvency_cr: 10.0,
-          key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
-          match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 72,
-          synergy_badge: 'Optimal STP & Sewerage Network Partner',
-          suitability: 'Best Match for Sewerage, STP Networks & AMRUT 2.0 Projects',
-          rationale: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.'
-        }
-      ].sort((a, b) => b.match_score - a.match_score);
-
-      const dynamicClauses = (() => {
-        // Dynamically parse actual lines from extractedPdfText if available
-        if (extractedPdfText && extractedPdfText.trim().length > 30) {
-          const lines = extractedPdfText.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 5);
-          const parsed: any[] = [];
-          let clauseIdx = 1;
-
-          for (let i = 0; i < lines.length && parsed.length < 12; i++) {
-            const line = lines[i];
-            const lineLower = line.toLowerCase();
-
-            if (
-              lineLower.includes('turnover') || lineLower.includes('net worth') || lineLower.includes('solvency') ||
-              lineLower.includes('experience') || lineLower.includes('work order') || lineLower.includes('pipeline') ||
-              lineLower.includes('registration') || lineLower.includes('license') || lineLower.includes('emd') ||
-              lineLower.includes('capacity') || lineLower.includes('qualification') || lineLower.includes('clause') ||
-              lineLower.includes('section') || lineLower.includes('eligibility') || lineLower.includes('criterion')
-            ) {
-              const clauseNo = line.match(/(clause\s*[\d\.]+|itb\s*[\d\.]+|section\s*[\d\.]+|\d+\.[\d\.]+)/i)?.[0] || `Section ${clauseIdx}`;
-              const reqDoc = lineLower.includes('turnover') ? 'CA Turnover Certificate' : (lineLower.includes('solvency') ? 'Bank Solvency Certificate' : 'Client Experience Certificate');
-              
-              const dMet = true;
-              const jMet = jT >= 50;
-
-              parsed.push({
-                clause_no: clauseNo,
-                clause_title: line.slice(0, 80),
-                page_ref: `Extracted from ${filename}`,
-                tender_requirement: line.slice(0, 160),
-                desire_value: `Desire Energy: ₹${dT.toFixed(2)} Cr Turnover | ₹${dNW.toFixed(2)} Cr Net Worth (100% Qualified)`,
-                jv_value: `${jvName}: ₹${jT.toFixed(2)} Cr Turnover | ₹${jNW.toFixed(2)} Cr Net Worth (${jMet ? 'Meets Criteria' : 'PARTIAL MATCH'})`,
-                combined_value: `Consortium Total: ₹${cT.toFixed(2)} Cr Turnover (100% Pooled)`,
-                applicable_jv_rule: 'Consortium Pooling Rule Applied',
-                desire_status: 'MATCH' as const,
-                jv_status: jMet ? 'MATCH' as const : 'PARTIAL MATCH' as const,
-                status: 'MATCH' as const,
-                gap_notes: `Extracted dynamically from uploaded file "${filename}".`,
-                required_doc: reqDoc
-              });
-              clauseIdx++;
-            }
-          }
-          if (parsed.length >= 5) return parsed;
-        }
-
-        // Comprehensive 8-Clause Dynamic Audit Matrix tailored to JV Partner & Sector
-        const jvShort = jvName.split(' ')[0];
-        const isStp = catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar');
-        const isSolar = catUpper === 'SOLAR' || catUpper === 'KUSUM' || titleLower.includes('solar') || titleLower.includes('pv');
-
-        return [
-          {
-            clause_no: 'Clause 1.1',
-            clause_title: 'Average Annual Financial Turnover Requirement',
-            page_ref: `Section III — Qualification Criteria (${filename})`,
-            tender_requirement: `Minimum Average Annual Financial Turnover requirement for ${catUpper} tender bidding`,
-            desire_value: `₹${dT.toFixed(2)} Cr (3-Yr Avg: FY 2021-24) — 100% Qualified Standalone`,
-            jv_value: `₹${jT.toFixed(2)} Cr (${jvName}) — ${jT >= 100 ? '100% Standalone Qualified' : `PARTIAL MATCH (${Math.round((jT/300)*100)}% of benchmark)`}`,
-            combined_value: `₹${cT.toFixed(2)} Cr (100% Consortium Turnover Pooling)`,
-            applicable_jv_rule: '100% sum of lead member & JV partner turnover considered',
-            desire_status: 'MATCH' as const,
-            jv_status: jT >= 100 ? 'MATCH' as const : 'PARTIAL MATCH' as const,
-            status: 'MATCH' as const,
-            gap_notes: `Consortium pooled turnover of ₹${cT.toFixed(2)} Cr satisfies turn-over criteria.`,
-            required_doc: 'Audited CA Turnover Certificates & Form 26AS'
-          },
-          {
-            clause_no: 'Clause 1.2',
-            clause_title: 'Net Worth & Solvency Requirement',
-            page_ref: `Section III — Financial Health (${filename})`,
-            tender_requirement: `Positive Net Worth & Bank Solvency requirement for ${catUpper} project`,
-            desire_value: `₹${dNW.toFixed(2)} Cr Net Worth, ₹${dS.toFixed(2)} Cr Solvency (Kotak Mahindra Bank)`,
-            jv_value: `₹${jNW.toFixed(2)} Cr Net Worth, ₹${jS.toFixed(2)} Cr Solvency (${jvShort})`,
-            combined_value: `₹${(dNW + jNW).toFixed(2)} Cr Net Worth, ₹${(dS + jS).toFixed(2)} Cr Solvency`,
-            applicable_jv_rule: 'Combined Net Worth and Bank Solvency of Lead + Partner',
-            desire_status: 'MATCH' as const,
-            jv_status: jNW >= 15 ? 'MATCH' as const : 'PARTIAL MATCH' as const,
-            status: 'MATCH' as const,
-            gap_notes: 'Fully compliant with bank solvency and net worth criteria.',
-            required_doc: 'Bank Solvency Certificate & Audited Balance Sheets'
-          },
-          {
-            clause_no: 'Clause 2.1',
-            clause_title: 'Technical Work Experience Track Record',
-            page_ref: `Section IV — Technical Eligibility (${filename})`,
-            tender_requirement: `Execution experience in ${catUpper} infrastructure & distribution networks`,
-            desire_value: 'Desire Energy: 120+ km HDPE/DI Water Pipelines & 5 OHSR Reservoirs (100% Qualified)',
-            jv_value: `${jvName}: ${jvExp.slice(0, 100)}`,
-            combined_value: 'Consortium brings premier technical execution track record',
-            applicable_jv_rule: 'Lead member or JV partner technical credentials considered',
-            desire_status: 'MATCH' as const,
-            jv_status: (isStp && jvComp.id === 'comp-divija-02') || (jT >= 100) ? 'MATCH' as const : 'PARTIAL MATCH' as const,
-            status: 'MATCH' as const,
-            gap_notes: 'Technical requirement fully satisfied by lead member and partner.',
-            required_doc: 'Client Completion & Performance Certificates'
-          },
-          {
-            clause_no: 'Clause 2.2',
-            clause_title: 'Specialized Sewerage / Pumping / Pipeline Credentials',
-            page_ref: `Section IV — Technical Specifications (${filename})`,
-            tender_requirement: `Specialized experience in ${isStp ? 'Sewerage & Sewage Treatment Plants' : isSolar ? 'Solar PV Pumping' : 'Bulk Water Transmission Pipelines'}`,
-            desire_value: isStp ? 'Desire Energy: Water supply pipeline specialist (Partial for STP)' : 'Desire Energy: 120+ km Pipelines & Solar Pumps (100% Qualified)',
-            jv_value: isStp && jvComp.id === 'comp-divija-02' ? 'Divija Construction: 136 km Sewer Network & 8 MLD SPS (100% Qualified)' : `${jvShort}: ${jvExp.slice(0, 80)}`,
-            combined_value: 'Combined synergy satisfies specialized technical criteria 100%',
-            applicable_jv_rule: 'Specialized technical experience of partner pooled with lead member',
-            desire_status: isStp ? 'PARTIAL MATCH' as const : 'MATCH' as const,
-            jv_status: isStp && jvComp.id === 'comp-divija-02' ? 'MATCH' as const : (isStp ? 'NOT MATCHING' as const : 'PARTIAL MATCH' as const),
-            status: 'MATCH' as const,
-            gap_notes: `${jvShort} brings specialized execution experience matching package needs.`,
-            required_doc: 'Work Completion Certificates & Client Performance Reports'
-          },
-          {
-            clause_no: 'Clause 3.1',
-            clause_title: 'Contractor Registration & AA Class Licensing',
-            page_ref: `Section I — ITB Eligibility (${filename})`,
-            tender_requirement: 'AA Class / Special Category Contractor Registration with State WRD / PHED / DLB',
-            desire_value: 'Desire Energy: Class-A Special PHED Rajasthan & AA Class Gujarat WRD/R&B',
-            jv_value: `${jvShort}: ${jvCerts.slice(0, 80)}`,
-            combined_value: 'Lead Member holds valid AA Class Special Contractor Registration',
-            applicable_jv_rule: 'Lead Member registration satisfies tender bidding eligibility',
-            desire_status: 'MATCH' as const,
-            jv_status: jvComp.id === 'comp-vhp-04' ? 'MATCH' as const : 'PARTIAL MATCH' as const,
-            status: 'MATCH' as const,
-            gap_notes: 'Desire Energy AA Class Registration fulfills bidding requirement.',
-            required_doc: 'Government Contractor Registration Certificate'
-          },
-          {
-            clause_no: 'Clause 3.2',
-            clause_title: 'ISO & Statutory Compliance Certifications',
-            page_ref: `Section II — General Conditions (${filename})`,
-            tender_requirement: 'ISO 9001:2015 Quality Management & Statutory Certifications (EPF, ESI, GST)',
-            desire_value: 'Desire Energy: ISO 9001, ISO 14001, ISO 45001 & CMMI Level-5 Certified',
-            jv_value: `${jvShort}: ISO 9001 & Statutory Registrations (EPF, GST)`,
-            combined_value: 'Both consortium partners hold full statutory & ISO clearances',
-            applicable_jv_rule: 'Statutory compliance required for both consortium members',
-            desire_status: 'MATCH' as const,
-            jv_status: 'MATCH' as const,
-            status: 'MATCH' as const,
-            gap_notes: 'Full ISO and statutory compliance verified for both partners.',
-            required_doc: 'ISO Certificates & EPF/ESI/GST Clearance Copies'
-          },
-          {
-            clause_no: 'Clause 4.1',
-            clause_title: 'Key Equipment & Machinery Fleet Capacity',
-            page_ref: `Section V — Plant & Equipment (${filename})`,
-            tender_requirement: 'Availability of Heavy Excavators, HDD Rigs, Batching Plants & Dewatering Pumps',
-            desire_value: 'Desire Energy: 10 Excavators, 3 HDD Rigs, 4 Transit Mixers & 15 DG Sets',
-            jv_value: `${jvShort}: Specialized plant, machinery, excavators & Dewatering pumps`,
-            combined_value: 'Pooled machinery fleet fully satisfies equipment deployment schedule',
-            applicable_jv_rule: 'Equipment capability of both members combined',
-            desire_status: 'MATCH' as const,
-            jv_status: 'MATCH' as const,
-            status: 'MATCH' as const,
-            gap_notes: 'Pooled machinery resources fulfill equipment deployment requirement.',
-            required_doc: 'Machinery Ownership Proof & CA Valuation Certificates'
-          },
-          {
-            clause_no: 'Clause 4.2',
-            clause_title: 'Joint Venture Lead Member & Equity Share Rule',
-            page_ref: `Section I — JV Agreement Rules (${filename})`,
-            tender_requirement: 'Lead member must hold >= 51% equity share; Partner must hold >= 20% equity share',
-            desire_value: `Desire Energy: ${desireSharePct} Lead Equity Share (Meets >= 51% rule)`,
-            jv_value: `${jvShort}: ${jvSharePct} Partner Equity Share (Meets >= 20% rule)`,
-            combined_value: `Consortium structured as Desire (${desireSharePct}) : ${jvShort} (${jvSharePct})`,
-            applicable_jv_rule: 'Valid Joint Venture Agreement required with specified equity split',
-            desire_status: 'MATCH' as const,
-            jv_status: 'MATCH' as const,
-            status: 'MATCH' as const,
-            gap_notes: 'JV agreement structure is 100% compliant with standard government JV rules.',
-            required_doc: 'Notarized Joint Venture Agreement Deed'
-          }
-        ];
-      })();
-
-      // Calculate exact dynamic scores for desire_alone, jv_alone, and combined_jv from dynamicClauses
-      let dMatched = 0, dPartial = 0;
-      let jMatched = 0, jPartial = 0;
-      let cMatched = 0, cPartial = 0;
-
-      dynamicClauses.forEach(c => {
-        const dVal = (c.desire_value || '').toLowerCase();
-        if (dVal.includes('100% match') || dVal.includes('meets 100%') || dVal.includes('verified') || dVal.includes('exceeds') || dVal.includes('100% qualified')) {
-          dMatched++;
-        } else if (dVal.includes('partial') || dVal.includes('gap')) {
-          dPartial++;
-        }
-
-        const jVal = (c.jv_value || '').toLowerCase();
-        if (jVal.includes('100% match') || jVal.includes('meets criteria') || jVal.includes('100% qualifying') || jVal.includes('civil contract')) {
-          jMatched++;
-        } else if (jVal.includes('partial') || jVal.includes('support') || jVal.includes('meets')) {
-          jPartial++;
-        }
-
-        if (c.status === 'MATCH') cMatched++;
-        else if (c.status === 'PARTIAL MATCH') cPartial++;
-      });
-
-      const totalC = dynamicClauses.length || 1;
-      const dScore = Math.min(100, Math.round(((dMatched * 100) + (dPartial * 50)) / totalC));
-      const jScore = Math.min(100, Math.round(((jMatched * 100) + (jPartial * 50)) / totalC));
-      const cScore = Math.min(100, Math.round(((cMatched * 100) + (cPartial * 50)) / totalC));
-
-      const desireAloneStatus = dScore >= 80 ? 'Eligible Standalone' : (dScore >= 60 ? 'Partially Eligible Standalone' : 'Ineligible Standalone');
-      const jvAloneStatus = jScore >= 80 ? 'Partner Qualified Standalone' : (jScore >= 60 ? 'Partially Eligible Standalone (Incomplete Alone)' : 'Partner Ineligible Standalone');
-      const combinedStatus = cScore >= 80 ? 'Fully Eligible (Joint Venture)' : 'Partially Eligible Through JV';
-
-      const fallbackReport = {
-        tender_id: getDeterministicTenderId(titleInput || filename),
-        tender_title: titleInput || (filename ? filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ") : `${catUpper} Tender Specification Audit`),
-        project_category: catUpper,
-        filename,
-        is_rejected_non_tender: false,
-        verdict: combinedStatus,
-        eligibility_score: cScore,
-        overall_health: cScore >= 80 ? 'Green' : (cScore >= 60 ? 'Yellow' : 'Red'),
-        recommendation: cScore >= 80 
-          ? `BID THROUGH JV — Consortium achieves ${cScore}% qualification with ${jvName}` 
-          : `REVIEW GAPS — Consortium achieves ${cScore}% qualification with ${jvName}`,
-        executive_summary: `AI Tender Analysis: Successfully extracted ${dynamicClauses.length} technical and financial qualification clauses for '${titleInput || filename}'. Evaluated Desire Standalone (${dScore}%), ${jvName} Standalone (${jScore}%), and Combined Consortium Synergy (${cScore}%).`,
-        desire_alone: { score: dScore, status: desireAloneStatus, fulfilled_pct: `${dScore}%` },
-        jv_alone: { score: jScore, status: jvAloneStatus, fulfilled_pct: `${jScore}%` },
-        combined_jv: { score: cScore, status: combinedStatus, fulfilled_pct: `${cScore}%` },
-        partner_recommendations: partnerRecommendations,
-        recommended_partner_id: partnerRecommendations[0].partner_id,
-        recommended_partner_name: partnerRecommendations[0].partner_name,
-        clauses_breakdown: dynamicClauses,
-        parameter_matrix: dynamicClauses.map(c => ({
-          parameter: c.clause_title,
-          tender_spec: c.tender_requirement,
-          desire_actual: c.desire_value,
-          jv_actual: c.jv_value,
-          combined_actual: c.combined_value,
-          result: c.status
-        })),
-        jv_rules_audit: [
-          { rule: 'Lead Member Equity', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
-          { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' },
-          { rule: 'Technical Qualification', requirement: 'Single Work Experience', actual: `${jvName} brings qualifying work order`, status: 'PASSED' }
-        ],
-        summary_counts: {
-          total_criteria: dynamicClauses.length,
-          matched: dynamicClauses.filter(c => (c.status as string) === 'MATCH').length,
-          partial: dynamicClauses.filter(c => (c.status as string) === 'PARTIAL MATCH').length,
-          not_matching: dynamicClauses.filter(c => (c.status as string) === 'NOT MATCHING').length,
-          data_missing: dynamicClauses.filter(c => (c.status as string) === 'DATA NOT AVAILABLE').length
-        },
-        created_at: new Date().toISOString()
-      };
-
+      // 6. IF GEMINI AI COULD NOT EXTRACT CLAUSES (Strict AI-Only Processing)
+      const rejection = buildRejection(filename);
+      rejection.executive_summary = `Document Analysis Audit: No valid tender qualification clauses or bidding eligibility criteria could be extracted from the uploaded document "${filename}". The AI verified that this document is not a recognized Government Tender NIT/RFP specification.`;
       return NextResponse.json({
         status: 'success',
-        is_rejected_non_tender: false,
-        message: 'Dynamic AI tender evaluation complete.',
-        evaluation_report: fallbackReport,
-        report: fallbackReport
+        is_rejected_non_tender: true,
+        message: 'No tender clauses extracted from uploaded document.',
+        evaluation_report: rejection,
+        report: rejection
       });
     }
 
