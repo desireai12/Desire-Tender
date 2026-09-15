@@ -80,12 +80,13 @@ function isNonTenderDocument(filename: string, text: string): boolean {
   const fl = (filename || '').toLowerCase();
   const tl = (text || '').toLowerCase();
 
-  // 1. NON-TENDER FILENAME & CONTENT PATTERNS (Plagiarism Reports, Syllabi, Resumes, Invoices, Roadmaps)
+  // 1. NON-TENDER FILENAME & CONTENT PATTERNS (Plagiarism Reports, Syllabi, Resumes, Invoices, Roadmaps, PPTs)
   const nonTenderPatterns = [
     'plagiarism', 'smallseotools', 'turnitin', 'grammarly', 'similarity index', 'duplicate content',
     'roadmap', 'study guide', 'syllabus', 'course outline', 'lecture notes', 'curriculum',
     'curriculum vitae', 'resume', '_cv_', 'biodata', 'marksheet', 'admit card',
-    'tax invoice', 'invoice no', 'payment receipt', 'salary slip', 'payslip', 'bill to'
+    'tax invoice', 'invoice no', 'payment receipt', 'salary slip', 'payslip', 'bill to',
+    'workshop', 'presentation', 'ppt', 'slides', 'deck', 'meeting notes'
   ];
 
   for (const p of nonTenderPatterns) {
@@ -94,7 +95,7 @@ function isNonTenderDocument(filename: string, text: string): boolean {
     }
   }
 
-  // 2. TENDER SIGNAL AUDIT
+  // 2. TENDER SIGNAL AUDIT — Check if file contains official tender/bidding markers
   const tenderSignals = [
     'tender', 'bid', 'rfp', 'nit', 'nib', 'sbd', 'dtp', 'boq', 'crore', 'lakh',
     'turnover', 'solvency', 'experience', 'contractor', 'phed', 'wrd', 'work order',
@@ -102,29 +103,32 @@ function isNonTenderDocument(filename: string, text: string): boolean {
   ];
 
   const hasTenderSignal = tenderSignals.some(s => fl.includes(s) || tl.includes(s));
-  if (!hasTenderSignal && tl.length > 30) {
-    // Document contains text but has ZERO tender or financial bidding terms -> Reject as non-tender
+  if (!hasTenderSignal) {
+    // Document contains no official tender bidding markers -> Reject as non-tender
     return true;
   }
 
   return false;
 }
 
-function buildRejection(filename: string, textSnippet: string = '') {
-  const isPlagiarism = filename.toLowerCase().includes('plagiarism') || textSnippet.toLowerCase().includes('plagiarism');
-  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : 'Invoice, Resume, Syllabus, or Non-Tender File';
+function buildRejection(filename: string = '', textSnippet: string = '') {
+  const fnLower = (filename || '').toLowerCase();
+  const textLower = (textSnippet || '').toLowerCase();
+  const isPlagiarism = fnLower.includes('plagiarism') || textLower.includes('plagiarism');
+  const isPpt = fnLower.includes('ppt') || fnLower.includes('workshop') || textLower.includes('workshop');
+  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : 'Invoice, Resume, Syllabus, or Non-Tender File');
 
   return {
     tender_id: `rejected-${Date.now()}`,
-    tender_title: filename,
+    tender_title: filename || 'uploaded_document.pdf',
     project_category: 'NON_TENDER',
-    filename,
+    filename: filename || 'uploaded_document.pdf',
     is_rejected_non_tender: true,
     verdict: 'Ineligible',
     eligibility_score: 0,
     overall_health: 'Red',
     recommendation: 'DOCUMENT REJECTED — Upload an official Government Tender Document (NIB / NIT / RFP)',
-    executive_summary: `Document Rejected: The uploaded file "${filename}" is NOT a tender document. The system verified that this file is a ${docTypeDesc} and contains ZERO tender bidding clauses or qualification criteria. Please upload an official Government or Corporate Tender Specification PDF.`,
+    executive_summary: `Document Rejected: The uploaded file "${filename || 'uploaded_document.pdf'}" is NOT a tender document. The system verified that this file is a ${docTypeDesc} and contains ZERO tender bidding clauses or qualification criteria. Please upload an official Government or Corporate Tender Specification PDF.`,
     desire_alone: { score: 0, status: 'Ineligible — Non-Tender File', fulfilled_pct: '0%' },
     jv_alone: { score: 0, status: 'Ineligible — Non-Tender File', fulfilled_pct: '0%' },
     combined_jv: { score: 0, status: 'Ineligible — Non-Tender File', fulfilled_pct: '0%' },
@@ -521,63 +525,64 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
     // ═══ TENDER ANALYZE ═══════════════════════════════════════════════════════
     if (subPath === 'tender/analyze' && method === 'POST') {
-      const filename = formFilename || body.filename || 'uploaded_document.pdf';
-      const titleInput = formTenderTitle || body.tender_title || '';
-      const jvPartnerId = formJvPartnerId || body.jv_partner_id || 'comp-vhp-04';
+      try {
+        const filename = formFilename || body.filename || 'uploaded_document.pdf';
+        const titleInput = formTenderTitle || body.tender_title || '';
+        const jvPartnerId = formJvPartnerId || body.jv_partner_id || 'comp-vhp-04';
 
-      // 1. Extract full text from PDF / MD / TXT
-      let extractedPdfText = '';
-      if (formFileBuffer && formFileBuffer.length > 0) {
-        const fnLower = (filename || '').toLowerCase();
-        if (fnLower.endsWith('.md') || fnLower.endsWith('.txt')) {
-          extractedPdfText = formFileBuffer.toString('utf-8');
-        } else {
-          extractedPdfText = extractTextFromPdfBuffer(formFileBuffer);
+        // 1. Extract full text from PDF / MD / TXT
+        let extractedPdfText = '';
+        if (formFileBuffer && formFileBuffer.length > 0) {
+          const fnLower = (filename || '').toLowerCase();
+          if (fnLower.endsWith('.md') || fnLower.endsWith('.txt')) {
+            extractedPdfText = formFileBuffer.toString('utf-8');
+          } else {
+            extractedPdfText = extractTextFromPdfBuffer(formFileBuffer);
+          }
         }
-      }
 
-      // 2. KEYWORD & NON-TENDER CLASSIFIER — Reject plagiarism reports, resumes, syllabi, invoices
-      if (isNonTenderDocument(filename, extractedPdfText)) {
-        const rejection = buildRejection(filename, extractedPdfText);
-        return NextResponse.json({
-          status: 'success',
-          is_rejected_non_tender: true,
-          message: 'Non-tender document detected and rejected.',
-          evaluation_report: rejection,
-          report: rejection
-        });
-      }
+        // 2. KEYWORD & NON-TENDER CLASSIFIER — Reject plagiarism reports, resumes, syllabi, invoices
+        if (isNonTenderDocument(filename, extractedPdfText)) {
+          const rejection = buildRejection(filename, extractedPdfText);
+          return NextResponse.json({
+            status: 'success',
+            is_rejected_non_tender: true,
+            message: 'Non-tender document detected and rejected.',
+            evaluation_report: rejection,
+            report: rejection
+          });
+        }
 
 
-      // 3. Load company credentials
-      let comps = GLOBAL_SERVER_COMPANIES;
-      if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
-      const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
-      const jvComp = comps.find((c: any) => c.id === jvPartnerId) || comps.find((c: any) => c.type === 'JV Partner' && c.id !== 'comp-desire-01') || comps[1] || comps[0];
-      const dT = desireComp.average_turnover || 300.93;
-      const dNW = desireComp.net_worth || 95.0;
-      const dS = (desireComp as any).solvency_amount || 72.18;
-      const jT = jvComp.average_turnover || 37.01;
-      const jNW = jvComp.net_worth || 6.58;
-      const jS = (jvComp as any).solvency_amount || 10.0;
-      const cT = dT + jT;
+        // 3. Load company credentials
+        let comps = GLOBAL_SERVER_COMPANIES;
+        if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
+        const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
+        const jvComp = comps.find((c: any) => c.id === jvPartnerId) || comps.find((c: any) => c.type === 'JV Partner' && c.id !== 'comp-desire-01') || comps[1] || comps[0];
+        const dT = desireComp.average_turnover || 300.93;
+        const dNW = desireComp.net_worth || 95.0;
+        const dS = (desireComp as any).solvency_amount || 72.18;
+        const jT = jvComp.average_turnover || 37.01;
+        const jNW = jvComp.net_worth || 6.58;
+        const jS = (jvComp as any).solvency_amount || 10.0;
+        const cT = dT + jT;
 
-      const jvName = jvComp.name || 'JV Partner';
-      const jvExp = jvComp.technical_experience || 'Civil & Infrastructure Contractor';
-      const jvCerts = Array.isArray(jvComp.certifications) ? jvComp.certifications.join(', ') : 'Standard ISO Certifications';
-      const jvSharePct = (jvComp.id === 'comp-aapl-05' || jvComp.id === 'comp-divija-02') ? '25%' : '49%';
-      const desireSharePct = (jvComp.id === 'comp-aapl-05' || jvComp.id === 'comp-divija-02') ? '75%' : '51%';
+        const jvName = jvComp.name || 'JV Partner';
+        const jvExp = jvComp.technical_experience || 'Civil & Infrastructure Contractor';
+        const jvCerts = Array.isArray(jvComp.certifications) ? jvComp.certifications.join(', ') : 'Standard ISO Certifications';
+        const jvSharePct = (jvComp.id === 'comp-aapl-05' || jvComp.id === 'comp-divija-02') ? '25%' : '49%';
+        const desireSharePct = (jvComp.id === 'comp-aapl-05' || jvComp.id === 'comp-divija-02') ? '75%' : '51%';
 
-      const KEY_B64 = 'QVEuQWI4Uk42S01UdnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
-      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
-      
-      // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
-      const snippet = (extractedPdfText && extractedPdfText.trim().length > 10)
-        ? extractedPdfText.slice(0, 60000)
-        : `Filename: "${filename}". Title: "${titleInput}". [PDF text stream snippet: "${(extractedPdfText || '').slice(0, 300)}"]`;
+        const KEY_B64 = 'QVEuQWI4Uk42S01UdnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
+        const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
+        
+        // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
+        const snippet = (extractedPdfText && extractedPdfText.trim().length > 10)
+          ? extractedPdfText.slice(0, 60000)
+          : `Filename: "${filename}". Title: "${titleInput}". [PDF text stream snippet: "${(extractedPdfText || '').slice(0, 300)}"]`;
 
-      // 4. FULL DEEP GEMINI AI PROMPT
-      const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
+        // 4. FULL DEEP GEMINI AI PROMPT
+        const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
 
 COMPANY MASTER CREDENTIALS:
 1. DESIRE ENERGY SOLUTIONS PVT LTD (Lead Member, ${desireSharePct} Share):
@@ -647,141 +652,141 @@ Return valid JSON (no markdown wrapping):
   ]
 }`;
 
-      const aiResult = await callGeminiAI(prompt, geminiKey);
+        const aiResult = await callGeminiAI(prompt, geminiKey);
 
-      // 5. Process Gemini response
-      if (aiResult && typeof aiResult === 'object') {
-        const fnCheck = `${filename} ${titleInput}`.toLowerCase();
-        const isKnownTender = ['sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp', 'esco', 'contract', 'project'].some(k => fnCheck.includes(k));
+        // 5. Process Gemini response
+        if (aiResult && typeof aiResult === 'object') {
+          const fnCheck = `${filename} ${titleInput}`.toLowerCase();
+          const isKnownTender = ['sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp', 'esco', 'contract', 'project'].some(k => fnCheck.includes(k));
 
-        if (aiResult.is_rejected_non_tender === true && !isKnownTender) {
-          const rejection = buildRejection(filename);
-          rejection.executive_summary = aiResult.executive_summary || rejection.executive_summary;
-          rejection.tender_title = aiResult.tender_title || filename;
+          if (aiResult.is_rejected_non_tender === true && !isKnownTender) {
+            const rejection = buildRejection(filename, extractedPdfText);
+            rejection.executive_summary = aiResult.executive_summary || rejection.executive_summary;
+            rejection.tender_title = aiResult.tender_title || filename;
+            return NextResponse.json({
+              status: 'success',
+              is_rejected_non_tender: true,
+              message: 'AI confirmed: Not a tender document.',
+              evaluation_report: rejection,
+              report: rejection
+            });
+          }
+
+          aiResult.tender_id = getDeterministicTenderId(titleInput || filename);
+          aiResult.filename = filename;
+          aiResult.is_rejected_non_tender = false;
+          aiResult.parameter_matrix = (aiResult.clauses_breakdown || []).map((c: any) => ({
+            parameter: c.clause_title,
+            tender_requirement: c.tender_requirement,
+            company_capability: `Desire: ${c.desire_value} | JV: ${c.jv_value}`,
+            status: c.status === 'MATCH' ? 'Met' : 'Not Met',
+            gap_notes: c.gap_notes
+          }));
+          aiResult.jv_rules_audit = [
+            { rule: 'Lead Member Equity Share', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
+            { rule: 'Minimum Partner Share', requirement: '>= 20%', actual: `${jvSharePct} (${jvName})`, status: 'PASSED' },
+            { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' }
+          ];
+          const titleLower = (aiResult.tender_title || titleInput || '').toLowerCase();
+          const catUpper = (aiResult.project_category || formCategory || '').toUpperCase();
+
+          // Dynamic Sector & Keyword Matched Partner Recommendation Ranking
+          const partnerRecommendations = [
+            {
+              company_id: 'comp-vhp-04',
+              partner_id: 'comp-vhp-04',
+              company_name: 'VINOD H PATEL & CO.',
+              partner_name: 'VINOD H PATEL & CO.',
+              rank: 1,
+              type: 'JV Partner',
+              turnover_cr: 191.39,
+              net_worth_cr: 33.37,
+              solvency_cr: 25.0,
+              key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
+              reason: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.',
+              suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) 
+                ? 'BEST MATCH — Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' 
+                : 'Strong Financial & High Turnover Partner (₹191.39 Cr Avg Turnover)',
+              equity_suggestion: 'Desire 75% : Partner 25%',
+              fills_gaps: ['Bulk Water Transmission Pipelines', 'GWSSB/WRD AA Class Credentials', 'High Turnover Pooling'],
+              match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 85
+            },
+            {
+              company_id: 'comp-aapl-05',
+              partner_id: 'comp-aapl-05',
+              company_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
+              partner_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
+              rank: 2,
+              type: 'JV Partner',
+              turnover_cr: 35.22,
+              net_worth_cr: 14.27,
+              solvency_cr: 10.0,
+              key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
+              reason: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.',
+              suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'RHDS' || catUpper === 'ESCO') 
+                ? 'BEST MATCH — Piped Water Distribution Networks, House Connections & Lift Irrigation' 
+                : 'Specialized Water Supply & Lift Irrigation Partner',
+              equity_suggestion: 'Desire 75% : Partner 25%',
+              fills_gaps: ['Piped Water Distribution Networks', 'Lift Irrigation Schemes', '25% Equity JV Synergy'],
+              match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'RHDS' || catUpper === 'ESCO') ? 97 : 82
+            },
+            {
+              company_id: 'comp-divija-02',
+              partner_id: 'comp-divija-02',
+              company_name: 'DIVIJA CONSTRUCTION',
+              partner_name: 'DIVIJA CONSTRUCTION',
+              rank: 3,
+              type: 'JV Partner',
+              turnover_cr: 37.01,
+              net_worth_cr: 6.58,
+              solvency_cr: 10.0,
+              key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
+              reason: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.',
+              suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) 
+                ? 'BEST MATCH — Underground Sewerage, STP Networks & AMRUT 2.0 Projects' 
+                : 'Sub-optimal for Water Supply (Specialized for Underground Sewerage Only)',
+              equity_suggestion: 'Desire 75% : Partner 25%',
+              fills_gaps: ['Underground Sewerage Networks', 'STP Technical Experience'],
+              match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 60
+            }
+          ].sort((a, b) => b.match_score - a.match_score).map((r, i) => ({ ...r, rank: i + 1 }));
+
+          aiResult.partner_recommendations = partnerRecommendations;
+          aiResult.recommended_partner_id = partnerRecommendations[0].partner_id;
+          aiResult.recommended_partner_name = partnerRecommendations[0].partner_name;
+
+          const cleanAi = sanitizeReportClauses(aiResult, jvName);
           return NextResponse.json({
             status: 'success',
-            is_rejected_non_tender: true,
-            message: 'AI confirmed: Not a tender document.',
-            evaluation_report: rejection,
-            report: rejection
+            is_rejected_non_tender: false,
+            message: 'Gemini AI tender evaluation complete.',
+            evaluation_report: cleanAi,
+            report: cleanAi
           });
         }
 
-        aiResult.tender_id = getDeterministicTenderId(titleInput || filename);
-        aiResult.filename = filename;
-        aiResult.is_rejected_non_tender = false;
-        aiResult.parameter_matrix = (aiResult.clauses_breakdown || []).map((c: any) => ({
+        // 6. DYNAMIC TEXT-DRIVEN TENDER EVALUATION — Extract custom clauses and dynamic scores from PDF text
+        const dynamicReport = generateDynamicTenderReport(filename, titleInput, extractedPdfText, desireComp, jvComp);
+        dynamicReport.parameter_matrix = (dynamicReport.clauses_breakdown || []).map((c: any) => ({
           parameter: c.clause_title,
           tender_requirement: c.tender_requirement,
           company_capability: `Desire: ${c.desire_value} | JV: ${c.jv_value}`,
           status: c.status === 'MATCH' ? 'Met' : 'Not Met',
           gap_notes: c.gap_notes
         }));
-        aiResult.jv_rules_audit = [
+        dynamicReport.jv_rules_audit = [
           { rule: 'Lead Member Equity Share', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
           { rule: 'Minimum Partner Share', requirement: '>= 20%', actual: `${jvSharePct} (${jvName})`, status: 'PASSED' },
           { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' }
         ];
-        const titleLower = (aiResult.tender_title || titleInput || '').toLowerCase();
-        const catUpper = (aiResult.project_category || formCategory || '').toUpperCase();
 
-        // Dynamic Sector & Keyword Matched Partner Recommendation Ranking
-        const partnerRecommendations = [
-          {
-            company_id: 'comp-vhp-04',
-            partner_id: 'comp-vhp-04',
-            company_name: 'VINOD H PATEL & CO.',
-            partner_name: 'VINOD H PATEL & CO.',
-            rank: 1,
-            type: 'JV Partner',
-            turnover_cr: 191.39,
-            net_worth_cr: 33.37,
-            solvency_cr: 25.0,
-            key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
-            reason: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.',
-            suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) 
-              ? 'BEST MATCH — Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' 
-              : 'Strong Financial & High Turnover Partner (₹191.39 Cr Avg Turnover)',
-            equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Bulk Water Transmission Pipelines', 'GWSSB/WRD AA Class Credentials', 'High Turnover Pooling'],
-            match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 85
-          },
-          {
-            company_id: 'comp-aapl-05',
-            partner_id: 'comp-aapl-05',
-            company_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-            partner_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-            rank: 2,
-            type: 'JV Partner',
-            turnover_cr: 35.22,
-            net_worth_cr: 14.27,
-            solvency_cr: 10.0,
-            key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
-            reason: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.',
-            suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'RHDS' || catUpper === 'ESCO') 
-              ? 'BEST MATCH — Piped Water Distribution Networks, House Connections & Lift Irrigation' 
-              : 'Specialized Water Supply & Lift Irrigation Partner',
-            equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Piped Water Distribution Networks', 'Lift Irrigation Schemes', '25% Equity JV Synergy'],
-            match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'RHDS' || catUpper === 'ESCO') ? 97 : 82
-          },
-          {
-            company_id: 'comp-divija-02',
-            partner_id: 'comp-divija-02',
-            company_name: 'DIVIJA CONSTRUCTION',
-            partner_name: 'DIVIJA CONSTRUCTION',
-            rank: 3,
-            type: 'JV Partner',
-            turnover_cr: 37.01,
-            net_worth_cr: 6.58,
-            solvency_cr: 10.0,
-            key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
-            reason: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.',
-            suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) 
-              ? 'BEST MATCH — Underground Sewerage, STP Networks & AMRUT 2.0 Projects' 
-              : 'Sub-optimal for Water Supply (Specialized for Underground Sewerage Only)',
-            equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Underground Sewerage Networks', 'STP Technical Experience'],
-            match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 60
-          }
-        ].sort((a, b) => b.match_score - a.match_score).map((r, i) => ({ ...r, rank: i + 1 }));
-
-        aiResult.partner_recommendations = partnerRecommendations;
-        aiResult.recommended_partner_id = partnerRecommendations[0].partner_id;
-        aiResult.recommended_partner_name = partnerRecommendations[0].partner_name;
-
-        const cleanAi = sanitizeReportClauses(aiResult, jvName);
         return NextResponse.json({
           status: 'success',
           is_rejected_non_tender: false,
-          message: 'Gemini AI tender evaluation complete.',
-          evaluation_report: cleanAi,
-          report: cleanAi
+          message: 'Tender qualification evaluation complete.',
+          evaluation_report: dynamicReport,
+          report: dynamicReport
         });
-      }
-
-      // 6. DYNAMIC TEXT-DRIVEN TENDER EVALUATION — Extract custom clauses and dynamic scores from PDF text
-      const dynamicReport = generateDynamicTenderReport(filename, titleInput, extractedPdfText, desireComp, jvComp);
-      dynamicReport.parameter_matrix = (dynamicReport.clauses_breakdown || []).map((c: any) => ({
-        parameter: c.clause_title,
-        tender_requirement: c.tender_requirement,
-        company_capability: `Desire: ${c.desire_value} | JV: ${c.jv_value}`,
-        status: c.status === 'MATCH' ? 'Met' : 'Not Met',
-        gap_notes: c.gap_notes
-      }));
-      dynamicReport.jv_rules_audit = [
-        { rule: 'Lead Member Equity Share', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
-        { rule: 'Minimum Partner Share', requirement: '>= 20%', actual: `${jvSharePct} (${jvName})`, status: 'PASSED' },
-        { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' }
-      ];
-
-      return NextResponse.json({
-        status: 'success',
-        is_rejected_non_tender: false,
-        message: 'Tender qualification evaluation complete.',
-        evaluation_report: dynamicReport,
-        report: dynamicReport
-      });
     }
 
     // ═══ COMPANIES ═══════════════════════════════════════════════════════════
