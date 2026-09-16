@@ -90,20 +90,21 @@ function isNonTenderDocument(filename: string, text: string): boolean {
   const fl = (filename || '').toLowerCase();
   const tl = (text || '').toLowerCase();
 
-  // ONLY reject if explicit, unambiguous non-tender file patterns are present (e.g. resumes, plagiarism reports, tax invoices)
-  const explicitNonTenderPatterns = [
+  // NON-TENDER FILENAME & CONTENT PATTERNS (Resumes, Project Reports, Syllabi, Invoices, PPTs)
+  const nonTenderPatterns = [
     'plagiarism', 'smallseotools', 'turnitin', 'grammarly', 'similarity index', 'duplicate content',
     'curriculum vitae', 'resume', '_cv_', 'biodata', 'marksheet', 'admit card',
-    'tax invoice', 'salary slip', 'payslip', 'bill to'
+    'tax invoice', 'invoice', 'payment receipt', 'salary slip', 'payslip', 'bill to',
+    'project report', 'bca project', 'mca project', 'btech project', 'college project',
+    'assignment', 'thesis', 'dissertation', 'lecture notes', 'study guide', 'syllabus'
   ];
 
-  for (const p of explicitNonTenderPatterns) {
+  for (const p of nonTenderPatterns) {
     if (fl.includes(p) || tl.includes(p)) {
       return true;
     }
   }
 
-  // Do NOT pre-reject based on missing keywords — allow Gemini AI to study the document text directly!
   return false;
 }
 
@@ -112,7 +113,8 @@ function buildRejection(filename: string = '', textSnippet: string = '') {
   const textLower = (textSnippet || '').toLowerCase();
   const isPlagiarism = fnLower.includes('plagiarism') || textLower.includes('plagiarism');
   const isPpt = fnLower.includes('ppt') || fnLower.includes('workshop') || textLower.includes('workshop');
-  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : 'Invoice, Resume, Syllabus, or Non-Tender File');
+  const isProjectReport = fnLower.includes('project report') || fnLower.includes('bca') || fnLower.includes('mca') || fnLower.includes('btech');
+  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : (isProjectReport ? 'Student / College Project Report' : 'Invoice, Resume, Syllabus, or Non-Tender File'));
 
   return {
     tender_id: `rejected-${Date.now()}`,
@@ -137,6 +139,9 @@ function buildRejection(filename: string = '', textSnippet: string = '') {
 }
 
 function generateDynamicTenderReport(filename: string, titleInput: string, text: string, desireComp: any, jvComp: any) {
+  if (isNonTenderDocument(filename, text)) {
+    return buildRejection(filename, text);
+  }
   const nameClean = `${filename} ${titleInput}`.toLowerCase();
   const fullText = (text || '').toLowerCase();
   const jvName = jvComp?.name || 'VINOD H PATEL & CO.';
@@ -698,7 +703,7 @@ Return valid JSON (no markdown wrapping):
           const fnCheck = `${filename} ${titleInput}`.toLowerCase();
           const isKnownTender = ['sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp', 'esco', 'contract', 'project'].some(k => fnCheck.includes(k));
 
-          if (aiResult.is_rejected_non_tender === true && !isKnownTender) {
+          if (aiResult.is_rejected_non_tender === true) {
             const rejection = buildRejection(filename, extractedPdfText);
             rejection.executive_summary = aiResult.executive_summary || rejection.executive_summary;
             rejection.tender_title = aiResult.tender_title || filename;
