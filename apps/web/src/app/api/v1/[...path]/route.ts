@@ -90,21 +90,20 @@ function isNonTenderDocument(filename: string, text: string): boolean {
   const fl = (filename || '').toLowerCase();
   const tl = (text || '').toLowerCase();
 
-  // NON-TENDER FILENAME & CONTENT PATTERNS (Resumes, Project Reports, Syllabi, Invoices, PPTs)
-  const nonTenderPatterns = [
+  // ONLY reject if explicit, unambiguous non-tender file patterns are present (e.g. resumes, plagiarism reports, tax invoices)
+  const explicitNonTenderPatterns = [
     'plagiarism', 'smallseotools', 'turnitin', 'grammarly', 'similarity index', 'duplicate content',
     'curriculum vitae', 'resume', '_cv_', 'biodata', 'marksheet', 'admit card',
-    'tax invoice', 'invoice', 'payment receipt', 'salary slip', 'payslip', 'bill to',
-    'project report', 'bca project', 'mca project', 'btech project', 'college project',
-    'assignment', 'thesis', 'dissertation', 'lecture notes', 'study guide', 'syllabus'
+    'tax invoice', 'salary slip', 'payslip', 'bill to'
   ];
 
-  for (const p of nonTenderPatterns) {
+  for (const p of explicitNonTenderPatterns) {
     if (fl.includes(p) || tl.includes(p)) {
       return true;
     }
   }
 
+  // Do NOT pre-reject based on missing keywords — allow Gemini AI to study the document text directly!
   return false;
 }
 
@@ -113,8 +112,7 @@ function buildRejection(filename: string = '', textSnippet: string = '') {
   const textLower = (textSnippet || '').toLowerCase();
   const isPlagiarism = fnLower.includes('plagiarism') || textLower.includes('plagiarism');
   const isPpt = fnLower.includes('ppt') || fnLower.includes('workshop') || textLower.includes('workshop');
-  const isProjectReport = fnLower.includes('project report') || fnLower.includes('bca') || fnLower.includes('mca') || fnLower.includes('btech');
-  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : (isProjectReport ? 'Student / College Project Report' : 'Invoice, Resume, Syllabus, or Non-Tender File'));
+  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : 'Invoice, Resume, Syllabus, or Non-Tender File');
 
   return {
     tender_id: `rejected-${Date.now()}`,
@@ -139,12 +137,16 @@ function buildRejection(filename: string = '', textSnippet: string = '') {
 }
 
 function generateDynamicTenderReport(filename: string, titleInput: string, text: string, desireComp: any, jvComp: any) {
-  if (isNonTenderDocument(filename, text)) {
-    return buildRejection(filename, text);
-  }
   const nameClean = `${filename} ${titleInput}`.toLowerCase();
   const fullText = (text || '').toLowerCase();
   const jvName = jvComp?.name || 'VINOD H PATEL & CO.';
+
+  // Non-Tender Filter Safeguard: If the document text & filename contain NO tender context or bidding keywords, reject as non-tender
+  const hasTenderContext = ['kankrej', 'diyodar', 'banaskantha', 'vapi', 'karvad', 'alwar', 'stp', 'pkg', 'nit', 'rfp', 'nib', 'sbd', 'dtp', 'tender', 'solvency', 'turnover', 'work order', 'boq', 'contractor', 'qualification', 'phed', 'wrd', 'gwssb'].some(k => nameClean.includes(k) || fullText.includes(k));
+  
+  if (!hasTenderContext && !fullText.includes('crore') && !fullText.includes('lakh')) {
+    return buildRejection(filename, text);
+  }
 
   let reportTitle = titleInput || filename.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
   let estAmountCr = 45.00;
@@ -700,8 +702,6 @@ Return valid JSON (no markdown wrapping):
         // 5. Process Gemini response
         if (aiResult && typeof aiResult === 'object') {
           sanitizeReportClauses(aiResult, jvName);
-          const fnCheck = `${filename} ${titleInput}`.toLowerCase();
-          const isKnownTender = ['sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp', 'esco', 'contract', 'project'].some(k => fnCheck.includes(k));
 
           if (aiResult.is_rejected_non_tender === true) {
             const rejection = buildRejection(filename, extractedPdfText);
