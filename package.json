@@ -1,0 +1,13 @@
+{
+  "name": "desire-tender-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm --prefix apps/web run build",
+    "dev": "npm --prefix apps/web run dev",
+    "start": "npm --prefix apps/web run start"
+  }
+}
