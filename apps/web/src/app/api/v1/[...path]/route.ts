@@ -814,6 +814,13 @@ Return valid JSON (no markdown wrapping):
           evaluation_report: dynamicReport,
           report: dynamicReport
         });
+      } catch (analyzeErr: any) {
+        console.error('Tender analyze error:', analyzeErr);
+        return NextResponse.json({
+          status: 'error',
+          message: `Tender evaluation failed: ${analyzeErr.message}`
+        }, { status: 500 });
+      }
     }
 
     // ═══ COMPANIES ═══════════════════════════════════════════════════════════
