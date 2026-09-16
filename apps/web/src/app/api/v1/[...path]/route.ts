@@ -36,7 +36,17 @@ function getDeterministicTenderId(str: string): string {
 }
 
 // ─── HIGH-CAPACITY PDF TEXT EXTRACTOR ───────────────────────────────────────
-function extractTextFromPdfBuffer(buffer: Buffer): string {
+async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
+  try {
+    const pdfParse = require('pdf-parse');
+    const parsed = await pdfParse(buffer);
+    if (parsed && parsed.text && parsed.text.trim().length > 30) {
+      return parsed.text;
+    }
+  } catch (e) {
+    console.warn('pdf-parse fallback:', e);
+  }
+
   try {
     const textPieces: string[] = [];
     const rawStr = buffer.toString('latin1');
@@ -75,9 +85,9 @@ function extractTextFromPdfBuffer(buffer: Buffer): string {
     const metaR = /\/(Title|Subject|Author|Keywords)\s*\(([^)]+)\)/gi;
     while ((m = metaR.exec(combined)) !== null) chunks.push(m[2]);
 
-    // Extract printable text chunks (up to 5000 segments)
+    // Extract printable text chunks (up to 10000 segments)
     const raw = combined.match(/[A-Za-z0-9\s\u20B9\.,\-\/:\(\)]{3,}/g);
-    if (raw) chunks.push(...raw.slice(0, 5000));
+    if (raw) chunks.push(...raw.slice(0, 10000));
 
     return chunks.join(' ');
   } catch (e) {
@@ -88,13 +98,25 @@ function extractTextFromPdfBuffer(buffer: Buffer): string {
 // ─── DOCUMENT CLASSIFIER ────────────────────────────────────────────────────
 function isNonTenderDocument(filename: string, text: string): boolean {
   const fl = (filename || '').toLowerCase();
-  const tl = (text || '').toLowerCase();
+  const tl = (typeof text === 'string' ? text : '').toLowerCase();
 
-  // ONLY reject if explicit, unambiguous non-tender file patterns are present (e.g. resumes, plagiarism reports, tax invoices)
+  // Safeguard: NEVER classify as non-tender if filename or title contains explicit tender keywords
+  const isKnownTenderFilename = [
+    'sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'junagadh',
+    'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp',
+    'esco', 'contract', 'phed', 'wrd', 'gwssb', 'rudsico', 'amrut', 'jjm', 'kusum', 'work order', 'civil'
+  ].some(k => fl.includes(k));
+
+  if (isKnownTenderFilename) {
+    return false;
+  }
+
+  // Reject if explicit, unambiguous non-tender file patterns are present (resumes, plagiarism reports, invoices, student project reports, syllabi)
   const explicitNonTenderPatterns = [
     'plagiarism', 'smallseotools', 'turnitin', 'grammarly', 'similarity index', 'duplicate content',
     'curriculum vitae', 'resume', '_cv_', 'biodata', 'marksheet', 'admit card',
-    'tax invoice', 'salary slip', 'payslip', 'bill to'
+    'tax invoice', 'salary slip', 'payslip', 'bill to', 'bca project', 'student report',
+    'assignment 1', 'assignment 2', 'term paper', 'syllabus', 'course material'
   ];
 
   for (const p of explicitNonTenderPatterns) {
@@ -103,16 +125,16 @@ function isNonTenderDocument(filename: string, text: string): boolean {
     }
   }
 
-  // Do NOT pre-reject based on missing keywords — allow Gemini AI to study the document text directly!
   return false;
 }
 
 function buildRejection(filename: string = '', textSnippet: string = '') {
   const fnLower = (filename || '').toLowerCase();
-  const textLower = (textSnippet || '').toLowerCase();
+  const textLower = (typeof textSnippet === 'string' ? textSnippet : '').toLowerCase();
   const isPlagiarism = fnLower.includes('plagiarism') || textLower.includes('plagiarism');
   const isPpt = fnLower.includes('ppt') || fnLower.includes('workshop') || textLower.includes('workshop');
-  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : 'Invoice, Resume, Syllabus, or Non-Tender File');
+  const isBca = fnLower.includes('bca') || fnLower.includes('project report') || textLower.includes('bca');
+  const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : (isBca ? 'Student / General Project Report' : 'Invoice, Resume, Syllabus, or Non-Tender File'));
 
   return {
     tender_id: `rejected-${Date.now()}`,
@@ -124,7 +146,7 @@ function buildRejection(filename: string = '', textSnippet: string = '') {
     eligibility_score: 0,
     overall_health: 'Red',
     recommendation: 'DOCUMENT REJECTED — Upload an official Government Tender Document (NIB / NIT / RFP)',
-    executive_summary: `Document Rejected: The uploaded file "${filename || 'uploaded_document.pdf'}" is NOT a tender document. The system verified that this file is a ${docTypeDesc} and contains ZERO tender bidding clauses or qualification criteria. Please upload an official Government or Corporate Tender Specification PDF.`,
+    executive_summary: `Document Rejected: The uploaded file "${filename || 'uploaded_document.pdf'}" is NOT an official tender document. The system verified that this file is a ${docTypeDesc} and contains ZERO government bidding clauses or tender qualification criteria. Please upload an official Government or Corporate Tender Specification PDF (NIT / NIB / RFP).`,
     desire_alone: { score: 0, status: 'Ineligible — Non-Tender File', fulfilled_pct: '0%' },
     jv_alone: { score: 0, status: 'Ineligible — Non-Tender File', fulfilled_pct: '0%' },
     combined_jv: { score: 0, status: 'Ineligible — Non-Tender File', fulfilled_pct: '0%' },
@@ -138,14 +160,24 @@ function buildRejection(filename: string = '', textSnippet: string = '') {
 
 function generateDynamicTenderReport(filename: string, titleInput: string, text: string, desireComp: any, jvComp: any) {
   const nameClean = `${filename} ${titleInput}`.toLowerCase();
-  const fullText = (text || '').toLowerCase();
+  const fullText = (typeof text === 'string' ? text : '').toLowerCase();
   const jvName = jvComp?.name || 'VINOD H PATEL & CO.';
+
+  // Check if explicit non-tender file
+  const isExplicitNonTender = [
+    'plagiarism', 'resume', 'cv', 'biodata', 'invoice', 'salary', 'bca', 'project report bca',
+    'assignment', 'term paper', 'syllabus', 'course'
+  ].some(k => nameClean.includes(k) || fullText.includes(k));
+
+  if (isExplicitNonTender) {
+    return buildRejection(filename, typeof text === 'string' ? text : '');
+  }
 
   // Non-Tender Filter Safeguard: If the document text & filename contain NO tender context or bidding keywords, reject as non-tender
   const hasTenderContext = ['kankrej', 'diyodar', 'banaskantha', 'vapi', 'karvad', 'alwar', 'stp', 'pkg', 'nit', 'rfp', 'nib', 'sbd', 'dtp', 'tender', 'solvency', 'turnover', 'work order', 'boq', 'contractor', 'qualification', 'phed', 'wrd', 'gwssb'].some(k => nameClean.includes(k) || fullText.includes(k));
   
   if (!hasTenderContext && !fullText.includes('crore') && !fullText.includes('lakh')) {
-    return buildRejection(filename, text);
+    return buildRejection(filename, typeof text === 'string' ? text : '');
   }
 
   let reportTitle = titleInput || filename.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
@@ -290,7 +322,7 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
 }
 
 async function callGeminiAI(prompt: string, apiKey: string): Promise<any> {
-  const models = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
   for (const m of models) {
     try {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
@@ -576,7 +608,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           if (fnLower.endsWith('.md') || fnLower.endsWith('.txt')) {
             extractedPdfText = formFileBuffer.toString('utf-8');
           } else {
-            extractedPdfText = extractTextFromPdfBuffer(formFileBuffer);
+            extractedPdfText = await extractTextFromPdfBuffer(formFileBuffer);
           }
         }
 
@@ -702,6 +734,18 @@ Return valid JSON (no markdown wrapping):
         // 5. Process Gemini response
         if (aiResult && typeof aiResult === 'object') {
           sanitizeReportClauses(aiResult, jvName);
+
+          // Safeguard against AI hallucinating non-tender rejection for actual tender documents:
+          const fnCheck = `${filename} ${titleInput}`.toLowerCase();
+          const isKnownTenderPattern = [
+            'sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'junagadh',
+            'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp',
+            'esco', 'contract', 'phed', 'wrd', 'gwssb', 'rudsico', 'amrut', 'jjm', 'kusum', 'work order', 'civil'
+          ].some(k => fnCheck.includes(k));
+
+          if (isKnownTenderPattern) {
+            aiResult.is_rejected_non_tender = false;
+          }
 
           if (aiResult.is_rejected_non_tender === true) {
             const rejection = buildRejection(filename, extractedPdfText);
