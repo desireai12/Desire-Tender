@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { API_BASE_URL } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import { Upload, RefreshCw, CheckCircle2, FileText } from 'lucide-react';
 
 interface TenderUploadModalProps {
@@ -30,29 +31,62 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
     setIsAnalyzing(true);
     setErrorMsg(null);
 
-    const formData = new FormData();
-    const fileToUpload = file.size > 4 * 1024 * 1024
-      ? new File([file.slice(0, 4 * 1024 * 1024)], file.name, { type: 'application/pdf' })
-      : file;
-    formData.append('file', fileToUpload);
-    formData.append('filename', file.name);
-    formData.append('project_category', projectCategory);
-
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/tender/analyze?provider=${currentProvider}`,
-        { method: 'POST', body: formData }
-      );
+      let uploadedFilePath: string | null = null;
+      if (supabase) {
+        try {
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storagePath = `tenders/${Date.now()}_${safeName}`;
+          const { error: storageErr } = await supabase.storage
+            .from('tender-uploads')
+            .upload(storagePath, file, { upsert: true });
+
+          if (!storageErr) {
+            uploadedFilePath = storagePath;
+          }
+        } catch (sErr) {
+          console.warn('Supabase storage exception in upload modal:', sErr);
+        }
+      }
+
+      let res: Response;
+      if (uploadedFilePath) {
+        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_path: uploadedFilePath,
+            filename: file.name,
+            project_category: projectCategory,
+          }),
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('filename', file.name);
+        formData.append('project_category', projectCategory);
+
+        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+          method: 'POST',
+          body: formData,
+        });
+      }
+
       if (res.ok) {
         const data = await res.json();
-        if (data.evaluation_report) {
-          onAnalysisComplete(data.evaluation_report);
+        if (data.status === 'rejected' || data.is_rejected_non_tender) {
+          setErrorMsg(data.message || data.reason || 'Document Rejected: Not a valid tender document.');
+        } else if (data.status === 'error') {
+          setErrorMsg(data.message || 'Could not complete analysis. Please retry.');
+        } else if (data.evaluation_report || data.report) {
+          onAnalysisComplete(data.evaluation_report || data.report);
         }
       } else {
-        setErrorMsg('Server error during analysis. Displaying demo report.');
+        const errJson = await res.json().catch(() => null);
+        setErrorMsg(errJson?.message || errJson?.detail || 'Server error during analysis. Please retry.');
       }
     } catch {
-      setErrorMsg('Backend not reachable. Demo report is displayed.');
+      setErrorMsg('Network error connecting to backend server. Please retry.');
     } finally {
       setIsAnalyzing(false);
     }

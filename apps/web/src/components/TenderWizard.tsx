@@ -24,6 +24,7 @@ import {
   Percent
 } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import { 
   ProjectCategory, 
   DepartmentRole, 
@@ -180,35 +181,71 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     setAnalysisError(null);
 
     try {
-      const formData = new FormData();
-      if (uploadedTenderFile) {
-        const fileToUpload = uploadedTenderFile.size > 4 * 1024 * 1024
-          ? new File([uploadedTenderFile.slice(0, 4 * 1024 * 1024)], uploadedTenderFile.name, { type: 'application/pdf' })
-          : uploadedTenderFile;
-        formData.append('file', fileToUpload);
-        formData.append('filename', uploadedTenderFile.name);
+      let uploadedFilePath: string | null = null;
+
+      if (uploadedTenderFile && supabase) {
+        try {
+          const safeName = uploadedTenderFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storagePath = `tenders/${Date.now()}_${safeName}`;
+          const { error: storageErr } = await supabase.storage
+            .from('tender-uploads')
+            .upload(storagePath, uploadedTenderFile, { upsert: true });
+
+          if (!storageErr) {
+            uploadedFilePath = storagePath;
+          } else {
+            console.warn('Supabase storage upload fallback to direct payload:', storageErr);
+          }
+        } catch (sErr) {
+          console.warn('Supabase storage exception:', sErr);
+        }
       }
-      formData.append('project_category', selectedCategory);
-      formData.append('tender_title', tenderTitle);
-      formData.append('jv_partner_id', selectedJvPartnerId);
 
       setAnalysisProgress(30);
       setAnalysisStageText('Parsing All Tender Clauses, Requirements & Technical Specifications...');
 
-      const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
-        method: 'POST',
-        body: formData,
-      });
+      let res: Response;
+      if (uploadedFilePath) {
+        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_path: uploadedFilePath,
+            filename: uploadedTenderFile?.name || 'uploaded_document.pdf',
+            project_category: selectedCategory,
+            tender_title: tenderTitle,
+            jv_partner_id: selectedJvPartnerId,
+          }),
+        });
+      } else {
+        const formData = new FormData();
+        if (uploadedTenderFile) {
+          formData.append('file', uploadedTenderFile);
+          formData.append('filename', uploadedTenderFile.name);
+        }
+        formData.append('project_category', selectedCategory);
+        formData.append('tender_title', tenderTitle);
+        formData.append('jv_partner_id', selectedJvPartnerId);
+
+        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+          method: 'POST',
+          body: formData,
+        });
+      }
 
       setAnalysisProgress(65);
       setAnalysisStageText('Evaluating Desire Energy vs. Tender Criteria (Clause by Clause)...');
 
       if (res.ok) {
         const data = await res.json();
-        fetchedReport = data.evaluation_report || data.report;
-        if (data.is_rejected_non_tender || (fetchedReport && (fetchedReport as any).is_rejected_non_tender)) {
+        if (data.status === 'rejected' || data.is_rejected_non_tender) {
           isRejected = true;
-          rejectMsg = fetchedReport?.executive_summary || 'Uploaded file is a Non-Tender document.';
+          rejectMsg = data.message || data.reason || 'Uploaded file is a Non-Tender document.';
+          setAnalysisError(rejectMsg);
+        } else if (data.status === 'error') {
+          setAnalysisError(data.message || 'Could not complete analysis — please retry.');
+        } else {
+          fetchedReport = data.evaluation_report || data.report;
         }
 
         setAnalysisProgress(85);
@@ -222,7 +259,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           }
         }
       } else {
-        setAnalysisError(`Tender Analysis Server returned status ${res.status}. Please try again.`);
+        const errJson = await res.json().catch(() => null);
+        setAnalysisError(errJson?.message || errJson?.detail || `Tender Analysis Server returned status ${res.status}. Please try again.`);
       }
     } catch (err) {
       console.error('Tender analysis API call error:', err);

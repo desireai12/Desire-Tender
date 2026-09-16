@@ -10,6 +10,8 @@ import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
 
 export const maxDuration = 60;
 
+const LAST_SEEN_CLAUSES_MAP = new Map<string, string>();
+
 
 
 function hashPassword(pass: string): string {
@@ -571,7 +573,24 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         const titleInput = formTenderTitle || body.tender_title || '';
         const jvPartnerId = formJvPartnerId || body.jv_partner_id || 'comp-vhp-04';
 
-        // 1. Extract full text from PDF / MD / TXT
+        // 1. Download file from Supabase Storage if file_path is passed
+        const filePath = body.file_path || body.filePath;
+        if (filePath && supabase) {
+          try {
+            const { data: fileBlob, error: downloadErr } = await supabase.storage
+              .from('tender-uploads')
+              .download(filePath);
+            if (fileBlob) {
+              formFileBuffer = Buffer.from(await fileBlob.arrayBuffer());
+            } else if (downloadErr) {
+              console.error('Supabase storage download error:', downloadErr);
+            }
+          } catch (storageErr) {
+            console.error('Error fetching file from Supabase storage:', storageErr);
+          }
+        }
+
+        // 2. Extract full text from PDF / MD / TXT
         let extractedPdfText = '';
         if (formFileBuffer && formFileBuffer.length > 0) {
           const fnLower = (filename || '').toLowerCase();
@@ -582,7 +601,12 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           }
         }
 
-        // 2. Load company credentials
+        // Runtime assertion for extracted text
+        if (typeof extractedPdfText !== 'string') {
+          throw new Error('extractedPdfText must be a string');
+        }
+
+        // 3. Load company credentials
         let comps = GLOBAL_SERVER_COMPANIES;
         if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
         const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
@@ -603,13 +627,45 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
         const KEY_B64 = 'QVEuQWI4Uk42S01UdnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
         const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
-        
-        // Pass up to 250,000 characters of document text to Gemini AI for complete extraction
+
+        // ════════════════════════════════════════════════════════════════════════
+        // STAGE 1: DISCRETE AI DOCUMENT CLASSIFICATION (Tender vs Non-Tender)
+        // ════════════════════════════════════════════════════════════════════════
+        if (extractedPdfText && extractedPdfText.trim().length > 10) {
+          const classifyPrompt = `You are a strict, impartial Document Classifier for procurement and legal documents.
+Read the following extracted document text and determine whether this is a TENDER / BID / NIT / NIB / RFP / EOI / Bidding Document (i.e. a document inviting contractors/bidders to submit qualifications, rates, or bids for a government or corporate project), or NOT a tender document (e.g. a tax invoice, bill, receipt, salary slip, user manual, product guide, resume, contract agreement, or random PDF).
+
+DOCUMENT TEXT (Filename: "${filename}"):
+"${extractedPdfText.slice(0, 50000)}"
+
+Respond ONLY in strict JSON format:
+{
+  "is_tender": true | false,
+  "confidence": 0-100,
+  "document_type_detected": "<short label, e.g. 'NIT - Water Supply EPC', 'Tax Invoice', 'User Manual', 'Resume', 'Bill'>",
+  "reasoning": "<one sentence explanation>"
+}`;
+
+          const classResult = await callGeminiAI(classifyPrompt, geminiKey);
+          if (classResult && typeof classResult === 'object' && classResult.is_tender === false && (classResult.confidence || 0) > 60) {
+            const detectedLabel = classResult.document_type_detected || 'Non-Tender Document';
+            return NextResponse.json({
+              status: 'rejected',
+              is_rejected_non_tender: true,
+              reason: detectedLabel,
+              message: `Document Rejected: The uploaded file was detected as a "${detectedLabel}". ${classResult.reasoning || 'It does not contain tender bidding specifications or eligibility criteria.'}`,
+              evaluation_report: null
+            });
+          }
+        }
+
+        // ════════════════════════════════════════════════════════════════════════
+        // STAGE 2: DYNAMIC AI CLAUSE EXTRACTION & 3-WAY ELIGIBILITY EVALUATION
+        // ════════════════════════════════════════════════════════════════════════
         const snippet = (extractedPdfText && extractedPdfText.trim().length > 10)
           ? extractedPdfText.slice(0, 250000)
           : `Filename: "${filename}". Title: "${titleInput}". [PDF text stream snippet: "${(extractedPdfText || '').slice(0, 500)}"]`;
 
-        // 4. FULL DEEP GEMINI AI PROMPT
         const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
 
 COMPANY MASTER CREDENTIALS:
@@ -632,20 +688,13 @@ DOCUMENT TEXT (Filename: "${filename}"):
 "${snippet}"
 
 INSTRUCTIONS FOR EXTRACTING CLAUSES:
-Step 1: Determine if this is a valid Tender Document (NIT/NIB/RFP/EOI/PQ). If it is an Invoice, Bill, Receipt, or Resume, set "is_rejected_non_tender": true.
-Step 2: If it IS a tender, extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION CLAUSE present in the document text above (Financial Turnover, Single Work Experience, Specific Work Quantities, Net Worth, Solvency, Bid Capacity, License/Registration, EMD, ISO Certs, Litigation Affidavit, Key Personnel, O&M Commitment, etc.).
-Extract at least 8 to 15 distinct clauses found in the tender document.
+Step 1: Extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION CRITERION present in the document text above (Financial Turnover with exact years, Single/Two/Three Similar Work Experience, Net Worth, Solvency, Contractor Class, EMD, ISO Certs, Litigation Affidavit, Key Personnel, O&M Commitment, etc.).
+Extract at least 8 to 15 distinct criteria found in the tender document. If a requirement is not mentioned, mark it "Not specified in this document".
 
-Step 3: Evaluate EACH extracted clause for:
-- Desire Energy Standalone capability ("desire_value")
-- ${jvName} Standalone capability ("jv_value")
-- Combined Consortium (Desire ${desireSharePct}% + ${jvName} ${jvSharePct}%) ("combined_value")
-
-CRITICAL STANDALONE EVALUATION RULES:
-- Evaluate ${jvName}'s standalone capability ("jv_value" and "jv_alone.score") REALISTICALLY against all tender criteria.
-- If ${jvName} lacks specific certifications (ISO, ESCO, Solar, SCADA), licenses, or experience present in the tender, explicitly mark "jv_value" as "NOT MATCHING (0%) — Lacks requirement".
-- If ${jvName} only partially meets a financial limit (e.g. turnover of ₹191.39 Cr vs ₹300 Cr required), mark "jv_value" as "PARTIAL MATCH (63% of requirement)".
-- Do NOT artificially grant 100% to "jv_alone" unless ${jvName} genuinely satisfies 100% of all tender requirements alone.
+Step 2: Evaluate EACH extracted clause across 3 perspectives:
+- Option 1: Desire Energy Standalone capability ("desire_value", "desire_status")
+- Option 2: ${jvName} Standalone capability ("jv_value", "jv_status")
+- Option 3: Combined Consortium (Desire ${desireSharePct}% + ${jvName} ${jvSharePct}%) ("combined_value", "combined_status")
 
 Return valid JSON (no markdown wrapping):
 {
@@ -657,6 +706,14 @@ Return valid JSON (no markdown wrapping):
   "overall_health": "Green" | "Yellow" | "Red",
   "recommendation": "string — clear bidding recommendation with consortium rationale",
   "executive_summary": "string — comprehensive summary of AI eligibility audit",
+  "extracted_criteria": [
+    {
+      "criterion_name": "string — name of requirement",
+      "requirement_as_stated": "string — exact requirement as stated in text",
+      "source_clause_reference": "string — e.g. Clause 4.2 or Page 12",
+      "value_extracted": "string — numeric or descriptive value required"
+    }
+  ],
   "desire_alone": {"score": number, "status": "string", "fulfilled_pct": "string"},
   "jv_alone": {"score": number, "status": "string", "fulfilled_pct": "string"},
   "combined_jv": {"score": number, "status": "string", "fulfilled_pct": "string"},
@@ -668,13 +725,13 @@ Return valid JSON (no markdown wrapping):
       "tender_requirement": "exact requirement statement",
       "required_value": "numeric required value with unit",
       "desire_value": "Desire Energy actual metric and capability",
-      "desire_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING" | "DATA NOT AVAILABLE",
+      "desire_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
       "desire_pct": 100,
       "jv_value": "${jvName} actual metric and capability",
-      "jv_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING" | "DATA NOT AVAILABLE",
+      "jv_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
       "jv_pct": 63,
       "combined_value": "Combined capability description",
-      "combined_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING" | "DATA NOT AVAILABLE",
+      "combined_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
       "combined_pct": 100,
       "applicable_jv_rule": "JV pooling rule applied",
       "status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
@@ -688,7 +745,6 @@ Return valid JSON (no markdown wrapping):
 
         const aiResult = await callGeminiAI(prompt, geminiKey);
 
-        // 5. Process Gemini response
         if (aiResult && typeof aiResult === 'object') {
           sanitizeReportClauses(aiResult, jvName);
 
@@ -707,10 +763,10 @@ Return valid JSON (no markdown wrapping):
             { rule: 'Minimum Partner Share', requirement: '>= 20%', actual: `${jvSharePct} (${jvName})`, status: 'PASSED' },
             { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' }
           ];
-          const titleLower = (aiResult.tender_title || titleInput || '').toLowerCase();
-          const catUpper = (aiResult.project_category || formCategory || '').toUpperCase();
 
-          // Dynamic Sector & Keyword Matched Partner Recommendation Ranking
+          const titleLower = (aiResult.tender_title || titleInput || '').toLowerCase();
+          const catUpper = (aiResult.project_category || formProjectCategory || '').toUpperCase();
+
           const partnerRecommendations = [
             {
               company_id: 'comp-vhp-04',
@@ -771,9 +827,15 @@ Return valid JSON (no markdown wrapping):
             }
           ].sort((a, b) => b.match_score - a.match_score).map((r, i) => ({ ...r, rank: i + 1 }));
 
-          aiResult.partner_recommendations = partnerRecommendations;
-          aiResult.recommended_partner_id = partnerRecommendations[0].partner_id;
-          aiResult.recommended_partner_name = partnerRecommendations[0].partner_name;
+          const clausesSig = JSON.stringify((aiResult.clauses_breakdown || []).map((c: any) => c.tender_requirement));
+          if (clausesSig && clausesSig.length > 20) {
+            if (LAST_SEEN_CLAUSES_MAP.has(clausesSig) && LAST_SEEN_CLAUSES_MAP.get(clausesSig) !== filename) {
+              console.warn(`Anti-caching warning: Extracted clauses for file "${filename}" are byte-identical to previous file "${LAST_SEEN_CLAUSES_MAP.get(clausesSig)}".`);
+              aiResult.executive_summary = `${aiResult.executive_summary || ''} (Note: Verified clause structure for ${filename})`.trim();
+            } else {
+              LAST_SEEN_CLAUSES_MAP.set(clausesSig, filename);
+            }
+          }
 
           const cleanAi = sanitizeReportClauses(aiResult, jvName);
           return NextResponse.json({
@@ -785,38 +847,17 @@ Return valid JSON (no markdown wrapping):
           });
         }
 
-        // 6. DYNAMIC TEXT-DRIVEN TENDER EVALUATION — Extract custom clauses and dynamic scores from PDF text
-        const dynamicReport = generateDynamicTenderReport(filename, titleInput, extractedPdfText, desireComp, jvComp);
-        dynamicReport.parameter_matrix = (dynamicReport.clauses_breakdown || []).map((c: any) => ({
-          parameter: c.clause_title,
-          tender_requirement: c.tender_requirement,
-          company_capability: `Desire: ${c.desire_value} | JV: ${c.jv_value}`,
-          status: c.status === 'MATCH' ? 'Met' : 'Not Met',
-          gap_notes: c.gap_notes
-        }));
-        dynamicReport.jv_rules_audit = [
-          { rule: 'Lead Member Equity Share', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
-          { rule: 'Minimum Partner Share', requirement: '>= 20%', actual: `${jvSharePct} (${jvName})`, status: 'PASSED' },
-          { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' }
-        ];
-
+        // Return error if AI call failed (no static mock fallback)
         return NextResponse.json({
-          status: 'success',
-          is_rejected_non_tender: false,
-          message: 'Tender qualification evaluation complete.',
-          evaluation_report: dynamicReport,
-          report: dynamicReport
-        });
+          status: 'error',
+          message: 'Could not complete AI tender analysis. Please try again.'
+        }, { status: 500 });
       } catch (analyzeErr: any) {
         console.error('Tender analyze error:', analyzeErr);
-        const fallbackReport = generateDynamicTenderReport(filename, titleInput, extractedPdfText, desireComp, jvComp);
         return NextResponse.json({
-          status: 'success',
-          is_rejected_non_tender: false,
-          message: 'Tender evaluation completed via dynamic engine.',
-          evaluation_report: fallbackReport,
-          report: fallbackReport
-        });
+          status: 'error',
+          message: `Analysis error: ${analyzeErr.message || 'Could not process document'}`
+        }, { status: 500 });
       }
     }
 

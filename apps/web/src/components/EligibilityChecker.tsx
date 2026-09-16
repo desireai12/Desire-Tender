@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import { 
   FileCheck2, 
   Upload, 
@@ -127,32 +128,69 @@ export const EligibilityChecker: React.FC = () => {
     const fileToUse = fileOverride !== undefined ? fileOverride : tenderFile;
 
     try {
-      const formData = new FormData();
-      if (fileToUse) {
-        const fileToUpload = fileToUse.size > 4 * 1024 * 1024
-          ? new File([fileToUse.slice(0, 4 * 1024 * 1024)], fileToUse.name, { type: 'application/pdf' })
-          : fileToUse;
-        formData.append('file', fileToUpload);
-      }
-      formData.append('project_category', cat);
-      formData.append('tender_title', fileToUse ? fileToUse.name : tenderTitleInput);
-      formData.append('jv_partner_id', partner);
+      let uploadedFilePath: string | null = null;
+      if (fileToUse && supabase) {
+        try {
+          const safeName = fileToUse.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storagePath = `tenders/${Date.now()}_${safeName}`;
+          const { error: storageErr } = await supabase.storage
+            .from('tender-uploads')
+            .upload(storagePath, fileToUse, { upsert: true });
 
-      const res = await fetch(`${API_BASE_URL}/tender/analyze`, {
-        method: 'POST',
-        body: formData
-      });
+          if (!storageErr) {
+            uploadedFilePath = storagePath;
+          }
+        } catch (sErr) {
+          console.warn('Supabase storage upload exception in EligibilityChecker:', sErr);
+        }
+      }
+
+      let res: Response;
+      if (uploadedFilePath) {
+        res = await fetch(`${API_BASE_URL}/tender/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file_path: uploadedFilePath,
+            filename: fileToUse?.name || 'uploaded_document.pdf',
+            project_category: cat,
+            tender_title: fileToUse ? fileToUse.name : tenderTitleInput,
+            jv_partner_id: partner,
+          }),
+        });
+      } else {
+        const formData = new FormData();
+        if (fileToUse) {
+          formData.append('file', fileToUse);
+          formData.append('filename', fileToUse.name);
+        }
+        formData.append('project_category', cat);
+        formData.append('tender_title', fileToUse ? fileToUse.name : tenderTitleInput);
+        formData.append('jv_partner_id', partner);
+
+        res = await fetch(`${API_BASE_URL}/tender/analyze`, {
+          method: 'POST',
+          body: formData,
+        });
+      }
 
       if (res.ok) {
         const data = await res.json();
-        const rep = data.evaluation_report || data.report;
-        if (rep) {
-          setReport(rep);
+        if (data.status === 'rejected' || data.is_rejected_non_tender) {
+          setAnalysisError(data.message || data.reason || 'Document Rejected: Not a valid tender document.');
+        } else if (data.status === 'error') {
+          setAnalysisError(data.message || 'Could not complete analysis. Please retry.');
         } else {
-          setAnalysisError('Tender analysis service returned an empty report.');
+          const rep = data.evaluation_report || data.report;
+          if (rep) {
+            setReport(rep);
+          } else {
+            setAnalysisError('Tender analysis service returned an empty report.');
+          }
         }
       } else {
-        setAnalysisError(`Tender analysis server returned error status ${res.status}.`);
+        const errJson = await res.json().catch(() => null);
+        setAnalysisError(errJson?.message || errJson?.detail || `Tender analysis server returned error status ${res.status}.`);
       }
     } catch (e) {
       console.error('Tender analysis error:', e);
