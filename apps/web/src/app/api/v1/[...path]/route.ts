@@ -270,6 +270,8 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
       }
     ]
   };
+}
+
 async function callGeminiAI(prompt: string, apiKey: string): Promise<any> {
   const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
   for (const m of models) {
