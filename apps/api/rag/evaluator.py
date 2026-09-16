@@ -104,7 +104,7 @@ class TenderEvaluator:
     def _get_llm(self):
         if self._llm is None:
             # Try multiple model names in order of reliability
-            models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash-preview-05-20"]
+            models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
             last_err = None
             for model in models_to_try:
                 try:
