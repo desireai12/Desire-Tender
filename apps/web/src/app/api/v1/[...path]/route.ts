@@ -25,6 +25,16 @@ function sanitizeUser(user: any) {
   return rest;
 }
 
+function getDeterministicTenderId(str: string): string {
+  if (!str) return `TND-${Date.now().toString().slice(-6)}`;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return `TND-${Math.abs(hash).toString(36).toUpperCase().padStart(6, '0')}`;
+}
+
 // ─── HIGH-CAPACITY PDF TEXT EXTRACTOR ───────────────────────────────────────
 function extractTextFromPdfBuffer(buffer: Buffer): string {
   try {
