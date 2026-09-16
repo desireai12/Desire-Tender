@@ -261,19 +261,15 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       } else {
         const errJson = await res.json().catch(() => null);
         setAnalysisError(errJson?.message || errJson?.detail || `Tender Analysis Server returned status ${res.status}. Please try again.`);
-      }
     } catch (err) {
       console.error('Tender analysis API call error:', err);
       setAnalysisError('Network error connecting to analysis server. Please retry.');
     }
 
-    if (isRejected && fetchedReport) {
-      setEvaluationReport(fetchedReport);
-      setAnalysisProgress(100);
-      setAnalysisStageText(`Document Rejected: ${rejectMsg}`);
-      setTimeout(() => {
-        setCurrentStep(3);
-      }, 500);
+    if (isRejected) {
+      setAnalysisProgress(0);
+      setAnalysisError(rejectMsg || 'Document Rejected: Uploaded file is not an official tender document.');
+      setCurrentStep(1);
       return;
     }
 
