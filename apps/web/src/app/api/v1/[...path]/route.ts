@@ -80,34 +80,20 @@ function isNonTenderDocument(filename: string, text: string): boolean {
   const fl = (filename || '').toLowerCase();
   const tl = (text || '').toLowerCase();
 
-  // 1. NON-TENDER FILENAME & CONTENT PATTERNS (Plagiarism Reports, Syllabi, Resumes, Invoices, Roadmaps, PPTs)
-  const nonTenderPatterns = [
+  // ONLY reject if explicit, unambiguous non-tender file patterns are present (e.g. resumes, plagiarism reports, tax invoices)
+  const explicitNonTenderPatterns = [
     'plagiarism', 'smallseotools', 'turnitin', 'grammarly', 'similarity index', 'duplicate content',
-    'roadmap', 'study guide', 'syllabus', 'course outline', 'lecture notes', 'curriculum',
     'curriculum vitae', 'resume', '_cv_', 'biodata', 'marksheet', 'admit card',
-    'tax invoice', 'invoice no', 'payment receipt', 'salary slip', 'payslip', 'bill to',
-    'workshop', 'presentation', 'ppt', 'slides', 'deck', 'meeting notes'
+    'tax invoice', 'salary slip', 'payslip', 'bill to'
   ];
 
-  for (const p of nonTenderPatterns) {
+  for (const p of explicitNonTenderPatterns) {
     if (fl.includes(p) || tl.includes(p)) {
       return true;
     }
   }
 
-  // 2. TENDER SIGNAL AUDIT — Check if file contains official tender/bidding markers
-  const tenderSignals = [
-    'tender', 'bid', 'rfp', 'nit', 'nib', 'sbd', 'dtp', 'boq', 'crore', 'lakh',
-    'turnover', 'solvency', 'experience', 'contractor', 'phed', 'wrd', 'work order',
-    'pipeline', 'solar', 'water', 'sewer', 'pump', 'construction', 'qualification', 'pkg'
-  ];
-
-  const hasTenderSignal = tenderSignals.some(s => fl.includes(s) || tl.includes(s));
-  if (!hasTenderSignal) {
-    // Document contains no official tender bidding markers -> Reject as non-tender
-    return true;
-  }
-
+  // Do NOT pre-reject based on missing keywords — allow Gemini AI to study the document text directly!
   return false;
 }
 
@@ -284,14 +270,37 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
       }
     ]
   };
+async function callGeminiAI(prompt: string, apiKey: string): Promise<any> {
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+  for (const m of models) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        return JSON.parse(cleaned);
+      }
+    } catch (e) {
+      console.warn(`Gemini model ${m} call failed:`, e);
+    }
+  }
+  return null;
 }
-
 
 function parseStatusText(valStr: string): 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' {
   if (!valStr) return 'MATCH';
   const u = valStr.toUpperCase();
   if (u.includes('DATA NOT') || u.includes('MISSING')) return 'DATA NOT AVAILABLE';
-  if (u.includes('NOT MATCHING') || u.includes('0% - NOT') || u.includes('LACKS REQUIREMENT') || u.includes('0% STANDALONE') || u.includes('INELIGIBLE') || u.includes('SPECIALIZED GAP') || u.includes('CANNOT BID') || u.includes('NOT MET')) return 'NOT MATCHING';
+  if (u.includes('NOT MATCHING') || u.includes('0% STANDALONE') || u.includes('INELIGIBLE') || u.includes('LACKS REQUIREMENT') || u.includes('CANNOT BID') || u.includes('NOT MET')) return 'NOT MATCHING';
   if (u.includes('PARTIAL MATCH') || u.includes('PARTIAL')) {
     if (!u.includes('NO GAP') && !u.includes('NO TECHNICAL GAP') && !u.includes('BRIDGES THIS GAP')) return 'PARTIAL MATCH';
   }
@@ -299,22 +308,33 @@ function parseStatusText(valStr: string): 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCH
   return 'MATCH';
 }
 
+function extractPctFromText(valStr: string, status: string): number {
+  if (status === 'MATCH') return 100;
+  if (status === 'NOT MATCHING' || status === 'DATA NOT AVAILABLE') return 0;
+  if (!valStr) return 50;
+  const m = valStr.match(/(\d{1,3})\s*%/);
+  if (m) {
+    const val = parseInt(m[1], 10);
+    if (!isNaN(val) && val >= 0 && val <= 100) return val;
+  }
+  return 50;
+}
+
 function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
   if (!report || !report.clauses_breakdown || !Array.isArray(report.clauses_breakdown)) return report;
 
   report.clauses_breakdown.forEach((c: any) => {
     if (!c.desire_status) c.desire_status = parseStatusText(c.desire_value);
+    if (c.desire_pct === undefined) c.desire_pct = extractPctFromText(c.desire_value, c.desire_status);
+
     if (!c.jv_status) c.jv_status = parseStatusText(c.jv_value);
-    if (!c.status) {
-      c.status = (c.desire_status === 'MATCH' || c.jv_status === 'MATCH')
-        ? 'MATCH'
-        : (c.desire_status === 'PARTIAL MATCH' || c.jv_status === 'PARTIAL MATCH')
-        ? 'PARTIAL MATCH'
-        : 'NOT MATCHING';
-    }
-    if (!c.fulfilled_pct) {
-      c.fulfilled_pct = c.status === 'MATCH' ? '100%' : (c.status === 'PARTIAL MATCH' ? '50%' : '0%');
-    }
+    if (c.jv_pct === undefined) c.jv_pct = extractPctFromText(c.jv_value, c.jv_status);
+
+    if (!c.combined_status) c.combined_status = c.status || parseStatusText(c.combined_value);
+    if (c.combined_pct === undefined) c.combined_pct = extractPctFromText(c.combined_value, c.combined_status);
+
+    if (!c.status) c.status = c.combined_status;
+    if (!c.fulfilled_pct) c.fulfilled_pct = `${c.combined_pct}%`;
   });
 
   return report;
@@ -576,10 +596,10 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         const KEY_B64 = 'QVEuQWI4Uk42S01UdnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
         const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
         
-        // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
+        // Pass up to 250,000 characters of document text to Gemini AI for complete extraction
         const snippet = (extractedPdfText && extractedPdfText.trim().length > 10)
-          ? extractedPdfText.slice(0, 60000)
-          : `Filename: "${filename}". Title: "${titleInput}". [PDF text stream snippet: "${(extractedPdfText || '').slice(0, 300)}"]`;
+          ? extractedPdfText.slice(0, 250000)
+          : `Filename: "${filename}". Title: "${titleInput}". [PDF text stream snippet: "${(extractedPdfText || '').slice(0, 500)}"]`;
 
         // 4. FULL DEEP GEMINI AI PROMPT
         const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
@@ -639,9 +659,15 @@ Return valid JSON (no markdown wrapping):
       "requirement_type": "Financial" | "Technical" | "Organizational" | "Compliance",
       "tender_requirement": "exact requirement statement",
       "required_value": "numeric required value with unit",
-      "desire_value": "Desire Energy actual metric and percentage (e.g. Rs.300.93 Cr (100%))",
-      "jv_value": "${jvName} actual metric and percentage (e.g. Rs.191.39 Cr (63% - PARTIAL MATCH) or Lacks certification (0% - NOT MATCHING))",
+      "desire_value": "Desire Energy actual metric and capability",
+      "desire_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING" | "DATA NOT AVAILABLE",
+      "desire_pct": 100,
+      "jv_value": "${jvName} actual metric and capability",
+      "jv_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING" | "DATA NOT AVAILABLE",
+      "jv_pct": 63,
       "combined_value": "Combined capability description",
+      "combined_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING" | "DATA NOT AVAILABLE",
+      "combined_pct": 100,
       "applicable_jv_rule": "JV pooling rule applied",
       "status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
       "fulfilled_pct": "percentage string (e.g. 100%)",
@@ -656,6 +682,7 @@ Return valid JSON (no markdown wrapping):
 
         // 5. Process Gemini response
         if (aiResult && typeof aiResult === 'object') {
+          sanitizeReportClauses(aiResult, jvName);
           const fnCheck = `${filename} ${titleInput}`.toLowerCase();
           const isKnownTender = ['sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp', 'esco', 'contract', 'project'].some(k => fnCheck.includes(k));
 

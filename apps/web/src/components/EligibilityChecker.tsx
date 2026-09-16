@@ -173,76 +173,73 @@ export const EligibilityChecker: React.FC = () => {
 
     // Helper to evaluate a specific perspective
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
-      const evaluated = clauses.map(c => {
+      const evaluated = clauses.map((c: any) => {
         let val = c.combined_value;
-        let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.status as any) || 'MATCH';
+        let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.combined_status || c.status) as any || 'MATCH';
         let pct = 100;
 
         // Desire evaluation on this clause
         let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.desire_status || 'MATCH';
+        let dPct = c.desire_pct !== undefined ? c.desire_pct : (dStatus === 'MATCH' ? 100 : dStatus === 'PARTIAL MATCH' ? 50 : 0);
         if (!c.desire_status) {
           const dVal = (c.desire_value || '').toLowerCase();
           if (dVal.includes('data not') || dVal.includes('missing')) {
-            dStatus = 'DATA NOT AVAILABLE';
-          } else if (dVal.includes('not matching') || dVal.includes('0% - not') || dVal.includes('0% standalone') || dVal.includes('lacks') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met') || dVal.includes('specialized gap') || dVal.includes('0%')) {
-            dStatus = 'NOT MATCHING';
-          } else if (dVal.includes('partial match') || dVal.includes('partial') || dVal.includes('below') || dVal.includes('insufficient')) {
-            dStatus = 'PARTIAL MATCH';
+            dStatus = 'DATA NOT AVAILABLE'; dPct = 0;
+          } else if (dVal.includes('not matching') || dVal.includes('lacks requirement') || dVal.includes('0% standalone') || dVal.includes('ineligible') || dVal.includes('cannot bid') || dVal.includes('not met') || dVal.includes('lacks certification')) {
+            dStatus = 'NOT MATCHING'; dPct = 0;
+          } else if (dVal.includes('partial match') || dVal.includes('partial')) {
+            dStatus = 'PARTIAL MATCH'; dPct = 50;
           } else {
-            dStatus = 'MATCH';
+            dStatus = 'MATCH'; dPct = 100;
           }
         }
 
         // JV evaluation on this clause
         let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.jv_status || 'MATCH';
+        let jPct = c.jv_pct !== undefined ? c.jv_pct : (jStatus === 'MATCH' ? 100 : jStatus === 'PARTIAL MATCH' ? 50 : 0);
         if (!c.jv_status) {
           const jVal = (c.jv_value || '').toLowerCase();
           if (jVal.includes('data not') || jVal.includes('missing')) {
-            jStatus = 'DATA NOT AVAILABLE';
-          } else if (jVal.includes('not matching') || jVal.includes('0% - not') || jVal.includes('0% standalone') || jVal.includes('lacks') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('no esco') || jVal.includes('no solar') || jVal.includes('0%')) {
-            jStatus = 'NOT MATCHING';
-          } else if (jVal.includes('partial match') || jVal.includes('partial') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
-            jStatus = 'PARTIAL MATCH';
+            jStatus = 'DATA NOT AVAILABLE'; jPct = 0;
+          } else if (jVal.includes('not matching') || jVal.includes('lacks requirement') || jVal.includes('0% standalone') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('not met') || jVal.includes('lacks certification')) {
+            jStatus = 'NOT MATCHING'; jPct = 0;
+          } else if (jVal.includes('partial match') || jVal.includes('partial')) {
+            jStatus = 'PARTIAL MATCH'; jPct = 50;
           } else {
-            jStatus = 'MATCH';
+            jStatus = 'MATCH'; jPct = 100;
           }
         }
+
+        let cStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = c.combined_status || c.status || 'MATCH';
+        let cPct = c.combined_pct !== undefined ? c.combined_pct : (cStatus === 'MATCH' ? 100 : cStatus === 'PARTIAL MATCH' ? 50 : 0);
 
         let gapNotes = c.gap_notes || '';
         if (mode === 'desire') {
           val = c.desire_value || '';
           status = dStatus;
-          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
+          pct = dPct;
           if (dStatus === 'MATCH') {
-            gapNotes = 'Desire Energy standalone fully meets and exceeds requirement.';
+            gapNotes = 'Desire Energy standalone fully meets requirement.';
           } else if (dStatus === 'PARTIAL MATCH') {
-            gapNotes = 'Desire Energy standalone partially meets requirement.';
+            gapNotes = `Desire Energy standalone satisfies ${dPct}% of requirement.`;
           } else {
             gapNotes = 'Desire Energy lacks this specific standalone qualification requirement.';
           }
         } else if (mode === 'jv') {
           val = c.jv_value || '';
           status = jStatus;
-          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
+          pct = jPct;
           if (jStatus === 'MATCH') {
             gapNotes = `${jvComp.name} standalone fully meets requirement.`;
           } else if (jStatus === 'PARTIAL MATCH') {
-            gapNotes = `${jvComp.name} standalone partially meets requirement.`;
+            gapNotes = `${jvComp.name} standalone satisfies ${jPct}% of requirement.`;
           } else {
             gapNotes = `${jvComp.name} lacks this specific standalone qualification requirement.`;
           }
         } else {
           val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
-          if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
-            status = 'MATCH';
-            pct = 100;
-          } else if (dStatus === 'PARTIAL MATCH' || jStatus === 'PARTIAL MATCH' || c.status === 'PARTIAL MATCH') {
-            status = 'PARTIAL MATCH';
-            pct = 50;
-          } else {
-            status = 'NOT MATCHING';
-            pct = 0;
-          }
+          status = cStatus;
+          pct = cPct;
         }
 
         return {
@@ -254,12 +251,13 @@ export const EligibilityChecker: React.FC = () => {
         };
       });
 
-      const matched = evaluated.filter(c => c.active_status === 'MATCH').length;
-      const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
-      const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
-      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
+      const matched = evaluated.filter((c: any) => c.active_status === 'MATCH').length;
+      const partial = evaluated.filter((c: any) => c.active_status === 'PARTIAL MATCH').length;
+      const notMatching = evaluated.filter((c: any) => c.active_status === 'NOT MATCHING').length;
+      const missing = evaluated.filter((c: any) => c.active_status === 'DATA NOT AVAILABLE').length;
 
-      const score = Math.min(100, Math.round(((matched * 100) + (partial * 50)) / totalCount));
+      const totalPctSum = evaluated.reduce((sum: number, item: any) => sum + (item.active_pct || 0), 0);
+      const score = Math.min(100, Math.round(totalPctSum / totalCount));
 
       return {
         score,
