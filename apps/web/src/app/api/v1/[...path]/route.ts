@@ -150,11 +150,6 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
   const fullText = (typeof text === 'string' ? text : '').toLowerCase();
   const jvName = jvComp?.name || 'VINOD H PATEL & CO.';
 
-  // Check if filename is an explicit non-tender file
-  if (isNonTenderDocument(filename, text)) {
-    return buildRejection(filename, typeof text === 'string' ? text : '');
-  }
-
   let reportTitle = titleInput || filename.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
   let estAmountCr = 45.00;
   let singleWorkCr = 18.00;
@@ -587,20 +582,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           }
         }
 
-        // 2. KEYWORD & NON-TENDER CLASSIFIER — Reject plagiarism reports, resumes, syllabi, invoices
-        if (isNonTenderDocument(filename, extractedPdfText)) {
-          const rejection = buildRejection(filename, extractedPdfText);
-          return NextResponse.json({
-            status: 'success',
-            is_rejected_non_tender: true,
-            message: 'Non-tender document detected and rejected.',
-            evaluation_report: rejection,
-            report: rejection
-          });
-        }
-
-
-        // 3. Load company credentials
+        // 2. Load company credentials
         let comps = GLOBAL_SERVER_COMPANIES;
         if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
         const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
@@ -709,24 +691,6 @@ Return valid JSON (no markdown wrapping):
         // 5. Process Gemini response
         if (aiResult && typeof aiResult === 'object') {
           sanitizeReportClauses(aiResult, jvName);
-
-          // Safeguard: Unless the document is EXPLICITLY a non-tender file (resume, plagiarism report, tax invoice), force is_rejected_non_tender = false
-          if (!isNonTenderDocument(filename, extractedPdfText)) {
-            aiResult.is_rejected_non_tender = false;
-          }
-
-          if (aiResult.is_rejected_non_tender === true) {
-            const rejection = buildRejection(filename, extractedPdfText);
-            rejection.executive_summary = aiResult.executive_summary || rejection.executive_summary;
-            rejection.tender_title = aiResult.tender_title || filename;
-            return NextResponse.json({
-              status: 'success',
-              is_rejected_non_tender: true,
-              message: 'AI confirmed: Not a tender document.',
-              evaluation_report: rejection,
-              report: rejection
-            });
-          }
 
           aiResult.tender_id = getDeterministicTenderId(titleInput || filename);
           aiResult.filename = filename;
