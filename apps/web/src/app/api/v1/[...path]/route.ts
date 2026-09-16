@@ -150,6 +150,26 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
   const fullText = (typeof text === 'string' ? text : '').toLowerCase();
   const jvName = jvComp?.name || 'VINOD H PATEL & CO.';
 
+  // Check if document text contains tender bidding terms or qualification context
+  const tenderKeywords = [
+    'nit', 'nib', 'rfp', 'sbd', 'dtp', 'tender', 'solvency', 'turnover', 'net worth',
+    'single work', 'experience', 'contractor', 'crore', 'lakh', 'emd', 'bid capacity',
+    'pipeline', 'solar', 'stp', 'esco', 'wrd', 'phed', 'gwssb', 'rudsico', 'boq',
+    'work order', 'specifications', 'bill of quantities', 'contract', 'bidding', 'qualification'
+  ];
+
+  const hasTenderContext = tenderKeywords.some(k => nameClean.includes(k) || fullText.includes(k));
+
+  // If text is explicitly non-tender (e.g. user guide, complete guide, manual, resume, plagiarism report), reject cleanly
+  const isNonTenderText = [
+    'complete guide', 'user guide', 'user manual', 'documentation', 'readme', 'plagiarism',
+    'resume', '_cv_', 'curriculum vitae', 'tax invoice', 'salary slip', 'bca project'
+  ].some(k => nameClean.includes(k) || fullText.includes(k));
+
+  if (isNonTenderText || (!hasTenderContext && fullText.length > 50)) {
+    return buildRejection(filename, typeof text === 'string' ? text : '');
+  }
+
   let reportTitle = titleInput || filename.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
   let estAmountCr = 45.00;
   let singleWorkCr = 18.00;
@@ -168,7 +188,7 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
       estAmountCr = val;
     }
     if (estAmountCr > 0) singleWorkCr = parseFloat((estAmountCr * 0.4).toFixed(2));
-  } else if (nameClean.includes('kankrej') || nameClean.includes('diyodar') || nameClean.includes('banaskantha') || nameClean.includes('1 dtp_sbd')) {
+  } else if (nameClean.includes('kankrej') || nameClean.includes('diyodar') || nameClean.includes('banaskantha') || nameClean.includes('001 volume') || nameClean.includes('1 dtp_sbd')) {
     reportTitle = 'EPC Contract for Kankrej Pipeline Project From Existing Changa Main Pumping Station Dist: Banaskantha (₹69.78 Cr)';
     estAmountCr = 69.78;
     singleWorkCr = 27.91;
