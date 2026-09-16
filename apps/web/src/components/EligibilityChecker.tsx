@@ -129,7 +129,10 @@ export const EligibilityChecker: React.FC = () => {
     try {
       const formData = new FormData();
       if (fileToUse) {
-        formData.append('file', fileToUse);
+        const fileToUpload = fileToUse.size > 4 * 1024 * 1024
+          ? new File([fileToUse.slice(0, 4 * 1024 * 1024)], fileToUse.name, { type: 'application/pdf' })
+          : fileToUse;
+        formData.append('file', fileToUpload);
       }
       formData.append('project_category', cat);
       formData.append('tender_title', fileToUse ? fileToUse.name : tenderTitleInput);

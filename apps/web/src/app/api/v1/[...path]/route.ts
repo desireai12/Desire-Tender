@@ -173,13 +173,6 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
     return buildRejection(filename, typeof text === 'string' ? text : '');
   }
 
-  // Non-Tender Filter Safeguard: If the document text & filename contain NO tender context or bidding keywords, reject as non-tender
-  const hasTenderContext = ['kankrej', 'diyodar', 'banaskantha', 'vapi', 'karvad', 'alwar', 'stp', 'pkg', 'nit', 'rfp', 'nib', 'sbd', 'dtp', 'tender', 'solvency', 'turnover', 'work order', 'boq', 'contractor', 'qualification', 'phed', 'wrd', 'gwssb'].some(k => nameClean.includes(k) || fullText.includes(k));
-  
-  if (!hasTenderContext && !fullText.includes('crore') && !fullText.includes('lakh')) {
-    return buildRejection(filename, typeof text === 'string' ? text : '');
-  }
-
   let reportTitle = titleInput || filename.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
   let estAmountCr = 45.00;
   let singleWorkCr = 18.00;
@@ -322,7 +315,7 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
 }
 
 async function callGeminiAI(prompt: string, apiKey: string): Promise<any> {
-  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
   for (const m of models) {
     try {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
@@ -735,15 +728,8 @@ Return valid JSON (no markdown wrapping):
         if (aiResult && typeof aiResult === 'object') {
           sanitizeReportClauses(aiResult, jvName);
 
-          // Safeguard against AI hallucinating non-tender rejection for actual tender documents:
-          const fnCheck = `${filename} ${titleInput}`.toLowerCase();
-          const isKnownTenderPattern = [
-            'sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'junagadh',
-            'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp',
-            'esco', 'contract', 'phed', 'wrd', 'gwssb', 'rudsico', 'amrut', 'jjm', 'kusum', 'work order', 'civil'
-          ].some(k => fnCheck.includes(k));
-
-          if (isKnownTenderPattern) {
+          // Safeguard: Unless the document is EXPLICITLY a non-tender file (resume, plagiarism report, tax invoice), force is_rejected_non_tender = false
+          if (!isNonTenderDocument(filename, extractedPdfText)) {
             aiResult.is_rejected_non_tender = false;
           }
 

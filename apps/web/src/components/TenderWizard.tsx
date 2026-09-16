@@ -182,10 +182,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     try {
       const formData = new FormData();
       if (uploadedTenderFile) {
-        // Prevent HTTP 413 Payload Too Large on Vercel Serverless (4.5MB request limit)
-        if (uploadedTenderFile.size <= 3 * 1024 * 1024) {
-          formData.append('file', uploadedTenderFile);
-        }
+        const fileToUpload = uploadedTenderFile.size > 4 * 1024 * 1024
+          ? new File([uploadedTenderFile.slice(0, 4 * 1024 * 1024)], uploadedTenderFile.name, { type: 'application/pdf' })
+          : uploadedTenderFile;
+        formData.append('file', fileToUpload);
         formData.append('filename', uploadedTenderFile.name);
       }
       formData.append('project_category', selectedCategory);
