@@ -98,42 +98,29 @@ async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
 // ─── DOCUMENT CLASSIFIER ────────────────────────────────────────────────────
 function isNonTenderDocument(filename: string, text: string): boolean {
   const fl = (filename || '').toLowerCase();
-  const tl = (typeof text === 'string' ? text : '').toLowerCase();
 
-  // Safeguard: NEVER classify as non-tender if filename or title contains explicit tender keywords
-  const isKnownTenderFilename = [
-    'sbd', 'dtp', 'kankrej', 'diyodar', 'banaskantha', 'alwar', 'vapi', 'junagadh',
-    'nit', 'rfp', 'nib', 'pkg', 'tender', 'water', 'pipeline', 'pump', 'solar', 'stp',
-    'esco', 'contract', 'phed', 'wrd', 'gwssb', 'rudsico', 'amrut', 'jjm', 'kusum', 'work order', 'civil'
-  ].some(k => fl.includes(k));
-
-  if (isKnownTenderFilename) {
-    return false;
-  }
-
-  // Reject if explicit, unambiguous non-tender file patterns are present (resumes, plagiarism reports, invoices, student project reports, syllabi)
-  const explicitNonTenderPatterns = [
-    'plagiarism', 'smallseotools', 'turnitin', 'grammarly', 'similarity index', 'duplicate content',
-    'curriculum vitae', 'resume', '_cv_', 'biodata', 'marksheet', 'admit card',
-    'tax invoice', 'salary slip', 'payslip', 'bill to', 'bca project', 'student report',
-    'assignment 1', 'assignment 2', 'term paper', 'syllabus', 'course material'
+  // ONLY reject if the FILENAME explicitly indicates a non-tender personal file (e.g. resumes, plagiarism reports, salary slips)
+  const explicitNonTenderFileNames = [
+    'plagiarism', 'smallseotools', 'turnitin', 'grammarly',
+    'curriculum_vitae', 'resume', '_cv_', 'biodata',
+    'tax_invoice', 'salary_slip', 'payslip', 'bca_project_report'
   ];
 
-  for (const p of explicitNonTenderPatterns) {
-    if (fl.includes(p) || tl.includes(p)) {
+  for (const p of explicitNonTenderFileNames) {
+    if (fl.includes(p)) {
       return true;
     }
   }
 
+  // All other uploaded documents (e.g. 001 Volume I -A.pdf, Volume-1.pdf, NIT, RFP, etc.) are valid tender files!
   return false;
 }
 
 function buildRejection(filename: string = '', textSnippet: string = '') {
   const fnLower = (filename || '').toLowerCase();
-  const textLower = (typeof textSnippet === 'string' ? textSnippet : '').toLowerCase();
-  const isPlagiarism = fnLower.includes('plagiarism') || textLower.includes('plagiarism');
-  const isPpt = fnLower.includes('ppt') || fnLower.includes('workshop') || textLower.includes('workshop');
-  const isBca = fnLower.includes('bca') || fnLower.includes('project report') || textLower.includes('bca');
+  const isPlagiarism = fnLower.includes('plagiarism');
+  const isPpt = fnLower.includes('ppt') || fnLower.includes('workshop');
+  const isBca = fnLower.includes('bca') || fnLower.includes('project report');
   const docTypeDesc = isPlagiarism ? 'Plagiarism Analysis Report' : (isPpt ? 'Presentation Deck / Workshop PPT' : (isBca ? 'Student / General Project Report' : 'Invoice, Resume, Syllabus, or Non-Tender File'));
 
   return {
@@ -163,13 +150,8 @@ function generateDynamicTenderReport(filename: string, titleInput: string, text:
   const fullText = (typeof text === 'string' ? text : '').toLowerCase();
   const jvName = jvComp?.name || 'VINOD H PATEL & CO.';
 
-  // Check if explicit non-tender file
-  const isExplicitNonTender = [
-    'plagiarism', 'resume', 'cv', 'biodata', 'invoice', 'salary', 'bca', 'project report bca',
-    'assignment', 'term paper', 'syllabus', 'course'
-  ].some(k => nameClean.includes(k) || fullText.includes(k));
-
-  if (isExplicitNonTender) {
+  // Check if filename is an explicit non-tender file
+  if (isNonTenderDocument(filename, text)) {
     return buildRejection(filename, typeof text === 'string' ? text : '');
   }
 
