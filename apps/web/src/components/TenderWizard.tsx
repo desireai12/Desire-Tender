@@ -178,6 +178,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
         method: 'POST',
         body: formData,
+        signal: AbortSignal.timeout(60000)
       });
 
       setAnalysisProgress(65);
@@ -207,12 +208,19 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         const errorMsg = data?.message || data?.detail || `Server returned status ${res.status}.`;
         setAnalysisError(`[${errorType}] ${errorMsg}`);
         setAnalyzing(false);
+        setCurrentStep(1);
         return;
       }
     } catch (err: any) {
       console.error('Tender analysis API call error:', err);
-      setAnalysisError(`[UNKNOWN_ERROR] Network error connecting to analysis server: ${err?.message || err}`);
+      const isTimeout = err?.name === 'AbortError' || err?.message?.includes('timeout') || err?.message?.includes('aborted');
+      const errType = isTimeout ? 'AI_TIMEOUT' : 'UNKNOWN_ERROR';
+      const errMsg = isTimeout
+        ? 'The tender analysis request timed out after 60s. Please try again or check network connectivity.'
+        : `Network error connecting to analysis server: ${err?.message || err}`;
+      setAnalysisError(`[${errType}] ${errMsg}`);
       setAnalyzing(false);
+      setCurrentStep(1);
       return;
     }
 

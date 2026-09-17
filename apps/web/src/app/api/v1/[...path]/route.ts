@@ -8,6 +8,9 @@ import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
 
 
+export const maxDuration = 60; // Max serverless function execution limit (60s)
+export const dynamic = 'force-dynamic';
+
 function hashPassword(pass: string): string {
   return crypto.createHash('sha256').update(pass.trim()).digest('hex');
 }
@@ -167,7 +170,21 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
   let hit404 = false;
   let hitTimeout = false;
 
+  const overallStartTime = Date.now();
+  const OVERALL_DEADLINE_MS = 45000; // Hard 45s budget across all fallback attempts
+
   for (const m of models) {
+    const elapsed = Date.now() - overallStartTime;
+    if (elapsed >= OVERALL_DEADLINE_MS) {
+      hitTimeout = true;
+      lastErrorDetail = `Overall AI processing budget exceeded (${Math.round(elapsed / 1000)}s)`;
+      break;
+    }
+
+    const controller = new AbortController();
+    const modelTimeoutMs = Math.min(15000, OVERALL_DEADLINE_MS - elapsed); // Max 15s per model attempt
+    const timer = setTimeout(() => controller.abort(), modelTimeoutMs);
+
     try {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
       const res = await fetch(endpoint, {
@@ -181,9 +198,10 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
             responseMimeType: 'application/json'
           }
         }),
-        signal: AbortSignal.timeout(60000)
+        signal: controller.signal
       });
 
+      clearTimeout(timer);
       lastStatus = res.status;
       const errText = await res.text().catch(() => '');
 
@@ -246,9 +264,10 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
 
       lastErrorDetail = `HTTP ${res.status}: ${errText}`;
     } catch (e: any) {
+      clearTimeout(timer);
       if (e.name === 'AbortError' || e.message?.includes('timeout') || e.message?.includes('aborted')) {
         hitTimeout = true;
-        lastErrorDetail = `Request timed out after 60s: ${e.message}`;
+        lastErrorDetail = `Model ${m} call timed out after ${Math.round(modelTimeoutMs / 1000)}s`;
       } else {
         lastErrorDetail = e.message || String(e);
       }
