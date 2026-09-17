@@ -40,7 +40,7 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
         {
           method: 'POST',
           body: formData,
-          signal: AbortSignal.timeout(60000)
+          signal: AbortSignal.timeout(120000)
         }
       );
       const data = await res.json().catch(() => null);
@@ -63,7 +63,7 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
         errMsgText = `Client UI runtime error: ${err?.name || 'Error'}: ${err?.message || String(err)}`;
       } else if (isTimeout) {
         errType = 'AI_TIMEOUT';
-        errMsgText = 'The request timed out after 60s. Please try again.';
+        errMsgText = 'The request timed out after 120s. Please try again.';
       } else {
         errType = 'NETWORK_ERROR';
         errMsgText = `Network connection error: ${err?.message || String(err)}`;

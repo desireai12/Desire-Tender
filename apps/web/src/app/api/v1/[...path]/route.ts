@@ -8,7 +8,7 @@ import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
 
 
-export const maxDuration = 60; // Max serverless function execution limit (60s)
+export const maxDuration = 300; // Max serverless function execution limit (300s)
 export const dynamic = 'force-dynamic';
 
 function hashPassword(pass: string): string {
@@ -158,7 +158,7 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
   let hitTimeout = false;
 
   const overallStartTime = Date.now();
-  const OVERALL_DEADLINE_MS = 45000; // Hard 45s budget across all fallback attempts
+  const OVERALL_DEADLINE_MS = 120000; // Hard 120s budget across all fallback attempts
 
   for (const m of models) {
     const elapsed = Date.now() - overallStartTime;
@@ -169,7 +169,7 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
     }
 
     const controller = new AbortController();
-    const modelTimeoutMs = Math.min(15000, OVERALL_DEADLINE_MS - elapsed); // Max 15s per model attempt
+    const modelTimeoutMs = Math.min(60000, OVERALL_DEADLINE_MS - elapsed); // Max 60s per model attempt
     const timer = setTimeout(() => controller.abort(), modelTimeoutMs);
 
     try {

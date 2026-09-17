@@ -112,7 +112,7 @@ export const EligibilityChecker: React.FC = () => {
       const res = await fetch(`${API_BASE_URL}/tender/analyze`, {
         method: 'POST',
         body: formData,
-        signal: AbortSignal.timeout(60000)
+        signal: AbortSignal.timeout(120000)
       });
 
       const data = await res.json().catch(() => null);
@@ -141,7 +141,7 @@ export const EligibilityChecker: React.FC = () => {
         errMsg = `Client UI runtime error: ${e?.name || 'Error'}: ${e?.message || String(e)}`;
       } else if (isTimeout) {
         errType = 'AI_TIMEOUT';
-        errMsg = 'The request timed out after 60s. Please try again.';
+        errMsg = 'The request timed out after 120s. Please try again.';
       } else {
         errType = 'NETWORK_ERROR';
         errMsg = `Failed to communicate with analysis server: ${e?.message || String(e)}`;
