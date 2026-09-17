@@ -39,16 +39,16 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
         `${API_BASE_URL}/tender/analyze?provider=${currentProvider}`,
         { method: 'POST', body: formData }
       );
-      if (res.ok) {
-        const data = await res.json();
-        if (data.evaluation_report) {
-          onAnalysisComplete(data.evaluation_report);
-        }
+      const data = await res.json().catch(() => null);
+      if (res.ok && data && data.status !== 'error' && data.evaluation_report) {
+        onAnalysisComplete(data.evaluation_report);
       } else {
-        setErrorMsg('Server error during analysis. Displaying demo report.');
+        const errorType = data?.error_type || 'SERVER_ERROR';
+        const errorMsg = data?.message || data?.detail || `Server returned HTTP ${res.status}.`;
+        setErrorMsg(`[${errorType}] ${errorMsg}`);
       }
-    } catch {
-      setErrorMsg('Backend not reachable. Demo report is displayed.');
+    } catch (err: any) {
+      setErrorMsg(`[UNKNOWN_ERROR] Network error connecting to server: ${err?.message || err}`);
     } finally {
       setIsAnalyzing(false);
     }

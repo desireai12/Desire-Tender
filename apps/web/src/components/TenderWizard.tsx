@@ -183,8 +183,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       setAnalysisProgress(65);
       setAnalysisStageText('Evaluating Desire Energy vs. Tender Criteria (Clause by Clause)...');
 
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json().catch(() => null);
+
+      if (res.ok && data && data.status !== 'error') {
         fetchedReport = data.evaluation_report || data.report;
         if (data.is_rejected_non_tender || (fetchedReport && (fetchedReport as any).is_rejected_non_tender)) {
           isRejected = true;
@@ -202,11 +203,17 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           }
         }
       } else {
-        setAnalysisError(`Tender Analysis Server returned status ${res.status}. Please try again.`);
+        const errorType = data?.error_type || 'SERVER_ERROR';
+        const errorMsg = data?.message || data?.detail || `Server returned status ${res.status}.`;
+        setAnalysisError(`[${errorType}] ${errorMsg}`);
+        setAnalyzing(false);
+        return;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Tender analysis API call error:', err);
-      setAnalysisError('Network error connecting to analysis server. Please retry.');
+      setAnalysisError(`[UNKNOWN_ERROR] Network error connecting to analysis server: ${err?.message || err}`);
+      setAnalyzing(false);
+      return;
     }
 
     if (isRejected && fetchedReport) {

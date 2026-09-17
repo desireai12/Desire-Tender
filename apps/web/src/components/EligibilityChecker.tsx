@@ -114,20 +114,22 @@ export const EligibilityChecker: React.FC = () => {
         body: formData
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (res.ok && data && data.status !== 'error') {
         const rep = data.evaluation_report || data.report;
         if (rep) {
           setReport(rep);
         } else {
-          setAnalysisError('Tender analysis service returned an empty report.');
+          setAnalysisError('[AI_RESPONSE_INVALID] Tender analysis service returned an empty report.');
         }
       } else {
-        setAnalysisError(`Tender analysis server returned error status ${res.status}.`);
+        const errorType = data?.error_type || 'SERVER_ERROR';
+        const errorMsg = data?.message || data?.detail || `Server returned HTTP ${res.status}.`;
+        setAnalysisError(`[${errorType}] ${errorMsg}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Tender analysis error:', e);
-      setAnalysisError('Failed to communicate with analysis server. Please retry.');
+      setAnalysisError(`[UNKNOWN_ERROR] Failed to communicate with analysis server: ${e?.message || e}`);
     } finally {
       setAnalyzing(false);
     }

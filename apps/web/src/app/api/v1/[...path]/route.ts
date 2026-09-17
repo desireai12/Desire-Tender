@@ -21,23 +21,95 @@ function sanitizeUser(user: any) {
   return rest;
 }
 
-// ─── HIGH-CAPACITY PDF TEXT EXTRACTOR (pdf-parse v2.4.5) ───────────────────
+// ─── ERROR CATEGORIES & ERROR RESPONSE BUILDER ──────────────────────────────
+export type ErrorCategory =
+  | 'FILE_UPLOAD_FAILED'
+  | 'PDF_EXTRACTION_FAILED'
+  | 'AI_QUOTA_EXCEEDED'
+  | 'AI_AUTH_FAILED'
+  | 'AI_MODEL_UNAVAILABLE'
+  | 'AI_RESPONSE_INVALID'
+  | 'AI_TIMEOUT'
+  | 'UNKNOWN_ERROR';
+
+function buildErrorResponse(category: ErrorCategory, rawDetail?: string, debugData?: any, statusHttp = 500) {
+  let message = '';
+  switch (category) {
+    case 'FILE_UPLOAD_FAILED':
+      message = "The file did not upload correctly. Please try uploading again, or check the file isn't corrupted.";
+      statusHttp = 400;
+      break;
+    case 'PDF_EXTRACTION_FAILED':
+      message = `Could not read this PDF: ${rawDetail || 'Extraction failed'}. The file may be a scanned/image-only PDF, corrupted, or password protected.`;
+      statusHttp = 422;
+      break;
+    case 'AI_QUOTA_EXCEEDED':
+      message = "The AI analysis service has hit its usage limit for now. Please try again in a few minutes, or contact admin to check the API quota/billing.";
+      statusHttp = 429;
+      break;
+    case 'AI_AUTH_FAILED':
+      message = "The AI service credentials are invalid or expired. This is a configuration issue — please contact admin to check the API key.";
+      statusHttp = 401;
+      break;
+    case 'AI_MODEL_UNAVAILABLE':
+      message = "The configured AI models are currently unavailable. Please contact admin to check the model configuration.";
+      statusHttp = 503;
+      break;
+    case 'AI_RESPONSE_INVALID':
+      message = "The AI returned an unexpected response format. This may be a temporary issue — please try again, or contact admin if this persists.";
+      statusHttp = 502;
+      break;
+    case 'AI_TIMEOUT':
+      message = "The AI analysis took too long and timed out. Please try again.";
+      statusHttp = 504;
+      break;
+    case 'UNKNOWN_ERROR':
+    default:
+      message = `An unexpected error occurred: ${rawDetail || 'Unknown system error'}`;
+      statusHttp = 500;
+      break;
+  }
+
+  console.error(`[ROUTE_ERROR] [${category}] (HTTP ${statusHttp}): ${message}`, rawDetail || '', debugData || '');
+
+  return NextResponse.json(
+    {
+      status: 'error',
+      error_type: category,
+      message,
+      debug: debugData || (rawDetail ? { detail: rawDetail } : undefined)
+    },
+    { status: statusHttp }
+  );
+}
+
+// ─── HIGH-CAPACITY PURE JS PDF TEXT EXTRACTOR (pdfjs-dist) ──────────────────
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   try {
-    const { PDFParse } = await import('pdf-parse');
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-    const parser = new PDFParse({ data: uint8Array });
-    const textResult = await parser.getText();
-    await parser.destroy();
-
-    const extracted = textResult?.text || '';
-    if (extracted.trim().length > 20) {
-      return extracted;
+    const loadingTask = pdfjs.getDocument({
+      data: uint8Array,
+      useSystemFonts: true,
+      disableFontFace: true,
+      isEvalSupported: false
+    });
+    const doc = await loadingTask.promise;
+    const pageTexts: string[] = [];
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i);
+      const content = await page.getTextContent();
+      const pageStr = content.items.map((item: any) => item.str).join(' ');
+      pageTexts.push(pageStr);
     }
-    throw new Error('Extracted text is empty or shorter than 20 characters.');
+    const fullText = pageTexts.join('\n').trim();
+    if (fullText.length >= 20) {
+      return fullText;
+    }
+    throw new Error('PDF contains less than 20 characters of extractable text.');
   } catch (err: any) {
-    const errorMsg = `PDF text extraction failed: ${err?.message || err}`;
-    console.error(`[CRITICAL] ${errorMsg}`);
+    const errorMsg = err?.message || String(err);
+    console.error(`[CRITICAL] PDF Text Extraction Error: ${errorMsg}`, err);
     throw new Error(errorMsg);
   }
 }
@@ -75,8 +147,9 @@ interface GeminiCallResult {
   data: any | null;
   rawText: string;
   modelUsed?: string;
-  error?: string;
-  status?: number;
+  errorCategory?: ErrorCategory;
+  errorDetail?: string;
+  lastStatus?: number;
 }
 
 async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallResult> {
@@ -87,8 +160,12 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
     'gemini-flash-latest'
   ];
 
-  let lastError = '';
   let lastStatus = 0;
+  let lastErrorDetail = '';
+  let hitQuota = false;
+  let hitAuth = false;
+  let hit404 = false;
+  let hitTimeout = false;
 
   for (const m of models) {
     try {
@@ -108,43 +185,90 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
       });
 
       lastStatus = res.status;
+      const errText = await res.text().catch(() => '');
 
-      if (res.status === 401 || res.status === 403) {
-        const errBody = await res.text();
-        console.error(`CRITICAL: GEMINI_API_KEY IS INVALID OR EXPIRED (HTTP ${res.status}): ${errBody}`);
-        return {
-          data: null,
-          rawText: errBody,
-          status: res.status,
-          error: `CRITICAL: GEMINI_API_KEY IS INVALID OR EXPIRED (HTTP ${res.status}): ${errBody}`
-        };
+      if (res.status === 429 || errText.includes('quota') || errText.includes('RESOURCE_EXHAUSTED')) {
+        hitQuota = true;
+        lastErrorDetail = errText || 'Rate limit / quota exceeded (HTTP 429)';
+        console.warn(`Gemini model ${m} hit quota: ${errText}`);
+        continue;
+      }
+
+      if (res.status === 401 || res.status === 403 || errText.includes('API_KEY_INVALID') || errText.includes('API key not valid')) {
+        hitAuth = true;
+        lastErrorDetail = errText || `Authentication failed (HTTP ${res.status})`;
+        console.error(`Gemini model ${m} auth error ${res.status}: ${errText}`);
+        continue;
+      }
+
+      if (res.status === 404) {
+        hit404 = true;
+        lastErrorDetail = errText || `Model not found (HTTP 404)`;
+        console.warn(`Gemini model ${m} not found (HTTP 404)`);
+        continue;
       }
 
       if (res.ok) {
-        const data = await res.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-          try {
-            const parsed = JSON.parse(cleaned);
-            return { data: parsed, rawText, modelUsed: m, status: 200 };
-          } catch (pe: any) {
-            console.warn(`JSON parse error on model ${m}:`, pe.message);
-            lastError = `JSON parse error on ${m}: ${pe.message}`;
-          }
+        let rawText = '';
+        try {
+          const parsedObj = JSON.parse(errText);
+          rawText = parsedObj?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        } catch (e) {
+          rawText = errText;
         }
-      } else {
-        const errText = await res.text();
-        console.warn(`Gemini ${m} HTTP ${res.status}: ${errText}`);
-        lastError = `Model ${m} failed with HTTP ${res.status}: ${errText}`;
+
+        if (!rawText) {
+          return {
+            data: null,
+            rawText: errText.slice(0, 500),
+            errorCategory: 'AI_RESPONSE_INVALID',
+            errorDetail: 'Gemini candidate response text part is missing or empty.',
+            lastStatus: 200
+          };
+        }
+
+        const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch (pe: any) {
+          return {
+            data: null,
+            rawText: rawText.slice(0, 500),
+            errorCategory: 'AI_RESPONSE_INVALID',
+            errorDetail: `JSON parse failed on Gemini response: ${pe.message}`,
+            lastStatus: 200
+          };
+        }
+
+        return { data: parsed, rawText, modelUsed: m, lastStatus: 200 };
       }
+
+      lastErrorDetail = `HTTP ${res.status}: ${errText}`;
     } catch (e: any) {
-      console.warn(`Gemini ${m} error:`, e?.message || e);
-      lastError = e?.message || String(e);
+      if (e.name === 'AbortError' || e.message?.includes('timeout') || e.message?.includes('aborted')) {
+        hitTimeout = true;
+        lastErrorDetail = `Request timed out after 60s: ${e.message}`;
+      } else {
+        lastErrorDetail = e.message || String(e);
+      }
+      console.warn(`Gemini ${m} call error:`, e);
     }
   }
 
-  return { data: null, rawText: '', error: lastError, status: lastStatus };
+  let errorCategory: ErrorCategory = 'UNKNOWN_ERROR';
+  if (hitQuota) errorCategory = 'AI_QUOTA_EXCEEDED';
+  else if (hitAuth) errorCategory = 'AI_AUTH_FAILED';
+  else if (hit404) errorCategory = 'AI_MODEL_UNAVAILABLE';
+  else if (hitTimeout) errorCategory = 'AI_TIMEOUT';
+
+  return {
+    data: null,
+    rawText: '',
+    errorCategory,
+    errorDetail: lastErrorDetail,
+    lastStatus
+  };
 }
 
 // ─── AI-POWERED DOCUMENT CLASSIFIER ────────────────────────────────────────
@@ -155,7 +279,8 @@ async function classifyDocumentWithAI(filename: string, textSample: string, apiK
   quote_of_evidence: string;
   reason: string;
   rawText: string;
-  error?: string;
+  errorCategory?: ErrorCategory;
+  errorDetail?: string;
 }> {
   if (!textSample || textSample.trim().length < 40) {
     return {
@@ -206,13 +331,14 @@ RULES:
   }
 
   return {
-    is_tender: true, // Fail-open to avoid accidental rejection if classifier encounters an intermittent issue
+    is_tender: true, // Fail-open for classification, actual evaluation stage will validate
     confidence: 50,
     document_type: 'Tender Document (Unconfirmed)',
     quote_of_evidence: '',
-    reason: res.error || 'Classifier did not return structured result',
+    reason: res.errorDetail || 'Classifier did not return structured result',
     rawText: res.rawText,
-    error: res.error
+    errorCategory: res.errorCategory,
+    errorDetail: res.errorDetail
   };
 }
 
@@ -471,17 +597,29 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const titleInput = formTenderTitle || body.tender_title || '';
       const jvPartnerId = formJvPartnerId || body.jv_partner_id || 'comp-vhp-04';
 
-      // 1. Extract full text from PDF
+      // 1. File Upload Stage
+      if (!formFileBuffer || formFileBuffer.length === 0) {
+        return buildErrorResponse('FILE_UPLOAD_FAILED', 'Uploaded file buffer is empty or 0 bytes.');
+      }
+
+      // 2. PDF Text Extraction Stage
       let extractedPdfText = '';
-      if (formFileBuffer && formFileBuffer.length > 0) {
+      try {
         extractedPdfText = await extractTextFromPdfBuffer(formFileBuffer);
+      } catch (pdfErr: any) {
+        return buildErrorResponse('PDF_EXTRACTION_FAILED', pdfErr?.message || String(pdfErr));
       }
 
       const KEY_B64 = 'QVEuQWI4Uk42SjJfX1hKMUdJRUVnRVI5QTlRNm4xQWVxM1p2ems1RUV2TkJpMk5BRnB5bWc=';
       const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
 
-      // 2. AI CONTENT CLASSIFIER — Classify with real Gemini model, requiring quoted evidence
-      const classifyResult = await classifyDocumentWithAI(filename, extractedPdfText, geminiKey);
+      // 3. AI Document Classifier Stage
+      let classifyResult: any = null;
+      try {
+        classifyResult = await classifyDocumentWithAI(filename, extractedPdfText, geminiKey);
+      } catch (classErr: any) {
+        return buildErrorResponse('UNKNOWN_ERROR', `Document classifier exception: ${classErr?.message || classErr}`);
+      }
 
       if (!classifyResult.is_tender) {
         const rejection = buildRejection(filename, classifyResult.quote_of_evidence, classifyResult.reason, classifyResult.document_type);
@@ -504,7 +642,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         });
       }
 
-      // 3. Load company credentials
+      // 4. Load company credentials
       let comps = GLOBAL_SERVER_COMPANIES;
       if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
       const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
@@ -526,7 +664,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
       const snippet = extractedPdfText ? extractedPdfText.slice(0, 60000) : `Filename: ${filename}. Title: ${titleInput}`;
 
-      // 4. FULL DEEP GEMINI AI PROMPT
+      // 5. FULL DEEP GEMINI AI PROMPT
       const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
 
 COMPANY MASTER CREDENTIALS:
@@ -598,114 +736,37 @@ Return valid JSON only (no markdown wrapping):
   ]
 }`;
 
-      const aiCallResult = await callGeminiAI(prompt, geminiKey);
+      let aiCallResult: GeminiCallResult;
+      try {
+        aiCallResult = await callGeminiAI(prompt, geminiKey);
+      } catch (aiErr: any) {
+        return buildErrorResponse('UNKNOWN_ERROR', `AI clause extraction exception: ${aiErr?.message || aiErr}`);
+      }
+
+      if (!aiCallResult.data || typeof aiCallResult.data !== 'object') {
+        const cat = aiCallResult.errorCategory || 'UNKNOWN_ERROR';
+        return buildErrorResponse(cat, aiCallResult.errorDetail, {
+          raw_response: aiCallResult.rawText ? aiCallResult.rawText.slice(0, 500) : null
+        });
+      }
+
       const aiResult = aiCallResult.data;
+      if (!Array.isArray(aiResult.clauses_breakdown) || typeof aiResult.verdict !== 'string') {
+        return buildErrorResponse(
+          'AI_RESPONSE_INVALID',
+          'Parsed AI response is missing required fields (clauses_breakdown array or verdict).',
+          { raw_response: aiCallResult.rawText ? aiCallResult.rawText.slice(0, 500) : null }
+        );
+      }
 
-      // 5. Process Gemini response
-      if (aiResult && typeof aiResult === 'object') {
-        if (aiResult.is_rejected_non_tender === true) {
-          const rejection = buildRejection(filename, '', aiResult.executive_summary || 'Document classified as non-tender', 'Non-Tender');
-          return NextResponse.json({
-            status: 'success',
-            is_rejected_non_tender: true,
-            message: 'AI confirmed: Not a tender document.',
-            evaluation_report: rejection,
-            report: rejection,
-            debug: {
-              extracted_text_length: extractedPdfText.length,
-              extracted_text_sample_start: extractedPdfText.slice(0, 300),
-              extracted_text_sample_end: extractedPdfText.slice(-300),
-              classification_raw_ai_response: classifyResult.rawText,
-              clause_extraction_raw_ai_response: aiCallResult.rawText,
-              path_taken: 'ai_success',
-              error_if_any: null
-            }
-          });
-        }
-
-        aiResult.tender_id = `tender-${Date.now()}`;
-        aiResult.filename = filename;
-        aiResult.is_rejected_non_tender = false;
-        aiResult.parameter_matrix = (aiResult.clauses_breakdown || []).map((c: any) => ({
-          parameter: c.clause_title,
-          tender_requirement: c.tender_requirement,
-          company_capability: `Desire: ${c.desire_value} | JV: ${c.jv_value}`,
-          status: c.status === 'MATCH' ? 'Met' : 'Not Met',
-          gap_notes: c.gap_notes
-        }));
-        aiResult.jv_rules_audit = [
-          { rule: 'Lead Member Equity Share', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
-          { rule: 'Minimum Partner Share', requirement: '>= 20%', actual: `${jvSharePct} (${jvName})`, status: 'PASSED' },
-          { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' }
-        ];
-        const titleLower = (aiResult.tender_title || titleInput || '').toLowerCase();
-        const catUpper = (aiResult.project_category || formCategory || '').toUpperCase();
-
-        const partnerRecommendations = [
-          {
-            company_id: 'comp-vhp-04',
-            partner_id: 'comp-vhp-04',
-            company_name: 'VINOD H PATEL',
-            partner_name: 'VINOD H PATEL',
-            rank: 1,
-            type: 'JV Partner',
-            turnover_cr: 191.39,
-            net_worth_cr: 33.37,
-            solvency_cr: 25.0,
-            key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
-            reason: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.',
-            suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' : 'Strong Financial & High Turnover Partner',
-            equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Bulk Water Pipelines', 'GWSSB Credentials'],
-            match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88
-          },
-          {
-            company_id: 'comp-aapl-05',
-            partner_id: 'comp-aapl-05',
-            company_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-            partner_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-            rank: 2,
-            type: 'JV Partner',
-            turnover_cr: 35.22,
-            net_worth_cr: 14.27,
-            solvency_cr: 10.0,
-            key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
-            reason: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.',
-            suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 'Best Match for Piped Distribution Networks, House Connections & Lift Irrigation' : 'Specialized Water Supply & Lift Irrigation Partner',
-            equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Piped Distribution', 'Lift Irrigation'],
-            match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 97 : 85
-          },
-          {
-            company_id: 'comp-divija-02',
-            partner_id: 'comp-divija-02',
-            company_name: 'DIVIJA CONSTRUCTION',
-            partner_name: 'DIVIJA CONSTRUCTION',
-            rank: 3,
-            type: 'JV Partner',
-            turnover_cr: 37.01,
-            net_worth_cr: 6.58,
-            solvency_cr: 10.0,
-            key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
-            reason: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.',
-            suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 'Best Match for Sewerage, STP Networks & AMRUT 2.0 Projects' : 'Underground Utilities & Drainage Partner',
-            equity_suggestion: 'Desire 75% : Partner 25%',
-            fills_gaps: ['Sewerage Network', 'STP Experience'],
-            match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 72
-          }
-        ].sort((a, b) => b.match_score - a.match_score).map((r, i) => ({ ...r, rank: i + 1 }));
-
-        aiResult.partner_recommendations = partnerRecommendations;
-        aiResult.recommended_partner_id = partnerRecommendations[0].partner_id;
-        aiResult.recommended_partner_name = partnerRecommendations[0].partner_name;
-
-        const cleanAi = sanitizeReportClauses(aiResult, jvName);
+      if (aiResult.is_rejected_non_tender === true) {
+        const rejection = buildRejection(filename, '', aiResult.executive_summary || 'Document classified as non-tender', 'Non-Tender');
         return NextResponse.json({
           status: 'success',
-          is_rejected_non_tender: false,
-          message: 'Gemini AI tender evaluation complete.',
-          evaluation_report: cleanAi,
-          report: cleanAi,
+          is_rejected_non_tender: true,
+          message: 'AI confirmed: Not a tender document.',
+          evaluation_report: rejection,
+          report: rejection,
           debug: {
             extracted_text_length: extractedPdfText.length,
             extracted_text_sample_start: extractedPdfText.slice(0, 300),
@@ -718,22 +779,99 @@ Return valid JSON only (no markdown wrapping):
         });
       }
 
-      // 6. FAILURE HANDLING: STATIC MOCK FALLBACK IS COMPLETELY DELETED.
-      // Return an explicit error response to the frontend.
-      console.error('Gemini AI clause extraction failed:', aiCallResult.error);
+      aiResult.tender_id = `tender-${Date.now()}`;
+      aiResult.filename = filename;
+      aiResult.is_rejected_non_tender = false;
+      aiResult.parameter_matrix = (aiResult.clauses_breakdown || []).map((c: any) => ({
+        parameter: c.clause_title,
+        tender_requirement: c.tender_requirement,
+        company_capability: `Desire: ${c.desire_value} | JV: ${c.jv_value}`,
+        status: c.status === 'MATCH' ? 'Met' : 'Not Met',
+        gap_notes: c.gap_notes
+      }));
+      aiResult.jv_rules_audit = [
+        { rule: 'Lead Member Equity Share', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },
+        { rule: 'Minimum Partner Share', requirement: '>= 20%', actual: `${jvSharePct} (${jvName})`, status: 'PASSED' },
+        { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' }
+      ];
+      const titleLower = (aiResult.tender_title || titleInput || '').toLowerCase();
+      const catUpper = (aiResult.project_category || formCategory || '').toUpperCase();
+
+      const partnerRecommendations = [
+        {
+          company_id: 'comp-vhp-04',
+          partner_id: 'comp-vhp-04',
+          company_name: 'VINOD H PATEL',
+          partner_name: 'VINOD H PATEL',
+          rank: 1,
+          type: 'JV Partner',
+          turnover_cr: 191.39,
+          net_worth_cr: 33.37,
+          solvency_cr: 25.0,
+          key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
+          reason: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.',
+          suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' : 'Strong Financial & High Turnover Partner',
+          equity_suggestion: 'Desire 75% : Partner 25%',
+          fills_gaps: ['Bulk Water Pipelines', 'GWSSB Credentials'],
+          match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88
+        },
+        {
+          company_id: 'comp-aapl-05',
+          partner_id: 'comp-aapl-05',
+          company_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
+          partner_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
+          rank: 2,
+          type: 'JV Partner',
+          turnover_cr: 35.22,
+          net_worth_cr: 14.27,
+          solvency_cr: 10.0,
+          key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
+          reason: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.',
+          suitability: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 'Best Match for Piped Distribution Networks, House Connections & Lift Irrigation' : 'Specialized Water Supply & Lift Irrigation Partner',
+          equity_suggestion: 'Desire 75% : Partner 25%',
+          fills_gaps: ['Piped Distribution', 'Lift Irrigation'],
+          match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift irrigation') || catUpper === 'RHDS') ? 97 : 85
+        },
+        {
+          company_id: 'comp-divija-02',
+          partner_id: 'comp-divija-02',
+          company_name: 'DIVIJA CONSTRUCTION',
+          partner_name: 'DIVIJA CONSTRUCTION',
+          rank: 3,
+          type: 'JV Partner',
+          turnover_cr: 37.01,
+          net_worth_cr: 6.58,
+          solvency_cr: 10.0,
+          key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
+          reason: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.',
+          suitability: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 'Best Match for Sewerage, STP Networks & AMRUT 2.0 Projects' : 'Underground Utilities & Drainage Partner',
+          equity_suggestion: 'Desire 75% : Partner 25%',
+          fills_gaps: ['Sewerage Network', 'STP Experience'],
+          match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 72
+        }
+      ].sort((a, b) => b.match_score - a.match_score).map((r, i) => ({ ...r, rank: i + 1 }));
+
+      aiResult.partner_recommendations = partnerRecommendations;
+      aiResult.recommended_partner_id = partnerRecommendations[0].partner_id;
+      aiResult.recommended_partner_name = partnerRecommendations[0].partner_name;
+
+      const cleanAi = sanitizeReportClauses(aiResult, jvName);
       return NextResponse.json({
-        status: 'error',
-        message: `Gemini AI analysis failed: ${aiCallResult.error || 'The model did not return a valid structured evaluation report.'}`,
+        status: 'success',
+        is_rejected_non_tender: false,
+        message: 'Gemini AI tender evaluation complete.',
+        evaluation_report: cleanAi,
+        report: cleanAi,
         debug: {
           extracted_text_length: extractedPdfText.length,
           extracted_text_sample_start: extractedPdfText.slice(0, 300),
           extracted_text_sample_end: extractedPdfText.slice(-300),
           classification_raw_ai_response: classifyResult.rawText,
-          clause_extraction_raw_ai_response: aiCallResult.rawText || null,
-          path_taken: 'ai_error_caught',
-          error_if_any: aiCallResult.error || 'callGeminiAI returned null'
+          clause_extraction_raw_ai_response: aiCallResult.rawText,
+          path_taken: 'ai_success',
+          error_if_any: null
         }
-      }, { status: 500 });
+      });
     }
 
     // ═══ COMPANIES ═══════════════════════════════════════════════════════════
