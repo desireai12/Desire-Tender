@@ -145,9 +145,8 @@ interface GeminiCallResult {
 
 async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallResult> {
   const models = [
-    'gemini-3.8-flash',
     'gemini-3.6-flash',
-    'gemini-2.5-flash',
+    'gemini-3.8-flash',
     'gemini-flash-latest'
   ];
 
@@ -155,7 +154,7 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
   let lastErrorDetail = '';
   let hitQuota = false;
   let hitAuth = false;
-  let hit404 = false;
+  let count404 = 0;
   let hitTimeout = false;
 
   const overallStartTime = Date.now();
@@ -208,8 +207,8 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
       }
 
       if (res.status === 404) {
-        hit404 = true;
-        lastErrorDetail = errText || `Model not found (HTTP 404)`;
+        count404++;
+        lastErrorDetail = errText || `Model ${m} not found (HTTP 404)`;
         console.warn(`Gemini model ${m} not found (HTTP 404)`);
         continue;
       }
@@ -266,7 +265,7 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
   let errorCategory: ErrorCategory = 'UNKNOWN_ERROR';
   if (hitQuota) errorCategory = 'AI_QUOTA_EXCEEDED';
   else if (hitAuth) errorCategory = 'AI_AUTH_FAILED';
-  else if (hit404) errorCategory = 'AI_MODEL_UNAVAILABLE';
+  else if (count404 === models.length) errorCategory = 'AI_MODEL_UNAVAILABLE';
   else if (hitTimeout) errorCategory = 'AI_TIMEOUT';
 
   return {
