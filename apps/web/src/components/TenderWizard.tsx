@@ -207,19 +207,29 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         const errorType = data?.error_type || 'SERVER_ERROR';
         const errorMsg = data?.message || data?.detail || `Server returned status ${res.status}.`;
         setAnalysisError(`[${errorType}] ${errorMsg}`);
-        setAnalyzing(false);
         setCurrentStep(1);
         return;
       }
     } catch (err: any) {
       console.error('Tender analysis API call error:', err);
+      const isScriptError = err instanceof ReferenceError || err instanceof TypeError || err?.name === 'ReferenceError' || err?.name === 'TypeError';
       const isTimeout = err?.name === 'AbortError' || err?.message?.includes('timeout') || err?.message?.includes('aborted');
-      const errType = isTimeout ? 'AI_TIMEOUT' : 'UNKNOWN_ERROR';
-      const errMsg = isTimeout
-        ? 'The tender analysis request timed out after 60s. Please try again or check network connectivity.'
-        : `Network error connecting to analysis server: ${err?.message || err}`;
+
+      let errType: string;
+      let errMsg: string;
+
+      if (isScriptError) {
+        errType = 'FRONTEND_SCRIPT_ERROR';
+        errMsg = `Client UI runtime error: ${err?.name || 'Error'}: ${err?.message || String(err)}`;
+      } else if (isTimeout) {
+        errType = 'AI_TIMEOUT';
+        errMsg = 'The tender analysis request timed out after 60s. Please try again.';
+      } else {
+        errType = 'NETWORK_ERROR';
+        errMsg = `Network connection error: ${err?.message || String(err)}`;
+      }
+
       setAnalysisError(`[${errType}] ${errMsg}`);
-      setAnalyzing(false);
       setCurrentStep(1);
       return;
     }

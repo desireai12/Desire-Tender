@@ -52,11 +52,23 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
         setErrorMsg(`[${errorType}] ${errorMsgText}`);
       }
     } catch (err: any) {
+      const isScriptError = err instanceof ReferenceError || err instanceof TypeError || err?.name === 'ReferenceError' || err?.name === 'TypeError';
       const isTimeout = err?.name === 'AbortError' || err?.message?.includes('timeout') || err?.message?.includes('aborted');
-      const errType = isTimeout ? 'AI_TIMEOUT' : 'UNKNOWN_ERROR';
-      const errMsgText = isTimeout
-        ? 'The request timed out after 60s. Please try again.'
-        : `Network error connecting to server: ${err?.message || err}`;
+
+      let errType: string;
+      let errMsgText: string;
+
+      if (isScriptError) {
+        errType = 'FRONTEND_SCRIPT_ERROR';
+        errMsgText = `Client UI runtime error: ${err?.name || 'Error'}: ${err?.message || String(err)}`;
+      } else if (isTimeout) {
+        errType = 'AI_TIMEOUT';
+        errMsgText = 'The request timed out after 60s. Please try again.';
+      } else {
+        errType = 'NETWORK_ERROR';
+        errMsgText = `Network connection error: ${err?.message || String(err)}`;
+      }
+
       setErrorMsg(`[${errType}] ${errMsgText}`);
     } finally {
       setIsAnalyzing(false);

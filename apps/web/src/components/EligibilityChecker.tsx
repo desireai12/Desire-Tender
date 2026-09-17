@@ -130,11 +130,23 @@ export const EligibilityChecker: React.FC = () => {
       }
     } catch (e: any) {
       console.error('Tender analysis error:', e);
+      const isScriptError = e instanceof ReferenceError || e instanceof TypeError || e?.name === 'ReferenceError' || e?.name === 'TypeError';
       const isTimeout = e?.name === 'AbortError' || e?.message?.includes('timeout') || e?.message?.includes('aborted');
-      const errType = isTimeout ? 'AI_TIMEOUT' : 'UNKNOWN_ERROR';
-      const errMsg = isTimeout
-        ? 'The request timed out after 60s. Please try again.'
-        : `Failed to communicate with analysis server: ${e?.message || e}`;
+
+      let errType: string;
+      let errMsg: string;
+
+      if (isScriptError) {
+        errType = 'FRONTEND_SCRIPT_ERROR';
+        errMsg = `Client UI runtime error: ${e?.name || 'Error'}: ${e?.message || String(e)}`;
+      } else if (isTimeout) {
+        errType = 'AI_TIMEOUT';
+        errMsg = 'The request timed out after 60s. Please try again.';
+      } else {
+        errType = 'NETWORK_ERROR';
+        errMsg = `Failed to communicate with analysis server: ${e?.message || String(e)}`;
+      }
+
       setAnalysisError(`[${errType}] ${errMsg}`);
     } finally {
       setAnalyzing(false);
