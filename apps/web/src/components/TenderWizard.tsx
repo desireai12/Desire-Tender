@@ -668,17 +668,37 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       {/* STEP 2: DOCUMENT PROCESSING STATE */}
       {currentStep === 2 && (
         <div className="glass-card p-12 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center space-y-6">
-          <Loader2 className="w-12 h-12 text-teal-800 font-semibold animate-spin" />
-          <div className="space-y-2 max-w-md">
-            <h3 className="text-base font-bold text-slate-900">Executing Dynamic AI Eligibility & Synergy Engine</h3>
-            <p className="text-xs text-slate-700 font-medium">{analysisStageText}</p>
-          </div>
-          <div className="w-full max-w-md bg-slate-100 border border-slate-200 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300"
-              style={{ width: `${analysisProgress}%` }}
-            />
-          </div>
+          {analysisError ? (
+            <div className="p-6 rounded-2xl bg-rose-50 border border-rose-300 space-y-4 max-w-xl text-left">
+              <div className="flex items-start space-x-3 text-rose-900">
+                <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-bold text-sm">Analysis Issue Detected</h4>
+                  <p className="text-xs font-mono">{analysisError}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setAnalysisError(null); setCurrentStep(1); }}
+                className="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                Return to Step 1 (Upload Document)
+              </button>
+            </div>
+          ) : (
+            <>
+              <Loader2 className="w-12 h-12 text-teal-800 font-semibold animate-spin" />
+              <div className="space-y-2 max-w-md">
+                <h3 className="text-base font-bold text-slate-900">Executing Dynamic AI Eligibility & Synergy Engine</h3>
+                <p className="text-xs text-slate-700 font-medium">{analysisStageText}</p>
+              </div>
+              <div className="w-full max-w-md bg-slate-100 border border-slate-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full transition-all duration-300"
+                  style={{ width: `${analysisProgress}%` }}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
 

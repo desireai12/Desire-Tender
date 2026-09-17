@@ -111,7 +111,8 @@ export const EligibilityChecker: React.FC = () => {
 
       const res = await fetch(`${API_BASE_URL}/tender/analyze`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: AbortSignal.timeout(60000)
       });
 
       const data = await res.json().catch(() => null);
@@ -129,7 +130,12 @@ export const EligibilityChecker: React.FC = () => {
       }
     } catch (e: any) {
       console.error('Tender analysis error:', e);
-      setAnalysisError(`[UNKNOWN_ERROR] Failed to communicate with analysis server: ${e?.message || e}`);
+      const isTimeout = e?.name === 'AbortError' || e?.message?.includes('timeout') || e?.message?.includes('aborted');
+      const errType = isTimeout ? 'AI_TIMEOUT' : 'UNKNOWN_ERROR';
+      const errMsg = isTimeout
+        ? 'The request timed out after 60s. Please try again.'
+        : `Failed to communicate with analysis server: ${e?.message || e}`;
+      setAnalysisError(`[${errType}] ${errMsg}`);
     } finally {
       setAnalyzing(false);
     }

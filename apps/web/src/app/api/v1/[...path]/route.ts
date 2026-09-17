@@ -86,6 +86,28 @@ function buildErrorResponse(category: ErrorCategory, rawDetail?: string, debugDa
   );
 }
 
+// ─── DOMMATRIX POLYFILL FOR NODE.JS SERVERLESS RUNTIME ─────────────────────
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  (globalThis as any).DOMMatrix = class DOMMatrix {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+    m11 = 1; m12 = 0; m21 = 0; m22 = 1; m41 = 0; m42 = 1;
+    constructor(init?: any) {
+      if (Array.isArray(init) && init.length >= 6) {
+        this.a = init[0]; this.b = init[1]; this.c = init[2];
+        this.d = init[3]; this.e = init[4]; this.f = init[5];
+        this.m11 = init[0]; this.m12 = init[1]; this.m21 = init[2];
+        this.m22 = init[3]; this.m41 = init[4]; this.m42 = init[5];
+      }
+    }
+    multiply() { return this; }
+    translate() { return this; }
+    scale() { return this; }
+    rotate() { return this; }
+    inverse() { return this; }
+    transformPoint(p?: any) { return p || { x: 0, y: 0, z: 0, w: 1 }; }
+  };
+}
+
 // ─── HIGH-CAPACITY PURE JS PDF TEXT EXTRACTOR (pdfjs-dist) ──────────────────
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   try {
@@ -95,8 +117,11 @@ async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
       data: uint8Array,
       useSystemFonts: true,
       disableFontFace: true,
-      isEvalSupported: false
-    });
+      isEvalSupported: false,
+      useWorkerFetch: false,
+      isImageDecoderSupported: false,
+      disableCanvas: true
+    } as any);
     const doc = await loadingTask.promise;
     const pageTexts: string[] = [];
     for (let i = 1; i <= doc.numPages; i++) {

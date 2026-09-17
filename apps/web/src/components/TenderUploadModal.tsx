@@ -37,18 +37,27 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
     try {
       const res = await fetch(
         `${API_BASE_URL}/tender/analyze?provider=${currentProvider}`,
-        { method: 'POST', body: formData }
+        {
+          method: 'POST',
+          body: formData,
+          signal: AbortSignal.timeout(60000)
+        }
       );
       const data = await res.json().catch(() => null);
       if (res.ok && data && data.status !== 'error' && data.evaluation_report) {
         onAnalysisComplete(data.evaluation_report);
       } else {
         const errorType = data?.error_type || 'SERVER_ERROR';
-        const errorMsg = data?.message || data?.detail || `Server returned HTTP ${res.status}.`;
-        setErrorMsg(`[${errorType}] ${errorMsg}`);
+        const errorMsgText = data?.message || data?.detail || `Server returned HTTP ${res.status}.`;
+        setErrorMsg(`[${errorType}] ${errorMsgText}`);
       }
     } catch (err: any) {
-      setErrorMsg(`[UNKNOWN_ERROR] Network error connecting to server: ${err?.message || err}`);
+      const isTimeout = err?.name === 'AbortError' || err?.message?.includes('timeout') || err?.message?.includes('aborted');
+      const errType = isTimeout ? 'AI_TIMEOUT' : 'UNKNOWN_ERROR';
+      const errMsgText = isTimeout
+        ? 'The request timed out after 60s. Please try again.'
+        : `Network error connecting to server: ${err?.message || err}`;
+      setErrorMsg(`[${errType}] ${errMsgText}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -103,7 +112,10 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
       </div>
 
       {errorMsg && (
-        <p className="text-xs font-mono text-amber-700 px-2">{errorMsg}</p>
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center space-x-2 text-rose-800 text-xs font-mono">
+          <span className="font-bold">Analysis Error:</span>
+          <span>{errorMsg}</span>
+        </div>
       )}
     </div>
   );
