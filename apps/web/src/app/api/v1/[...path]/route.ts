@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import zlib from 'zlib';
 import { supabase } from '@/lib/supabase';
 import { STATE_PORTALS, KEYWORD_CATEGORIES, crawlStateGePNICPortal } from '@/lib/gepnic-crawler';
 import vapiTenderData from '@/data/vapi_karvad_real_tender.json';
@@ -22,63 +21,25 @@ function sanitizeUser(user: any) {
   return rest;
 }
 
-// ─── HIGH-CAPACITY PDF TEXT EXTRACTOR (pdf-parse) ──────────────────────────
+// ─── HIGH-CAPACITY PDF TEXT EXTRACTOR (pdf-parse v2.4.5) ───────────────────
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
-  // 1. Primary extractor: modern pdf-parse
   try {
     const { PDFParse } = await import('pdf-parse');
-    const parser = new PDFParse({ data: buffer });
+    const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    const parser = new PDFParse({ data: uint8Array });
     const textResult = await parser.getText();
     await parser.destroy();
-    if (textResult && textResult.text && textResult.text.trim().length > 20) {
-      return textResult.text;
+
+    const extracted = textResult?.text || '';
+    if (extracted.trim().length > 20) {
+      return extracted;
     }
+    throw new Error('Extracted text is empty or shorter than 20 characters.');
   } catch (err: any) {
-    console.warn('pdf-parse primary extraction failed, using fallback parser:', err?.message || err);
+    const errorMsg = `PDF text extraction failed: ${err?.message || err}`;
+    console.error(`[CRITICAL] ${errorMsg}`);
+    throw new Error(errorMsg);
   }
-
-  // 2. Resilient fallback stream decompressor
-  try {
-    const textPieces: string[] = [];
-    const rawStr = buffer.toString('latin1');
-    const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/gi;
-    let match;
-    while ((match = streamRegex.exec(rawStr)) !== null) {
-      try {
-        const decompressed = zlib.inflateSync(Buffer.from(match[1], 'latin1')).toString('latin1');
-        textPieces.push(decompressed);
-      } catch (e1) {
-        try {
-          const decompressedRaw = zlib.inflateRawSync(Buffer.from(match[1], 'latin1')).toString('latin1');
-          textPieces.push(decompressedRaw);
-        } catch (e2) {}
-      }
-    }
-    textPieces.push(rawStr);
-    const combined = textPieces.join(' ');
-    const chunks: string[] = [];
-
-    const tjR = /\(([^)]+)\)\s*Tj/gi;
-    let m;
-    while ((m = tjR.exec(combined)) !== null) chunks.push(m[1]);
-
-    const tjAR = /\[([^\]]+)\]\s*TJ/gi;
-    while ((m = tjAR.exec(combined)) !== null) {
-      const inner = m[1].match(/\(([^)]+)\)/g);
-      if (inner) inner.forEach((x: string) => chunks.push(x.slice(1, -1)));
-    }
-
-    const metaR = /\/(Title|Subject|Author|Keywords)\s*\(([^)]+)\)/gi;
-    while ((m = metaR.exec(combined)) !== null) chunks.push(m[2]);
-
-    const raw = combined.match(/[A-Za-z0-9\s\u20B9\.,\-\/:\(\)]{3,}/g);
-    if (raw) chunks.push(...raw.slice(0, 5000));
-
-    const result = chunks.join(' ').trim();
-    if (result.length > 20) return result;
-  } catch (e) {}
-
-  return buffer.toString('utf-8');
 }
 
 // ─── DOCUMENT REJECTION BUILDER ─────────────────────────────────────────────
