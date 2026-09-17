@@ -22,13 +22,25 @@ function sanitizeUser(user: any) {
   return rest;
 }
 
-// ─── HIGH-CAPACITY PDF TEXT EXTRACTOR ───────────────────────────────────────
-function extractTextFromPdfBuffer(buffer: Buffer): string {
+// ─── HIGH-CAPACITY PDF TEXT EXTRACTOR (pdf-parse) ──────────────────────────
+async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
+  // 1. Primary extractor: modern pdf-parse
+  try {
+    const { PDFParse } = await import('pdf-parse');
+    const parser = new PDFParse({ data: buffer });
+    const textResult = await parser.getText();
+    await parser.destroy();
+    if (textResult && textResult.text && textResult.text.trim().length > 20) {
+      return textResult.text;
+    }
+  } catch (err: any) {
+    console.warn('pdf-parse primary extraction failed, using fallback parser:', err?.message || err);
+  }
+
+  // 2. Resilient fallback stream decompressor
   try {
     const textPieces: string[] = [];
     const rawStr = buffer.toString('latin1');
-    
-    // Extract decompressed stream objects
     const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/gi;
     let match;
     while ((match = streamRegex.exec(rawStr)) !== null) {
@@ -46,82 +58,35 @@ function extractTextFromPdfBuffer(buffer: Buffer): string {
     const combined = textPieces.join(' ');
     const chunks: string[] = [];
 
-    // Extract text in (String) Tj format
     const tjR = /\(([^)]+)\)\s*Tj/gi;
     let m;
     while ((m = tjR.exec(combined)) !== null) chunks.push(m[1]);
 
-    // Extract text in [(String)] TJ format
     const tjAR = /\[([^\]]+)\]\s*TJ/gi;
     while ((m = tjAR.exec(combined)) !== null) {
       const inner = m[1].match(/\(([^)]+)\)/g);
       if (inner) inner.forEach((x: string) => chunks.push(x.slice(1, -1)));
     }
 
-    // Extract PDF metadata fields
     const metaR = /\/(Title|Subject|Author|Keywords)\s*\(([^)]+)\)/gi;
     while ((m = metaR.exec(combined)) !== null) chunks.push(m[2]);
 
-    // Extract printable text chunks (up to 5000 segments)
     const raw = combined.match(/[A-Za-z0-9\s\u20B9\.,\-\/:\(\)]{3,}/g);
     if (raw) chunks.push(...raw.slice(0, 5000));
 
-    return chunks.join(' ');
-  } catch (e) {
-    return buffer.toString('utf-8');
-  }
+    const result = chunks.join(' ').trim();
+    if (result.length > 20) return result;
+  } catch (e) {}
+
+  return buffer.toString('utf-8');
 }
 
-// ─── DOCUMENT CLASSIFIER ────────────────────────────────────────────────────
-function isNonTenderDocument(filename: string, text: string): boolean {
-  const fl = filename.toLowerCase();
-  const tl = text.toLowerCase();
+// ─── DOCUMENT REJECTION BUILDER ─────────────────────────────────────────────
+function buildRejection(filename: string, quoteEvidence?: string, reason?: string, docType?: string) {
+  const detected = docType || 'Non-Tender Document';
+  const evidenceText = quoteEvidence ? ` Quoted Evidence: "${quoteEvidence}".` : '';
+  const reasonText = reason ? ` Reason: ${reason}.` : '';
 
-  // Strong tender filename signals — never reject
-  const tenderFN = [
-    'tender','nit','nib','rfp','rft','eoi','pq','prequalif','itb','jjm',
-    'phed','rudsico','gwssb','amrut','esco','kusum','pkg','package',
-    'vol 1','vol-1','boq','corrigendum','addendum','nit_','_nit','bid_'
-  ];
-  for (const p of tenderFN) if (fl.includes(p)) return false;
-
-  // Strong non-tender filename signals — always reject
-  const nonTenderFN = [
-    'invoice','receipt','bill','payment','salary','payslip','payroll',
-    'resume','_cv_','curriculum vitae','biodata','bio-data','marksheet',
-    'admit','hall ticket','offer letter','appointment','gst_inv','tax_inv',
-    'purchase order','po_','bank statement','statement_'
-  ];
-  for (const p of nonTenderFN) if (fl.includes(p)) return true;
-
-  // Text-based non-tender keywords
-  const nonTenderKeywords = [
-    'invoice no','invoice number','tax invoice','bill to','ship to',
-    'grand total','amount due','payment due','gstin','hsn code',
-    'igst','cgst','sgst','debit note','credit note',
-    'date of birth','father name','mother name',
-    'employment history','work experience','current salary',
-    'hobbies','references available','curriculum vitae'
-  ];
-  let nonHits = 0;
-  for (const p of nonTenderKeywords) if (tl.includes(p)) nonHits++;
-  if (nonHits >= 1) return true;
-
-  // Filename based explicit tender bypass
-  const tenderFilenameHints = ['tender', 'nit', 'nib', 'rfp', 'pkg', 'package', 'banaskantha', 'vapi', 'alwar', 'junagadh', 'gwssb', 'wrd', 'phed', 'rudsico', 'scheme', 'epc', 'boq', 'vol', 'upload'];
-  if (tenderFilenameHints.some(hint => fl.includes(hint))) {
-    return false;
-  }
-
-  // If text is empty/short and no invoice keywords, don't reject
-  if (text.trim().length === 0) {
-    return false;
-  }
-
-  return false;
-}
-
-function buildRejection(filename: string) {
   return {
     tender_id: `rejected-${Date.now()}`,
     tender_title: filename,
@@ -131,8 +96,8 @@ function buildRejection(filename: string) {
     verdict: 'Ineligible',
     eligibility_score: 0,
     overall_health: 'Red',
-    recommendation: 'DOCUMENT REJECTED — Upload an official Government Tender (NIB / NIT / RFP)',
-    executive_summary: `Document Rejected: The file "${filename}" is NOT a tender document. It appears to be an Invoice, Receipt, Resume, Bill, or other commercial file. This system ONLY evaluates official Government and Corporate Tender Specification PDFs. Please upload a valid NIT / RFP / PQ document.`,
+    recommendation: 'DOCUMENT REJECTED — Upload an official Government Tender (NIB / NIT / RFP / Bidding Document)',
+    executive_summary: `Document Rejected: The file "${filename}" is classified as ${detected}.${evidenceText}${reasonText} This system ONLY evaluates official Government and Corporate Tender Specification PDFs.`,
     desire_alone: { score: 0, status: 'Ineligible — Non-Tender', fulfilled_pct: '0%' },
     jv_alone: { score: 0, status: 'Ineligible — Non-Tender', fulfilled_pct: '0%' },
     combined_jv: { score: 0, status: 'Ineligible — Non-Tender', fulfilled_pct: '0%' },
@@ -144,15 +109,25 @@ function buildRejection(filename: string) {
   };
 }
 
-// ─── HIGH-CAPACITY GEMINI CALLER ───────────────────────────────────────────
-async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null> {
+// ─── HIGH-CAPACITY GEMINI CALLER WITH DETAILED DIAGNOSTICS ─────────────────
+interface GeminiCallResult {
+  data: any | null;
+  rawText: string;
+  modelUsed?: string;
+  error?: string;
+  status?: number;
+}
+
+async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallResult> {
   const models = [
-    'gemini-3.5-flash',   // ✅ confirmed working
-    'gemini-3.6-flash',   // ✅ confirmed working
-    'gemini-3.7-flash',   // fallback (may recover)
-    'gemini-3.8-flash',   // fallback
-    'gemini-flash-latest' // fallback
+    'gemini-3.8-flash',
+    'gemini-3.6-flash',
+    'gemini-2.5-flash',
+    'gemini-flash-latest'
   ];
+
+  let lastError = '';
+  let lastStatus = 0;
 
   for (const m of models) {
     try {
@@ -168,20 +143,116 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<any | null>
             responseMimeType: 'application/json'
           }
         }),
-        signal: AbortSignal.timeout(35000)
+        signal: AbortSignal.timeout(60000)
       });
+
+      lastStatus = res.status;
+
+      if (res.status === 401 || res.status === 403) {
+        const errBody = await res.text();
+        console.error(`CRITICAL: GEMINI_API_KEY IS INVALID OR EXPIRED (HTTP ${res.status}): ${errBody}`);
+        return {
+          data: null,
+          rawText: errBody,
+          status: res.status,
+          error: `CRITICAL: GEMINI_API_KEY IS INVALID OR EXPIRED (HTTP ${res.status}): ${errBody}`
+        };
+      }
 
       if (res.ok) {
         const data = await res.json();
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (rawText) {
           const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-          return JSON.parse(cleaned);
+          try {
+            const parsed = JSON.parse(cleaned);
+            return { data: parsed, rawText, modelUsed: m, status: 200 };
+          } catch (pe: any) {
+            console.warn(`JSON parse error on model ${m}:`, pe.message);
+            lastError = `JSON parse error on ${m}: ${pe.message}`;
+          }
         }
-      } else { console.warn(`Gemini ${m} HTTP ${res.status}`); }
-    } catch (e) { console.warn(`Gemini ${m} error:`, e); }
+      } else {
+        const errText = await res.text();
+        console.warn(`Gemini ${m} HTTP ${res.status}: ${errText}`);
+        lastError = `Model ${m} failed with HTTP ${res.status}: ${errText}`;
+      }
+    } catch (e: any) {
+      console.warn(`Gemini ${m} error:`, e?.message || e);
+      lastError = e?.message || String(e);
+    }
   }
-  return null;
+
+  return { data: null, rawText: '', error: lastError, status: lastStatus };
+}
+
+// ─── AI-POWERED DOCUMENT CLASSIFIER ────────────────────────────────────────
+async function classifyDocumentWithAI(filename: string, textSample: string, apiKey: string): Promise<{
+  is_tender: boolean;
+  confidence: number;
+  document_type: string;
+  quote_of_evidence: string;
+  reason: string;
+  rawText: string;
+  error?: string;
+}> {
+  if (!textSample || textSample.trim().length < 40) {
+    return {
+      is_tender: false,
+      confidence: 100,
+      document_type: 'Unreadable or Empty Document',
+      quote_of_evidence: '',
+      reason: 'No readable text could be extracted from this document.',
+      rawText: JSON.stringify({ is_tender: false, reason: 'No text extracted' })
+    };
+  }
+
+  const prompt = `You are a strict, impartial Document Classifier for procurement and legal documents.
+Determine whether the document below is a genuine Public/Government/Corporate Tender / Notice Inviting Tender (NIT/NIB/RFP/IFB/ITB/EOI/PQ/Bidding Document) OR a NON-TENDER document (such as a tax invoice, bill, payment receipt, salary slip, purchase order, resume/curriculum vitae, bank statement, student marksheet, certificate, or personal correspondence).
+
+DOCUMENT FILENAME: "${filename}"
+
+DOCUMENT TEXT EXCERPT (first 4,000 characters):
+"""
+${textSample.slice(0, 4000)}
+"""
+
+RULES:
+1. Base your determination strictly and objectively on the document text content.
+2. If it is an invoice, bill, receipt, salary slip, bank statement, or resume/CV, set "is_tender": false.
+3. If it is a tender notice, instruction to bidders, RFP, NIT, bidding document, or procurement qualification paper, set "is_tender": true.
+4. You MUST include an exact verbatim excerpt from the document as "quote_of_evidence" supporting your classification.
+5. Provide a clear, concise "reason".
+6. Return ONLY valid JSON (no markdown wrapping) matching this schema:
+{
+  "is_tender": boolean,
+  "confidence": number,
+  "document_type": string,
+  "quote_of_evidence": string,
+  "reason": string
+}`;
+
+  const res = await callGeminiAI(prompt, apiKey);
+  if (res.data && typeof res.data === 'object' && typeof res.data.is_tender === 'boolean') {
+    return {
+      is_tender: res.data.is_tender,
+      confidence: res.data.confidence ?? 95,
+      document_type: res.data.document_type || (res.data.is_tender ? 'Tender Document' : 'Non-Tender Document'),
+      quote_of_evidence: res.data.quote_of_evidence || '',
+      reason: res.data.reason || res.data.reasoning || '',
+      rawText: res.rawText
+    };
+  }
+
+  return {
+    is_tender: true, // Fail-open to avoid accidental rejection if classifier encounters an intermittent issue
+    confidence: 50,
+    document_type: 'Tender Document (Unconfirmed)',
+    quote_of_evidence: '',
+    reason: res.error || 'Classifier did not return structured result',
+    rawText: res.rawText,
+    error: res.error
+  };
 }
 
 
@@ -442,18 +513,33 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       // 1. Extract full text from PDF
       let extractedPdfText = '';
       if (formFileBuffer && formFileBuffer.length > 0) {
-        extractedPdfText = extractTextFromPdfBuffer(formFileBuffer);
+        extractedPdfText = await extractTextFromPdfBuffer(formFileBuffer);
       }
 
-      // 2. KEYWORD CLASSIFIER — Reject invoices/resumes
-      if (isNonTenderDocument(filename, extractedPdfText)) {
-        const rejection = buildRejection(filename);
+      const KEY_B64 = 'QVEuQWI4Uk42SjJfX1hKMUdJRUVnRVI5QTlRNm4xQWVxM1p2ems1RUV2TkJpMk5BRnB5bWc=';
+      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
+
+      // 2. AI CONTENT CLASSIFIER — Classify with real Gemini model, requiring quoted evidence
+      const classifyResult = await classifyDocumentWithAI(filename, extractedPdfText, geminiKey);
+
+      if (!classifyResult.is_tender) {
+        const rejection = buildRejection(filename, classifyResult.quote_of_evidence, classifyResult.reason, classifyResult.document_type);
         return NextResponse.json({
           status: 'success',
           is_rejected_non_tender: true,
-          message: 'Non-tender document detected and rejected.',
+          message: `Non-tender document detected (${classifyResult.document_type}): ${classifyResult.reason}`,
+          rejection_evidence: classifyResult.quote_of_evidence,
           evaluation_report: rejection,
-          report: rejection
+          report: rejection,
+          debug: {
+            extracted_text_length: extractedPdfText.length,
+            extracted_text_sample_start: extractedPdfText.slice(0, 300),
+            extracted_text_sample_end: extractedPdfText.slice(-300),
+            classification_raw_ai_response: classifyResult.rawText,
+            clause_extraction_raw_ai_response: null,
+            path_taken: 'ai_success',
+            error_if_any: null
+          }
         });
       }
 
@@ -476,9 +562,6 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const jvSharePct = jvComp.id === 'comp-aapl-05' ? '25%' : '49%';
       const desireSharePct = jvComp.id === 'comp-aapl-05' ? '75%' : '51%';
 
-      const KEY_B64 = 'QVEuQWI4Uk42S01UVnoxZnQ3al9TRmpFaVB6dnJwQVhreC1PU3hOU2ZyczByd1E1SVZBUFE=';
-      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
-      
       // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
       const snippet = extractedPdfText ? extractedPdfText.slice(0, 60000) : `Filename: ${filename}. Title: ${titleInput}`;
 
@@ -505,9 +588,10 @@ DOCUMENT TEXT (Filename: "${filename}"):
 "${snippet}"
 
 INSTRUCTIONS FOR EXTRACTING CLAUSES:
-Step 1: Determine if this is a valid Tender Document (NIT/NIB/RFP/EOI/PQ). If it is an Invoice, Bill, Receipt, or Resume, set "is_rejected_non_tender": true.
-Step 2: If it IS a tender, extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION CLAUSE present in the document text above (Financial Turnover, Single Work Experience, Specific Work Quantities, Net Worth, Solvency, Bid Capacity, License/Registration, EMD, ISO Certs, Litigation Affidavit, Key Personnel, O&M Commitment, etc.).
-Extract at least 8 to 15 distinct clauses found in the tender document.
+Step 1: Determine if this is a valid Tender Document (NIT/NIB/RFP/EOI/PQ/Bidding Document). If it is an Invoice, Bill, Receipt, or Resume, set "is_rejected_non_tender": true.
+Step 2: If it IS a tender, extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION CLAUSE directly present in the document text above (e.g. Financial Turnover, Single Work Experience, Specific Work Quantities, Net Worth, Solvency, Bid Capacity, License/Registration, EMD, ISO Certs, Litigation Affidavit, Key Personnel, O&M Commitment, etc.).
+Extract at least 8 to 15 distinct clauses found in THIS SPECIFIC tender document.
+CRITICAL: Do NOT output generic clauses. Extract the EXACT clause numbers, exact titles, exact financial thresholds (in ₹ Crores or Lakhs), and exact physical quantities (pipe diameters, lengths in km, pump ratings, time limits) stated in the provided DOCUMENT TEXT.
 
 Step 3: Evaluate EACH extracted clause for:
 - Desire Energy Standalone capability ("desire_value")
@@ -520,11 +604,11 @@ CRITICAL STANDALONE EVALUATION RULES:
 - If ${jvName} only partially meets a financial limit (e.g. turnover of ₹191.39 Cr vs ₹300 Cr required), mark "jv_value" as "PARTIAL MATCH (63% of requirement)".
 - Do NOT artificially grant 100% to "jv_alone" unless ${jvName} genuinely satisfies 100% of all tender requirements alone.
 
-Return valid JSON (no markdown wrapping):
+Return valid JSON only (no markdown wrapping):
 {
   "is_rejected_non_tender": false,
   "tender_title": "string — extracted official tender title or document name",
-  "project_category": "ESCO" | "STP" | "RHDS" | "KUSUM" | "SOLAR" | "CIVIL",
+  "project_category": "ESCO" | "STP" | "RHDS" | "KUSUM" | "SOLAR" | "CIVIL" | "EPC",
   "verdict": "Eligible" | "Conditional" | "Ineligible",
   "eligibility_score": number from 0 to 100,
   "overall_health": "Green" | "Yellow" | "Red",
@@ -535,38 +619,46 @@ Return valid JSON (no markdown wrapping):
   "combined_jv": {"score": number, "status": "string", "fulfilled_pct": "string"},
   "clauses_breakdown": [
     {
-      "clause_no": "string — e.g. Clause 1.1 or ITB 4.2",
+      "clause_no": "string — e.g. Clause 4.2.1 or ITB 4.5.3",
       "clause_title": "string — title of requirement",
       "requirement_type": "Financial" | "Technical" | "Organizational" | "Compliance",
-      "tender_requirement": "exact requirement statement",
-      "required_value": "numeric required value with unit",
-      "desire_value": "Desire Energy actual metric and percentage (e.g. Rs.300.93 Cr (100%))",
-      "jv_value": "${jvName} actual metric and percentage (e.g. Rs.191.39 Cr (63% - PARTIAL MATCH) or Lacks certification (0% - NOT MATCHING))",
+      "tender_requirement": "exact requirement statement from document",
+      "required_value": "numeric required value with unit (e.g. Rs. 69.78 Cr)",
+      "desire_value": "Desire Energy actual metric and match status",
+      "jv_value": "${jvName} actual metric and match status",
       "combined_value": "Combined capability description",
       "applicable_jv_rule": "JV pooling rule applied",
       "status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
       "fulfilled_pct": "percentage string (e.g. 100%)",
       "gap_notes": "detailed gap analysis",
       "required_doc": "documentary evidence required",
-      "page_ref": "page or section reference"
+      "page_ref": "page or section reference from document"
     }
   ]
 }`;
 
-      const aiResult = await callGeminiAI(prompt, geminiKey);
+      const aiCallResult = await callGeminiAI(prompt, geminiKey);
+      const aiResult = aiCallResult.data;
 
       // 5. Process Gemini response
       if (aiResult && typeof aiResult === 'object') {
         if (aiResult.is_rejected_non_tender === true) {
-          const rejection = buildRejection(filename);
-          rejection.executive_summary = aiResult.executive_summary || rejection.executive_summary;
-          rejection.tender_title = aiResult.tender_title || filename;
+          const rejection = buildRejection(filename, '', aiResult.executive_summary || 'Document classified as non-tender', 'Non-Tender');
           return NextResponse.json({
             status: 'success',
             is_rejected_non_tender: true,
             message: 'AI confirmed: Not a tender document.',
             evaluation_report: rejection,
-            report: rejection
+            report: rejection,
+            debug: {
+              extracted_text_length: extractedPdfText.length,
+              extracted_text_sample_start: extractedPdfText.slice(0, 300),
+              extracted_text_sample_end: extractedPdfText.slice(-300),
+              classification_raw_ai_response: classifyResult.rawText,
+              clause_extraction_raw_ai_response: aiCallResult.rawText,
+              path_taken: 'ai_success',
+              error_if_any: null
+            }
           });
         }
 
@@ -652,439 +744,35 @@ Return valid JSON (no markdown wrapping):
           is_rejected_non_tender: false,
           message: 'Gemini AI tender evaluation complete.',
           evaluation_report: cleanAi,
-          report: cleanAi
+          report: cleanAi,
+          debug: {
+            extracted_text_length: extractedPdfText.length,
+            extracted_text_sample_start: extractedPdfText.slice(0, 300),
+            extracted_text_sample_end: extractedPdfText.slice(-300),
+            classification_raw_ai_response: classifyResult.rawText,
+            clause_extraction_raw_ai_response: aiCallResult.rawText,
+            path_taken: 'ai_success',
+            error_if_any: null
+          }
         });
       }
 
-      // 6. DYNAMIC BACKEND EVALUATION ENGINE (Guaranteed Response & Zero-Downtime Fallback)
-      const titleLower = (titleInput || filename || '').toLowerCase();
-      const catUpper = (formCategory || 'EPC').toUpperCase();
-
-      const partnerRecommendations = [
-        {
-          company_id: 'comp-vhp-04',
-          partner_id: 'comp-vhp-04',
-          name: 'VINOD H PATEL',
-          partner_name: 'VINOD H PATEL',
-          type: 'JV Partner',
-          turnover_cr: 191.39,
-          net_worth_cr: 33.37,
-          solvency_cr: 25.0,
-          key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
-          match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('banaskantha') || titleLower.includes('kankrej') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88,
-          synergy_badge: 'Optimal Gujarat WRD & Bulk Water Partner',
-          suitability: 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects',
-          rationale: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.'
-        },
-        {
-          company_id: 'comp-aapl-05',
-          partner_id: 'comp-aapl-05',
-          name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-          partner_name: 'ADROIT ASSOCIATES PRIVATE LIMITED',
-          type: 'JV Partner',
-          turnover_cr: 35.22,
-          net_worth_cr: 14.27,
-          solvency_cr: 10.0,
-          key_advantage: 'Roshni-1 Water Scheme (₹46.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network',
-          match_score: (titleLower.includes('karvad') || titleLower.includes('vapi') || titleLower.includes('house connection') || titleLower.includes('lift') || catUpper === 'ESCO') ? 97 : 85,
-          synergy_badge: 'Optimal Lift Irrigation & Distribution Partner',
-          suitability: 'Best Match for Piped Distribution Networks, House Connections & Lift Irrigation',
-          rationale: 'Deep lift irrigation & rural distribution credentials (₹46.73 Cr Roshni project) perfectly complement Desire Energy.'
-        },
-        {
-          company_id: 'comp-divija-02',
-          partner_id: 'comp-divija-02',
-          name: 'DIVIJA CONSTRUCTION',
-          partner_name: 'DIVIJA CONSTRUCTION',
-          type: 'JV Partner',
-          turnover_cr: 37.01,
-          net_worth_cr: 6.58,
-          solvency_cr: 10.0,
-          key_advantage: '136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling',
-          match_score: (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('alwar')) ? 99 : 72,
-          synergy_badge: 'Optimal STP & Sewerage Network Partner',
-          suitability: 'Best Match for Sewerage, STP Networks & AMRUT 2.0 Projects',
-          rationale: 'Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.'
-        }
-      ].sort((a, b) => b.match_score - a.match_score);
-
-      const dynamicClauses = (() => {
-        if (catUpper === 'STP' || titleLower.includes('sewer') || titleLower.includes('stp')) {
-          return [
-            {
-              clause_no: 'ITB 3.1',
-              clause_title: '3-Year Average Financial Turnover (STP/Sewerage)',
-              page_ref: 'Page 10, Vol 1',
-              tender_requirement: 'Minimum ₹54.80 Cr 3-Yr average turnover',
-              desire_value: `₹${dT.toFixed(2)} Cr (3-Yr Avg: FY 2021-24) — Meets 100%`,
-              jv_value: `₹${jT.toFixed(2)} Cr (${jvName}) — Meets criteria`,
-              combined_value: `₹${cT.toFixed(2)} Cr (100% Consortium Turnover Pooling)`,
-              applicable_jv_rule: 'Clause 4.1: 100% sum of both partners turnover considered',
-              status: 'MATCH' as const,
-              gap_notes: 'Turnover requirement comfortably exceeded by consortium.',
-              required_doc: 'Audited CA Turnover Certificates'
-            },
-            {
-              clause_no: 'ITB 3.3',
-              clause_title: 'Net Worth & Solvency Requirement',
-              page_ref: 'Page 12, Vol 1',
-              tender_requirement: 'Net worth >= ₹10.00 Cr and Bank Solvency >= ₹8.00 Cr',
-              desire_value: `₹${dNW.toFixed(2)} Cr Net Worth, ₹${dS.toFixed(2)} Cr Solvency`,
-              jv_value: `₹${jNW.toFixed(2)} Cr Net Worth, ₹${jS.toFixed(2)} Cr Solvency`,
-              combined_value: `₹${(dNW + jNW).toFixed(2)} Cr Net Worth, ₹${(dS + jS).toFixed(2)} Cr Solvency`,
-              applicable_jv_rule: 'Combined Net Worth and Solvency of Lead + Partner',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully compliant with bank solvency requirements.',
-              required_doc: 'Bank Solvency Certificate'
-            },
-            {
-              clause_no: 'ITB 4.1',
-              clause_title: 'Single Major Sewerage / STP Work Order',
-              page_ref: 'Page 15, Vol 1',
-              tender_requirement: 'Execution of single underground sewerage network / STP project of >= ₹25.00 Cr or 8 MLD capacity',
-              desire_value: 'Desire Energy: Specialized gap in underground sewerage works (0% standalone)',
-              jv_value: `${jvName}: Executed 136 km Sewer Network & 8 MLD Pumping Station (100% Qualifying)`,
-              combined_value: `${jvName} bridges technical gap with 136 km sewer track record (100% Satisfied)`,
-              applicable_jv_rule: 'JV Partner credentials directly fulfill specialized technical clause',
-              status: 'MATCH' as const,
-              gap_notes: 'Specialized sewerage gap bridged through JV Partner.',
-              required_doc: 'Client Completion Certificate + Work Order Copy'
-            },
-            {
-              clause_no: 'ITB 4.4',
-              clause_title: 'Underground Pipe Laying (DWC / RCC NP3 / HDPE)',
-              page_ref: 'Page 20, Vol 1',
-              tender_requirement: 'Minimum 30 km underground gravity sewer pipeline laying & trenching',
-              desire_value: '120+ km HDPE/DI water pipeline experience',
-              jv_value: `${jvName}: 136 km DWC/RCC sewer pipe laying (100% Match)`,
-              combined_value: '250+ km cumulative underground piping track record',
-              applicable_jv_rule: 'Cumulative pipeline experience combined',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully satisfied by JV Partner.',
-              required_doc: 'Work Completion Certificates'
-            },
-            {
-              clause_no: 'ITB 5.2',
-              clause_title: 'Sewage Pumping Machinery & SCADA Automation',
-              page_ref: 'Page 24, Vol 1',
-              tender_requirement: 'Supply & commissioning of non-clog submersible sewage pumps with SCADA',
-              desire_value: '14 Years ESCO pumping & SCADA O&M experience (100% Match)',
-              jv_value: `${jvName}: Civil pumping stations experience (100% Match)`,
-              combined_value: 'Complete E&M + SCADA consortium capability',
-              applicable_jv_rule: 'Lead member pumping credentials satisfy requirement',
-              status: 'MATCH' as const,
-              gap_notes: 'Desire Energy pumping division directly meets criteria.',
-              required_doc: 'OEM Authorization + Pumping Certificates'
-            },
-            {
-              clause_no: 'ITB 6.1',
-              clause_title: 'Contractor Registration & DLB / PWD License',
-              page_ref: 'Page 28, Vol 1',
-              tender_requirement: 'Valid Class-AA / Special Class Registration with DLB / PWD / Municipal Corporation',
-              desire_value: 'PHED Rajasthan Class-A Special + Gujarat Registration',
-              jv_value: `${jvName}: Class-AA DLB License Holder (100% Match)`,
-              combined_value: 'Both members possess active contractor registrations',
-              applicable_jv_rule: 'Either member registration valid for joint venture bidding',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully registered and eligible.',
-              required_doc: 'Active Registration License Copies'
-            }
-          ];
-        } else if (catUpper === 'RHDS' || titleLower.includes('rhds') || titleLower.includes('jjm') || titleLower.includes('rural')) {
-          return [
-            {
-              clause_no: 'ITB 2.1',
-              clause_title: 'Average Annual Financial Turnover (Rural Water Supply)',
-              page_ref: 'Page 8, Vol 1',
-              tender_requirement: 'Minimum ₹60.00 Cr 3-Yr average turnover',
-              desire_value: `₹${dT.toFixed(2)} Cr (3-Yr Avg: FY 2021-24) — Meets 100%`,
-              jv_value: `₹${jT.toFixed(2)} Cr (${jvName}) — Meets criteria`,
-              combined_value: `₹${cT.toFixed(2)} Cr (100% Consortium Turnover Pooling)`,
-              applicable_jv_rule: '100% sum of both partners turnover considered',
-              status: 'MATCH' as const,
-              gap_notes: 'Requirement comfortably satisfied by Desire Energy alone.',
-              required_doc: 'Audited CA Turnover Certificate'
-            },
-            {
-              clause_no: 'ITB 2.3',
-              clause_title: 'Net Worth & Solvency Requirement',
-              page_ref: 'Page 11, Vol 1',
-              tender_requirement: 'Net worth >= ₹15.00 Cr and Bank Solvency >= ₹12.00 Cr',
-              desire_value: `₹${dNW.toFixed(2)} Cr Net Worth, ₹${dS.toFixed(2)} Cr Solvency`,
-              jv_value: `₹${jNW.toFixed(2)} Cr Net Worth, ₹${jS.toFixed(2)} Cr Solvency`,
-              combined_value: `₹${(dNW + jNW).toFixed(2)} Cr Net Worth, ₹${(dS + jS).toFixed(2)} Cr Solvency`,
-              applicable_jv_rule: 'Combined Net Worth and Solvency of Lead + Partner',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully compliant with bank solvency requirements.',
-              required_doc: 'Bank Solvency Certificate'
-            },
-            {
-              clause_no: 'ITB 3.1',
-              clause_title: 'Multi-Village Rural Water Supply Scheme Experience',
-              page_ref: 'Page 14, Vol 1',
-              tender_requirement: 'Execution of single multi-village piped water supply scheme of >= ₹40.00 Cr',
-              desire_value: 'Desire Energy: Jal Jeevan Mission packages executed across 1,00,000+ villages (100% Match)',
-              jv_value: `${jvName}: Executed Roshni-1 / Palanpur Water Supply Packages (100% Match)`,
-              combined_value: 'Consortium brings premier rural water supply track record',
-              applicable_jv_rule: 'Both members satisfy technical requirement',
-              status: 'MATCH' as const,
-              gap_notes: 'Premier capability in rural water supply.',
-              required_doc: 'Client Completion Certificate'
-            },
-            {
-              clause_no: 'ITB 3.4',
-              clause_title: 'HDPE / DI Distribution Pipe Network',
-              page_ref: 'Page 18, Vol 1',
-              tender_requirement: 'Minimum 75 km HDPE / DI pipe laying, jointing & house connection experience',
-              desire_value: '120+ km HDPE/DI distribution pipeline experience (100% Match)',
-              jv_value: `${jvName}: 50+ km pipeline laying experience (100% Match)`,
-              combined_value: '170+ km cumulative pipeline track record',
-              applicable_jv_rule: 'Cumulative pipeline experience combined',
-              status: 'MATCH' as const,
-              gap_notes: 'Exceeds physical pipeline requirement.',
-              required_doc: 'Work Experience Certificates'
-            },
-            {
-              clause_no: 'ITB 4.2',
-              clause_title: 'OHSR / CWR / Elevated Service Reservoirs',
-              page_ref: 'Page 22, Vol 1',
-              tender_requirement: 'Construction & commissioning of RCC OHSR / CWR reservoirs',
-              desire_value: '5 OHSRs & major CWR sumps constructed (100% Match)',
-              jv_value: `${jvName}: Civil reservoir experience (100% Match)`,
-              combined_value: 'Complete civil structural capability',
-              applicable_jv_rule: 'Lead member experience qualifies',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully satisfied.',
-              required_doc: 'Completion Certificate Copy'
-            },
-            {
-              clause_no: 'ITB 5.1',
-              clause_title: 'PHED Class-A / Special Category Registration',
-              page_ref: 'Page 26, Vol 1',
-              tender_requirement: 'Valid Class-A Special Registration with PHED / WRD',
-              desire_value: 'PHED Rajasthan Class-A Special Registration (100% Match)',
-              jv_value: `${jvName}: Govt Approved Contractor License`,
-              combined_value: 'Active Class-A Special Registration',
-              applicable_jv_rule: 'Lead member registration valid',
-              status: 'MATCH' as const,
-              gap_notes: 'Lead member fully registered.',
-              required_doc: 'PHED Registration Enrolment Certificate'
-            }
-          ];
-        } else if (catUpper === 'SOLAR' || catUpper === 'KUSUM' || titleLower.includes('solar') || titleLower.includes('kusum') || titleLower.includes('pv')) {
-          return [
-            {
-              clause_no: 'ITB 2.1',
-              clause_title: 'Average Annual Financial Turnover (Solar PV)',
-              page_ref: 'Page 6, Vol 1',
-              tender_requirement: catUpper === 'KUSUM' ? 'Minimum ₹25.00 Cr average turnover' : 'Minimum ₹50.00 Cr average turnover',
-              desire_value: `₹${dT.toFixed(2)} Cr (3-Yr Avg: FY 2021-24) — Meets 100%`,
-              jv_value: `₹${jT.toFixed(2)} Cr (${jvName})`,
-              combined_value: `₹${cT.toFixed(2)} Cr (100% Consortium Turnover Pooling)`,
-              applicable_jv_rule: '100% sum of both partners turnover considered',
-              status: 'MATCH' as const,
-              gap_notes: 'Turnover requirement comfortably exceeded by Desire Energy.',
-              required_doc: 'Audited CA Turnover Certificate'
-            },
-            {
-              clause_no: 'ITB 2.3',
-              clause_title: 'Net Worth & Solvency Requirement',
-              page_ref: 'Page 9, Vol 1',
-              tender_requirement: 'Net worth >= ₹10.00 Cr and Bank Solvency >= ₹8.00 Cr',
-              desire_value: `₹${dNW.toFixed(2)} Cr Net Worth, ₹${dS.toFixed(2)} Cr Solvency`,
-              jv_value: `₹${jNW.toFixed(2)} Cr Net Worth, ₹${jS.toFixed(2)} Cr Solvency`,
-              combined_value: `₹${(dNW + jNW).toFixed(2)} Cr Net Worth, ₹${(dS + jS).toFixed(2)} Cr Solvency`,
-              applicable_jv_rule: 'Combined Net Worth and Solvency of Lead + Partner',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully compliant with bank solvency requirements.',
-              required_doc: 'Bank Solvency Certificate'
-            },
-            {
-              clause_no: 'ITB 3.1',
-              clause_title: 'Solar PV Plant / Solar Pump Installation Experience',
-              page_ref: 'Page 12, Vol 1',
-              tender_requirement: catUpper === 'KUSUM' ? 'Supply & commissioning of >= 500 Solar Submersible Pumps' : 'Turnkey EPC execution of >= 20 MW Solar PV Power Plants',
-              desire_value: 'Desire Energy: Executed ₹94 Cr PM-Kusum Component-B & 50+ MW Solar PV Plants (100% Match)',
-              jv_value: `${jvName}: Electrical & civil installation support`,
-              combined_value: 'Desire Energy solar division leads technical qualification (100% Satisfied)',
-              applicable_jv_rule: 'Lead member specialized solar credentials satisfy technical clause',
-              status: 'MATCH' as const,
-              gap_notes: 'Desire Energy solar experience exceeds requirement.',
-              required_doc: 'Commissioning Certificates from DISCOM / RRECL'
-            },
-            {
-              clause_no: 'ITB 4.1',
-              clause_title: 'Remote Monitoring System (RMS) & Telemetry Integration',
-              page_ref: 'Page 16, Vol 1',
-              tender_requirement: 'Supply of RMS gateway, IoT SIM telemetry & central server SCADA software',
-              desire_value: 'In-house IoT RMS platform & SCADA telemetry integration (100% Match)',
-              jv_value: `${jvName}: Site logistics & mounting structures`,
-              combined_value: 'Complete solar telemetry & SCADA capability',
-              applicable_jv_rule: 'Lead member IoT division satisfies requirement',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully compliant.',
-              required_doc: 'RMS Software Compliance Certificate'
-            },
-            {
-              clause_no: 'ITB 5.1',
-              clause_title: 'Electrical Contractor License & MNRE / Nodal Empanelment',
-              page_ref: 'Page 20, Vol 1',
-              tender_requirement: 'Class-1 Electrical Contractor License & State Nodal Agency (RRECL/GEDA/MEDA) Empanelment',
-              desire_value: 'Class-1 Electrical Contractor License + Empanelled Vendor (100% Match)',
-              jv_value: `${jvName}: Electrical Contractor License`,
-              combined_value: 'Both members hold active electrical contractor licenses',
-              applicable_jv_rule: 'Either member license valid for bidding',
-              status: 'MATCH' as const,
-              gap_notes: 'Active empanelment verified.',
-              required_doc: 'Electrical Contractor License Copy'
-            },
-            {
-              clause_no: 'ITB 6.1',
-              clause_title: 'Comprehensive O&M Commitment (5 Years / 25 Years)',
-              page_ref: 'Page 24, Vol 1',
-              tender_requirement: '5-Year / 25-Year Comprehensive Operation & Maintenance commitment with spare inventory',
-              desire_value: '14 Years ESCO O&M experience with dedicated service centers (100% Match)',
-              jv_value: `${jvName}: Regional O&M support`,
-              combined_value: 'Robust 5-Year / 25-Year O&M guarantee',
-              applicable_jv_rule: 'Lead member O&M infrastructure satisfies requirement',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully satisfied.',
-              required_doc: 'O&M Undertaking Affidavit'
-            }
-          ];
-        } else {
-          // Default EPC / Civil & Pipeline
-          return [
-            {
-              clause_no: 'ITB 3.2',
-              clause_title: 'Average Annual Turnover (Last 3 Years)',
-              page_ref: 'Page 12, Vol 1',
-              tender_requirement: 'Minimum ₹45.00 Cr 3-Yr average turnover',
-              desire_value: `₹${dT.toFixed(2)} Cr (3-Yr Avg: FY 2021-24) — Meets 100%`,
-              jv_value: `₹${jT.toFixed(2)} Cr (${jvName}) — Meets criteria`,
-              combined_value: `₹${cT.toFixed(2)} Cr (100% Consortium Turnover Pooling)`,
-              applicable_jv_rule: 'Clause 4.1: 100% sum of both partners turnover considered',
-              status: 'MATCH' as const,
-              gap_notes: 'Exceeds requirement by over ₹255 Cr.',
-              required_doc: 'Audited CA Turnover Certificates + Form 26AS'
-            },
-            {
-              clause_no: 'ITB 3.4',
-              clause_title: 'Net Worth & Solvency Requirement',
-              page_ref: 'Page 14, Vol 1',
-              tender_requirement: 'Net worth >= ₹15.00 Cr and Bank Solvency >= ₹12.00 Cr',
-              desire_value: `₹${dNW.toFixed(2)} Cr Net Worth, ₹${dS.toFixed(2)} Cr Solvency`,
-              jv_value: `₹${jNW.toFixed(2)} Cr Net Worth, ₹${jS.toFixed(2)} Cr Solvency`,
-              combined_value: `₹${(dNW + jNW).toFixed(2)} Cr Net Worth, ₹${(dS + jS).toFixed(2)} Cr Solvency`,
-              applicable_jv_rule: 'Combined Net Worth and Solvency of Lead + Partner',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully compliant with bank solvency requirements.',
-              required_doc: 'Kotak Mahindra Bank Solvency Certificate + CA Net Worth Certificate'
-            },
-            {
-              clause_no: 'ITB 4.1',
-              clause_title: 'Single Major Similar Work Order (Bulk Pipeline / EPC)',
-              page_ref: 'Page 18, Vol 1',
-              tender_requirement: 'Execution of single bulk water / MS / DI pipeline work of >= ₹35.00 Cr in last 5 years',
-              desire_value: 'Desire Energy standalone single largest work: ₹28.50 Cr (Partial Match)',
-              jv_value: `${jvName}: Executed ₹99.41 Cr Palanpur Bulk Water Pipeline Package (100% Qualifying)`,
-              combined_value: `${jvName} brings ₹99.41 Cr single work order to Consortium (100% Satisfied)`,
-              applicable_jv_rule: 'Lead or JV partner single work order satisfies technical qualification',
-              status: 'MATCH' as const,
-              gap_notes: 'Requirement fully satisfied through JV Partner credential.',
-              required_doc: 'GWSSB / Client Completion Certificate + Work Order Copy'
-            },
-            {
-              clause_no: 'ITB 4.3',
-              clause_title: 'MS / DI Pipeline Laying & Jointing Track Record',
-              page_ref: 'Page 22, Vol 1',
-              tender_requirement: 'Minimum 25 km of MS / DI pipeline (>= 400mm dia) laid, jointed, and commissioned',
-              desire_value: '120+ km HDPE/DI distribution pipeline experience (100% Match)',
-              jv_value: `${jvName}: 45+ km MS pipeline laying in Gujarat WRD projects (100% Match)`,
-              combined_value: '165+ km cumulative pipeline execution capability (Consortium Qualified)',
-              applicable_jv_rule: 'Cumulative pipeline laying experience combined',
-              status: 'MATCH' as const,
-              gap_notes: 'Exceeds minimum physical pipeline requirement.',
-              required_doc: 'Executive Engineer / Project Director Experience Certificates'
-            },
-            {
-              clause_no: 'ITB 5.1',
-              clause_title: 'Pumping Station, Sump & Electro-Mechanical Installation',
-              page_ref: 'Page 25, Vol 1',
-              tender_requirement: 'Design, supply, installation & commissioning of >= 250 HP VT / Horizontal Pumping Machinery with SCADA',
-              desire_value: '14 Years ESCO & High-Head Pumping Machinery O&M (100% Match)',
-              jv_value: `${jvName}: Civil pump houses experience (Lacks specialized E&M SCADA pumping credentials - 0% NOT MATCHING)`,
-              combined_value: 'Complete Electro-Mechanical + Civil Pump House consortium strength (100% Match)',
-              applicable_jv_rule: 'Specialized lead member pump credentials fulfill E&M clause',
-              status: 'MATCH' as const,
-              gap_notes: 'Desire Energy specialized pump division directly meets criteria while partner provides civil structure.',
-              required_doc: 'Pumping Station Commissioning Reports + OEM Authorization'
-            },
-            {
-              clause_no: 'ITB 6.2',
-              clause_title: 'Gujarat WRD / GWSSB Contractor Registration Class',
-              page_ref: 'Page 30, Vol 1',
-              tender_requirement: 'Valid AA Class Contractor Registration with Govt of Gujarat (WRD / R&B / GWSSB)',
-              desire_value: 'PHED Rajasthan Class-A Special + Gujarat Registration (100% Match)',
-              jv_value: `${jvName}: AA Class Special Category-I Gujarat WRD Contractor (100% Match)`,
-              combined_value: 'Both Lead Member and JV Partner possess active AA Class Registrations',
-              applicable_jv_rule: 'Either member registration valid for joint venture bidding',
-              status: 'MATCH' as const,
-              gap_notes: 'Fully registered and active in Gujarat portal.',
-              required_doc: 'Valid Registration Certificate Copy with Enrolment No.'
-            }
-          ];
-        }
-      })();
-
-      const fallbackReport = {
-        tender_id: `tnd-${Date.now()}`,
-        tender_title: titleInput || 'Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)',
-        project_category: catUpper,
-        filename,
-        is_rejected_non_tender: false,
-        verdict: 'Eligible Through JV',
-        eligibility_score: 100,
-        overall_health: 'Green',
-        recommendation: `BID THROUGH JV (Consortium achieves 100% qualification with ${partnerRecommendations[0].partner_name})`,
-        executive_summary: `AI Tender Analysis: Successfully extracted ${dynamicClauses.length} technical and financial qualification clauses for '${titleInput || filename}'. Evaluated standalone capability and optimal consortium synergy against registered JV partners.`,
-        desire_alone: { score: 85, status: 'Partially Eligible Standalone', fulfilled_pct: '85%' },
-        jv_alone: { score: 67, status: 'Partially Eligible Standalone (Incomplete Alone)', fulfilled_pct: '67%' },
-        combined_jv: { score: 100, status: 'Fully Eligible (Joint Venture)', fulfilled_pct: '100%' },
-        partner_recommendations: partnerRecommendations,
-        recommended_partner_id: partnerRecommendations[0].partner_id,
-        recommended_partner_name: partnerRecommendations[0].partner_name,
-        clauses_breakdown: dynamicClauses,
-        parameter_matrix: dynamicClauses.map(c => ({
-          parameter: c.clause_title,
-          tender_spec: c.tender_requirement,
-          desire_actual: c.desire_value,
-          jv_actual: c.jv_value,
-          combined_actual: c.combined_value,
-          result: c.status
-        })),
-        jv_rules_audit: [
-          { rule: 'Lead Member Equity', requirement: '>= 51%', actual: '51% - 75%', status: 'PASSED' },
-          { rule: 'Turnover Pooling', requirement: '100% Sum', actual: `Rs.${cT.toFixed(2)} Cr`, status: 'PASSED' },
-          { rule: 'Technical Qualification', requirement: 'Single Work Experience', actual: `${jvName} brings qualifying work order`, status: 'PASSED' }
-        ],
-        summary_counts: {
-          total_criteria: dynamicClauses.length,
-          matched: dynamicClauses.filter(c => (c.status as string) === 'MATCH').length,
-          partial: dynamicClauses.filter(c => (c.status as string) === 'PARTIAL MATCH').length,
-          not_matching: dynamicClauses.filter(c => (c.status as string) === 'NOT MATCHING').length,
-          data_missing: dynamicClauses.filter(c => (c.status as string) === 'DATA NOT AVAILABLE').length
-        },
-        created_at: new Date().toISOString()
-      };
-
+      // 6. FAILURE HANDLING: STATIC MOCK FALLBACK IS COMPLETELY DELETED.
+      // Return an explicit error response to the frontend.
+      console.error('Gemini AI clause extraction failed:', aiCallResult.error);
       return NextResponse.json({
-        status: 'success',
-        is_rejected_non_tender: false,
-        message: 'Dynamic AI tender evaluation complete.',
-        evaluation_report: fallbackReport,
-        report: fallbackReport
-      });
+        status: 'error',
+        message: `Gemini AI analysis failed: ${aiCallResult.error || 'The model did not return a valid structured evaluation report.'}`,
+        debug: {
+          extracted_text_length: extractedPdfText.length,
+          extracted_text_sample_start: extractedPdfText.slice(0, 300),
+          extracted_text_sample_end: extractedPdfText.slice(-300),
+          classification_raw_ai_response: classifyResult.rawText,
+          clause_extraction_raw_ai_response: aiCallResult.rawText || null,
+          path_taken: 'ai_error_caught',
+          error_if_any: aiCallResult.error || 'callGeminiAI returned null'
+        }
+      }, { status: 500 });
     }
 
     // ═══ COMPANIES ═══════════════════════════════════════════════════════════
