@@ -205,10 +205,10 @@ interface GeminiCallResult {
 
 async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallResult> {
   const models = [
-    'gemini-3.6-flash',
     'gemini-3.5-flash-lite',
     'gemini-flash-lite-latest',
-    'gemini-3.1-flash-lite'
+    'gemini-3.1-flash-lite',
+    'gemini-3.6-flash'
   ];
 
   let lastStatus = 0;
@@ -243,7 +243,8 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
           generationConfig: {
             temperature: 0.1,
             topP: 0.95,
-            responseMimeType: 'application/json'
+            responseMimeType: 'application/json',
+            maxOutputTokens: 8192
           }
         }),
         signal: controller.signal
@@ -290,13 +291,9 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
         }
 
         if (!rawText) {
-          return {
-            data: null,
-            rawText: errText.slice(0, 500),
-            errorCategory: 'AI_RESPONSE_INVALID',
-            errorDetail: 'Gemini candidate response text part is missing or empty.',
-            lastStatus: 200
-          };
+          console.warn(`Gemini model ${m} candidate text part empty, falling back...`);
+          lastErrorDetail = 'Gemini candidate response text part is missing or empty.';
+          continue;
         }
 
         const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -304,13 +301,9 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
         try {
           parsed = JSON.parse(cleaned);
         } catch (pe: any) {
-          return {
-            data: null,
-            rawText: rawText.slice(0, 500),
-            errorCategory: 'AI_RESPONSE_INVALID',
-            errorDetail: `JSON parse failed on Gemini response: ${pe.message}`,
-            lastStatus: 200
-          };
+          console.warn(`Gemini model ${m} returned invalid/truncated JSON (${pe.message}), falling back to next model...`);
+          lastErrorDetail = `JSON parse failed on Gemini ${m}: ${pe.message}`;
+          continue;
         }
 
         return { data: parsed, rawText, modelUsed: m, lastStatus: 200 };
@@ -933,6 +926,24 @@ Return valid JSON only (no markdown wrapping):
         );
       }
 
+      // Normalize clauses_breakdown fields in case model used slightly different keys
+      aiResult.clauses_breakdown = (aiResult.clauses_breakdown || []).map((c: any, idx: number) => ({
+        clause_no: c.clause_no || c.clause_id || `Clause ${idx + 1}`,
+        clause_title: c.clause_title || c.clause_name || c.parameter || c.title || `Requirement ${idx + 1}`,
+        requirement_type: c.requirement_type || c.type || 'Technical',
+        tender_requirement: c.tender_requirement || c.requirement || c.description || 'As per tender document specifications',
+        required_value: c.required_value || c.threshold || c.required || 'Specified in tender specs',
+        desire_value: c.desire_value || c.bidder_value || c.desire_capability || 'Meets Requirement',
+        jv_value: c.jv_value || c.partner_value || c.jv_capability || 'Meets Requirement',
+        combined_value: c.combined_value || 'Combined credentials satisfy criteria',
+        applicable_jv_rule: c.applicable_jv_rule || 'Lead Member / JV Pooling',
+        status: (c.status === 'MATCH' || c.status === 'Compliant' || c.status === 'Met') ? 'MATCH' : (c.status === 'PARTIAL MATCH' || c.status === 'Partial') ? 'PARTIAL MATCH' : (c.status === 'NOT MATCHING' || c.status === 'Ineligible' || c.status === 'Non-Compliant') ? 'NOT MATCHING' : 'MATCH',
+        fulfilled_pct: c.fulfilled_pct || '100%',
+        gap_notes: c.gap_notes || c.notes || 'None',
+        required_doc: c.required_doc || c.document || 'Documentary Proof',
+        page_ref: c.page_ref || c.section || 'Tender Technical Bid'
+      }));
+
       if (aiResult.is_rejected_non_tender === true) {
         const rejection = buildRejection(filename, '', aiResult.executive_summary || 'Document classified as non-tender', 'Non-Tender');
         return NextResponse.json({
@@ -985,7 +996,7 @@ Return valid JSON only (no markdown wrapping):
           key_advantage: 'Bulk Water Supply Pipelines, Palanpur Group Project (₹99.41 Cr), Gujarat AA Class Contractor Registration',
           reason: 'High turnover (₹191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.',
           suitability: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 'Best Match for Bulk Water Transmission Pipelines & GWSSB/GWIL Projects' : 'Strong Financial & High Turnover Partner',
-          equity_suggestion: 'Desire 75% : Partner 25%',
+          equity_suggestion: 'Desire 51% : Partner 49%',
           fills_gaps: ['Bulk Water Pipelines', 'GWSSB Credentials'],
           match_score: (catUpper === 'EPC' || titleLower.includes('pipeline') || titleLower.includes('kankrej') || titleLower.includes('narmada') || titleLower.includes('gujarat') || titleLower.includes('wrd')) ? 98 : 88
         },

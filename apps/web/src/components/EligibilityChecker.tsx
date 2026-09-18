@@ -97,6 +97,7 @@ export const EligibilityChecker: React.FC = () => {
   // Run Dynamic AI Tender Analysis
   const handleRunAnalysis = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setReport(null);
     setAnalyzing(true);
     setAnalysisError(null);
 
@@ -372,6 +373,8 @@ export const EligibilityChecker: React.FC = () => {
                     if (f) {
                       setTenderFile(f);
                       setTenderTitleInput(f.name);
+                      setReport(null);
+                      setAnalysisError(null);
                     }
                   }}
                 />
@@ -456,7 +459,7 @@ export const EligibilityChecker: React.FC = () => {
 
       {/* AI Summary Dashboard Cards */}
       {report && !report.is_rejected_non_tender && perspective && (
-        <div className="space-y-6">
+        <div key={`${report.tender_id || tenderFile?.name || 'report'}-${report.tender_title || ''}`} className="space-y-6">
           {/* 3 Dynamic Analysis Options Selection Tabs */}
           <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto">
             <button

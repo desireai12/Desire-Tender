@@ -50,8 +50,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
   const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-vhp-04');
   const [desireCompanyId, setDesireCompanyId] = useState<string>('comp-desire-01');
 
-  // Dynamic JV Equity Ratio: Desire Share % (Default: 75% lead, Partner 25%)
-  const [desireEquityRatio, setDesireEquityRatio] = useState<number>(75);
+  // Fixed Statutory JV Equity Ratio based on official Consortium Agreement:
+  // For Adroit AAPL (comp-aapl-05): 75% Desire : 25% Partner
+  // For Vinod H Patel (comp-vhp-04) & standard partners: 51% Desire : 49% Partner (Statutory Lead Consortium)
+  const desireEquityRatio = selectedJvPartnerId === 'comp-aapl-05' ? 75 : 51;
 
   // Step 1 State
   const [tenderTitle, setTenderTitle] = useState<string>('Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)');
@@ -101,13 +103,16 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
     if (type === 'tender') {
       setUploadedTenderFile(file);
+      setEvaluationReport(null);
+      setAnalysisError(null);
+      setAnalysisProgress(0);
       const fileLower = file.name.toLowerCase();
-      if (fileLower.includes('banaskantha') || fileLower.includes('gujarat') || fileLower.includes('69.78')) {
+      if (fileLower.includes('banaskantha') || fileLower.includes('kankrej') || fileLower.includes('69.78')) {
         setTenderTitle('Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)');
         setSelectedCategory('EPC');
-      } else if (fileLower.includes('vapi') || fileLower.includes('lift') || fileLower.includes('irrigation')) {
-        setTenderTitle('Vapi Lift Irrigation & Water Distribution Scheme (Gujarat WRD)');
-        setSelectedCategory('ESCO');
+      } else if (fileLower.includes('vapi') || fileLower.includes('karvad')) {
+        setTenderTitle('Karvad Water Supply Scheme Phase-2 (Vapi Municipal Corporation - ₹31.80 Cr)');
+        setSelectedCategory('EPC');
       } else if (fileLower.includes('alwar') || fileLower.includes('sewer') || fileLower.includes('rudsico')) {
         setTenderTitle('Alwar Package 44 Sewerage & STP Project (AMRUT 2.0)');
         setSelectedCategory('STP');
@@ -149,6 +154,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
   // Start Document Processing & Switch to Step 2 Loading Animation
   const startDocumentAnalysis = () => {
+    setEvaluationReport(null);
     setAnalysisError(null);
     setCurrentStep(2);
     setAnalysisProgress(10);
@@ -161,6 +167,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     let fetchedReport: DynamicTenderEvaluationReport | null = null;
     let isRejected = false;
     let rejectMsg = '';
+    setEvaluationReport(null);
     setAnalysisError(null);
 
     try {
@@ -191,6 +198,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         if (data.is_rejected_non_tender || (fetchedReport && (fetchedReport as any).is_rejected_non_tender)) {
           isRejected = true;
           rejectMsg = fetchedReport?.executive_summary || 'Uploaded file is a Non-Tender document.';
+        }
+
+        if (fetchedReport?.tender_title) {
+          setTenderTitle(fetchedReport.tender_title);
+        }
+        if (fetchedReport?.project_category) {
+          setSelectedCategory(fetchedReport.project_category);
         }
 
         setAnalysisProgress(85);
@@ -744,7 +758,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       )}
 
       {currentStep === 3 && evaluationReport && !(evaluationReport as any).is_rejected_non_tender && currentReport && (
-        <div className="space-y-6">
+        <div key={`${evaluationReport.tender_id || uploadedTenderFile?.name || 'report'}-${evaluationReport.tender_title || ''}`} className="space-y-6">
 
           {/* ⚠️ DESIRE INELIGIBLE ALERT — Show Best Alternative Partner */}
           {(() => {
@@ -777,7 +791,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             return null;
           })()}
 
-          {/* AI SUGGESTED PARTNER & DYNAMIC JV EQUITY SPLIT CONTROLS */}
+          {/* AI SUGGESTED PARTNER & STATUTORY JV CONSORTIUM SPLIT */}
           <div className="glass-card p-6 rounded-2xl border-2 border-teal-300 bg-teal-50/40 space-y-5 shadow-sm">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
@@ -822,56 +836,21 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               </div>
             </div>
 
-            {/* Dynamic JV Equity % Ratio Slider & Presets */}
+            {/* Documented Consortium Equity Split (Statutory Fixed Ratio) */}
             <div className="pt-4 border-t border-teal-200/80 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center space-x-2">
-                  <Sliders className="w-4 h-4 text-teal-800" />
+                  <Percent className="w-4 h-4 text-teal-800" />
                   <span className="text-xs font-bold text-slate-900">
-                    Dynamic JV Equity Split Ratio:
+                    Consortium Equity Split:
                   </span>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-teal-800 text-white">
-                    Desire {desireEquityRatio}% : {jvComp.name.split(' ')[0]} {partnerEquityRatio}%
+                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-teal-800 text-white shadow-sm">
+                    Desire {desireEquityRatio}% (Lead Partner) : {jvComp.name.split(' ')[0]} {partnerEquityRatio}% (Consortium Member)
                   </span>
                 </div>
-
-                {/* Preset Split Buttons */}
-                <div className="flex items-center space-x-1.5">
-                  {[
-                    { label: '75 : 25', desire: 75 },
-                    { label: '60 : 40', desire: 60 },
-                    { label: '51 : 49', desire: 51 },
-                    { label: '80 : 20', desire: 80 }
-                  ].map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => setDesireEquityRatio(preset.desire)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                        desireEquityRatio === preset.desire
-                          ? 'bg-teal-800 text-white shadow-sm'
-                          : 'bg-white border border-slate-300 text-slate-700 hover:bg-teal-50'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Range Slider for Custom Percentage */}
-              <div className="flex items-center space-x-4">
-                <span className="text-[11px] font-mono text-slate-600 font-semibold">51% (Min Lead)</span>
-                <input
-                  type="range"
-                  min="51"
-                  max="90"
-                  step="1"
-                  value={desireEquityRatio}
-                  onChange={(e) => setDesireEquityRatio(Number(e.target.value))}
-                  className="w-full accent-teal-700 h-2 bg-slate-200 rounded-lg cursor-pointer"
-                />
-                <span className="text-[11px] font-mono text-slate-600 font-semibold">90%</span>
+                <span className="text-[11px] font-mono font-bold text-teal-900 bg-white border border-teal-300 px-2.5 py-1 rounded-lg">
+                  {selectedJvPartnerId === 'comp-aapl-05' ? 'Documented Project Agreement (75:25)' : 'Gujarat WRD Statutory Standard (51:49)'}
+                </span>
               </div>
 
               {/* Dynamic Financial Pooling Cards */}
