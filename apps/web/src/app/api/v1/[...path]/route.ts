@@ -86,14 +86,27 @@ function buildErrorResponse(category: ErrorCategory, rawDetail?: string, debugDa
   );
 }
 
-// ─── HIGH-CAPACITY SERVERLESS PDF TEXT EXTRACTOR (unpdf) ─────────────────
+// ─── HIGH-CAPACITY SERVERLESS PDF TEXT EXTRACTOR ─────────────────────────
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   try {
-    const { extractText, getDocumentProxy } = await import('unpdf');
-    const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-    const pdf = await getDocumentProxy(uint8Array);
-    const { text } = await extractText(pdf, { mergePages: true });
-    const fullText = (text || '').trim();
+    try {
+      const modName = 'unpdf';
+      const unpdf = await import(/* webpackIgnore: true */ modName).catch(() => null);
+      if (unpdf && unpdf.getDocumentProxy && unpdf.extractText) {
+        const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+        const pdf = await unpdf.getDocumentProxy(uint8Array);
+        const { text } = await unpdf.extractText(pdf, { mergePages: true });
+        const fullText = (text || '').trim();
+        if (fullText.length >= 20) {
+          return fullText;
+        }
+      }
+    } catch (unpdfErr) {}
+
+    // Fallback to pdf-parse which is installed in node_modules
+    const pdfParse = require('pdf-parse');
+    const parsed = await pdfParse(buffer);
+    const fullText = (parsed?.text || '').trim();
     if (fullText.length >= 20) {
       return fullText;
     }
@@ -517,6 +530,72 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
   }
 ];
 
+let GLOBAL_BID_FLOW_ITEMS: any[] = [
+  {
+    id: "b8cd89aa-833a-4397-8549-891350065bf6",
+    tender_id: "2026_PHCJO_594733_1",
+    tender_title: "Work of Narmada Based Water Supply Project for 163 Villages of Dhorimanna and Chouhtan Block, Distt. Barmer (Package CP-03, Chouhtan-1 under JICA funded Rajasthan Rural Water Supply and Fluorosis Mitigation Project Phase II on SPR basis with one-year",
+    authority: "PHED - C.E. (Project),Jodhpur||SE Chouhtan Project Cr. Chouhtan||EE Project Dn Gudamalani",
+    state: "Rajasthan",
+    estimated_value_cr: 657.5,
+    deadline: "26-Oct-2026 11:00 AM",
+    document_url: "https://eproc.rajasthan.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page",
+    status: "Live",
+    final_status: null,
+    pre_bid_meeting_date: null,
+    bid_submission_deadline: null,
+    responsible_person_name: "Unassigned",
+    responsible_person_email: null,
+    cc_emails: [],
+    notes: null,
+    created_at: "2026-09-18T05:15:06.323Z",
+    updated_at: "2026-09-18T05:15:06.323Z",
+    created_by: "Government Portal Scraper"
+  },
+  {
+    id: "4164c838-32c0-4f69-b0e0-5573e0c4a091",
+    tender_id: "2026_JdVVN_590921_2",
+    tender_title: "New 33 by 11 KV Sub-stations Augmentation or Addition capacity including associated line and other works for the DEVELOPMENT OF DISTRIBUTION INFRASTRUCTURE in JdVVNL under RDSS scheme on Turnkey Mode Under Barmer Circle.",
+    authority: "Jodhpur VVNL - MD||CE (HQ)||SE(MM and C)||XEn(MMC-I)",
+    state: "Rajasthan",
+    estimated_value_cr: 71.23,
+    deadline: "28-Sep-2026 05:00 PM",
+    document_url: "https://eproc.rajasthan.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page",
+    status: "Live",
+    final_status: null,
+    pre_bid_meeting_date: null,
+    bid_submission_deadline: null,
+    responsible_person_name: "Unassigned",
+    responsible_person_email: null,
+    cc_emails: [],
+    notes: null,
+    created_at: "2026-09-18T05:09:23.697Z",
+    updated_at: "2026-09-18T05:09:23.697Z",
+    created_by: "Government Portal Scraper"
+  },
+  {
+    id: "0e1bd43a-c418-4566-8c72-44eab54e6fe5",
+    tender_id: "TEST_2026_NIT_001",
+    tender_title: "Test JJM Bulk Water Supply Pipeline Scheme",
+    authority: "PHED Rajasthan",
+    state: "Rajasthan",
+    estimated_value_cr: 42.5,
+    deadline: "2026-10-15",
+    document_url: "https://eproc.rajasthan.gov.in",
+    status: "Technical Bid Opening",
+    final_status: null,
+    pre_bid_meeting_date: null,
+    bid_submission_deadline: null,
+    responsible_person_name: "Rishi Sharma",
+    responsible_person_email: "rishi@desireenergy.com",
+    cc_emails: [],
+    notes: null,
+    created_at: "2026-09-18T04:56:46.123Z",
+    updated_at: "2026-09-18T04:56:53.295Z",
+    created_by: "Scraper Ingestion"
+  }
+];
+
 
 async function handleRequest(req: NextRequest, params: { path: string[] }) {
   const subPath = params.path.join('/');
@@ -526,7 +605,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     let formCategory = '', formFilename = '', formTenderTitle = '', formJvPartnerId = '';
     let formFileBuffer: Buffer | null = null;
 
-    if (method === 'POST') {
+    if (method === 'POST' || method === 'PATCH' || method === 'PUT') {
       try {
         const ct = req.headers.get('content-type') || '';
         if (ct.includes('multipart/form-data')) {
@@ -537,7 +616,9 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           formTenderTitle = (fd.get('tender_title') as string) || '';
           formJvPartnerId = (fd.get('jv_partner_id') as string) || '';
           if (fileObj) { try { formFileBuffer = Buffer.from(await fileObj.arrayBuffer()); } catch (e) {} }
-        } else { body = await req.json(); }
+        } else {
+          body = await req.json().catch(() => ({}));
+        }
       } catch (e) { body = {}; }
     }
 
@@ -928,6 +1009,111 @@ Return valid JSON only (no markdown wrapping):
       if (method === 'POST') return NextResponse.json({ status: 'success', message: 'Tender saved.' });
     }
 
+    // ═══ BID FLOW PIPELINE (NATIVE VERCEL SERVERLESS & SUPABASE) ═══════════
+    if (subPath === 'bid-flow' || subPath.startsWith('bid-flow/')) {
+      const bidId = subPath.startsWith('bid-flow/') ? subPath.replace('bid-flow/', '').trim() : null;
+
+      if (method === 'GET') {
+        let bidsList = GLOBAL_BID_FLOW_ITEMS;
+        if (supabase) {
+          try {
+            const { data: dbBids, error: bErr } = await supabase
+              .from('bid_flow')
+              .select('*')
+              .order('created_at', { ascending: false });
+            if (!bErr && dbBids && dbBids.length > 0) {
+              bidsList = dbBids;
+              GLOBAL_BID_FLOW_ITEMS = dbBids;
+            }
+          } catch (dbErr) {
+            console.warn('[BID_FLOW_GET] Supabase fallback to in-memory:', dbErr);
+          }
+        }
+        return NextResponse.json({ status: 'success', count: bidsList.length, data: bidsList });
+      }
+
+      if (method === 'POST') {
+        const item = {
+          id: body?.id || `bf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          tender_id: body?.tender_id,
+          tender_title: body?.tender_title || 'Untitled Tender',
+          authority: body?.authority || null,
+          state: body?.state || 'India',
+          estimated_value_cr: typeof body?.estimated_value_cr === 'number' ? body.estimated_value_cr : (parseFloat(body?.estimated_value_cr) || 0),
+          deadline: body?.deadline || null,
+          document_url: body?.document_url || null,
+          status: body?.status || 'Live',
+          final_status: body?.final_status || null,
+          pre_bid_meeting_date: body?.pre_bid_meeting_date || null,
+          bid_submission_deadline: body?.bid_submission_deadline || null,
+          responsible_person_name: body?.responsible_person_name || 'Unassigned',
+          responsible_person_email: body?.responsible_person_email || null,
+          cc_emails: Array.isArray(body?.cc_emails) ? body.cc_emails : [],
+          notes: body?.notes || null,
+          created_at: body?.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: body?.created_by || 'Government Portal Scraper'
+        };
+
+        if (supabase) {
+          try {
+            await supabase.from('bid_flow').upsert(item, { onConflict: 'tender_id' });
+          } catch (sbErr) {
+            console.error('[BID_FLOW_POST] Supabase upsert error:', sbErr);
+          }
+        }
+
+        const idx = GLOBAL_BID_FLOW_ITEMS.findIndex(b => b.tender_id === item.tender_id);
+        if (idx >= 0) {
+          GLOBAL_BID_FLOW_ITEMS[idx] = { ...GLOBAL_BID_FLOW_ITEMS[idx], ...item };
+        } else {
+          GLOBAL_BID_FLOW_ITEMS.unshift(item);
+        }
+
+        return NextResponse.json({ status: 'success', message: 'Tender added to Bid Flow', data: item });
+      }
+
+      if (method === 'PATCH' && bidId) {
+        let updatedItem: any = null;
+        const updateFields: any = { ...body, updated_at: new Date().toISOString() };
+
+        if (supabase) {
+          try {
+            const { data, error } = await supabase
+              .from('bid_flow')
+              .update(updateFields)
+              .or(`id.eq.${bidId},tender_id.eq.${bidId}`)
+              .select('*');
+            if (!error && data && data.length > 0) {
+              updatedItem = data[0];
+            }
+          } catch (sbErr) {
+            console.error('[BID_FLOW_PATCH] Supabase update error:', sbErr);
+          }
+        }
+
+        const idx = GLOBAL_BID_FLOW_ITEMS.findIndex(b => b.id === bidId || b.tender_id === bidId);
+        if (idx >= 0) {
+          GLOBAL_BID_FLOW_ITEMS[idx] = { ...GLOBAL_BID_FLOW_ITEMS[idx], ...updateFields };
+          if (!updatedItem) updatedItem = GLOBAL_BID_FLOW_ITEMS[idx];
+        }
+
+        return NextResponse.json({ status: 'success', message: 'Bid Flow updated', data: updatedItem || updateFields });
+      }
+
+      if (method === 'DELETE' && bidId) {
+        if (supabase) {
+          try {
+            await supabase.from('bid_flow').delete().or(`id.eq.${bidId},tender_id.eq.${bidId}`);
+          } catch (sbErr) {
+            console.error('[BID_FLOW_DELETE] Supabase delete error:', sbErr);
+          }
+        }
+        GLOBAL_BID_FLOW_ITEMS = GLOBAL_BID_FLOW_ITEMS.filter(b => b.id !== bidId && b.tender_id !== bidId);
+        return NextResponse.json({ status: 'success', message: 'Bid removed from Bid Flow' });
+      }
+    }
+
 
     // ═══ GOVERNMENT PORTALS SCRAPER (RUNS NATIVELY ON VERCEL) ══════════════
     if (subPath === 'scraper/config' && method === 'GET') {
@@ -1034,6 +1220,13 @@ export async function GET(req: NextRequest, { params }: { params: { path: string
 export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
   return handleRequest(req, params);
 }
+export async function PATCH(req: NextRequest, { params }: { params: { path: string[] } }) {
+  return handleRequest(req, params);
+}
+export async function PUT(req: NextRequest, { params }: { params: { path: string[] } }) {
+  return handleRequest(req, params);
+}
 export async function DELETE(req: NextRequest, { params }: { params: { path: string[] } }) {
   return handleRequest(req, params);
 }
+

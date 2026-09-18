@@ -15,7 +15,8 @@ import {
   Sliders,
   Settings,
   Shield,
-  ChevronRight
+  ChevronRight,
+  Workflow
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
 
@@ -23,6 +24,7 @@ export type NavTab =
   | 'dashboard' 
   | 'india_tenders'
   | 'tender_tracker'
+  | 'bid_flow'
   | 'eligibility' 
   | 'wizard' 
   | 'combine'
@@ -68,8 +70,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'dashboard', label: 'Home Overview', icon: LayoutDashboard },
         { id: 'india_tenders', label: 'India Tenders Directory', icon: Globe2 },
         { id: 'tender_tracker', label: 'Live Tender Tracker', icon: Layers },
+        { id: 'bid_flow', label: 'Bid Flow Pipeline', icon: Workflow },
       ]
     },
+
     {
       title: 'Bidding & AI Engines',
       items: [

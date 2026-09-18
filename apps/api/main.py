@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.db import init_db
-from routers import knowledge_base, tender, admin_config, auth, gepnic_crawler
+from routers import knowledge_base, tender, admin_config, auth, gepnic_crawler, bid_flow
 from routers import settings as settings_router
 
 app = FastAPI(
@@ -40,6 +40,8 @@ app.include_router(settings_router.router, prefix=settings.API_V1_STR)
 app.include_router(admin_config.router, prefix=settings.API_V1_STR)
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(gepnic_crawler.router, prefix=settings.API_V1_STR)
+app.include_router(bid_flow.router, prefix=settings.API_V1_STR)
+
 
 
 @app.get("/", tags=["Health Check"])

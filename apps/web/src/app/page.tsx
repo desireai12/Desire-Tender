@@ -18,6 +18,7 @@ import { SettingsView } from '@/components/SettingsView';
 import { LoginLanding } from '@/components/LoginLanding';
 import { AdminPortal } from '@/components/AdminPortal';
 import { TenderTrackerDashboard, TrackedTender, INITIAL_TRACKED_TENDERS } from '@/components/TenderTrackerDashboard';
+import { BidFlowBoard } from '@/components/BidFlowBoard';
 import { DepartmentRole, TenderProcess, UserProfile } from '@/lib/types';
 import { ShieldAlert, Loader2, Sparkles } from 'lucide-react';
 import { getActiveUserSession, saveUserSession, clearUserSession } from '@/lib/store';
@@ -404,6 +405,10 @@ export default function Home() {
                 setActiveTab('eligibility');
               }}
             />
+          )}
+
+          {activeTab === 'bid_flow' && (
+            <BidFlowBoard currentUser={currentUser} />
           )}
 
           {activeTab === 'eligibility' && (

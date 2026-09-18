@@ -253,6 +253,49 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   const [scanStatusMessage, setScanStatusMessage] = useState<string>('');
   const [scanError, setScanError] = useState<string>('');
   const [portalToast, setPortalToast] = useState<string | null>(null);
+  const [addingBidFlowId, setAddingBidFlowId] = useState<string | null>(null);
+  const [addedBidFlowIds, setAddedBidFlowIds] = useState<Record<string, boolean>>({});
+
+  const handleAddToBidFlow = async (item: any) => {
+    const tenderId = item.tender_id || item.nit_number || item.id;
+    if (!tenderId) return;
+    setAddingBidFlowId(tenderId);
+    try {
+      const res = await fetch('/api/v1/bid-flow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tender_id: tenderId,
+          tender_title: item.title || 'Untitled Tender',
+          authority: item.department || item.authority || '',
+          state: item.state || '',
+          estimated_value_cr: item.value_cr || item.estimated_cost_cr || 0,
+          deadline: item.due_date || item.deadline || '',
+          document_url: item.document_link || item.portal_search_url || '',
+          status: 'Live',
+          responsible_person_name: 'Unassigned',
+          created_by: 'Government Portal Scraper'
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAddedBidFlowIds(prev => ({ ...prev, [tenderId]: true }));
+        setPortalToast(`Added "${tenderId}" to Bid Flow Pipeline!`);
+        setTimeout(() => setPortalToast(null), 4000);
+      } else {
+        setPortalToast(`Notice: ${data.detail || data.message || 'Already in Bid Flow'}`);
+        if (data.status === 'exists') {
+          setAddedBidFlowIds(prev => ({ ...prev, [tenderId]: true }));
+        }
+        setTimeout(() => setPortalToast(null), 4000);
+      }
+    } catch (err: any) {
+      setPortalToast(`Error adding to Bid Flow: ${err.message}`);
+      setTimeout(() => setPortalToast(null), 4000);
+    } finally {
+      setAddingBidFlowId(null);
+    }
+  };
 
   const handleOpenPortalTender = (tender: any) => {
     const tenderId = tender.tender_id || tender.nit_number || tender.id;
@@ -1706,6 +1749,33 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                             </div>
                           ) : null}
                           <div className="flex items-center justify-end space-x-1.5 pt-1">
+                            <button
+                              onClick={() => handleAddToBidFlow(item)}
+                              disabled={addingBidFlowId === (item.tender_id || item.nit_number) || addedBidFlowIds[item.tender_id || item.nit_number]}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all flex items-center space-x-1 ${
+                                addedBidFlowIds[item.tender_id || item.nit_number]
+                                  ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-400'
+                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+                              }`}
+                              title="Add this tender to Bid Flow Pipeline"
+                            >
+                              {addingBidFlowId === (item.tender_id || item.nit_number) ? (
+                                <>
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                  <span>Adding...</span>
+                                </>
+                              ) : addedBidFlowIds[item.tender_id || item.nit_number] ? (
+                                <>
+                                  <Check className="w-3 h-3" />
+                                  <span>In Bid Flow</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-3 h-3" />
+                                  <span>Add to Bid Flow</span>
+                                </>
+                              )}
+                            </button>
                             <a
                               href={item.document_link || AVAILABLE_GOVT_PORTALS.find(p => p.name === item.state)?.url || 'https://etenders.gov.in/eprocure/app'}
                               target="_blank"

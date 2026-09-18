@@ -209,3 +209,49 @@ export interface Project {
   status: 'Active' | 'Archived';
   created_at?: string;
 }
+
+export type BidFlowStatus =
+  | 'Live'
+  | 'Technical Bid Opening'
+  | 'Financial Bid Opening'
+  | 'Opening in progress'
+  | 'Cancelled';
+
+export type BidFlowFinalStatus =
+  | 'L1'
+  | 'L2'
+  | 'L3'
+  | 'L4'
+  | 'L5'
+  | 'L6'
+  | 'L7'
+  | 'L8'
+  | 'L9'
+  | 'L10'
+  | 'Matching to L1'
+  | 'DESPL'
+  | 'Rejected-Technical'
+  | 'Technical rejected due to BG';
+
+export interface BidFlowItem {
+  id: string;
+  tender_id: string;
+  tender_title: string;
+  authority: string;
+  state: string;
+  estimated_value_cr: number;
+  deadline?: string;
+  document_url?: string;
+  status: BidFlowStatus;
+  final_status?: BidFlowFinalStatus | null;
+  pre_bid_meeting_date?: string | null;
+  bid_submission_deadline?: string | null;
+  responsible_person_name?: string;
+  responsible_person_email?: string;
+  cc_emails?: string[];
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
+}
+
