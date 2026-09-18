@@ -441,6 +441,7 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
       }
     } else {
       c.fulfilled_pct = '100%';
+    }
   });
 
   return report;
