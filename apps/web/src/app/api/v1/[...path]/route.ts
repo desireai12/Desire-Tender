@@ -586,8 +586,8 @@ let GLOBAL_BID_FLOW_ITEMS: any[] = [
     final_status: null,
     pre_bid_meeting_date: null,
     bid_submission_deadline: null,
-    responsible_person_name: "Rishi Sharma",
-    responsible_person_email: "rishi@desireenergy.com",
+    responsible_person_name: null,
+    responsible_person_email: null,
     cc_emails: [],
     notes: null,
     created_at: "2026-09-18T04:56:46.123Z",
@@ -620,6 +620,38 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           body = await req.json().catch(() => ({}));
         }
       } catch (e) { body = {}; }
+    }
+
+    // ═══ ACTIVE VERIFIED STAFF USERS HANDLER ═════════════════════════════════
+    if (subPath === 'users' && method === 'GET') {
+      if (supabase) {
+        try {
+          const { data: dbUsers, error } = await supabase
+            .from('users')
+            .select('id, employee_id, full_name, email, role, department, status')
+            .eq('status', 'Active')
+            .ilike('email', '%@desireenergy.com')
+            .order('employee_id', { ascending: true });
+
+          if (!error && dbUsers && dbUsers.length > 0) {
+            return NextResponse.json({ status: 'success', data: dbUsers });
+          }
+        } catch (e) {
+          console.error('[API] Error fetching users from supabase:', e);
+        }
+      }
+
+      // Verified seed fallback for active Desire Energy staff
+      return NextResponse.json({
+        status: 'success',
+        data: [
+          { employee_id: 'EMP001', full_name: 'Ankit Purohit', email: 'ankit.purohit@desireenergy.com', role: 'Administrator', department: 'Admin' },
+          { employee_id: 'EMP002', full_name: 'Deepak Khandelwal', email: 'deepak.khandelwal@desireenergy.com', role: 'Sr Estimator', department: 'Estimation Team' },
+          { employee_id: 'EMP003', full_name: 'Suresh Sharma', email: 'suresh.sharma@desireenergy.com', role: 'Chief Engineer', department: 'Engineering' },
+          { employee_id: 'EMP004', full_name: 'Vikas Verma', email: 'vikas.verma@desireenergy.com', role: 'Tender Head', department: 'Tender Team' },
+          { employee_id: 'EMP005', full_name: 'Dharmesh Khandelwal', email: 'dharmeshkhandelwal@desireenergy.com', role: 'Director & JV Lead', department: 'Tender Team' }
+        ]
+      });
     }
 
     // ═══ MASTER COMPANIES DIRECT HANDLERS ═════════════════════════════════════

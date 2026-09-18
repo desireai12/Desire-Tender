@@ -246,10 +246,10 @@ export interface BidFlowItem {
   final_status?: BidFlowFinalStatus | null;
   pre_bid_meeting_date?: string | null;
   bid_submission_deadline?: string | null;
-  responsible_person_name?: string;
-  responsible_person_email?: string;
+  responsible_person_name?: string | null;
+  responsible_person_email?: string | null;
   cc_emails?: string[];
-  notes?: string;
+  notes?: string | null;
   created_at?: string;
   updated_at?: string;
   created_by?: string;

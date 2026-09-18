@@ -96,13 +96,13 @@ export const FINAL_STATUS_OPTIONS: { id: BidFlowFinalStatus; label: string; desc
   { id: 'Technical rejected due to BG', label: 'Technical rejected due to BG', desc: 'Disqualified due to EMD or Bank Guarantee defect' }
 ];
 
-export const KNOWN_RESPONSIBLE_PERSONS = [
-  { name: 'Rishi Sharma', email: 'rishi@desireenergy.com', role: 'Head Bidding' },
-  { name: 'Ankit Purohit', email: 'ankit.purohit@desireenergy.com', role: 'Head Tender' },
-  { name: 'Dharmesh Khandelwal', email: 'tenders@desireenergy.com', role: 'Director' },
-  { name: 'Gaurav Khandelwal', email: 'gaurav@desireenergy.com', role: 'Managing Director' },
-  { name: 'Estimation Lead', email: 'estimation@desireenergy.com', role: 'Costing Team' }
-];
+export interface VerifiedStaffUser {
+  employee_id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  department: string;
+}
 
 export const isFinalStatusAllowed = (status: BidFlowStatus): boolean => {
   return status === 'Financial Bid Opening' || status === 'Opening in progress' || status === 'Cancelled';
@@ -160,8 +160,23 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
     notes: ''
   });
   const [newCcEmail, setNewCcEmail] = useState<string>('');
+  const [verifiedStaff, setVerifiedStaff] = useState<VerifiedStaffUser[]>([]);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const fetchVerifiedStaff = async () => {
+    try {
+      const res = await fetch('/api/v1/users');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data)) {
+          setVerifiedStaff(json.data);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch verified staff users:', e);
+    }
+  };
 
   const fetchBids = async () => {
     try {
@@ -182,11 +197,13 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
 
   useEffect(() => {
     fetchBids();
+    fetchVerifiedStaff();
   }, []);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
     fetchBids();
+    fetchVerifiedStaff();
   };
 
   // Days remaining calculation
@@ -905,27 +922,41 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
                   </span>
                   <input
                     type="text"
-                    placeholder="e.g. Rishi Sharma"
+                    placeholder="e.g. Ankit Purohit"
                     value={editForm.responsible_person_name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, responsible_person_name: e.target.value }))}
                     className="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
-                  {/* Quick Team Chips */}
+                  {/* Quick Verified Staff Chips from Live public.users */}
                   <div className="flex flex-wrap gap-1 pt-1">
-                    {KNOWN_RESPONSIBLE_PERSONS.map(p => (
+                    {verifiedStaff.map(p => (
                       <button
-                        key={p.name}
+                        key={p.employee_id}
                         type="button"
+                        title={`${p.role} (${p.department})`}
                         onClick={() => setEditForm(prev => ({
                           ...prev,
-                          responsible_person_name: p.name,
+                          responsible_person_name: p.full_name,
                           responsible_person_email: p.email
                         }))}
                         className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 hover:bg-emerald-100 dark:bg-slate-800 dark:hover:bg-emerald-950 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
                       >
-                        {p.name}
+                        {p.full_name}
                       </button>
                     ))}
+                    {/* Explicit Real Functional Team Inbox */}
+                    <button
+                      type="button"
+                      title="Central Tender Team / Distribution Desk"
+                      onClick={() => setEditForm(prev => ({
+                        ...prev,
+                        responsible_person_name: 'Tender Central Team',
+                        responsible_person_email: 'tenders@desireenergy.com'
+                      }))}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800 cursor-pointer transition-colors font-semibold"
+                    >
+                      Tender Central (tenders@)
+                    </button>
                   </div>
                 </div>
 
@@ -936,7 +967,7 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
                   </span>
                   <input
                     type="email"
-                    placeholder="e.g. rishi@desireenergy.com"
+                    placeholder="e.g. ankit.purohit@desireenergy.com"
                     value={editForm.responsible_person_email}
                     onChange={(e) => setEditForm(prev => ({ ...prev, responsible_person_email: e.target.value }))}
                     className="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
