@@ -775,9 +775,10 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       } catch (pdfErr: any) {
         return buildErrorResponse('PDF_EXTRACTION_FAILED', pdfErr?.message || String(pdfErr));
       }
-
-      const KEY_B64 = 'QVEuQWI4Uk42S0tVc25SUWpRaTVOcWZLdGNQc2xyX3lRR3RXV2hUdVBQVDh3YlRYVEdaTUE=';
-      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
+      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+      if (!geminiKey) {
+        return buildErrorResponse('AUTH_ERROR', 'GEMINI_API_KEY environment variable is not configured.');
+      }
 
       // 3. AI Document Classifier Stage
       let classifyResult: any = null;
