@@ -89,6 +89,35 @@ function buildErrorResponse(category: ErrorCategory, rawDetail?: string, debugDa
 // ─── HIGH-CAPACITY SERVERLESS PDF TEXT EXTRACTOR ─────────────────────────
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   try {
+    // 1. Fast zero-dependency pure stream text extraction
+    try {
+      const zlib = require('zlib');
+      const str = buffer.toString('latin1');
+      let pureText = '';
+      const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
+      let match;
+      while ((match = streamRegex.exec(str)) !== null) {
+        let decompressed = '';
+        try {
+          decompressed = zlib.inflateSync(Buffer.from(match[1], 'latin1')).toString('latin1');
+        } catch {
+          decompressed = match[1];
+        }
+        const textMatches = decompressed.match(/\(([^)]+)\)\s*Tj/g) || [];
+        for (const m of textMatches) pureText += m.replace(/^\(/, '').replace(/\)\s*Tj$/, '') + ' ';
+        const arrayMatches = decompressed.match(/\[([^\]]+)\]\s*TJ/g) || [];
+        for (const m of arrayMatches) {
+          const parts = m.match(/\(([^)]+)\)/g) || [];
+          for (const p of parts) pureText += p.slice(1, -1) + ' ';
+        }
+      }
+      const cleanedPure = pureText.trim();
+      if (cleanedPure.length >= 20) {
+        return cleanedPure;
+      }
+    } catch (pureErr) {}
+
+    // 2. Fallback to unpdf if available
     try {
       const modName = 'unpdf';
       const unpdf = await import(/* webpackIgnore: true */ modName).catch(() => null);
@@ -103,13 +132,31 @@ async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
       }
     } catch (unpdfErr) {}
 
-    // Fallback to pdf-parse which is installed in node_modules
-    const pdfParse = require('pdf-parse');
-    const parsed = await pdfParse(buffer);
-    const fullText = (parsed?.text || '').trim();
-    if (fullText.length >= 20) {
-      return fullText;
-    }
+    // 3. Fallback to dynamic node require for pdf-parse
+    try {
+      const dynamicRequire = eval('require');
+      const pdfLib = dynamicRequire('pdf-parse');
+      let fullText = '';
+      if (pdfLib && pdfLib.PDFParse) {
+        try {
+          const { pathToFileURL } = dynamicRequire('url');
+          const worker = dynamicRequire('pdf-parse/worker');
+          if (worker && worker.getPath) {
+            pdfLib.PDFParse.setWorker(pathToFileURL(worker.getPath()).href);
+          }
+        } catch (wErr) {}
+        const parser = new pdfLib.PDFParse({ data: buffer });
+        const res = await parser.getText();
+        fullText = (res?.text || '').trim();
+      } else if (typeof pdfLib === 'function') {
+        const parsed = await pdfLib(buffer);
+        fullText = (parsed?.text || '').trim();
+      }
+      if (fullText.length >= 20) {
+        return fullText;
+      }
+    } catch (pdfErr) {}
+
     throw new Error('PDF contains less than 20 characters of extractable text.');
   } catch (err: any) {
     const errorMsg = err?.message || String(err);
@@ -729,7 +776,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         return buildErrorResponse('PDF_EXTRACTION_FAILED', pdfErr?.message || String(pdfErr));
       }
 
-      const KEY_B64 = 'QVEuQWI4Uk42SjJfX1hKMUdJRUVnRVI5QTlRNm4xQWVxM1p2ems1RUV2TkJpMk5BRnB5bWc=';
+      const KEY_B64 = 'QVEuQWI4Uk42S0tVc25SUWpRaTVOcWZLdGNQc2xyX3lRR3RXV2hUdVBQVDh3YlRYVEdaTUE=';
       const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || Buffer.from(KEY_B64, 'base64').toString('utf-8');
 
       // 3. AI Document Classifier Stage
