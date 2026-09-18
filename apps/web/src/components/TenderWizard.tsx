@@ -21,7 +21,8 @@ import {
   Award,
   Sliders,
   TrendingUp,
-  Percent
+  Percent,
+  ChevronDown
 } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api';
 import { 
@@ -49,6 +50,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
   const [companies, setCompanies] = useState<CompanyRecord[]>([]);
   const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-vhp-04');
   const [desireCompanyId, setDesireCompanyId] = useState<string>('comp-desire-01');
+  const [showOptionalJv, setShowOptionalJv] = useState<boolean>(false);
 
   // Fixed Statutory JV Equity Ratio based on official Consortium Agreement:
   // For Adroit AAPL (comp-aapl-05): 75% Desire : 25% Partner
@@ -817,132 +819,152 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             return null;
           })()}
 
-          {/* AI SUGGESTED PARTNER & STATUTORY JV CONSORTIUM SPLIT */}
-          <div className="glass-card p-6 rounded-2xl border-2 border-teal-300 bg-teal-50/40 space-y-5 shadow-sm">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-teal-800" />
-                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-teal-900">
-                    AI Recommended JV Consortium Partner
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    Top Synergy Match
-                  </span>
-                </div>
-                <h3 className="text-base font-bold text-slate-900">
-                  {jvComp.name}
-                </h3>
-                <p className="text-xs text-slate-700 font-medium">
-                  3-Yr Avg Turnover: <strong className="text-slate-900">₹{jvComp.average_turnover} Cr</strong> • Net Worth: <strong className="text-slate-900">₹{jvComp.net_worth} Cr</strong> • Solvency: <strong className="text-slate-900">₹{(jvComp as any).solvency_amount || 10.0} Cr</strong>
-                </p>
-              </div>
-
-              {/* Partner Switcher Dropdown (STRICTLY JV PARTNERS, NO COMPETITORS) */}
-              <div className="space-y-1 w-full md:w-auto">
-                <label className="text-[10px] font-mono font-bold uppercase text-slate-600 block">Switch Partner Option:</label>
-                <select
-                  value={selectedJvPartnerId}
-                  onChange={(e) => setSelectedJvPartnerId(e.target.value)}
-                  className="bg-white border border-teal-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer shadow-sm w-full"
-                >
-                  {availableJvPartners.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} (Avg ₹{c.average_turnover} Cr | Net Worth: ₹{c.net_worth} Cr)
-                    </option>
-                  ))}
-                  {availableJvPartners.length === 0 && (
-                    <>
-                      <option value="comp-vhp-04">VINOD H PATEL (Avg ₹191.39 Cr | Net Worth: ₹33.37 Cr)</option>
-                      <option value="comp-aapl-05">ADROIT ASSOCIATES PRIVATE LIMITED (Avg ₹35.22 Cr | Net Worth: ₹14.27 Cr)</option>
-                      <option value="comp-divija-02">DIVIJA CONSTRUCTION (Avg ₹37.01 Cr | Net Worth: ₹6.58 Cr)</option>
-                    </>
-                  )}
-                </select>
-              </div>
-            </div>
-
-            {/* Documented Consortium Equity Split (Statutory Fixed Ratio) */}
-            <div className="pt-4 border-t border-teal-200/80 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center space-x-2">
-                  <Percent className="w-4 h-4 text-teal-800" />
-                  <span className="text-xs font-bold text-slate-900">
-                    Consortium Equity Split:
-                  </span>
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-teal-800 text-white shadow-sm">
-                    Desire {desireEquityRatio}% (Lead Partner) : {jvComp.name.split(' ')[0]} {partnerEquityRatio}% (Consortium Member)
-                  </span>
-                </div>
-                <span className="text-[11px] font-mono font-bold text-teal-900 bg-white border border-teal-300 px-2.5 py-1 rounded-lg">
-                  {selectedJvPartnerId === 'comp-aapl-05' ? 'Documented Project Agreement (75:25)' : 'Gujarat WRD Statutory Standard (51:49)'}
-                </span>
-              </div>
-
-              {/* Dynamic Financial Pooling Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
-                  <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled 3-Yr Avg Turnover</span>
-                  <div className="flex items-baseline space-x-2">
-                    <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledTurnover} Cr</span>
-                    <span className="text-[10px] text-slate-500 font-mono">(₹{desireComp.average_turnover} + ₹{jvComp.average_turnover})</span>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
-                  <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled Consortium Net Worth</span>
-                  <div className="flex items-baseline space-x-2">
-                    <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledNetWorth} Cr</span>
-                    <span className="text-[10px] text-slate-500 font-mono">(₹{desireComp.net_worth} + ₹{jvComp.net_worth})</span>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
-                  <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled Solvency Amount</span>
-                  <div className="flex items-baseline space-x-2">
-                    <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledSolvency} Cr</span>
-                    <span className="text-[10px] text-slate-500 font-mono">(100% Combined)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* DESIRE ELIGIBILITY FLOW BANNER — shows outcome and guides user to JV if needed */}
+          {/* SINGLE PLAIN-LANGUAGE SUMMARY LINE FIRST */}
           {(() => {
             const dScore = parseInt(perspective.option1_pct || '0');
             const cScore = parseInt(perspective.option3_pct || '0');
-            if (dScore >= 80) {
-              return (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 flex items-start space-x-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            const summaryText = (evaluationReport as any)?.summary_line || (
+              dScore >= 90 
+                ? `Desire Energy qualifies standalone (${perspective.option1_pct}). A JV is optional.`
+                : `Desire Energy does not qualify standalone (Score: ${perspective.option1_pct}). Recommended: JV with ${jvComp.name} to reach ${perspective.option3_pct} combined.`
+            );
+
+            return (
+              <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm ${
+                dScore >= 90 ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : dScore >= 50 ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-rose-50 border-rose-300 text-rose-900'
+              }`}>
+                <div className="flex items-center space-x-3">
+                  {dScore >= 90 ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  ) : dScore >= 50 ? (
+                    <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                  )}
                   <div>
-                    <p className="text-xs font-bold text-emerald-900">✅ Desire Energy Qualifies Standalone ({perspective.option1_pct})</p>
-                    <p className="text-[11px] text-emerald-800 font-medium mt-0.5">Desire Energy satisfies {perspective.option1_pct} of tender criteria independently. You may bid standalone or optionally form a JV for stronger financial pooling.</p>
+                    <h3 className="text-sm font-bold">
+                      {summaryText}
+                    </h3>
+                    <p className="text-xs font-medium opacity-90 mt-0.5">
+                      {dScore >= 90 
+                        ? 'Desire Energy meets all eligibility requirements independently. Direct standalone bid is recommended.' 
+                        : `Desire Energy alone satisfies ${perspective.option1_pct} of criteria. Consortium pooling with ${jvComp.name} achieves ${perspective.option3_pct} total qualification.`}
+                    </p>
                   </div>
                 </div>
-              );
-            } else if (dScore >= 50) {
-              return (
-                <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-start space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-amber-900">⚠️ Desire Partially Eligible ({perspective.option1_pct}) — JV Recommended</p>
-                    <p className="text-[11px] text-amber-800 font-medium mt-0.5">Desire Energy satisfies {perspective.option1_pct} standalone. JV with {jvComp.name} brings this to {perspective.option3_pct}. Review Option 2 & 3 to understand the gaps.</p>
-                  </div>
-                </div>
-              );
-            } else {
-              return (
-                <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 flex items-start space-x-3">
-                  <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-rose-900">🚫 Desire Cannot Bid Standalone ({perspective.option1_pct}) — JV Mandatory</p>
-                    <p className="text-[11px] text-rose-800 font-medium mt-0.5">Desire Energy alone meets only {perspective.option1_pct} of criteria. JV Consortium with {jvComp.name} achieves {perspective.option3_pct}. Switch to Option 3 to see the combined bid strategy.</p>
-                  </div>
-                </div>
-              );
+
+                {dScore >= 90 && (
+                  <button
+                    onClick={() => setShowOptionalJv(!showOptionalJv)}
+                    className="px-3.5 py-1.5 rounded-lg bg-white border border-emerald-400 text-xs font-bold text-emerald-900 hover:bg-emerald-100/60 transition-colors shrink-0 shadow-sm flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
+                  >
+                    <span>{showOptionalJv ? 'Hide Optional JV Details' : 'View Optional JV Scenario'}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showOptionalJv ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* AI SUGGESTED PARTNER & STATUTORY JV CONSORTIUM SPLIT (SECONDARY / COLLAPSED IF STANDALONE QUALIFIED) */}
+          {(() => {
+            const dScore = parseInt(perspective.option1_pct || '0');
+            // If Desire qualifies standalone (>=90%), hide JV details unless user clicks 'View Optional JV Scenario'
+            if (dScore >= 90 && !showOptionalJv) {
+              return null;
             }
+
+            return (
+              <div className="glass-card p-6 rounded-2xl border-2 border-teal-300 bg-teal-50/40 space-y-5 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Sparkles className="w-4 h-4 text-teal-800" />
+                      <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-teal-900">
+                        {dScore >= 90 ? 'Optional JV Consortium Partner Details' : 'Recommended JV Consortium Partner'}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        {dScore >= 90 ? 'Optional Synergy' : 'Top Synergy Match'}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">
+                      {jvComp.name}
+                    </h3>
+                    <p className="text-xs text-slate-700 font-medium">
+                      3-Yr Avg Turnover: <strong className="text-slate-900">₹{jvComp.average_turnover} Cr</strong> • Net Worth: <strong className="text-slate-900">₹{jvComp.net_worth} Cr</strong> • Solvency: <strong className="text-slate-900">₹{(jvComp as any).solvency_amount || 10.0} Cr</strong>
+                    </p>
+                  </div>
+
+                  {/* Partner Switcher Dropdown (STRICTLY JV PARTNERS, NO COMPETITORS) */}
+                  <div className="space-y-1 w-full md:w-auto">
+                    <label className="text-[10px] font-mono font-bold uppercase text-slate-600 block">Switch Partner Option:</label>
+                    <select
+                      value={selectedJvPartnerId}
+                      onChange={(e) => setSelectedJvPartnerId(e.target.value)}
+                      className="bg-white border border-teal-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer shadow-sm w-full"
+                    >
+                      {availableJvPartners.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} (Avg ₹{c.average_turnover} Cr | Net Worth: ₹{c.net_worth} Cr)
+                        </option>
+                      ))}
+                      {availableJvPartners.length === 0 && (
+                        <>
+                          <option value="comp-vhp-04">VINOD H PATEL (Avg ₹191.39 Cr | Net Worth: ₹33.37 Cr)</option>
+                          <option value="comp-aapl-05">ADROIT ASSOCIATES PRIVATE LIMITED (Avg ₹35.22 Cr | Net Worth: ₹14.27 Cr)</option>
+                          <option value="comp-divija-02">DIVIJA CONSTRUCTION (Avg ₹37.01 Cr | Net Worth: ₹6.58 Cr)</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Documented Consortium Equity Split (Statutory Fixed Ratio) */}
+                <div className="pt-4 border-t border-teal-200/80 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center space-x-2">
+                      <Percent className="w-4 h-4 text-teal-800" />
+                      <span className="text-xs font-bold text-slate-900">
+                        Consortium Equity Split:
+                      </span>
+                      <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-teal-800 text-white shadow-sm">
+                        Desire {desireEquityRatio}% (Lead Partner) : {jvComp.name.split(' ')[0]} {partnerEquityRatio}% (Consortium Member)
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono font-bold text-teal-900 bg-white border border-teal-300 px-2.5 py-1 rounded-lg">
+                      {selectedJvPartnerId === 'comp-aapl-05' ? 'Documented Project Agreement (75:25)' : 'Gujarat WRD Statutory Standard (51:49)'}
+                    </span>
+                  </div>
+
+                  {/* Dynamic Financial Pooling Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
+                      <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled 3-Yr Avg Turnover</span>
+                      <div className="flex items-baseline space-x-2">
+                        <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledTurnover} Cr</span>
+                        <span className="text-[10px] text-slate-500 font-mono">(₹{desireComp.average_turnover} + ₹{jvComp.average_turnover})</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
+                      <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled Consortium Net Worth</span>
+                      <div className="flex items-baseline space-x-2">
+                        <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledNetWorth} Cr</span>
+                        <span className="text-[10px] text-slate-500 font-mono">(₹{desireComp.net_worth} + ₹{jvComp.net_worth})</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-teal-200 space-y-1">
+                      <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block">Pooled Solvency Amount</span>
+                      <div className="flex items-baseline space-x-2">
+                        <span className="text-sm font-bold text-teal-900 font-mono">₹{pooledSolvency} Cr</span>
+                        <span className="text-[10px] text-slate-500 font-mono">(100% Combined)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
           })()}
 
           {/* 3 Dynamic Analysis Options Selection Tabs */}

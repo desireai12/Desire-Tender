@@ -781,18 +781,207 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       return NextResponse.json(banasTenderData);
     }
 
+    // ═══ DETERMINISTIC SCORING ENGINE ═════════════════════════════════════════
+    function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selectedJvPartnerId?: string) {
+      const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
+      const jvPartners = comps.filter((c: any) => c.id !== desireComp.id && c.type !== 'Desire Energy');
+
+      const dT = desireComp.average_turnover || 300.93;
+      const dNW = desireComp.net_worth || 95.0;
+      const dS = (desireComp as any).solvency_amount || 72.18;
+
+      function evalClause(c: any, partner: any) {
+        const reqType = c.requirement_type || 'Technical';
+        const title = (c.clause_title || '').toLowerCase();
+        const reqText = (c.tender_requirement || '').toLowerCase();
+
+        let reqNum: number | null = (typeof c.required_value_num === 'number' && !isNaN(c.required_value_num)) ? c.required_value_num : null;
+        if (reqNum === null && c.required_value) {
+          const match = String(c.required_value).match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(cr|crore|lakh|lakhs)?/i);
+          if (match) {
+            let val = parseFloat(match[1]);
+            const unit = (match[2] || '').toLowerCase();
+            if (unit.includes('lakh')) val = val / 100.0;
+            reqNum = val;
+          }
+        }
+
+        const jT = partner.average_turnover || 37.01;
+        const jNW = partner.net_worth || 6.58;
+        const jS = (partner as any).solvency_amount || 10.0;
+        const jvSectors = Array.isArray(partner.sector_experience) ? partner.sector_experience : [];
+
+        let dPct = 100, jPct = 100, cPct = 100;
+        let dVal = 'Meets requirement', jVal = 'Meets requirement', cVal = 'Combined credentials satisfy criteria';
+
+        if (reqType === 'Financial') {
+          if (title.includes('turnover') || reqText.includes('turnover')) {
+            if (reqNum && reqNum > 0) {
+              dPct = Math.min(100, Math.round((dT / reqNum) * 100));
+              jPct = Math.min(100, Math.round((jT / reqNum) * 100));
+              cPct = Math.min(100, Math.round(((dT + jT) / reqNum) * 100));
+            }
+            dVal = `Rs ${dT} Cr (${dPct}% of Rs ${reqNum || 'N/A'} Cr required)`;
+            jVal = `Rs ${jT} Cr (${jPct}% of Rs ${reqNum || 'N/A'} Cr required)`;
+            cVal = `Pooled Rs ${dT + jT} Cr (${cPct}% of requirement)`;
+          } else if (title.includes('net worth') || reqText.includes('net worth')) {
+            if (reqNum && reqNum > 0) {
+              dPct = Math.min(100, Math.round((dNW / reqNum) * 100));
+              jPct = Math.min(100, Math.round((jNW / reqNum) * 100));
+              cPct = Math.min(100, Math.round(((dNW + jNW) / reqNum) * 100));
+            }
+            dVal = `Rs ${dNW} Cr (${dPct}%)`;
+            jVal = `Rs ${jNW} Cr (${jPct}%)`;
+            cVal = `Pooled Rs ${dNW + jNW} Cr (${cPct}%)`;
+          } else if (title.includes('solvency') || reqText.includes('solvency')) {
+            if (reqNum && reqNum > 0) {
+              dPct = Math.min(100, Math.round((dS / reqNum) * 100));
+              jPct = Math.min(100, Math.round((jS / reqNum) * 100));
+              cPct = Math.min(100, Math.round(((dS + jS) / reqNum) * 100));
+            }
+            dVal = `Rs ${dS} Cr (${dPct}%)`;
+            jVal = `Rs ${jS} Cr (${jPct}%)`;
+            cVal = `Pooled Rs ${dS + jS} Cr (${cPct}%)`;
+          }
+        } else if (reqType === 'Technical') {
+          const isSewer = title.includes('sewer') || title.includes('sewage') || title.includes('stp') || title.includes('etp') || title.includes('drainage') ||
+                          reqText.includes('sewer') || reqText.includes('sewage') || reqText.includes('stp') || reqText.includes('etp') || reqText.includes('drainage');
+          if (isSewer) {
+            dPct = 0;
+            dVal = 'Zero sewerage/STP track record (Desire Sector Gap)';
+
+            const partnerHasSTP = jvSectors.some((s: string) => s.toLowerCase().includes('stp') || s.toLowerCase().includes('sewage') || s.toLowerCase().includes('sewer')) ||
+                                  (partner.technical_experience || '').toLowerCase().includes('stp') ||
+                                  (partner.technical_experience || '').toLowerCase().includes('sewage');
+            if (partnerHasSTP) {
+              jPct = 100;
+              jVal = `Executed SBR Sewage Treatment Plants & Sewerage (${partner.name})`;
+            } else {
+              jPct = 0;
+              jVal = 'No sewerage/STP experience';
+            }
+
+            cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
+            cVal = cPct === 100 ? `JV Partner ${partner.name} covers Sewerage/STP technical gap` : 'Neither member has sewerage/STP track record';
+          } else {
+            dPct = 100;
+            dVal = 'Executed 120+ km HDPE/DI Water Pipelines';
+            jPct = 100;
+            jVal = 'Executed civil/infrastructure pipeline works';
+            cPct = 100;
+            cVal = 'Consortium satisfies technical experience criteria';
+          }
+        } else if (reqType === 'Compliance' || reqType === 'Organizational') {
+          dPct = 100;
+          dVal = 'ISO 9001/14001/45001 & Class-A PHED License';
+          jPct = 100;
+          jVal = 'Valid Statutory Registrations & Certifications';
+          cPct = 100;
+          cVal = 'Both members hold valid statutory registrations';
+        }
+
+        const dStatus = dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
+        const jStatus = jPct >= 100 ? 'MATCH' : (jPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
+        const cStatus = cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
+
+        return {
+          clause_no: c.clause_no || 'Clause 1',
+          clause_title: c.clause_title || 'Requirement',
+          requirement_type: reqType,
+          tender_requirement: c.tender_requirement || '',
+          required_value: c.required_value || (reqNum ? `Rs ${reqNum} Cr` : 'Specified in tender specs'),
+          desire_value: dVal,
+          desire_status: dStatus,
+          desire_pct: dPct,
+          jv_value: jVal,
+          jv_status: jStatus,
+          jv_pct: jPct,
+          combined_value: cVal,
+          status: cStatus,
+          fulfilled_pct: `${cPct}%`,
+          applicable_jv_rule: c.applicable_jv_rule || 'Lead Member / JV Pooling',
+          gap_notes: dPct < 100 ? `Desire gap bridged by JV Partner ${partner.name}` : 'Desire satisfies standalone',
+          required_doc: c.required_doc || 'Documentary Proof',
+          page_ref: c.page_ref || 'Tender Technical Bid'
+        };
+      }
+
+      const partnerEvaluations: Record<string, any> = {};
+      for (const partner of jvPartners) {
+        const clauseEvals = rawClauses.map(c => evalClause(c, partner));
+        const totalCount = clauseEvals.length || 1;
+        const dScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.desire_pct, 0) / totalCount));
+        const jScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.jv_pct, 0) / totalCount));
+        const cScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.combined_pct, 0) / totalCount));
+
+        partnerEvaluations[partner.id] = {
+          partner,
+          dScore,
+          jScore,
+          cScore,
+          clauses: clauseEvals
+        };
+      }
+
+      const firstEval = Object.values(partnerEvaluations)[0];
+      const desireStandaloneScore = firstEval ? firstEval.dScore : 100;
+
+      let recommendedPartnerId = selectedJvPartnerId && partnerEvaluations[selectedJvPartnerId] ? selectedJvPartnerId : '';
+      if (!recommendedPartnerId) {
+        if (desireStandaloneScore >= 100) {
+          recommendedPartnerId = jvPartners[0]?.id || 'comp-vhp-04';
+        } else {
+          recommendedPartnerId = Object.keys(partnerEvaluations).reduce((bestId, id) => {
+            return partnerEvaluations[id].cScore > partnerEvaluations[bestId].cScore ? id : bestId;
+          }, Object.keys(partnerEvaluations)[0]);
+        }
+      }
+
+      const selectedEval = partnerEvaluations[recommendedPartnerId] || firstEval;
+      const recPartner = selectedEval.partner;
+
+      let summaryLine = '';
+      if (desireStandaloneScore >= 100) {
+        summaryLine = `Desire Energy qualifies standalone (100%). A JV is optional.`;
+      } else {
+        summaryLine = `Desire Energy does not qualify standalone (Score: ${desireStandaloneScore}%). Recommended: JV with ${recPartner.name} to reach ${selectedEval.cScore}% combined.`;
+      }
+
+      return {
+        desireStandaloneScore,
+        recommendedPartner: recPartner,
+        recommendedPartnerId,
+        summaryLine,
+        desire_alone: {
+          score: desireStandaloneScore,
+          fulfilled_pct: `${desireStandaloneScore}%`,
+          status: desireStandaloneScore >= 90 ? 'Eligible Standalone' : desireStandaloneScore >= 60 ? 'Partially Eligible Standalone (JV Recommended)' : 'Ineligible Standalone'
+        },
+        jv_alone: {
+          score: selectedEval.jScore,
+          fulfilled_pct: `${selectedEval.jScore}%`,
+          status: selectedEval.jScore >= 90 ? 'Partner Standalone Qualified' : selectedEval.jScore >= 60 ? 'Partner Incomplete Standalone' : 'Partner Ineligible Standalone'
+        },
+        combined_jv: {
+          score: selectedEval.cScore,
+          fulfilled_pct: `${selectedEval.cScore}%`,
+          status: selectedEval.cScore >= 95 ? 'Fully Qualified Consortium' : selectedEval.cScore >= 80 ? 'Broadly Qualified Consortium' : 'Partially Qualified Consortium'
+        },
+        clauses_breakdown: selectedEval.clauses,
+        partnerEvaluations
+      };
+    }
+
     // ═══ TENDER ANALYZE ═══════════════════════════════════════════════════════
     if (subPath === 'tender/analyze' && method === 'POST') {
       const filename = formFilename || body.filename || 'uploaded_document.pdf';
       const titleInput = formTenderTitle || body.tender_title || '';
       const jvPartnerId = formJvPartnerId || body.jv_partner_id || 'comp-vhp-04';
 
-      // 1. File Upload Stage
       if (!formFileBuffer || formFileBuffer.length === 0) {
         return buildErrorResponse('FILE_UPLOAD_FAILED', 'Uploaded file buffer is empty or 0 bytes.');
       }
 
-      // 2. PDF Text Extraction Stage
       let extractedPdfText = '';
       try {
         extractedPdfText = await extractTextFromPdfBuffer(formFileBuffer);
@@ -804,7 +993,6 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         return buildErrorResponse('AUTH_ERROR', 'GEMINI_API_KEY environment variable is not configured.');
       }
 
-      // 3. AI Document Classifier Stage
       let classifyResult: any = null;
       try {
         classifyResult = await classifyDocumentWithAI(filename, extractedPdfText, geminiKey);
@@ -833,114 +1021,43 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         });
       }
 
-      // 4. Load company credentials
       let comps = GLOBAL_SERVER_COMPANIES;
       if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
-      const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
-      const jvComp = comps.find((c: any) => c.id === jvPartnerId || c.type === 'JV Partner') || comps[1] || comps[0];
-      const dT = desireComp.average_turnover || 300.93;
-      const dNW = desireComp.net_worth || 95.0;
-      const dS = (desireComp as any).solvency_amount || 72.18;
-      const jT = jvComp.average_turnover || 37.01;
-      const jNW = jvComp.net_worth || 6.58;
-      const jS = (jvComp as any).solvency_amount || 10.0;
-      const cT = dT + jT;
 
-      const jvName = jvComp.name || 'JV Partner';
-      const jvExp = jvComp.technical_experience || 'Civil & Infrastructure Contractor';
-      const jvCerts = Array.isArray(jvComp.certifications) ? jvComp.certifications.join(', ') : 'Standard ISO Certifications';
-      const jvSharePct = jvComp.id === 'comp-aapl-05' ? '25%' : '49%';
-      const desireSharePct = jvComp.id === 'comp-aapl-05' ? '75%' : '51%';
-
-      // Pass up to 60,000 characters of document text to Gemini AI for complete extraction
       const snippet = extractedPdfText ? extractedPdfText.slice(0, 60000) : `Filename: ${filename}. Title: ${titleInput}`;
 
-      // 5. FULL DEEP GEMINI AI PROMPT
-      // Detect tender type to inject domain-specific evaluation rules
-      const isSTPTender = (formCategory === 'STP') || extractedPdfText.toLowerCase().includes('sewage treatment') || extractedPdfText.toLowerCase().includes('sewer') || titleInput.toLowerCase().includes('sewer') || titleInput.toLowerCase().includes('stp');
-      const isEscoTender = (formCategory === 'ESCO') || titleInput.toLowerCase().includes('esco') || titleInput.toLowerCase().includes('energy service');
-      const isSolarTender = (formCategory === 'SOLAR' || formCategory === 'KUSUM') || titleInput.toLowerCase().includes('solar') || titleInput.toLowerCase().includes('kusum');
-
-      const desireLimitationsBlock = `
-KNOWN LIMITATIONS OF DESIRE ENERGY SOLUTIONS (CRITICAL — Apply these when evaluating desire_status):
-- SEWERAGE / STP / DRAINAGE: Desire Energy has ZERO underground sewerage network, STP, ETP, or sewage pumping station execution experience. Their technical track record is exclusively water supply pipelines and solar PV. If a clause requires sewerage/STP/underground drainage experience, mark desire_status as "NOT MATCHING" with desire_value stating this gap explicitly.
-- SEWERAGE O&M: Desire has no sewage treatment plant O&M experience. Mark NOT MATCHING for any sewerage O&M requirement.
-- If this is a sewerage/STP tender (AMRUT, RERA, DLB, RUDSICO sewerage package, etc.), expect that 3–6 clauses will have desire_status = "NOT MATCHING" because Desire lacks sewerage domain experience. DO NOT grant MATCH to Desire on sewerage-specific technical experience clauses.
-- POSITIVE STRENGTHS: ISO 9001/14001/45001, financial turnover Rs.${dT.toFixed(2)} Cr, net worth Rs.${dNW.toFixed(2)} Cr, Class-A PHED/AA-Gujarat WRD registration — these DO apply to all tenders.`;
-
-      const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
-
-COMPANY MASTER CREDENTIALS:
-1. DESIRE ENERGY SOLUTIONS PVT LTD (Lead Member, ${desireSharePct} Share):
-   - Average Annual Turnover: Rs.${dT.toFixed(2)} Crores (3-Yr Avg: FY 2021-24)
-   - Net Worth: Rs.${dNW.toFixed(2)} Crores (Audited CA Certified)
-   - Bank Solvency: Rs.${dS.toFixed(2)} Crores (Kotak Mahindra Bank)
-   - Contractor Class: Class-A Special Registration (PHED Rajasthan) / AA Class Gujarat WRD & R&B
-   - Technical Track Record: 120+ km HDPE/DI Water Pipelines, 5 OHSR Reservoirs, Rs.94 Cr PM-KUSUM Component-B Solar Pumps, 14 Years ESCO O&M Experience
-   - Certifications: ISO 9001:2015 Quality, ISO 14001:2015 Environment, ISO 45001:2018 Safety
-   - SECTOR GAPS: NO sewerage/STP/ETP experience, NO underground sewer network projects executed
-${desireLimitationsBlock}
-
-2. ${jvName.toUpperCase()} (JV Partner, ${jvSharePct} Share):
-   - Average Annual Turnover: Rs.${jT.toFixed(2)} Crores
-   - Net Worth: Rs.${jNW.toFixed(2)} Crores
-   - Bank Solvency: Rs.${jS.toFixed(2)} Crores
-   - Technical Track Record: ${jvExp}
-   - Registrations & Certifications: ${jvCerts}
+      const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor.
+Your ONLY job is to read the provided tender document text and EXTRACT the raw eligibility clauses, titles, requirement types, text descriptions, and required numeric threshold values.
 
 DOCUMENT TEXT (Filename: "${filename}"):
 "${snippet}"
 
-INSTRUCTIONS FOR EXTRACTING CLAUSES:
-Step 1: Determine if this is a valid Tender Document (NIT/NIB/RFP/EOI/PQ/Bidding Document). If it is an Invoice, Bill, Receipt, or Resume, set "is_rejected_non_tender": true.
-Step 2: If it IS a tender, extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION CLAUSE directly present in the document text above (e.g. Financial Turnover, Single Work Experience, Specific Work Quantities, Net Worth, Solvency, Bid Capacity, License/Registration, EMD, ISO Certs, Litigation Affidavit, Key Personnel, O&M Commitment, etc.).
-Extract at least 8 to 15 distinct clauses found in THIS SPECIFIC tender document.
-CRITICAL: Do NOT output generic clauses. Extract the EXACT clause numbers, exact titles, exact financial thresholds (in ₹ Crores or Lakhs), and exact physical quantities (pipe diameters, lengths in km, pump ratings, time limits) stated in the provided DOCUMENT TEXT.
+INSTRUCTIONS FOR CLAUSE EXTRACTION:
+Step 1: Verify if this is a valid Tender Document. If it is an Invoice, Bill, Resume, set "is_rejected_non_tender": true.
+Step 2: Extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION CLAUSE from the document text (Financial Turnover, Work Experience, Net Worth, Solvency, Certifications, Registration, EMD, etc.).
+Extract between 6 and 15 distinct clauses.
+Extract EXACT clause numbers, exact titles, exact required numeric values (in ₹ Crores or Lakhs), units, and requirement descriptions.
 
-Step 3: Evaluate EACH extracted clause for:
-- Desire Energy Standalone capability ("desire_value" + "desire_status")
-- ${jvName} Standalone capability ("jv_value" + "jv_status")
-- Combined Consortium (Desire ${desireSharePct}% + ${jvName} ${jvSharePct}%) ("combined_value" + "status")
-
-CRITICAL STANDALONE EVALUATION RULES:
-- Apply the KNOWN LIMITATIONS block above strictly. If a clause requires sewerage/STP experience, Desire MUST be marked "NOT MATCHING" on desire_status — do not grant MATCH.
-- Evaluate ${jvName}'s standalone capability ("jv_value" and "jv_alone.score") REALISTICALLY against all tender criteria.
-- If ${jvName} lacks specific certifications (ISO, ESCO, Solar, SCADA), licenses, or experience present in the tender, explicitly mark "jv_value" as "NOT MATCHING (0%) — Lacks requirement".
-- If ${jvName} only partially meets a financial limit (e.g. turnover of Rs.191.39 Cr vs Rs.300 Cr required), mark "jv_value" as "PARTIAL MATCH (63% of requirement)".
-- Do NOT artificially grant 100% to either party unless they genuinely satisfy 100% of all tender requirements alone.
-- The desire_alone.score and jv_alone.score MUST reflect the realistic number of clauses each party can satisfy independently.
-
-Return valid JSON only (no markdown wrapping):
+Return valid JSON only:
 {
   "is_rejected_non_tender": false,
-  "tender_title": "string — extracted official tender title or document name",
+  "tender_title": "string — extracted official tender title",
   "project_category": "ESCO" | "STP" | "RHDS" | "KUSUM" | "SOLAR" | "CIVIL" | "EPC",
   "verdict": "Eligible" | "Conditional" | "Ineligible",
-  "eligibility_score": number from 0 to 100,
   "overall_health": "Green" | "Yellow" | "Red",
-  "recommendation": "string — clear bidding recommendation with consortium rationale",
-  "executive_summary": "string — comprehensive summary of AI eligibility audit",
-  "desire_alone": {"score": number, "status": "string", "fulfilled_pct": "string"},
-  "jv_alone": {"score": number, "status": "string", "fulfilled_pct": "string"},
-  "combined_jv": {"score": number, "status": "string", "fulfilled_pct": "string"},
+  "recommendation": "string — summary recommendation",
+  "executive_summary": "string — summary of extracted tender clauses",
   "clauses_breakdown": [
     {
-      "clause_no": "string — e.g. Clause 4.2.1 or ITB 4.5.3",
+      "clause_no": "string — e.g. Clause 4.1 or ITB 3.2",
       "clause_title": "string — title of requirement",
       "requirement_type": "Financial" | "Technical" | "Organizational" | "Compliance",
       "tender_requirement": "exact requirement statement from document",
-      "required_value": "numeric required value with unit (e.g. Rs. 69.78 Cr)",
-      "desire_value": "Desire Energy actual metric and match status — be specific about gaps",
-      "desire_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
-      "jv_value": "${jvName} actual metric and match status",
-      "jv_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
-      "combined_value": "Combined capability description",
-      "applicable_jv_rule": "JV pooling rule applied",
-      "status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
-      "fulfilled_pct": "percentage string (e.g. 100%)",
-      "gap_notes": "detailed gap analysis — state which company has the gap and how JV bridges it",
+      "required_value_num": number or null (e.g. 52.47 for Rs 52.47 Cr),
+      "required_value_unit": "Cr" | "Lakhs" | "km" | "MLD" | null,
+      "required_value": "string statement of requirement threshold",
       "required_doc": "documentary evidence required",
-      "page_ref": "page or section reference from document"
+      "page_ref": "page or section reference"
     }
   ]
 }`;
@@ -968,108 +1085,17 @@ Return valid JSON only (no markdown wrapping):
         );
       }
 
-      // Normalize clauses_breakdown fields in case model used slightly different keys
-      aiResult.clauses_breakdown = (aiResult.clauses_breakdown || []).map((c: any, idx: number) => {
-        const dVal = (c.desire_value || '').toLowerCase();
-        const jVal = (c.jv_value || '').toLowerCase();
-        
-        let desireStatus = (c.desire_status === 'MATCH' || c.desire_status === 'PARTIAL MATCH' || c.desire_status === 'NOT MATCHING')
-          ? c.desire_status
-          : (dVal.includes('lack') || dVal.includes('not met') || dVal.includes('ineligible') || dVal.includes('cannot bid')) ? 'NOT MATCHING'
-          : (dVal.includes('partial') || dVal.includes('gap') || dVal.includes('% of requirement') || dVal.includes('requires jv') || dVal.includes('below') || dVal.includes('insufficient')) ? 'PARTIAL MATCH'
-          : 'MATCH';
+      // EXECUTE DETERMINISTIC MATCHING & SCORING ENGINE
+      const deterministicResult = evaluateDeterministicMatching(aiResult.clauses_breakdown, comps, jvPartnerId);
 
-        let jvStatus = (c.jv_status === 'MATCH' || c.jv_status === 'PARTIAL MATCH' || c.jv_status === 'NOT MATCHING')
-          ? c.jv_status
-          : (jVal.includes('lack') || jVal.includes('not met') || jVal.includes('ineligible') || jVal.includes('cannot bid') || jVal.includes('no esco') || jVal.includes('no solar')) ? 'NOT MATCHING'
-          : (jVal.includes('partial') || jVal.includes('gap') || jVal.includes('% of requirement') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) ? 'PARTIAL MATCH'
-          : 'MATCH';
+      aiResult.desire_alone = deterministicResult.desire_alone;
+      aiResult.jv_alone = deterministicResult.jv_alone;
+      aiResult.combined_jv = deterministicResult.combined_jv;
+      aiResult.clauses_breakdown = deterministicResult.clauses_breakdown;
+      aiResult.summary_line = deterministicResult.summary_line;
+      aiResult.recommended_jv_partner = deterministicResult.recommendedPartner;
 
-        return {
-          clause_no: c.clause_no || c.clause_id || `Clause ${idx + 1}`,
-          clause_title: c.clause_title || c.clause_name || c.parameter || c.title || `Requirement ${idx + 1}`,
-          requirement_type: c.requirement_type || c.type || 'Technical',
-          tender_requirement: c.tender_requirement || c.requirement || c.description || 'As per tender document specifications',
-          required_value: c.required_value || c.threshold || c.required || 'Specified in tender specs',
-          desire_value: c.desire_value || c.bidder_value || c.desire_capability || 'Meets Requirement',
-          desire_status: desireStatus,
-          jv_value: c.jv_value || c.partner_value || c.jv_capability || 'Meets Requirement',
-          jv_status: jvStatus,
-          combined_value: c.combined_value || 'Combined credentials satisfy criteria',
-          applicable_jv_rule: c.applicable_jv_rule || 'Lead Member / JV Pooling',
-          status: (c.status === 'MATCH' || c.status === 'Compliant' || c.status === 'Met') ? 'MATCH' : (c.status === 'PARTIAL MATCH' || c.status === 'Partial') ? 'PARTIAL MATCH' : (c.status === 'NOT MATCHING' || c.status === 'Ineligible' || c.status === 'Non-Compliant') ? 'NOT MATCHING' : 'MATCH',
-          fulfilled_pct: c.fulfilled_pct || '100%',
-          gap_notes: c.gap_notes || c.notes || 'None',
-          required_doc: c.required_doc || c.document || 'Documentary Proof',
-          page_ref: c.page_ref || c.section || 'Tender Technical Bid'
-        };
-      });
-
-      // Calculate mathematically grounded standalone scores from individual clause evaluations
-      const dMatched = aiResult.clauses_breakdown.filter((c: any) => c.desire_status === 'MATCH').length;
-      const dPartial = aiResult.clauses_breakdown.filter((c: any) => c.desire_status === 'PARTIAL MATCH').length;
-      const jMatched = aiResult.clauses_breakdown.filter((c: any) => c.jv_status === 'MATCH').length;
-      const jPartial = aiResult.clauses_breakdown.filter((c: any) => c.jv_status === 'PARTIAL MATCH').length;
-      const cMatched = aiResult.clauses_breakdown.filter((c: any) => c.status === 'MATCH').length;
-      const cPartial = aiResult.clauses_breakdown.filter((c: any) => c.status === 'PARTIAL MATCH').length;
-      const totalClauseCount = aiResult.clauses_breakdown.length || 1;
-
-      // Clause-weighted scores — the definitive source of truth for all three options
-      const calcDScore = Math.min(100, Math.round(((dMatched * 100) + (dPartial * 50)) / totalClauseCount));
-      const calcJScore = Math.min(100, Math.round(((jMatched * 100) + (jPartial * 50)) / totalClauseCount));
-      const calcCScore = Math.min(100, Math.max(
-        Math.round(((cMatched * 100) + (cPartial * 50)) / totalClauseCount),
-        Math.max(calcDScore, calcJScore) // Consortium >= individual members
-      ));
-
-      // Use clause-math as primary score; only fall back to AI score when clause count is too low to be reliable
-      // This ensures DIFFERENT tenders produce DIFFERENT scores (since the clauses extracted differ per document)
-      let finalDScore = totalClauseCount >= 5 ? calcDScore : (() => {
-        const obj = aiResult.desire_alone;
-        if (!obj) return calcDScore;
-        if (typeof obj.score === 'number' && !isNaN(obj.score)) return obj.score;
-        if (obj.fulfilled_pct) { const m = String(obj.fulfilled_pct).match(/(\d+)/); if (m) return parseInt(m[1], 10); }
-        return calcDScore;
-      })();
-
-      let finalJScore = totalClauseCount >= 5 ? calcJScore : (() => {
-        const obj = aiResult.jv_alone;
-        if (!obj) return calcJScore;
-        if (typeof obj.score === 'number' && !isNaN(obj.score)) return obj.score;
-        if (obj.fulfilled_pct) { const m = String(obj.fulfilled_pct).match(/(\d+)/); if (m) return parseInt(m[1], 10); }
-        return calcJScore;
-      })();
-
-      let finalCScore = Math.max(calcCScore, Math.max(finalDScore, finalJScore));
-      // Apply minimum consortium floor of 90 if either member is broadly eligible
-      if (finalDScore >= 60 || finalJScore >= 60) finalCScore = Math.max(finalCScore, 90);
-      finalCScore = Math.min(finalCScore, 100);
-
-      // Collision guard: if Desire and JV scores ended up identical (rare edge case), nudge JV down
-      if (finalDScore === finalJScore && finalDScore > 0) {
-        finalJScore = Math.max(0, finalDScore - 10);
-      }
-
-      console.log(`[SCORE_CALC] Clauses: ${totalClauseCount} | D:${dMatched}M+${dPartial}P → ${calcDScore}% | J:${jMatched}M+${jPartial}P → ${calcJScore}% | C:${cMatched}M+${cPartial}P → ${calcCScore}%`);
-      console.log(`[SCORE_FINAL] Desire=${finalDScore}% | JV=${finalJScore}% | Combined=${finalCScore}%`);
-
-      aiResult.desire_alone = {
-        score: finalDScore,
-        fulfilled_pct: `${finalDScore}%`,
-        status: finalDScore >= 90 ? 'Eligible Standalone' : finalDScore >= 60 ? 'Partially Eligible Standalone (JV Recommended)' : 'Ineligible Standalone'
-      };
-
-      aiResult.jv_alone = {
-        score: finalJScore,
-        fulfilled_pct: `${finalJScore}%`,
-        status: finalJScore >= 90 ? 'Partner Standalone Qualified' : finalJScore >= 60 ? 'Partner Incomplete Standalone' : 'Partner Ineligible Standalone'
-      };
-
-      aiResult.combined_jv = {
-        score: finalCScore,
-        fulfilled_pct: `${finalCScore}%`,
-        status: finalCScore >= 95 ? 'Fully Qualified Consortium' : finalCScore >= 80 ? 'Broadly Qualified Consortium' : 'Partially Qualified Consortium'
-      };
+      console.log(`[DETERMINISTIC_ENGINE] ${deterministicResult.summary_line}`);
 
       if (aiResult.is_rejected_non_tender === true) {
         const rejection = buildRejection(filename, '', aiResult.executive_summary || 'Document classified as non-tender', 'Non-Tender');
