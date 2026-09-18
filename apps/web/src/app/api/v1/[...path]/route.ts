@@ -414,33 +414,64 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
   
   const titleLower = (report.tender_title || '').toLowerCase();
   const catUpper = (report.project_category || '').toUpperCase();
-  const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp');
-
-  let hasSewerClause = false;
+  const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('drainage') || titleLower.includes('effluent');
+  const isSolarTender = catUpper === 'SOLAR' || catUpper === 'KUSUM' || titleLower.includes('solar') || titleLower.includes('pv') || titleLower.includes('kusum');
 
   report.clauses_breakdown.forEach((c: any) => {
     const cTitle = (c.clause_title || '').toLowerCase();
     const reqText = (c.tender_requirement || '').toLowerCase();
-    const isSewer = isSewerTender && (cTitle.includes('sewer') || cTitle.includes('stp') || reqText.includes('sewer') || reqText.includes('stp'));
+    const desireVal = (c.desire_value || '').toLowerCase();
+    const jvVal = (c.jv_value || '').toLowerCase();
 
-    if (isSewer) {
-      hasSewerClause = true;
-      c.status = 'PARTIAL MATCH';
+    // ── SEWERAGE / STP TENDERS ─────────────────────────────────────────────
+    // Desire Energy has NO underground sewerage/STP network experience.
+    // Any clause that specifically requires sewer/STP/drainage experience must
+    // be marked as NOT MATCHING or PARTIAL MATCH for Desire standalone.
+    const isSewerClause = isSewerTender && (
+      cTitle.includes('sewer') || cTitle.includes('stp') || cTitle.includes('drain') || cTitle.includes('effluent') ||
+      reqText.includes('sewer') || reqText.includes('stp') || reqText.includes('sewage') || reqText.includes('effluent') ||
+      reqText.includes('underground network') || reqText.includes('underground sewer') ||
+      reqText.includes('manhole') || reqText.includes('pumping station') || reqText.includes('sewage treatment')
+    );
+
+    // For sewer-specific technical experience clauses: Desire cannot meet them standalone
+    const isSewerExperienceClause = isSewerClause && (
+      reqText.includes('experience') || reqText.includes('executed') || reqText.includes('completed') ||
+      reqText.includes('similar work') || reqText.includes('o&m') || reqText.includes('operation') ||
+      cTitle.includes('experience') || cTitle.includes('o&m') || cTitle.includes('technical')
+    );
+
+    if (isSewerExperienceClause) {
+      // Desire has ZERO sewerage experience — hard NOT MATCHING
+      c.desire_status = 'NOT MATCHING';
+      c.desire_value = 'Desire Energy has zero underground sewerage / STP O&M track record. Water pipeline experience (HDPE/DI) does not qualify as sewerage experience.';
+      c.jv_status = 'MATCH'; // JV Partner (Divija) is specifically chosen for this
+      c.status = 'PARTIAL MATCH'; // Combined is partial without JV bridging the gap
       c.fulfilled_pct = '50%';
-      c.desire_value = '120+ km HDPE/DI Water Pipelines (No specialized underground sewer network experience)';
-      c.gap_notes = `Desire Energy has a specialized gap in underground sewerage works. ${jvName} bridges this gap.`;
-    } else if (c.status === 'MATCH') {
-      c.fulfilled_pct = '100%';
-    } else if (c.fulfilled_pct) {
-      const match = String(c.fulfilled_pct).match(/(\d+(\.\d+)?)/);
-      if (match) {
-        const val = parseFloat(match[1]);
-        c.fulfilled_pct = val >= 100 ? '100%' : `${val}%`;
-      } else {
+      c.gap_notes = `CRITICAL GAP: Desire Energy has no sewerage network execution history. ${jvName} is required as the specialist sewerage contractor to satisfy this clause.`;
+    } else if (isSewerClause) {
+      // General sewer-related clause (financial / compliance) — Desire partially qualifies
+      c.desire_status = c.desire_status === 'MATCH' ? 'PARTIAL MATCH' : c.desire_status;
+      c.fulfilled_pct = c.fulfilled_pct || '50%';
+      c.status = 'PARTIAL MATCH';
+      c.gap_notes = c.gap_notes || `Desire Energy's water pipeline experience provides partial credit. ${jvName}'s sewerage specialization fills the gap.`;
+    }
+
+    // ── NON-SEWER TENDERS: normalize combined status ───────────────────────
+    if (!isSewerTender) {
+      if (c.status === 'MATCH') {
         c.fulfilled_pct = '100%';
+      } else if (c.fulfilled_pct) {
+        const match = String(c.fulfilled_pct).match(/(\d+(\.\d+)?)/);
+        if (match) {
+          const val = parseFloat(match[1]);
+          c.fulfilled_pct = val >= 100 ? '100%' : `${val}%`;
+        } else {
+          c.fulfilled_pct = '100%';
+        }
+      } else {
+        c.fulfilled_pct = c.status === 'MATCH' ? '100%' : c.status === 'PARTIAL MATCH' ? '50%' : '0%';
       }
-    } else {
-      c.fulfilled_pct = '100%';
     }
   });
 
@@ -825,6 +856,18 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const snippet = extractedPdfText ? extractedPdfText.slice(0, 60000) : `Filename: ${filename}. Title: ${titleInput}`;
 
       // 5. FULL DEEP GEMINI AI PROMPT
+      // Detect tender type to inject domain-specific evaluation rules
+      const isSTPTender = (formCategory === 'STP') || extractedPdfText.toLowerCase().includes('sewage treatment') || extractedPdfText.toLowerCase().includes('sewer') || titleInput.toLowerCase().includes('sewer') || titleInput.toLowerCase().includes('stp');
+      const isEscoTender = (formCategory === 'ESCO') || titleInput.toLowerCase().includes('esco') || titleInput.toLowerCase().includes('energy service');
+      const isSolarTender = (formCategory === 'SOLAR' || formCategory === 'KUSUM') || titleInput.toLowerCase().includes('solar') || titleInput.toLowerCase().includes('kusum');
+
+      const desireLimitationsBlock = `
+KNOWN LIMITATIONS OF DESIRE ENERGY SOLUTIONS (CRITICAL — Apply these when evaluating desire_status):
+- SEWERAGE / STP / DRAINAGE: Desire Energy has ZERO underground sewerage network, STP, ETP, or sewage pumping station execution experience. Their technical track record is exclusively water supply pipelines and solar PV. If a clause requires sewerage/STP/underground drainage experience, mark desire_status as "NOT MATCHING" with desire_value stating this gap explicitly.
+- SEWERAGE O&M: Desire has no sewage treatment plant O&M experience. Mark NOT MATCHING for any sewerage O&M requirement.
+- If this is a sewerage/STP tender (AMRUT, RERA, DLB, RUDSICO sewerage package, etc.), expect that 3–6 clauses will have desire_status = "NOT MATCHING" because Desire lacks sewerage domain experience. DO NOT grant MATCH to Desire on sewerage-specific technical experience clauses.
+- POSITIVE STRENGTHS: ISO 9001/14001/45001, financial turnover Rs.${dT.toFixed(2)} Cr, net worth Rs.${dNW.toFixed(2)} Cr, Class-A PHED/AA-Gujarat WRD registration — these DO apply to all tenders.`;
+
       const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor for Desire Energy Solutions Pvt Ltd.
 
 COMPANY MASTER CREDENTIALS:
@@ -835,6 +878,8 @@ COMPANY MASTER CREDENTIALS:
    - Contractor Class: Class-A Special Registration (PHED Rajasthan) / AA Class Gujarat WRD & R&B
    - Technical Track Record: 120+ km HDPE/DI Water Pipelines, 5 OHSR Reservoirs, Rs.94 Cr PM-KUSUM Component-B Solar Pumps, 14 Years ESCO O&M Experience
    - Certifications: ISO 9001:2015 Quality, ISO 14001:2015 Environment, ISO 45001:2018 Safety
+   - SECTOR GAPS: NO sewerage/STP/ETP experience, NO underground sewer network projects executed
+${desireLimitationsBlock}
 
 2. ${jvName.toUpperCase()} (JV Partner, ${jvSharePct} Share):
    - Average Annual Turnover: Rs.${jT.toFixed(2)} Crores
@@ -853,15 +898,17 @@ Extract at least 8 to 15 distinct clauses found in THIS SPECIFIC tender document
 CRITICAL: Do NOT output generic clauses. Extract the EXACT clause numbers, exact titles, exact financial thresholds (in ₹ Crores or Lakhs), and exact physical quantities (pipe diameters, lengths in km, pump ratings, time limits) stated in the provided DOCUMENT TEXT.
 
 Step 3: Evaluate EACH extracted clause for:
-- Desire Energy Standalone capability ("desire_value")
-- ${jvName} Standalone capability ("jv_value")
-- Combined Consortium (Desire ${desireSharePct}% + ${jvName} ${jvSharePct}%) ("combined_value")
+- Desire Energy Standalone capability ("desire_value" + "desire_status")
+- ${jvName} Standalone capability ("jv_value" + "jv_status")
+- Combined Consortium (Desire ${desireSharePct}% + ${jvName} ${jvSharePct}%) ("combined_value" + "status")
 
 CRITICAL STANDALONE EVALUATION RULES:
+- Apply the KNOWN LIMITATIONS block above strictly. If a clause requires sewerage/STP experience, Desire MUST be marked "NOT MATCHING" on desire_status — do not grant MATCH.
 - Evaluate ${jvName}'s standalone capability ("jv_value" and "jv_alone.score") REALISTICALLY against all tender criteria.
 - If ${jvName} lacks specific certifications (ISO, ESCO, Solar, SCADA), licenses, or experience present in the tender, explicitly mark "jv_value" as "NOT MATCHING (0%) — Lacks requirement".
-- If ${jvName} only partially meets a financial limit (e.g. turnover of ₹191.39 Cr vs ₹300 Cr required), mark "jv_value" as "PARTIAL MATCH (63% of requirement)".
-- Do NOT artificially grant 100% to "jv_alone" unless ${jvName} genuinely satisfies 100% of all tender requirements alone.
+- If ${jvName} only partially meets a financial limit (e.g. turnover of Rs.191.39 Cr vs Rs.300 Cr required), mark "jv_value" as "PARTIAL MATCH (63% of requirement)".
+- Do NOT artificially grant 100% to either party unless they genuinely satisfy 100% of all tender requirements alone.
+- The desire_alone.score and jv_alone.score MUST reflect the realistic number of clauses each party can satisfy independently.
 
 Return valid JSON only (no markdown wrapping):
 {
@@ -883,7 +930,7 @@ Return valid JSON only (no markdown wrapping):
       "requirement_type": "Financial" | "Technical" | "Organizational" | "Compliance",
       "tender_requirement": "exact requirement statement from document",
       "required_value": "numeric required value with unit (e.g. Rs. 69.78 Cr)",
-      "desire_value": "Desire Energy actual metric and match status",
+      "desire_value": "Desire Energy actual metric and match status — be specific about gaps",
       "desire_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
       "jv_value": "${jvName} actual metric and match status",
       "jv_status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
@@ -891,7 +938,7 @@ Return valid JSON only (no markdown wrapping):
       "applicable_jv_rule": "JV pooling rule applied",
       "status": "MATCH" | "PARTIAL MATCH" | "NOT MATCHING",
       "fulfilled_pct": "percentage string (e.g. 100%)",
-      "gap_notes": "detailed gap analysis",
+      "gap_notes": "detailed gap analysis — state which company has the gap and how JV bridges it",
       "required_doc": "documentary evidence required",
       "page_ref": "page or section reference from document"
     }
