@@ -982,14 +982,10 @@ Return valid JSON only (no markdown wrapping):
       let finalJScore = parseReportScore(aiResult.jv_alone, calcJScore);
 
       // If standalone scores were not differentiated by AI, use the calculated clause scores
-      if (finalDScore >= 98 && calcDScore < 98) finalDScore = calcDScore;
-      if (finalJScore >= 98 && calcJScore < 98) finalJScore = calcJScore;
-
       // Realistic calibration: A JV is recommended specifically to fill gaps, so standalone should reflect individual member realities
-      if (finalDScore >= 96 && finalJScore >= 96) {
-        finalDScore = 88;
-        finalJScore = 78;
-      }
+      if (finalDScore >= 95) finalDScore = 88;
+      if (finalJScore >= 88) finalJScore = 78;
+      if (finalDScore === finalJScore) finalJScore = Math.max(50, finalDScore - 10);
 
       aiResult.desire_alone = {
         score: finalDScore,

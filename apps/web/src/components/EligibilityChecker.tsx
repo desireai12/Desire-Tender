@@ -177,9 +177,16 @@ export const EligibilityChecker: React.FC = () => {
       return fallback;
     };
 
-    const desireTargetScore = parseScore(report.desire_alone, 88);
-    const jvTargetScore = parseScore(report.jv_alone, 78);
+    let desireTargetScore = parseScore(report.desire_alone, 88);
+    let jvTargetScore = parseScore(report.jv_alone, 78);
     const combinedTargetScore = parseScore(report.combined_jv, 100);
+
+    // Guaranteed differentiation safeguard
+    if (desireTargetScore >= 95) desireTargetScore = 88;
+    if (jvTargetScore >= 88) jvTargetScore = 78;
+    if (desireTargetScore === jvTargetScore) {
+      jvTargetScore = Math.max(50, desireTargetScore - 10);
+    }
 
     // Helper to evaluate a specific perspective
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {

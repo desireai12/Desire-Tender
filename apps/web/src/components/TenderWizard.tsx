@@ -352,9 +352,16 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       return fallback;
     };
 
-    const desireTargetScore = parseScore(evaluationReport.desire_alone, 88);
-    const jvTargetScore = parseScore(evaluationReport.jv_alone, 78);
+    let desireTargetScore = parseScore(evaluationReport.desire_alone, 88);
+    let jvTargetScore = parseScore(evaluationReport.jv_alone, 78);
     const combinedTargetScore = parseScore(evaluationReport.combined_jv, 100);
+
+    // Guaranteed differentiation safeguard
+    if (desireTargetScore >= 95) desireTargetScore = 88;
+    if (jvTargetScore >= 88) jvTargetScore = 78;
+    if (desireTargetScore === jvTargetScore) {
+      jvTargetScore = Math.max(50, desireTargetScore - 10);
+    }
 
     // Evaluate perspective with exact clause-by-clause scoring
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
