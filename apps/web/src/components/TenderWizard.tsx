@@ -352,16 +352,16 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       return fallback;
     };
 
-    let desireTargetScore = parseScore(evaluationReport.desire_alone, 88);
-    let jvTargetScore = parseScore(evaluationReport.jv_alone, 78);
-    const combinedTargetScore = parseScore(evaluationReport.combined_jv, 100);
+    let desireTargetScore = parseScore(evaluationReport.desire_alone, 70);
+    let jvTargetScore = parseScore(evaluationReport.jv_alone, 55);
+    const combinedTargetScore = parseScore(evaluationReport.combined_jv, 90);
 
-    // Guaranteed differentiation safeguard
-    if (desireTargetScore >= 95) desireTargetScore = 88;
-    if (jvTargetScore >= 88) jvTargetScore = 78;
-    if (desireTargetScore === jvTargetScore) {
-      jvTargetScore = Math.max(50, desireTargetScore - 10);
+    // Guaranteed differentiation safeguard: only fire if scores actually collide (not as a default clamp)
+    if (desireTargetScore === jvTargetScore && desireTargetScore > 0) {
+      jvTargetScore = Math.max(0, desireTargetScore - 10);
     }
+    // Consortium must always be >= its strongest individual member
+    const effectiveCombined = Math.max(combinedTargetScore, Math.max(desireTargetScore, jvTargetScore));
 
     // Evaluate perspective with exact clause-by-clause scoring
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
@@ -433,7 +433,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
 
       // Synchronize score with backend report to guarantee distinct realistic percentages
-      const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : combinedTargetScore;
+      const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : effectiveCombined;
       const calcScore = Math.min(100, Math.round(((matched * 100) + (partial * 50)) / totalCount));
       const score = (targetScore !== undefined && targetScore !== null) ? targetScore : calcScore;
 

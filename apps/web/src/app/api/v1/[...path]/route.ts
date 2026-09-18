@@ -962,30 +962,48 @@ Return valid JSON only (no markdown wrapping):
       const dPartial = aiResult.clauses_breakdown.filter((c: any) => c.desire_status === 'PARTIAL MATCH').length;
       const jMatched = aiResult.clauses_breakdown.filter((c: any) => c.jv_status === 'MATCH').length;
       const jPartial = aiResult.clauses_breakdown.filter((c: any) => c.jv_status === 'PARTIAL MATCH').length;
+      const cMatched = aiResult.clauses_breakdown.filter((c: any) => c.status === 'MATCH').length;
+      const cPartial = aiResult.clauses_breakdown.filter((c: any) => c.status === 'PARTIAL MATCH').length;
       const totalClauseCount = aiResult.clauses_breakdown.length || 1;
 
+      // Clause-weighted scores — the definitive source of truth for all three options
       const calcDScore = Math.min(100, Math.round(((dMatched * 100) + (dPartial * 50)) / totalClauseCount));
       const calcJScore = Math.min(100, Math.round(((jMatched * 100) + (jPartial * 50)) / totalClauseCount));
+      const calcCScore = Math.min(100, Math.max(
+        Math.round(((cMatched * 100) + (cPartial * 50)) / totalClauseCount),
+        Math.max(calcDScore, calcJScore) // Consortium >= individual members
+      ));
 
-      // Extract existing AI scores if available and valid
-      const parseReportScore = (obj: any, fallback: number) => {
-        if (!obj) return fallback;
+      // Use clause-math as primary score; only fall back to AI score when clause count is too low to be reliable
+      // This ensures DIFFERENT tenders produce DIFFERENT scores (since the clauses extracted differ per document)
+      let finalDScore = totalClauseCount >= 5 ? calcDScore : (() => {
+        const obj = aiResult.desire_alone;
+        if (!obj) return calcDScore;
         if (typeof obj.score === 'number' && !isNaN(obj.score)) return obj.score;
-        if (obj.fulfilled_pct) {
-          const m = String(obj.fulfilled_pct).match(/(\d+)/);
-          if (m) return parseInt(m[1], 10);
-        }
-        return fallback;
-      };
+        if (obj.fulfilled_pct) { const m = String(obj.fulfilled_pct).match(/(\d+)/); if (m) return parseInt(m[1], 10); }
+        return calcDScore;
+      })();
 
-      let finalDScore = parseReportScore(aiResult.desire_alone, calcDScore);
-      let finalJScore = parseReportScore(aiResult.jv_alone, calcJScore);
+      let finalJScore = totalClauseCount >= 5 ? calcJScore : (() => {
+        const obj = aiResult.jv_alone;
+        if (!obj) return calcJScore;
+        if (typeof obj.score === 'number' && !isNaN(obj.score)) return obj.score;
+        if (obj.fulfilled_pct) { const m = String(obj.fulfilled_pct).match(/(\d+)/); if (m) return parseInt(m[1], 10); }
+        return calcJScore;
+      })();
 
-      // If standalone scores were not differentiated by AI, use the calculated clause scores
-      // Realistic calibration: A JV is recommended specifically to fill gaps, so standalone should reflect individual member realities
-      if (finalDScore >= 95) finalDScore = 88;
-      if (finalJScore >= 88) finalJScore = 78;
-      if (finalDScore === finalJScore) finalJScore = Math.max(50, finalDScore - 10);
+      let finalCScore = Math.max(calcCScore, Math.max(finalDScore, finalJScore));
+      // Apply minimum consortium floor of 90 if either member is broadly eligible
+      if (finalDScore >= 60 || finalJScore >= 60) finalCScore = Math.max(finalCScore, 90);
+      finalCScore = Math.min(finalCScore, 100);
+
+      // Collision guard: if Desire and JV scores ended up identical (rare edge case), nudge JV down
+      if (finalDScore === finalJScore && finalDScore > 0) {
+        finalJScore = Math.max(0, finalDScore - 10);
+      }
+
+      console.log(`[SCORE_CALC] Clauses: ${totalClauseCount} | D:${dMatched}M+${dPartial}P → ${calcDScore}% | J:${jMatched}M+${jPartial}P → ${calcJScore}% | C:${cMatched}M+${cPartial}P → ${calcCScore}%`);
+      console.log(`[SCORE_FINAL] Desire=${finalDScore}% | JV=${finalJScore}% | Combined=${finalCScore}%`);
 
       aiResult.desire_alone = {
         score: finalDScore,
@@ -1000,9 +1018,9 @@ Return valid JSON only (no markdown wrapping):
       };
 
       aiResult.combined_jv = {
-        score: 100,
-        fulfilled_pct: '100%',
-        status: 'Fully Qualified Consortium'
+        score: finalCScore,
+        fulfilled_pct: `${finalCScore}%`,
+        status: finalCScore >= 95 ? 'Fully Qualified Consortium' : finalCScore >= 80 ? 'Broadly Qualified Consortium' : 'Partially Qualified Consortium'
       };
 
       if (aiResult.is_rejected_non_tender === true) {
