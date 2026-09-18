@@ -566,12 +566,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           return (
             <div
               key={s.num}
-              className={`p-4 rounded-xl border transition-all ${
+              onClick={() => { if (s.num === 1 || (s.num === 3 && evaluationReport) || (s.num === 4 && evaluationReport)) setCurrentStep(s.num as any); }}
+              className={`p-4 rounded-xl border transition-all cursor-pointer ${
                 isActive
                   ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md'
                   : isDone
-                  ? 'bg-emerald-50 border border-emerald-300 text-emerald-900'
-                  : 'bg-white border border-slate-200 text-slate-600 opacity-80'
+                  ? 'bg-emerald-50 border border-emerald-300 text-emerald-900 hover:bg-emerald-100'
+                  : 'bg-white border border-slate-200 text-slate-600 opacity-80 hover:opacity-100'
               }`}
             >
               <div className="flex items-center space-x-3">
