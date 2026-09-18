@@ -62,8 +62,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
   const [uploadedTenderFile, setUploadedTenderFile] = useState<File | null>(null);
   const [uploadedBOQFile, setUploadedBOQFile] = useState<File | null>(null);
 
-  // Preferred Analysis Mode Selection
-  const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
+  // Analysis option — always start on Desire (Priority 1)
+  const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('desire');
 
   // Step 2 Staged Processing State
   const [analysisProgress, setAnalysisProgress] = useState<number>(0);
@@ -260,12 +260,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
     if (fetchedReport) {
       setEvaluationReport(fetchedReport);
-      const dScore = fetchedReport.desire_alone?.score !== undefined ? fetchedReport.desire_alone.score : 100;
-      if (dScore >= 90 || fetchedReport.desire_alone?.fulfilled_pct === '100%') {
-        setActiveAnalysisOption('desire');
-      } else {
-        setActiveAnalysisOption('combined');
-      }
+      // ALWAYS start on Desire tab — user sees Desire score first, then decides on JV
+      setActiveAnalysisOption('desire');
       setAnalysisProgress(100);
       setAnalysisStageText(`Full Report Ready: ${(fetchedReport.clauses_breakdown || []).length} Clauses Extracted & Evaluated.`);
       setTimeout(() => {
@@ -912,46 +908,112 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             </div>
           </div>
 
+          {/* DESIRE ELIGIBILITY FLOW BANNER — shows outcome and guides user to JV if needed */}
+          {(() => {
+            const dScore = parseInt(perspective.option1_pct || '0');
+            const cScore = parseInt(perspective.option3_pct || '0');
+            if (dScore >= 80) {
+              return (
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 flex items-start space-x-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-emerald-900">✅ Desire Energy Qualifies Standalone ({perspective.option1_pct})</p>
+                    <p className="text-[11px] text-emerald-800 font-medium mt-0.5">Desire Energy satisfies {perspective.option1_pct} of tender criteria independently. You may bid standalone or optionally form a JV for stronger financial pooling.</p>
+                  </div>
+                </div>
+              );
+            } else if (dScore >= 50) {
+              return (
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-start space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-amber-900">⚠️ Desire Partially Eligible ({perspective.option1_pct}) — JV Recommended</p>
+                    <p className="text-[11px] text-amber-800 font-medium mt-0.5">Desire Energy satisfies {perspective.option1_pct} standalone. JV with {jvComp.name} brings this to {perspective.option3_pct}. Review Option 2 & 3 to understand the gaps.</p>
+                  </div>
+                </div>
+              );
+            } else {
+              return (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 flex items-start space-x-3">
+                  <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-rose-900">🚫 Desire Cannot Bid Standalone ({perspective.option1_pct}) — JV Mandatory</p>
+                    <p className="text-[11px] text-rose-800 font-medium mt-0.5">Desire Energy alone meets only {perspective.option1_pct} of criteria. JV Consortium with {jvComp.name} achieves {perspective.option3_pct}. Switch to Option 3 to see the combined bid strategy.</p>
+                  </div>
+                </div>
+              );
+            }
+          })()}
+
           {/* 3 Dynamic Analysis Options Selection Tabs */}
           <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
-            <button
-              onClick={() => setActiveAnalysisOption('desire')}
-              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
-                activeAnalysisOption === 'desire' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
-              }`}
-            >
-              <Building2 className="w-4 h-4" />
-              <span>OPTION 1 — DESIRE ALONE</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/20 font-bold">
-                {perspective.option1_pct}
-              </span>
-            </button>
+            {/* OPTION 1: DESIRE ALONE — ALWAYS SHOWN FIRST */}
+            {(() => {
+              const dScore = parseInt(perspective.option1_pct || '0');
+              const isActive = activeAnalysisOption === 'desire';
+              const color = dScore >= 80 ? 'emerald' : dScore >= 50 ? 'amber' : 'rose';
+              const colorMap: Record<string, string> = {
+                emerald: isActive ? 'bg-emerald-700 border-2 border-emerald-800 text-white shadow-md' : 'bg-white border border-emerald-400 text-emerald-900 hover:bg-emerald-50',
+                amber:   isActive ? 'bg-amber-600 border-2 border-amber-700 text-white shadow-md'   : 'bg-white border border-amber-400 text-amber-900 hover:bg-amber-50',
+                rose:    isActive ? 'bg-rose-700 border-2 border-rose-800 text-white shadow-md'     : 'bg-white border border-rose-400 text-rose-900 hover:bg-rose-50',
+              };
+              return (
+                <button
+                  onClick={() => setActiveAnalysisOption('desire')}
+                  className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${colorMap[color]}`}
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span>OPTION 1 — DESIRE ALONE</span>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-700'}`}>
+                    {perspective.option1_pct}
+                  </span>
+                  {dScore >= 80 && <CheckCircle2 className="w-3.5 h-3.5" />}
+                  {dScore >= 50 && dScore < 80 && <AlertTriangle className="w-3.5 h-3.5" />}
+                  {dScore < 50 && <XCircle className="w-3.5 h-3.5" />}
+                </button>
+              );
+            })()}
 
-            <button
-              onClick={() => setActiveAnalysisOption('jv')}
-              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
-                activeAnalysisOption === 'jv' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
-              }`}
-            >
-              <Building2 className="w-4 h-4" />
-              <span>OPTION 2 — JV ALONE ({jvComp.name})</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/20 font-bold">
-                {perspective.option2_pct}
-              </span>
-            </button>
+            {/* OPTION 2: JV ALONE */}
+            {(() => {
+              const jScore = parseInt(perspective.option2_pct || '0');
+              const isActive = activeAnalysisOption === 'jv';
+              return (
+                <button
+                  onClick={() => setActiveAnalysisOption('jv')}
+                  className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
+                    isActive ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span>OPTION 2 — JV ALONE ({jvComp.name})</span>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${isActive ? 'bg-white/20' : 'bg-slate-100 text-slate-700'}`}>
+                    {perspective.option2_pct}
+                  </span>
+                </button>
+              );
+            })()}
 
-            <button
-              onClick={() => setActiveAnalysisOption('combined')}
-              className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
-                activeAnalysisOption === 'combined' ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
-              }`}
-            >
-              <GitMerge className="w-4 h-4" />
-              <span>OPTION 3 — DESIRE ({desireEquityRatio}%) + {jvComp.name.split(' ')[0]} ({partnerEquityRatio}%)</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/30 text-emerald-300 font-bold">
-                {perspective.option3_pct}
-              </span>
-            </button>
+            {/* OPTION 3: COMBINED CONSORTIUM */}
+            {(() => {
+              const cScore = parseInt(perspective.option3_pct || '0');
+              const isActive = activeAnalysisOption === 'combined';
+              return (
+                <button
+                  onClick={() => setActiveAnalysisOption('combined')}
+                  className={`px-4 py-3 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
+                    isActive ? 'bg-teal-700 border-2 border-teal-800 text-white shadow-md font-bold' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 font-medium'
+                  }`}
+                >
+                  <GitMerge className="w-4 h-4" />
+                  <span>OPTION 3 — DESIRE ({desireEquityRatio}%) + {jvComp.name.split(' ')[0]} ({partnerEquityRatio}%)</span>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${isActive ? 'bg-black/30 text-emerald-300' : 'bg-slate-100 text-slate-700'}`}>
+                    {perspective.option3_pct}
+                  </span>
+                  {cScore >= 90 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                </button>
+              );
+            })()}
           </div>
 
           {/* DYNAMIC VERDICT BANNER FOR SELECTED OPTION */}
