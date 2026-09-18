@@ -206,8 +206,9 @@ interface GeminiCallResult {
 async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallResult> {
   const models = [
     'gemini-3.6-flash',
-    'gemini-3.8-flash',
-    'gemini-flash-latest'
+    'gemini-3.5-flash-lite',
+    'gemini-flash-lite-latest',
+    'gemini-3.1-flash-lite'
   ];
 
   let lastStatus = 0;
@@ -229,7 +230,7 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
     }
 
     const controller = new AbortController();
-    const modelTimeoutMs = Math.min(60000, OVERALL_DEADLINE_MS - elapsed); // Max 60s per model attempt
+    const modelTimeoutMs = Math.min(45000, OVERALL_DEADLINE_MS - elapsed); // Max 45s per model attempt
     const timer = setTimeout(() => controller.abort(), modelTimeoutMs);
 
     try {
@@ -270,6 +271,12 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
         count404++;
         lastErrorDetail = errText || `Model ${m} not found (HTTP 404)`;
         console.warn(`Gemini model ${m} not found (HTTP 404)`);
+        continue;
+      }
+
+      if (res.status === 503 || res.status === 500 || errText.includes('high demand') || errText.includes('UNAVAILABLE')) {
+        lastErrorDetail = errText || `Model ${m} high demand / unavailable (HTTP ${res.status})`;
+        console.warn(`Gemini model ${m} unavailable (HTTP ${res.status}): falling back to next model`);
         continue;
       }
 
