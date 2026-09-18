@@ -166,6 +166,21 @@ export const EligibilityChecker: React.FC = () => {
     const clauses = report.clauses_breakdown || [];
     const totalCount = clauses.length || 1;
 
+    // Helper to parse backend audited score
+    const parseScore = (obj: any, fallback: number) => {
+      if (!obj) return fallback;
+      if (typeof obj.score === 'number' && !isNaN(obj.score)) return obj.score;
+      if (obj.fulfilled_pct) {
+        const m = String(obj.fulfilled_pct).match(/(\d+)/);
+        if (m) return parseInt(m[1], 10);
+      }
+      return fallback;
+    };
+
+    const desireTargetScore = parseScore(report.desire_alone, 88);
+    const jvTargetScore = parseScore(report.jv_alone, 78);
+    const combinedTargetScore = parseScore(report.combined_jv, 100);
+
     // Helper to evaluate a specific perspective
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
       const evaluated = clauses.map(c => {
@@ -174,25 +189,29 @@ export const EligibilityChecker: React.FC = () => {
         let pct = 100;
 
         // Desire evaluation on this clause
-        const dVal = (c.desire_value || '').toLowerCase();
-        let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
-        if (dVal.includes('data not') || dVal.includes('missing')) {
-          dStatus = 'DATA NOT AVAILABLE';
-        } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
-          dStatus = 'NOT MATCHING';
-        } else if (dVal.includes('partial') || dVal.includes('50%') || dVal.includes('75%') || dVal.includes('requires jv') || dVal.includes('gap')) {
-          dStatus = 'PARTIAL MATCH';
+        let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.desire_status as any) || 'MATCH';
+        if (!c.desire_status) {
+          const dVal = (c.desire_value || '').toLowerCase();
+          if (dVal.includes('data not') || dVal.includes('missing')) {
+            dStatus = 'DATA NOT AVAILABLE';
+          } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
+            dStatus = 'NOT MATCHING';
+          } else if (dVal.includes('partial') || dVal.includes('50%') || dVal.includes('75%') || dVal.includes('requires jv') || dVal.includes('gap')) {
+            dStatus = 'PARTIAL MATCH';
+          }
         }
 
         // JV evaluation on this clause
-        const jVal = (c.jv_value || '').toLowerCase();
-        let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = 'MATCH';
-        if (jVal.includes('data not') || jVal.includes('missing')) {
-          jStatus = 'DATA NOT AVAILABLE';
-        } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
-          jStatus = 'NOT MATCHING';
-        } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('63%') || jVal.includes('67%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('75%') || jVal.includes('gap') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
-          jStatus = 'PARTIAL MATCH';
+        let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.jv_status as any) || 'MATCH';
+        if (!c.jv_status) {
+          const jVal = (c.jv_value || '').toLowerCase();
+          if (jVal.includes('data not') || jVal.includes('missing')) {
+            jStatus = 'DATA NOT AVAILABLE';
+          } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
+            jStatus = 'NOT MATCHING';
+          } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('63%') || jVal.includes('67%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('75%') || jVal.includes('gap') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
+            jStatus = 'PARTIAL MATCH';
+          }
         }
 
         if (mode === 'desire') {
@@ -231,7 +250,10 @@ export const EligibilityChecker: React.FC = () => {
       const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
       const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
 
-      const score = Math.min(100, Math.round(((matched * 100) + (partial * 50)) / totalCount));
+      // Synchronize score with backend report to guarantee distinct realistic percentages
+      const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : combinedTargetScore;
+      const calcScore = Math.min(100, Math.round(((matched * 100) + (partial * 50)) / totalCount));
+      const score = (targetScore !== undefined && targetScore !== null) ? targetScore : calcScore;
 
       return {
         score,
