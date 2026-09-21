@@ -811,73 +811,125 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         const jS = (partner as any).solvency_amount || 10.0;
         const jvSectors = Array.isArray(partner.sector_experience) ? partner.sector_experience : [];
 
-        let dPct = 100, jPct = 100, cPct = 100;
-        let dVal = 'Meets requirement', jVal = 'Meets requirement', cVal = 'Combined credentials satisfy criteria';
+        let dRawPct = 0, jRawPct = 0, cRawPct = 0;
+        let dPct = 0, jPct = 0, cPct = 0;
+        let dVal = '', jVal = '', cVal = '';
+
+        const jCerts = Array.isArray(partner.certifications) ? partner.certifications : [];
+        const jTech = (partner.technical_experience || '') + ' ' + (Array.isArray(partner.sector_experience) ? partner.sector_experience.join(' ') : '');
 
         if (reqType === 'Financial') {
           if (title.includes('turnover') || reqText.includes('turnover')) {
             if (reqNum && reqNum > 0) {
-              dPct = Math.min(100, Math.round((dT / reqNum) * 100));
-              jPct = Math.min(100, Math.round((jT / reqNum) * 100));
-              cPct = Math.min(100, Math.round(((dT + jT) / reqNum) * 100));
+              dRawPct = Math.round((dT / reqNum) * 1000) / 10.0;
+              jRawPct = Math.round((jT / reqNum) * 1000) / 10.0;
+              cRawPct = Math.round(((dT + jT) / reqNum) * 1000) / 10.0;
+            } else {
+              dRawPct = 100; jRawPct = 100; cRawPct = 100;
             }
-            dVal = `Rs ${dT} Cr (${dPct}% of Rs ${reqNum || 'N/A'} Cr required)`;
-            jVal = `Rs ${jT} Cr (${jPct}% of Rs ${reqNum || 'N/A'} Cr required)`;
-            cVal = `Pooled Rs ${dT + jT} Cr (${cPct}% of requirement)`;
+            dPct = Math.min(100, Math.floor(dRawPct));
+            jPct = Math.min(100, Math.floor(jRawPct));
+            cPct = Math.min(100, Math.floor(cRawPct));
+
+            dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dT} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
+            jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jT} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
+            cVal = `Pooled: Rs ${(dT + jT).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
           } else if (title.includes('net worth') || reqText.includes('net worth')) {
             if (reqNum && reqNum > 0) {
-              dPct = Math.min(100, Math.round((dNW / reqNum) * 100));
-              jPct = Math.min(100, Math.round((jNW / reqNum) * 100));
-              cPct = Math.min(100, Math.round(((dNW + jNW) / reqNum) * 100));
+              dRawPct = Math.round((dNW / reqNum) * 1000) / 10.0;
+              jRawPct = Math.round((jNW / reqNum) * 1000) / 10.0;
+              cRawPct = Math.round(((dNW + jNW) / reqNum) * 1000) / 10.0;
+            } else {
+              dRawPct = 100; jRawPct = 100; cRawPct = 100;
             }
-            dVal = `Rs ${dNW} Cr (${dPct}%)`;
-            jVal = `Rs ${jNW} Cr (${jPct}%)`;
-            cVal = `Pooled Rs ${dNW + jNW} Cr (${cPct}%)`;
+            dPct = Math.min(100, Math.floor(dRawPct));
+            jPct = Math.min(100, Math.floor(jRawPct));
+            cPct = Math.min(100, Math.floor(cRawPct));
+
+            dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dNW} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
+            jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jNW} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
+            cVal = `Pooled: Rs ${(dNW + jNW).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
           } else if (title.includes('solvency') || reqText.includes('solvency')) {
             if (reqNum && reqNum > 0) {
-              dPct = Math.min(100, Math.round((dS / reqNum) * 100));
-              jPct = Math.min(100, Math.round((jS / reqNum) * 100));
-              cPct = Math.min(100, Math.round(((dS + jS) / reqNum) * 100));
+              dRawPct = Math.round((dS / reqNum) * 1000) / 10.0;
+              jRawPct = Math.round((jS / reqNum) * 1000) / 10.0;
+              cRawPct = Math.round(((dS + jS) / reqNum) * 1000) / 10.0;
+            } else {
+              dRawPct = 100; jRawPct = 100; cRawPct = 100;
             }
-            dVal = `Rs ${dS} Cr (${dPct}%)`;
-            jVal = `Rs ${jS} Cr (${jPct}%)`;
-            cVal = `Pooled Rs ${dS + jS} Cr (${cPct}%)`;
+            dPct = Math.min(100, Math.floor(dRawPct));
+            jPct = Math.min(100, Math.floor(jRawPct));
+            cPct = Math.min(100, Math.floor(cRawPct));
+
+            dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dS} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
+            jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jS} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
+            cVal = `Pooled: Rs ${(dS + jS).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
+          } else {
+            dPct = 100; jPct = 100; cPct = 100;
+            dVal = `Desire actual: Meets financial requirement criteria -> 100% MATCH`;
+            jVal = `${partner.name} actual: Meets financial requirement criteria -> 100% MATCH`;
+            cVal = `Combined: Meets financial requirement criteria -> 100% MATCH`;
           }
         } else if (reqType === 'Technical') {
           const isSewer = title.includes('sewer') || title.includes('sewage') || title.includes('stp') || title.includes('etp') || title.includes('drainage') ||
                           reqText.includes('sewer') || reqText.includes('sewage') || reqText.includes('stp') || reqText.includes('etp') || reqText.includes('drainage');
           if (isSewer) {
             dPct = 0;
-            dVal = 'Zero sewerage/STP track record (Desire Sector Gap)';
+            dVal = 'Desire actual: Zero sewerage/STP track record -> 0% NOT MATCHING (Desire Sector Gap)';
 
-            const partnerHasSTP = jvSectors.some((s: string) => s.toLowerCase().includes('stp') || s.toLowerCase().includes('sewage') || s.toLowerCase().includes('sewer')) ||
-                                  (partner.technical_experience || '').toLowerCase().includes('stp') ||
-                                  (partner.technical_experience || '').toLowerCase().includes('sewage');
+            const partnerHasSTP = jTech.toLowerCase().includes('stp') || jTech.toLowerCase().includes('sewage') || jTech.toLowerCase().includes('sewer') || jTech.toLowerCase().includes('sbr');
             if (partnerHasSTP) {
               jPct = 100;
-              jVal = `Executed SBR Sewage Treatment Plants & Sewerage (${partner.name})`;
+              jVal = `${partner.name} actual: Executed SBR Sewage Treatment Plants & Sewerage -> 100% MATCH`;
             } else {
               jPct = 0;
-              jVal = 'No sewerage/STP experience';
+              jVal = `${partner.name} actual: Missing sewerage/STP track record in credentials -> 0% NOT MATCHING`;
             }
 
             cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
-            cVal = cPct === 100 ? `JV Partner ${partner.name} covers Sewerage/STP technical gap` : 'Neither member has sewerage/STP track record';
+            cVal = cPct === 100 ? `Combined: ${partner.name} covers Sewerage/STP technical gap -> 100% MATCH` : 'Combined: Neither member has sewerage/STP track record -> 0% NOT MATCHING';
           } else {
             dPct = 100;
-            dVal = 'Executed 120+ km HDPE/DI Water Pipelines';
-            jPct = 100;
-            jVal = 'Executed civil/infrastructure pipeline works';
-            cPct = 100;
-            cVal = 'Consortium satisfies technical experience criteria';
+            dVal = 'Desire actual: Executed 120+ km HDPE/DI Water Pipelines -> 100% MATCH';
+
+            const partnerHasWater = jTech.toLowerCase().includes('water') || jTech.toLowerCase().includes('pipeline') || jTech.toLowerCase().includes('di') || jTech.toLowerCase().includes('hdpe') || jTech.toLowerCase().includes('pumping');
+            if (partnerHasWater) {
+              jPct = 100;
+              jVal = `${partner.name} actual: ${partner.technical_experience ? partner.technical_experience.slice(0, 75) + '...' : 'Executed water supply works'} -> 100% MATCH`;
+            } else {
+              jPct = 0;
+              jVal = `${partner.name} actual: Missing water pipeline track record in credentials -> 0% NOT MATCHING`;
+            }
+
+            cPct = Math.max(dPct, jPct);
+            cVal = 'Combined: Meets technical experience criteria -> 100% MATCH';
           }
         } else if (reqType === 'Compliance' || reqType === 'Organizational') {
-          dPct = 100;
-          dVal = 'ISO 9001/14001/45001 & Class-A PHED License';
-          jPct = 100;
-          jVal = 'Valid Statutory Registrations & Certifications';
-          cPct = 100;
-          cVal = 'Both members hold valid statutory registrations';
+          const isIso = title.includes('iso') || reqText.includes('iso');
+          if (isIso) {
+            const dHasIso = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('iso'));
+            dPct = dHasIso ? 100 : 0;
+            dVal = dHasIso ? 'Desire actual: Holds ISO 9001/14001/45001 Certifications -> 100% MATCH' : 'Desire actual: Missing ISO Certification -> 0% NOT MATCHING';
+
+            const jHasIso = jCerts.some((c: string) => c.toLowerCase().includes('iso'));
+            jPct = jHasIso ? 100 : 0;
+            jVal = jHasIso ? `${partner.name} actual: Holds ISO 9001 Certification in credentials -> 100% MATCH` : `${partner.name} actual: NO ISO 9001 in stored certifications list -> 0% NOT MATCHING`;
+
+            cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
+            cVal = cPct === 100 ? 'Combined: Lead Member (Desire) holds valid ISO 9001 -> 100% MATCH' : 'Combined: Neither member holds ISO 9001 -> 0% NOT MATCHING';
+          } else {
+            const dHasReg = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license'));
+            const jHasReg = jCerts.some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license') || c.toLowerCase().includes('registration'));
+
+            dPct = dHasReg ? 100 : 0;
+            jPct = jHasReg ? 100 : 0;
+            cPct = Math.max(dPct, jPct);
+
+            dVal = dHasReg ? 'Desire actual: Holds Class-A PHED & AA Class Gujarat License -> 100% MATCH' : 'Desire actual: Missing Contractor License -> 0% NOT MATCHING';
+            jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
+            cVal = 'Combined: Meets registration criteria -> 100% MATCH';
+          }
+        }
         }
 
         const dStatus = dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
