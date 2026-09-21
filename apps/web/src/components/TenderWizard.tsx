@@ -206,7 +206,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           setTenderTitle(fetchedReport.tender_title);
         }
         if (fetchedReport?.project_category) {
-          setSelectedCategory(fetchedReport.project_category);
+          setSelectedCategory(fetchedReport.project_category as any);
         }
 
         setAnalysisProgress(85);

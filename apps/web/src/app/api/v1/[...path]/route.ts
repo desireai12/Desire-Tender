@@ -668,6 +668,249 @@ let GLOBAL_BID_FLOW_ITEMS: any[] = [
 ];
 
 
+// ═══ DETERMINISTIC SCORING ENGINE ═════════════════════════════════════════
+function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selectedJvPartnerId?: string) {
+  const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
+  const jvPartners = comps.filter((c: any) => c.id !== desireComp.id && c.type !== 'Desire Energy');
+
+  const dT = desireComp.average_turnover || 300.93;
+  const dNW = desireComp.net_worth || 95.0;
+  const dS = (desireComp as any).solvency_amount || 72.18;
+
+  function evalClause(c: any, partner: any) {
+    const reqType = c.requirement_type || 'Technical';
+    const title = (c.clause_title || '').toLowerCase();
+    const reqText = (c.tender_requirement || '').toLowerCase();
+
+    let reqNum: number | null = (typeof c.required_value_num === 'number' && !isNaN(c.required_value_num)) ? c.required_value_num : null;
+    if (reqNum === null && c.required_value) {
+      const match = String(c.required_value).match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(cr|crore|lakh|lakhs)?/i);
+      if (match) {
+        let val = parseFloat(match[1]);
+        const unit = (match[2] || '').toLowerCase();
+        if (unit.includes('lakh')) val = val / 100.0;
+        reqNum = val;
+      }
+    }
+
+    const jT = partner.average_turnover || 37.01;
+    const jNW = partner.net_worth || 6.58;
+    const jS = (partner as any).solvency_amount || 10.0;
+    const jvSectors = Array.isArray(partner.sector_experience) ? partner.sector_experience : [];
+
+    let dRawPct = 0, jRawPct = 0, cRawPct = 0;
+    let dPct = 0, jPct = 0, cPct = 0;
+    let dVal = '', jVal = '', cVal = '';
+
+    const jCerts = Array.isArray(partner.certifications) ? partner.certifications : [];
+    const jTech = (partner.technical_experience || '') + ' ' + (Array.isArray(partner.sector_experience) ? partner.sector_experience.join(' ') : '');
+
+    if (reqType === 'Financial') {
+      if (title.includes('turnover') || reqText.includes('turnover')) {
+        if (reqNum && reqNum > 0) {
+          dRawPct = Math.round((dT / reqNum) * 1000) / 10.0;
+          jRawPct = Math.round((jT / reqNum) * 1000) / 10.0;
+          cRawPct = Math.round(((dT + jT) / reqNum) * 1000) / 10.0;
+        } else {
+          dRawPct = 100; jRawPct = 100; cRawPct = 100;
+        }
+        dPct = Math.min(100, Math.floor(dRawPct));
+        jPct = Math.min(100, Math.floor(jRawPct));
+        cPct = Math.min(100, Math.floor(cRawPct));
+
+        dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dT} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
+        jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jT} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
+        cVal = `Pooled: Rs ${(dT + jT).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
+      } else if (title.includes('net worth') || reqText.includes('net worth')) {
+        if (reqNum && reqNum > 0) {
+          dRawPct = Math.round((dNW / reqNum) * 1000) / 10.0;
+          jRawPct = Math.round((jNW / reqNum) * 1000) / 10.0;
+          cRawPct = Math.round(((dNW + jNW) / reqNum) * 1000) / 10.0;
+        } else {
+          dRawPct = 100; jRawPct = 100; cRawPct = 100;
+        }
+        dPct = Math.min(100, Math.floor(dRawPct));
+        jPct = Math.min(100, Math.floor(jRawPct));
+        cPct = Math.min(100, Math.floor(cRawPct));
+
+        dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dNW} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
+        jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jNW} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
+        cVal = `Pooled: Rs ${(dNW + jNW).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
+      } else if (title.includes('solvency') || reqText.includes('solvency')) {
+        if (reqNum && reqNum > 0) {
+          dRawPct = Math.round((dS / reqNum) * 1000) / 10.0;
+          jRawPct = Math.round((jS / reqNum) * 1000) / 10.0;
+          cRawPct = Math.round(((dS + jS) / reqNum) * 1000) / 10.0;
+        } else {
+          dRawPct = 100; jRawPct = 100; cRawPct = 100;
+        }
+        dPct = Math.min(100, Math.floor(dRawPct));
+        jPct = Math.min(100, Math.floor(jRawPct));
+        cPct = Math.min(100, Math.floor(cRawPct));
+
+        dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dS} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
+        jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jS} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
+        cVal = `Pooled: Rs ${(dS + jS).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
+      } else {
+        dPct = 100; jPct = 100; cPct = 100;
+        dVal = `Desire actual: Meets financial requirement criteria -> 100% MATCH`;
+        jVal = `${partner.name} actual: Meets financial requirement criteria -> 100% MATCH`;
+        cVal = `Combined: Meets financial requirement criteria -> 100% MATCH`;
+      }
+    } else if (reqType === 'Technical') {
+      const isSewer = title.includes('sewer') || title.includes('sewage') || title.includes('stp') || title.includes('etp') || title.includes('drainage') ||
+                      reqText.includes('sewer') || reqText.includes('sewage') || reqText.includes('stp') || reqText.includes('etp') || reqText.includes('drainage');
+      if (isSewer) {
+        dPct = 0;
+        dVal = 'Desire actual: Zero sewerage/STP track record -> 0% NOT MATCHING (Desire Sector Gap)';
+
+        const partnerHasSTP = jTech.toLowerCase().includes('stp') || jTech.toLowerCase().includes('sewage') || jTech.toLowerCase().includes('sewer') || jTech.toLowerCase().includes('sbr');
+        if (partnerHasSTP) {
+          jPct = 100;
+          jVal = `${partner.name} actual: Executed SBR Sewage Treatment Plants & Sewerage -> 100% MATCH`;
+        } else {
+          jPct = 0;
+          jVal = `${partner.name} actual: Missing sewerage/STP track record in credentials -> 0% NOT MATCHING`;
+        }
+
+        cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
+        cVal = cPct === 100 ? `Combined: ${partner.name} covers Sewerage/STP technical gap -> 100% MATCH` : 'Combined: Neither member has sewerage/STP track record -> 0% NOT MATCHING';
+      } else {
+        dPct = 100;
+        dVal = 'Desire actual: Executed 120+ km HDPE/DI Water Pipelines -> 100% MATCH';
+
+        const partnerHasWater = jTech.toLowerCase().includes('water') || jTech.toLowerCase().includes('pipeline') || jTech.toLowerCase().includes('di') || jTech.toLowerCase().includes('hdpe') || jTech.toLowerCase().includes('pumping');
+        if (partnerHasWater) {
+          jPct = 100;
+          jVal = `${partner.name} actual: ${partner.technical_experience ? partner.technical_experience.slice(0, 75) + '...' : 'Executed water supply works'} -> 100% MATCH`;
+        } else {
+          jPct = 0;
+          jVal = `${partner.name} actual: Missing water pipeline track record in credentials -> 0% NOT MATCHING`;
+        }
+
+        cPct = Math.max(dPct, jPct);
+        cVal = 'Combined: Meets technical experience criteria -> 100% MATCH';
+      }
+    } else if (reqType === 'Compliance' || reqType === 'Organizational') {
+      const isIso = title.includes('iso') || reqText.includes('iso');
+      if (isIso) {
+        const dHasIso = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('iso'));
+        dPct = dHasIso ? 100 : 0;
+        dVal = dHasIso ? 'Desire actual: Holds ISO 9001/14001/45001 Certifications -> 100% MATCH' : 'Desire actual: Missing ISO Certification -> 0% NOT MATCHING';
+
+        const jHasIso = jCerts.some((c: string) => c.toLowerCase().includes('iso'));
+        jPct = jHasIso ? 100 : 0;
+        jVal = jHasIso ? `${partner.name} actual: Holds ISO 9001 Certification in credentials -> 100% MATCH` : `${partner.name} actual: NO ISO 9001 in stored certifications list -> 0% NOT MATCHING`;
+
+        cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
+        cVal = cPct === 100 ? 'Combined: Lead Member (Desire) holds valid ISO 9001 -> 100% MATCH' : 'Combined: Neither member holds ISO 9001 -> 0% NOT MATCHING';
+      } else {
+        const dHasReg = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license'));
+        const jHasReg = jCerts.some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license') || c.toLowerCase().includes('registration'));
+
+        dPct = dHasReg ? 100 : 0;
+        jPct = jHasReg ? 100 : 0;
+        cPct = Math.max(dPct, jPct);
+
+        dVal = dHasReg ? 'Desire actual: Holds Class-A PHED & AA Class Gujarat License -> 100% MATCH' : 'Desire actual: Missing Contractor License -> 0% NOT MATCHING';
+        jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
+        cVal = 'Combined: Meets registration criteria -> 100% MATCH';
+      }
+    }
+
+    const dStatus = dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
+    const jStatus = jPct >= 100 ? 'MATCH' : (jPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
+    const cStatus = cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
+
+    return {
+      clause_no: c.clause_no || 'Clause 1',
+      clause_title: c.clause_title || 'Requirement',
+      requirement_type: reqType,
+      tender_requirement: c.tender_requirement || '',
+      required_value: c.required_value || (reqNum ? `Rs ${reqNum} Cr` : 'Specified in tender specs'),
+      desire_value: dVal,
+      desire_status: dStatus,
+      desire_pct: dPct,
+      jv_value: jVal,
+      jv_status: jStatus,
+      jv_pct: jPct,
+      combined_pct: cPct,
+      combined_value: cVal,
+      status: cStatus,
+      fulfilled_pct: `${cPct}%`,
+      applicable_jv_rule: c.applicable_jv_rule || 'Lead Member / JV Pooling',
+      gap_notes: dPct < 100 ? `Desire gap bridged by JV Partner ${partner.name}` : 'Desire satisfies standalone',
+      required_doc: c.required_doc || 'Documentary Proof',
+      page_ref: c.page_ref || 'Tender Technical Bid'
+    };
+  }
+
+  const partnerEvaluations: Record<string, any> = {};
+  for (const partner of jvPartners) {
+    const clauseEvals = rawClauses.map(c => evalClause(c, partner));
+    const totalCount = clauseEvals.length || 1;
+    const dScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.desire_pct, 0) / totalCount));
+    const jScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.jv_pct, 0) / totalCount));
+    const cScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.combined_pct, 0) / totalCount));
+
+    partnerEvaluations[partner.id] = {
+      partner,
+      dScore,
+      jScore,
+      cScore,
+      clauses: clauseEvals
+    };
+  }
+
+  const firstEval = Object.values(partnerEvaluations)[0];
+  const desireStandaloneScore = firstEval ? firstEval.dScore : 100;
+
+  let recommendedPartnerId = selectedJvPartnerId && partnerEvaluations[selectedJvPartnerId] ? selectedJvPartnerId : '';
+  if (!recommendedPartnerId) {
+    if (desireStandaloneScore >= 100) {
+      recommendedPartnerId = jvPartners[0]?.id || 'comp-vhp-04';
+    } else {
+      recommendedPartnerId = Object.keys(partnerEvaluations).reduce((bestId, id) => {
+        return partnerEvaluations[id].cScore > partnerEvaluations[bestId].cScore ? id : bestId;
+      }, Object.keys(partnerEvaluations)[0]);
+    }
+  }
+
+  const selectedEval = partnerEvaluations[recommendedPartnerId] || firstEval;
+  const recPartner = selectedEval ? selectedEval.partner : (jvPartners[0] || { name: 'VHP Infratech' });
+
+  let summaryLine = '';
+  if (desireStandaloneScore >= 100) {
+    summaryLine = `Desire Energy qualifies standalone (100%). A JV is optional.`;
+  } else {
+    summaryLine = `Desire Energy does not qualify standalone (Score: ${desireStandaloneScore}%). Recommended: JV with ${recPartner.name} to reach ${selectedEval ? selectedEval.cScore : 100}% combined.`;
+  }
+
+  return {
+    desireStandaloneScore,
+    recommendedPartner: recPartner,
+    recommendedPartnerId,
+    summaryLine,
+    desire_alone: {
+      score: desireStandaloneScore,
+      fulfilled_pct: `${desireStandaloneScore}%`,
+      status: desireStandaloneScore >= 90 ? 'Eligible Standalone' : desireStandaloneScore >= 60 ? 'Partially Eligible Standalone (JV Recommended)' : 'Ineligible Standalone'
+    },
+    jv_alone: {
+      score: selectedEval ? selectedEval.jScore : 100,
+      fulfilled_pct: `${selectedEval ? selectedEval.jScore : 100}%`,
+      status: (selectedEval ? selectedEval.jScore : 100) >= 90 ? 'Partner Standalone Qualified' : (selectedEval ? selectedEval.jScore : 100) >= 60 ? 'Partner Incomplete Standalone' : 'Partner Ineligible Standalone'
+    },
+    combined_jv: {
+      score: selectedEval ? selectedEval.cScore : 100,
+      fulfilled_pct: `${selectedEval ? selectedEval.cScore : 100}%`,
+      status: (selectedEval ? selectedEval.cScore : 100) >= 95 ? 'Fully Qualified Consortium' : (selectedEval ? selectedEval.cScore : 100) >= 80 ? 'Broadly Qualified Consortium' : 'Partially Qualified Consortium'
+    },
+    clauses_breakdown: selectedEval ? selectedEval.clauses : [],
+    partnerEvaluations
+  };
+}
+
 async function handleRequest(req: NextRequest, params: { path: string[] }) {
   const subPath = params.path.join('/');
   const method = req.method;
@@ -781,249 +1024,6 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       return NextResponse.json(banasTenderData);
     }
 
-    // ═══ DETERMINISTIC SCORING ENGINE ═════════════════════════════════════════
-    function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selectedJvPartnerId?: string) {
-      const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
-      const jvPartners = comps.filter((c: any) => c.id !== desireComp.id && c.type !== 'Desire Energy');
-
-      const dT = desireComp.average_turnover || 300.93;
-      const dNW = desireComp.net_worth || 95.0;
-      const dS = (desireComp as any).solvency_amount || 72.18;
-
-      function evalClause(c: any, partner: any) {
-        const reqType = c.requirement_type || 'Technical';
-        const title = (c.clause_title || '').toLowerCase();
-        const reqText = (c.tender_requirement || '').toLowerCase();
-
-        let reqNum: number | null = (typeof c.required_value_num === 'number' && !isNaN(c.required_value_num)) ? c.required_value_num : null;
-        if (reqNum === null && c.required_value) {
-          const match = String(c.required_value).match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(cr|crore|lakh|lakhs)?/i);
-          if (match) {
-            let val = parseFloat(match[1]);
-            const unit = (match[2] || '').toLowerCase();
-            if (unit.includes('lakh')) val = val / 100.0;
-            reqNum = val;
-          }
-        }
-
-        const jT = partner.average_turnover || 37.01;
-        const jNW = partner.net_worth || 6.58;
-        const jS = (partner as any).solvency_amount || 10.0;
-        const jvSectors = Array.isArray(partner.sector_experience) ? partner.sector_experience : [];
-
-        let dRawPct = 0, jRawPct = 0, cRawPct = 0;
-        let dPct = 0, jPct = 0, cPct = 0;
-        let dVal = '', jVal = '', cVal = '';
-
-        const jCerts = Array.isArray(partner.certifications) ? partner.certifications : [];
-        const jTech = (partner.technical_experience || '') + ' ' + (Array.isArray(partner.sector_experience) ? partner.sector_experience.join(' ') : '');
-
-        if (reqType === 'Financial') {
-          if (title.includes('turnover') || reqText.includes('turnover')) {
-            if (reqNum && reqNum > 0) {
-              dRawPct = Math.round((dT / reqNum) * 1000) / 10.0;
-              jRawPct = Math.round((jT / reqNum) * 1000) / 10.0;
-              cRawPct = Math.round(((dT + jT) / reqNum) * 1000) / 10.0;
-            } else {
-              dRawPct = 100; jRawPct = 100; cRawPct = 100;
-            }
-            dPct = Math.min(100, Math.floor(dRawPct));
-            jPct = Math.min(100, Math.floor(jRawPct));
-            cPct = Math.min(100, Math.floor(cRawPct));
-
-            dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dT} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
-            jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jT} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
-            cVal = `Pooled: Rs ${(dT + jT).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
-          } else if (title.includes('net worth') || reqText.includes('net worth')) {
-            if (reqNum && reqNum > 0) {
-              dRawPct = Math.round((dNW / reqNum) * 1000) / 10.0;
-              jRawPct = Math.round((jNW / reqNum) * 1000) / 10.0;
-              cRawPct = Math.round(((dNW + jNW) / reqNum) * 1000) / 10.0;
-            } else {
-              dRawPct = 100; jRawPct = 100; cRawPct = 100;
-            }
-            dPct = Math.min(100, Math.floor(dRawPct));
-            jPct = Math.min(100, Math.floor(jRawPct));
-            cPct = Math.min(100, Math.floor(cRawPct));
-
-            dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dNW} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
-            jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jNW} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
-            cVal = `Pooled: Rs ${(dNW + jNW).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
-          } else if (title.includes('solvency') || reqText.includes('solvency')) {
-            if (reqNum && reqNum > 0) {
-              dRawPct = Math.round((dS / reqNum) * 1000) / 10.0;
-              jRawPct = Math.round((jS / reqNum) * 1000) / 10.0;
-              cRawPct = Math.round(((dS + jS) / reqNum) * 1000) / 10.0;
-            } else {
-              dRawPct = 100; jRawPct = 100; cRawPct = 100;
-            }
-            dPct = Math.min(100, Math.floor(dRawPct));
-            jPct = Math.min(100, Math.floor(jRawPct));
-            cPct = Math.min(100, Math.floor(cRawPct));
-
-            dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dS} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
-            jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jS} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
-            cVal = `Pooled: Rs ${(dS + jS).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
-          } else {
-            dPct = 100; jPct = 100; cPct = 100;
-            dVal = `Desire actual: Meets financial requirement criteria -> 100% MATCH`;
-            jVal = `${partner.name} actual: Meets financial requirement criteria -> 100% MATCH`;
-            cVal = `Combined: Meets financial requirement criteria -> 100% MATCH`;
-          }
-        } else if (reqType === 'Technical') {
-          const isSewer = title.includes('sewer') || title.includes('sewage') || title.includes('stp') || title.includes('etp') || title.includes('drainage') ||
-                          reqText.includes('sewer') || reqText.includes('sewage') || reqText.includes('stp') || reqText.includes('etp') || reqText.includes('drainage');
-          if (isSewer) {
-            dPct = 0;
-            dVal = 'Desire actual: Zero sewerage/STP track record -> 0% NOT MATCHING (Desire Sector Gap)';
-
-            const partnerHasSTP = jTech.toLowerCase().includes('stp') || jTech.toLowerCase().includes('sewage') || jTech.toLowerCase().includes('sewer') || jTech.toLowerCase().includes('sbr');
-            if (partnerHasSTP) {
-              jPct = 100;
-              jVal = `${partner.name} actual: Executed SBR Sewage Treatment Plants & Sewerage -> 100% MATCH`;
-            } else {
-              jPct = 0;
-              jVal = `${partner.name} actual: Missing sewerage/STP track record in credentials -> 0% NOT MATCHING`;
-            }
-
-            cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
-            cVal = cPct === 100 ? `Combined: ${partner.name} covers Sewerage/STP technical gap -> 100% MATCH` : 'Combined: Neither member has sewerage/STP track record -> 0% NOT MATCHING';
-          } else {
-            dPct = 100;
-            dVal = 'Desire actual: Executed 120+ km HDPE/DI Water Pipelines -> 100% MATCH';
-
-            const partnerHasWater = jTech.toLowerCase().includes('water') || jTech.toLowerCase().includes('pipeline') || jTech.toLowerCase().includes('di') || jTech.toLowerCase().includes('hdpe') || jTech.toLowerCase().includes('pumping');
-            if (partnerHasWater) {
-              jPct = 100;
-              jVal = `${partner.name} actual: ${partner.technical_experience ? partner.technical_experience.slice(0, 75) + '...' : 'Executed water supply works'} -> 100% MATCH`;
-            } else {
-              jPct = 0;
-              jVal = `${partner.name} actual: Missing water pipeline track record in credentials -> 0% NOT MATCHING`;
-            }
-
-            cPct = Math.max(dPct, jPct);
-            cVal = 'Combined: Meets technical experience criteria -> 100% MATCH';
-          }
-        } else if (reqType === 'Compliance' || reqType === 'Organizational') {
-          const isIso = title.includes('iso') || reqText.includes('iso');
-          if (isIso) {
-            const dHasIso = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('iso'));
-            dPct = dHasIso ? 100 : 0;
-            dVal = dHasIso ? 'Desire actual: Holds ISO 9001/14001/45001 Certifications -> 100% MATCH' : 'Desire actual: Missing ISO Certification -> 0% NOT MATCHING';
-
-            const jHasIso = jCerts.some((c: string) => c.toLowerCase().includes('iso'));
-            jPct = jHasIso ? 100 : 0;
-            jVal = jHasIso ? `${partner.name} actual: Holds ISO 9001 Certification in credentials -> 100% MATCH` : `${partner.name} actual: NO ISO 9001 in stored certifications list -> 0% NOT MATCHING`;
-
-            cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
-            cVal = cPct === 100 ? 'Combined: Lead Member (Desire) holds valid ISO 9001 -> 100% MATCH' : 'Combined: Neither member holds ISO 9001 -> 0% NOT MATCHING';
-          } else {
-            const dHasReg = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license'));
-            const jHasReg = jCerts.some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license') || c.toLowerCase().includes('registration'));
-
-            dPct = dHasReg ? 100 : 0;
-            jPct = jHasReg ? 100 : 0;
-            cPct = Math.max(dPct, jPct);
-
-            dVal = dHasReg ? 'Desire actual: Holds Class-A PHED & AA Class Gujarat License -> 100% MATCH' : 'Desire actual: Missing Contractor License -> 0% NOT MATCHING';
-            jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
-            cVal = 'Combined: Meets registration criteria -> 100% MATCH';
-          }
-        }
-        }
-
-        const dStatus = dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
-        const jStatus = jPct >= 100 ? 'MATCH' : (jPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
-        const cStatus = cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
-
-        return {
-          clause_no: c.clause_no || 'Clause 1',
-          clause_title: c.clause_title || 'Requirement',
-          requirement_type: reqType,
-          tender_requirement: c.tender_requirement || '',
-          required_value: c.required_value || (reqNum ? `Rs ${reqNum} Cr` : 'Specified in tender specs'),
-          desire_value: dVal,
-          desire_status: dStatus,
-          desire_pct: dPct,
-          jv_value: jVal,
-          jv_status: jStatus,
-          jv_pct: jPct,
-          combined_value: cVal,
-          status: cStatus,
-          fulfilled_pct: `${cPct}%`,
-          applicable_jv_rule: c.applicable_jv_rule || 'Lead Member / JV Pooling',
-          gap_notes: dPct < 100 ? `Desire gap bridged by JV Partner ${partner.name}` : 'Desire satisfies standalone',
-          required_doc: c.required_doc || 'Documentary Proof',
-          page_ref: c.page_ref || 'Tender Technical Bid'
-        };
-      }
-
-      const partnerEvaluations: Record<string, any> = {};
-      for (const partner of jvPartners) {
-        const clauseEvals = rawClauses.map(c => evalClause(c, partner));
-        const totalCount = clauseEvals.length || 1;
-        const dScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.desire_pct, 0) / totalCount));
-        const jScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.jv_pct, 0) / totalCount));
-        const cScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.combined_pct, 0) / totalCount));
-
-        partnerEvaluations[partner.id] = {
-          partner,
-          dScore,
-          jScore,
-          cScore,
-          clauses: clauseEvals
-        };
-      }
-
-      const firstEval = Object.values(partnerEvaluations)[0];
-      const desireStandaloneScore = firstEval ? firstEval.dScore : 100;
-
-      let recommendedPartnerId = selectedJvPartnerId && partnerEvaluations[selectedJvPartnerId] ? selectedJvPartnerId : '';
-      if (!recommendedPartnerId) {
-        if (desireStandaloneScore >= 100) {
-          recommendedPartnerId = jvPartners[0]?.id || 'comp-vhp-04';
-        } else {
-          recommendedPartnerId = Object.keys(partnerEvaluations).reduce((bestId, id) => {
-            return partnerEvaluations[id].cScore > partnerEvaluations[bestId].cScore ? id : bestId;
-          }, Object.keys(partnerEvaluations)[0]);
-        }
-      }
-
-      const selectedEval = partnerEvaluations[recommendedPartnerId] || firstEval;
-      const recPartner = selectedEval.partner;
-
-      let summaryLine = '';
-      if (desireStandaloneScore >= 100) {
-        summaryLine = `Desire Energy qualifies standalone (100%). A JV is optional.`;
-      } else {
-        summaryLine = `Desire Energy does not qualify standalone (Score: ${desireStandaloneScore}%). Recommended: JV with ${recPartner.name} to reach ${selectedEval.cScore}% combined.`;
-      }
-
-      return {
-        desireStandaloneScore,
-        recommendedPartner: recPartner,
-        recommendedPartnerId,
-        summaryLine,
-        desire_alone: {
-          score: desireStandaloneScore,
-          fulfilled_pct: `${desireStandaloneScore}%`,
-          status: desireStandaloneScore >= 90 ? 'Eligible Standalone' : desireStandaloneScore >= 60 ? 'Partially Eligible Standalone (JV Recommended)' : 'Ineligible Standalone'
-        },
-        jv_alone: {
-          score: selectedEval.jScore,
-          fulfilled_pct: `${selectedEval.jScore}%`,
-          status: selectedEval.jScore >= 90 ? 'Partner Standalone Qualified' : selectedEval.jScore >= 60 ? 'Partner Incomplete Standalone' : 'Partner Ineligible Standalone'
-        },
-        combined_jv: {
-          score: selectedEval.cScore,
-          fulfilled_pct: `${selectedEval.cScore}%`,
-          status: selectedEval.cScore >= 95 ? 'Fully Qualified Consortium' : selectedEval.cScore >= 80 ? 'Broadly Qualified Consortium' : 'Partially Qualified Consortium'
-        },
-        clauses_breakdown: selectedEval.clauses,
-        partnerEvaluations
-      };
-    }
-
     // ═══ TENDER ANALYZE ═══════════════════════════════════════════════════════
     if (subPath === 'tender/analyze' && method === 'POST') {
       const filename = formFilename || body.filename || 'uploaded_document.pdf';
@@ -1042,7 +1042,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
       const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
       if (!geminiKey) {
-        return buildErrorResponse('AUTH_ERROR', 'GEMINI_API_KEY environment variable is not configured.');
+        return buildErrorResponse('AI_AUTH_FAILED', 'GEMINI_API_KEY environment variable is not configured.');
       }
 
       let classifyResult: any = null;
@@ -1144,10 +1144,10 @@ Return valid JSON only:
       aiResult.jv_alone = deterministicResult.jv_alone;
       aiResult.combined_jv = deterministicResult.combined_jv;
       aiResult.clauses_breakdown = deterministicResult.clauses_breakdown;
-      aiResult.summary_line = deterministicResult.summary_line;
+      aiResult.summary_line = deterministicResult.summaryLine;
       aiResult.recommended_jv_partner = deterministicResult.recommendedPartner;
 
-      console.log(`[DETERMINISTIC_ENGINE] ${deterministicResult.summary_line}`);
+      console.log(`[DETERMINISTIC_ENGINE] ${deterministicResult.summaryLine}`);
 
       if (aiResult.is_rejected_non_tender === true) {
         const rejection = buildRejection(filename, '', aiResult.executive_summary || 'Document classified as non-tender', 'Non-Tender');

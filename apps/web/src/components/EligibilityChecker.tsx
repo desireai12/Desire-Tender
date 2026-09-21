@@ -32,10 +32,15 @@ export interface ClauseBreakdownItem {
   tender_requirement: string;
   required_value: string;
   desire_value: string;
+  desire_status?: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | string;
+  desire_pct?: number;
   jv_value: string;
+  jv_status?: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | string;
+  jv_pct?: number;
   combined_value: string;
+  combined_pct?: number;
   applicable_jv_rule: string;
-  status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' | 'NOT APPLICABLE' | 'REQUIRES MANUAL REVIEW';
+  status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' | 'NOT APPLICABLE' | 'REQUIRES MANUAL REVIEW' | string;
   fulfilled_pct: string;
   gap_notes: string;
   required_doc: string;

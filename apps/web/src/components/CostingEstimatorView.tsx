@@ -48,7 +48,7 @@ type ActiveTenderKey = 'banaskantha' | 'vapi';
 interface BOQItem {
   id: string;
   row_index: number;
-  schedule: string;
+  schedule?: string;
   sr_no: string;
   item_description: string;
   qty: number;
@@ -516,7 +516,7 @@ export const CostingEstimatorView: React.FC = () => {
                 </div>
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
                   <Calculator className="w-6 h-6 text-teal-400 shrink-0" />
-                  <span>{activeTenderData.tender_metadata.short_title || activeTenderData.tender_metadata.tender_name}</span>
+                  <span>{(activeTenderData.tender_metadata as any).short_title || (activeTenderData.tender_metadata as any).tender_name || (activeTenderData.tender_metadata as any).tender_title}</span>
                 </h1>
                 <p className="text-xs text-slate-300 leading-relaxed">
                   {activeTenderKey === 'banaskantha' 
@@ -592,7 +592,7 @@ export const CostingEstimatorView: React.FC = () => {
               { id: 'om', label: `${activeTenderKey === 'banaskantha' ? '3-Year' : '5-Year'} O&M Calculator`, icon: Users },
               { id: 'machinery', label: 'Machinery & Fleet', icon: Truck },
               { id: 'strategy', label: 'Bid Strategy & Deductions', icon: SlidersHorizontal },
-              { id: 'compliance', label: `Document Pack (${activeDocManifest.total_files || (activeDocManifest.categories?.length || 0)} Files)`, icon: FileText }
+              { id: 'compliance', label: `Document Pack (${(activeDocManifest as any).total_files || (activeDocManifest.categories?.length || 0)} Files)`, icon: FileText }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = tenderTab === tab.id;
