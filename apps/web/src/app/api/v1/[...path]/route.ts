@@ -1494,18 +1494,23 @@ Return valid JSON only:
           try {
             await supabase.from('tenders').upsert(
               chunkDiscovered.map(t => ({
-                tender_id: t.tender_id,
-                title: t.title,
-                state: t.state,
-                sector: t.sector,
-                amount_inr: t.amount_inr,
-                value_cr: t.value_cr,
-                department: t.department,
-                due_date: t.due_date,
-                status: t.status,
-                source: 'GePNIC Portal'
+                id: t.tender_id,
+                tender_name: t.title,
+                project_category: t.sector,
+                department_assigned: t.department || t.state,
+                current_stage: 'DISCOVERY',
+                stage_status: t.status || 'Live',
+                eligibility_result: {
+                  state: t.state,
+                  amount_inr: t.amount_inr,
+                  value_cr: t.value_cr,
+                  due_date: t.due_date,
+                  portal_url: t.portal_url,
+                  source: 'GePNIC Portal'
+                },
+                updated_at: new Date().toISOString()
               })),
-              { onConflict: 'tender_id' }
+              { onConflict: 'id' }
             );
           } catch (sbErr) {
             console.warn('[SCRAPER_SCAN] Progressive Supabase upsert error:', sbErr);
