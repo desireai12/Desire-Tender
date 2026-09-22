@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { STATE_PORTALS, KEYWORD_CATEGORIES, crawlStateGePNICPortal } from '@/lib/gepnic-crawler';
 import vapiTenderData from '@/data/vapi_karvad_real_tender.json';
 import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
@@ -1490,9 +1490,11 @@ Return valid JSON only:
         }
 
         // PROGRESSIVE SYNC: Persist newly discovered batch immediately into Supabase
+        let lastSbError: any = null;
+        let syncedCount = 0;
         if (supabase && chunkDiscovered.length > 0) {
           try {
-            await supabase.from('tenders').upsert(
+            const { data, error } = await supabase.from('tenders').upsert(
               chunkDiscovered.map(t => ({
                 id: t.tender_id,
                 tender_name: t.title,
@@ -1512,7 +1514,14 @@ Return valid JSON only:
               })),
               { onConflict: 'id' }
             );
-          } catch (sbErr) {
+            if (error) {
+              lastSbError = error.message || error;
+              console.warn('[SCRAPER_SCAN] Progressive Supabase upsert error:', error);
+            } else {
+              syncedCount += chunkDiscovered.length;
+            }
+          } catch (sbErr: any) {
+            lastSbError = sbErr?.message || String(sbErr);
             console.warn('[SCRAPER_SCAN] Progressive Supabase upsert error:', sbErr);
           }
         }
@@ -1527,6 +1536,14 @@ Return valid JSON only:
         total_matches_found: allDiscovered.length,
         scan_duration_sec: Math.round((Date.now() - startTime) / 1000),
         partial_scan: timedOutEarly,
+        supabase_sync: {
+          is_configured: isSupabaseConfigured,
+          has_supabase_instance: Boolean(supabase),
+          has_env_url: Boolean(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL),
+          has_env_key: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+          last_error: lastSbError,
+          synced_count: syncedCount
+        },
         tenders: allDiscovered
       });
     }
