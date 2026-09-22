@@ -28,6 +28,7 @@ export interface GovtTenderResult {
 }
 
 export const STATE_PORTALS: Record<string, string> = {
+  // Existing Core States
   'Rajasthan': 'https://eproc.rajasthan.gov.in/nicgep/app',
   'Haryana': 'https://etenders.hry.nic.in/nicgep/app',
   'Uttar Pradesh': 'https://etender.up.nic.in/nicgep/app',
@@ -37,7 +38,37 @@ export const STATE_PORTALS: Record<string, string> = {
   'Punjab': 'https://eproc.punjab.gov.in/nicgep/app',
   'Odisha': 'https://tendersodisha.gov.in/nicgep/app',
   'Tamil Nadu': 'https://tntenders.gov.in/nicgep/app',
-  'Central (All India)': 'https://etenders.gov.in/eprocure/app'
+  'Central (All India)': 'https://etenders.gov.in/eprocure/app',
+
+  // Newly Verified Participating NIC States & UTs
+  'Uttarakhand': 'https://uktenders.gov.in/nicgep/app',
+  'Himachal Pradesh': 'https://hptenders.gov.in/nicgep/app',
+  'Jharkhand': 'https://jharkhandtenders.gov.in/nicgep/app',
+  'Assam': 'https://assamtenders.gov.in/nicgep/app',
+  'West Bengal': 'https://wbtenders.gov.in/nicgep/app',
+  'Kerala': 'https://etenders.kerala.gov.in/nicgep/app',
+  'Jammu and Kashmir': 'https://jktenders.gov.in/nicgep/app',
+  'Chandigarh': 'https://etenders.chd.nic.in/nicgep/app',
+  'Tripura': 'https://tripuratenders.gov.in/nicgep/app',
+  'Sikkim': 'https://sikkimtender.gov.in/nicgep/app',
+  'Meghalaya': 'https://meghalayatenders.gov.in/nicgep/app',
+  'Manipur': 'https://manipurtenders.gov.in/nicgep/app',
+  'Mizoram': 'https://mizoramtenders.gov.in/nicgep/app',
+  'Nagaland': 'https://nagalandtenders.gov.in/nicgep/app',
+  'Arunachal Pradesh': 'https://arunachaltenders.gov.in/nicgep/app',
+  'Puducherry': 'https://pudutenders.gov.in/nicgep/app',
+  'Dadra and Nagar Haveli': 'https://dnhtenders.gov.in/nicgep/app',
+  'Daman and Diu': 'https://ddtenders.gov.in/nicgep/app',
+
+  // Central & PSU Portals (Standard NIC GePNIC Interface)
+  'Central eProcure (CPPP 1)': 'https://eprocure.gov.in/eprocure/app',
+  'Central ePublish / SAIL': 'https://eprocure.gov.in/epublish/app',
+  'BHEL': 'https://eprocurebhel.co.in/nicgep/app',
+  'NTPC': 'https://eprocurentpc.nic.in/nicgep/app',
+  'Indian Oil (IOCL)': 'https://iocletenders.nic.in/nicgep/app',
+  'Coal India (CIL)': 'https://coalindiatenders.nic.in/nicgep/app',
+  'PMGSY / NRRDA': 'http://pmgsytenders.gov.in/nicgep/app',
+  'Defence eProcurement': 'https://defproc.gov.in/nicgep/app'
 };
 
 export const KEYWORD_CATEGORIES: Record<string, string[]> = {
@@ -102,6 +133,19 @@ export function cleanSectorFromTitle(title: string, workType: string = ''): stri
   return 'Turnkey EPC & Civil';
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 7000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function crawlStateGePNICPortal(
   stateName: string,
   portalUrl: string,
@@ -121,11 +165,11 @@ export async function crawlStateGePNICPortal(
 
   for (const kw of keywords) {
     try {
-      // 1. Fetch homepage to obtain active session and form tokens
-      const homeRes = await fetch(portalUrl, {
+      // 1. Fetch homepage to obtain active session and form tokens (max 7s timeout)
+      const homeRes = await fetchWithTimeout(portalUrl, {
         headers: browserHeaders,
         cache: 'no-store'
-      });
+      }, 7000);
 
       const rawSetCookie = homeRes.headers.get('set-cookie') || '';
       const cookies = rawSetCookie.split(';')[0]; // Extract primary JSESSIONID
@@ -145,8 +189,8 @@ export async function crawlStateGePNICPortal(
       postParams.set('SearchDescription', kw);
       postParams.set('Go', 'Go');
 
-      // 2. Submit keyword search
-      const searchRes = await fetch(portalUrl, {
+      // 2. Submit keyword search (max 8s timeout)
+      const searchRes = await fetchWithTimeout(portalUrl, {
         method: 'POST',
         headers: {
           ...browserHeaders,
@@ -156,7 +200,7 @@ export async function crawlStateGePNICPortal(
         },
         body: postParams.toString(),
         cache: 'no-store'
-      });
+      }, 8000);
 
       const searchHtml = await searchRes.text();
 
@@ -178,14 +222,14 @@ export async function crawlStateGePNICPortal(
             ? item.href 
             : `${baseDomain}${item.href.replace(/&amp;/g, '&')}`;
 
-          const detRes = await fetch(detailUrl, {
+          const detRes = await fetchWithTimeout(detailUrl, {
             headers: {
               ...browserHeaders,
               'Referer': portalUrl,
               'Cookie': cookies
             },
             cache: 'no-store'
-          });
+          }, 6000);
 
           const detHtml = await detRes.text();
 

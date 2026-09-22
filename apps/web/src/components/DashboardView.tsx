@@ -19,7 +19,8 @@ import {
   FileText,
   Bookmark,
   ChevronRight,
-  Filter
+  Filter,
+  AlertTriangle
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 
@@ -120,6 +121,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
+      {/* ⚠️ DEMO / SAMPLE DATA DISCLAIMER BANNER */}
+      <div className="rounded-2xl border-2 border-amber-400/90 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/80 p-4 sm:p-5 text-amber-950 dark:text-amber-200 flex items-start space-x-3.5 shadow-sm">
+        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="text-xs sm:text-sm space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase tracking-wider bg-amber-200 dark:bg-amber-900/90 text-amber-950 dark:text-amber-100 px-2.5 py-0.5 rounded text-[11px]">
+              ⚠️ Demo / Sample Data — Not Live
+            </span>
+          </div>
+          <p className="text-amber-900 dark:text-amber-300 leading-relaxed font-medium">
+            The market statistics, state volumes, and featured priority tender cards on this Home Overview are <strong>static demonstration / sample data</strong> and are not live scraped from government portals. Do not rely on these figures for bidding or commercial decisions. For genuine live government tenders, navigate to <strong>Live Tender Tracker &gt; Scan Govt Portals</strong>.
+          </p>
+        </div>
+      </div>
+
       {/* 1. Modern Clean Search & Action Header (BidAssist / Infralens inspired) */}
       <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0b1426] shadow-sm relative overflow-hidden">
         <div className="max-w-4xl space-y-4">
@@ -128,8 +144,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
               <span>Desire Tender Intelligence Portal</span>
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Live Pan-India Water Infrastructure & Solar Opportunities
+            <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold bg-amber-100 dark:bg-amber-950/70 px-2 py-0.5 rounded">
+              (Sample Data Overview — Not Live)
             </span>
           </div>
 

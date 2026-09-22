@@ -1441,47 +1441,87 @@ Return valid JSON only:
       const states: string[] = body?.states || ['Rajasthan', 'Haryana'];
       const keywords: string[] = body?.keywords || ['Solar', 'STP or treatment', 'Water Supply'];
       const minValueCr: number = parseFloat(body?.min_value_cr) || 10.0;
-      const maxPerKw: number = parseInt(body?.max_per_kw) || 6;
+      // Adaptively scale maxPerKw to keep scan fast when many states are selected
+      const requestedMax = parseInt(body?.max_per_kw) || 6;
+      const maxPerKw = states.length > 6 ? Math.min(requestedMax, 3) : requestedMax;
 
       const allDiscovered: any[] = [];
-      for (const state of states) {
-        const portalUrl = STATE_PORTALS[state];
-        if (!portalUrl) continue;
-        try {
-          const results = await crawlStateGePNICPortal(state, portalUrl, keywords, minValueCr, maxPerKw);
-          allDiscovered.push(...results);
-        } catch (crawlErr) {
-          // Continue with next state
-        }
-      }
+      const CONCURRENCY_LIMIT = 8;
+      const GLOBAL_DEADLINE_MS = 45000; // Inter-batch deadline check. Note: real worst-case is ~55s (45s check + up to 10s for the final in-flight batch)
+      const startTime = Date.now();
+      let timedOutEarly = false;
+      const successfullyScannedStates: string[] = [];
 
-      // Automatically sync into Supabase if connected
-      if (supabase && allDiscovered.length > 0) {
-        try {
-          await supabase.from('tenders').upsert(
-            allDiscovered.map(t => ({
-              tender_id: t.tender_id,
-              title: t.title,
-              state: t.state,
-              sector: t.sector,
-              amount_inr: t.amount_inr,
-              value_cr: t.value_cr,
-              department: t.department,
-              due_date: t.due_date,
-              status: t.status,
-              source: 'GePNIC Portal'
-            })),
-            { onConflict: 'tender_id' }
-          );
-        } catch (e) {}
+      // Process portals in concurrent batches of 8 with strict 10s state caps
+      for (let i = 0; i < states.length; i += CONCURRENCY_LIMIT) {
+        // Enforce global deadline check before starting each batch
+        if (Date.now() - startTime > GLOBAL_DEADLINE_MS) {
+          timedOutEarly = true;
+          break;
+        }
+
+        const chunk = states.slice(i, i + CONCURRENCY_LIMIT);
+        const chunkPromises = chunk.map(async (state) => {
+          const portalUrl = STATE_PORTALS[state];
+          if (!portalUrl) return { state, tenders: [] };
+          try {
+            // Strict 10s cap per individual portal
+            const crawlPromise = crawlStateGePNICPortal(state, portalUrl, keywords, minValueCr, maxPerKw);
+            const timeoutPromise = new Promise<any[]>((_, reject) => 
+              setTimeout(() => reject(new Error(`10s Timeout for ${state}`)), 10000)
+            );
+            const tenders = await Promise.race([crawlPromise, timeoutPromise]);
+            return { state, tenders: Array.isArray(tenders) ? tenders : [] };
+          } catch (crawlErr) {
+            return { state, tenders: [] };
+          }
+        });
+
+        const chunkResults = await Promise.allSettled(chunkPromises);
+        const chunkDiscovered: any[] = [];
+        for (const res of chunkResults) {
+          if (res.status === 'fulfilled' && res.value) {
+            successfullyScannedStates.push(res.value.state);
+            if (res.value.tenders.length > 0) {
+              chunkDiscovered.push(...res.value.tenders);
+              allDiscovered.push(...res.value.tenders);
+            }
+          }
+        }
+
+        // PROGRESSIVE SYNC: Persist newly discovered batch immediately into Supabase
+        if (supabase && chunkDiscovered.length > 0) {
+          try {
+            await supabase.from('tenders').upsert(
+              chunkDiscovered.map(t => ({
+                tender_id: t.tender_id,
+                title: t.title,
+                state: t.state,
+                sector: t.sector,
+                amount_inr: t.amount_inr,
+                value_cr: t.value_cr,
+                department: t.department,
+                due_date: t.due_date,
+                status: t.status,
+                source: 'GePNIC Portal'
+              })),
+              { onConflict: 'tender_id' }
+            );
+          } catch (sbErr) {
+            console.warn('[SCRAPER_SCAN] Progressive Supabase upsert error:', sbErr);
+          }
+        }
       }
 
       return NextResponse.json({
         success: true,
-        states_scanned: states,
+        states_scanned: successfullyScannedStates,
+        requested_states_count: states.length,
         keywords_searched: keywords,
         min_value_cr_filter: minValueCr,
         total_matches_found: allDiscovered.length,
+        scan_duration_sec: Math.round((Date.now() - startTime) / 1000),
+        partial_scan: timedOutEarly,
         tenders: allDiscovered
       });
     }

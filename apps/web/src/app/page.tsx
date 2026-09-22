@@ -187,12 +187,22 @@ export default function Home() {
     setActiveTab('dashboard');
   };
 
-  // Import Tender from India Sector Explorer into Queue / Engine
+  // ℹ️ SAFE PREVIEW HOOK:
+  // Stores the selected item in local React state (selectedTenderToAnalyze).
+  // Does NOT write or persist to trackedTenders, Bid Flow, database, or Supabase.
+  // Note: Neither EligibilityChecker nor TenderWizard currently consume this state.
   const handleImportTender = (tender: IndiaTenderItem) => {
     setSelectedTenderToAnalyze(tender);
   };
 
+  // ⚠️ CRITICAL SAFETY GUARD:
+  // DO NOT CONNECT THIS CALLBACK until IndiaTendersSectorView is wired to REAL scraped data!
+  // IndiaTendersSectorView currently renders synthetic sample data from india_sector_tenders.json.
+  // Pushing items from that view into trackedTenders would inject fake tenders into the bidding queue.
   const handleSelectForBidding = (item: IndiaTenderItem) => {
+    console.warn('[SAFETY GUARD] handleSelectForBidding blocked: IndiaTendersSectorView currently contains demo/sample data.');
+    return;
+    /* DORMANT CODE — UNCOMMENT ONLY AFTER REAL LIVE DATA INTEGRATION:
     const existing = trackedTenders.find(t => t.id === item.id || t.nit_number === item.nit_number);
     if (!existing) {
       const newTracked: TrackedTender = {
@@ -228,6 +238,7 @@ export default function Home() {
       setTrackedTenders([newTracked, ...trackedTenders]);
     }
     setActiveTab('tender_tracker');
+    */
   };
 
   // Role Change Handler
@@ -390,7 +401,6 @@ export default function Home() {
             <IndiaTendersSectorView
               onNavigate={(tab) => setActiveTab(tab)}
               onImportTender={handleImportTender}
-              onSelectForBidding={handleSelectForBidding}
             />
           )}
 

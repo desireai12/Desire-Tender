@@ -31,7 +31,8 @@ import {
   Check,
   ChevronLeft,
   ArrowRight,
-  Landmark
+  Landmark,
+  AlertTriangle
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 import indiaSectorTendersRaw from '@/data/india_sector_tenders.json';
@@ -136,7 +137,7 @@ const SAMPLE_TENDERS: IndiaTenderItem[] = (indiaSectorTendersRaw as any[]).map((
 interface IndiaTendersSectorViewProps {
   onNavigate?: (tab: NavTab) => void;
   onImportTender?: (tender: IndiaTenderItem) => void;
-  onSelectForBidding?: (tender: IndiaTenderItem) => void;
+  // ⚠️ NOTE: onSelectForBidding intentionally omitted until this view reads from live scraped data.
 }
 
 export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
@@ -277,6 +278,21 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
+      {/* ⚠️ DEMO / SAMPLE DATA DISCLAIMER BANNER */}
+      <div className="rounded-2xl border-2 border-amber-400/90 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/80 p-4 sm:p-5 text-amber-950 dark:text-amber-200 flex items-start space-x-3.5 shadow-sm">
+        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="text-xs sm:text-sm space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="font-bold uppercase tracking-wider bg-amber-200 dark:bg-amber-900/90 text-amber-950 dark:text-amber-100 px-2.5 py-0.5 rounded text-[11px]">
+              ⚠️ Demo / Sample Data — Not Live
+            </span>
+          </div>
+          <p className="text-amber-900 dark:text-amber-300 leading-relaxed font-medium">
+            The 2,913 records in this directory are <strong>synthetic demonstration/sample tenders</strong> (synthetically generated values, NITs, and deadlines). While the portal links navigate to official state portals, the underlying tender data is not live scraped. <strong>Do not use for operational bidding decisions.</strong> For verified live tenders, use the <strong>Scan Government Portals</strong> feature in Live Tender Tracker.
+          </p>
+        </div>
+      </div>
+
       {/* 1. Header Banner & Market Pulse Bar */}
       <div className="glass-card p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#0b1426] shadow-sm relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
@@ -284,7 +300,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-xs font-mono font-bold">
               <Globe2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 animate-spin-slow" />
               <span>Pan-India Tender Intelligence & Geo-Sector Hub</span>
-              <span className="px-2 py-0.2 rounded-full bg-emerald-700 text-white text-[10px] font-bold">LIVE REAL 2026-27</span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-600 text-white text-[10px] font-bold">DEMO / SAMPLE DATA</span>
             </div>
 
             <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -292,7 +308,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl font-medium">
-              Explore live, verified water infrastructure, JJM, solar pumping, wastewater (STP/ETP), and bulk transmission tenders across Indian states. Click any tender to open directly on the official Government e-Procurement Portal.
+              Explore sample water infrastructure, JJM, solar pumping, wastewater (STP/ETP), and bulk transmission tender directory entries. Click any tender to open the official Government e-Procurement Portal.
             </p>
           </div>
 
@@ -300,7 +316,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
           <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
             <div className="px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 min-w-[140px]">
               <span className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block">
-                Live Open Tenders
+                Sample Tenders
               </span>
               <span className="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
                 <span>{filteredTenders.length}</span>

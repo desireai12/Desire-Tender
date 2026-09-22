@@ -17,6 +17,7 @@ OVERALL_PATH = os.path.join(ROOT_DIR, "apps", "web", "src", "data", "overall_ten
 SUMMARY_PATH = os.path.join(ROOT_DIR, "apps", "web", "src", "data", "tracker_summary.json")
 
 STATE_PORTALS = {
+    # Existing Core States
     "Rajasthan": "https://eproc.rajasthan.gov.in/nicgep/app",
     "Haryana": "https://etenders.hry.nic.in/nicgep/app",
     "Uttar Pradesh": "https://etender.up.nic.in/nicgep/app",
@@ -26,7 +27,37 @@ STATE_PORTALS = {
     "Punjab": "https://eproc.punjab.gov.in/nicgep/app",
     "Odisha": "https://tendersodisha.gov.in/nicgep/app",
     "Tamil Nadu": "https://tntenders.gov.in/nicgep/app",
-    "Central (All India)": "https://etenders.gov.in/eprocure/app"
+    "Central (All India)": "https://etenders.gov.in/eprocure/app",
+
+    # Newly Verified Participating NIC States & UTs
+    "Uttarakhand": "https://uktenders.gov.in/nicgep/app",
+    "Himachal Pradesh": "https://hptenders.gov.in/nicgep/app",
+    "Jharkhand": "https://jharkhandtenders.gov.in/nicgep/app",
+    "Assam": "https://assamtenders.gov.in/nicgep/app",
+    "West Bengal": "https://wbtenders.gov.in/nicgep/app",
+    "Kerala": "https://etenders.kerala.gov.in/nicgep/app",
+    "Jammu and Kashmir": "https://jktenders.gov.in/nicgep/app",
+    "Chandigarh": "https://etenders.chd.nic.in/nicgep/app",
+    "Tripura": "https://tripuratenders.gov.in/nicgep/app",
+    "Sikkim": "https://sikkimtender.gov.in/nicgep/app",
+    "Meghalaya": "https://meghalayatenders.gov.in/nicgep/app",
+    "Manipur": "https://manipurtenders.gov.in/nicgep/app",
+    "Mizoram": "https://mizoramtenders.gov.in/nicgep/app",
+    "Nagaland": "https://nagalandtenders.gov.in/nicgep/app",
+    "Arunachal Pradesh": "https://arunachaltenders.gov.in/nicgep/app",
+    "Puducherry": "https://pudutenders.gov.in/nicgep/app",
+    "Dadra and Nagar Haveli": "https://dnhtenders.gov.in/nicgep/app",
+    "Daman and Diu": "https://ddtenders.gov.in/nicgep/app",
+
+    # Central & PSU Portals (Standard NIC GePNIC Interface)
+    "Central eProcure (CPPP 1)": "https://eprocure.gov.in/eprocure/app",
+    "Central ePublish / SAIL": "https://eprocure.gov.in/epublish/app",
+    "BHEL": "https://eprocurebhel.co.in/nicgep/app",
+    "NTPC": "https://eprocurentpc.nic.in/nicgep/app",
+    "Indian Oil (IOCL)": "https://iocletenders.nic.in/nicgep/app",
+    "Coal India (CIL)": "https://coalindiatenders.nic.in/nicgep/app",
+    "PMGSY / NRRDA": "http://pmgsytenders.gov.in/nicgep/app",
+    "Defence eProcurement": "https://defproc.gov.in/nicgep/app"
 }
 
 KEYWORD_CATEGORIES = {
