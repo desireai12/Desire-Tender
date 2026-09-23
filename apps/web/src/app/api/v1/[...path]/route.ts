@@ -1451,6 +1451,8 @@ Return valid JSON only:
       const startTime = Date.now();
       let timedOutEarly = false;
       const successfullyScannedStates: string[] = [];
+      let lastSbError: any = null;
+      let syncedCount = 0;
 
       // Process portals in concurrent batches of 8 with strict 10s state caps
       for (let i = 0; i < states.length; i += CONCURRENCY_LIMIT) {
@@ -1490,8 +1492,6 @@ Return valid JSON only:
         }
 
         // PROGRESSIVE SYNC: Persist newly discovered batch immediately into Supabase
-        let lastSbError: any = null;
-        let syncedCount = 0;
         if (supabase && chunkDiscovered.length > 0) {
           try {
             const { data, error } = await supabase.from('tenders').upsert(
