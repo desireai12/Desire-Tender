@@ -3,7 +3,7 @@ import { GovtTenderResult, cleanSectorFromTitle } from './gepnic-crawler';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 8000): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 12000): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -69,6 +69,7 @@ export async function crawlGujaratNProcurePortal(
 ): Promise<GovtTenderResult[]> {
   const discovered: GovtTenderResult[] = [];
   const seenIds = new Set<string>();
+  let diagInfo = '';
 
   const browserHeaders = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -76,12 +77,12 @@ export async function crawlGujaratNProcurePortal(
   };
 
   try {
-    // 1. Fetch homepage to get TSESSIONID and CSRF token
+    // 1. Fetch homepage to get TSESSIONID and CSRF token (12s timeout for overseas latency)
     const homeUrl = 'https://tender.nprocure.com';
     const homeRes = await fetchWithTimeout(homeUrl, {
       headers: browserHeaders,
       cache: 'no-store'
-    }, 8000);
+    }, 12000);
 
     const sessionCookie = extractTSessionId(homeRes);
     const homeHtml = await homeRes.text();
@@ -141,7 +142,7 @@ export async function crawlGujaratNProcurePortal(
           },
           body: bodyPayload,
           cache: 'no-store'
-        }, 7000);
+        }, 10000);
 
         if (!apiRes.ok) {
           diagInfo = `apiRes_status_${apiRes.status}_cookie_${sessionCookie.slice(0, 20)}`;

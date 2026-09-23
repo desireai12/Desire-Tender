@@ -1479,9 +1479,9 @@ Return valid JSON only:
               crawlPromise = crawlStateGePNICPortal(state, portalUrl, keywords, minValueCr, maxPerKw);
             }
 
-            // Strict 15s cap per individual portal (GePNIC or dedicated non-NIC)
+            // Strict 22s cap per individual portal (GePNIC or dedicated non-NIC)
             const timeoutPromise = new Promise<any[]>((_, reject) => 
-              setTimeout(() => reject(new Error(`15s Timeout for ${state}`)), 15000)
+              setTimeout(() => reject(new Error(`22s Timeout for ${state}`)), 22000)
             );
             const tenders = await Promise.race([crawlPromise, timeoutPromise]);
             return { state, tenders: Array.isArray(tenders) ? tenders : [], error: null };
