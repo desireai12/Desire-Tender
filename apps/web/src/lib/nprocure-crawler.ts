@@ -101,6 +101,7 @@ export async function crawlGujaratNProcurePortal(
 ): Promise<GovtTenderResult[]> {
   const discovered: GovtTenderResult[] = [];
   const seenIds = new Set<string>();
+  let diagInfo = '';
 
   const browserHeaders: Record<string, string> = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -170,7 +171,7 @@ export async function crawlGujaratNProcurePortal(
         const apiRes = await httpsPost(apiUrl, postHeaders, bodyPayload, 10000);
 
         if (apiRes.status !== 200) {
-          console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' returned status ${apiRes.status}`);
+          diagInfo = `status_${apiRes.status}_cookie_${sessionCookie ? 'YES' : 'NO'}_body_${apiRes.body.slice(0, 120)}`;
           return;
         }
 
@@ -178,10 +179,14 @@ export async function crawlGujaratNProcurePortal(
         try {
           resJson = JSON.parse(apiRes.body);
         } catch {
+          diagInfo = `json_err_body_${apiRes.body.slice(0, 120)}`;
           return;
         }
 
         const dataList = resJson?.data || [];
+        if (dataList.length === 0 && !diagInfo) {
+          diagInfo = `empty_data_${apiRes.body.slice(0, 120)}`;
+        }
 
         for (const item of dataList) {
           const noticeNo = (item['1'] || '').trim();
@@ -251,8 +256,59 @@ export async function crawlGujaratNProcurePortal(
         console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' crawl error:`, kwErr);
       }
     }));
+
+    if (discovered.length === 0 && diagInfo) {
+      discovered.push({
+        id: 'GUJ-DIAG',
+        sr_no: '0',
+        tender_id: 'GUJ_DIAG',
+        title: `DIAGNOSTIC: ${diagInfo}`,
+        location: 'Gujarat',
+        state: 'Gujarat',
+        raw_state: 'Gujarat',
+        amount_inr: 0,
+        value_cr: 0,
+        pre_bid_date: '',
+        due_date: 'N/A',
+        department: 'Gujarat',
+        type_of_work: 'Diag',
+        sector: 'Diag',
+        status: 'Diag',
+        raw_status: 'Diag',
+        document_link: '',
+        summary_sheet: '',
+        bidders: [],
+        bidders_count: 0,
+        l1_price_info: '',
+        remarks: diagInfo
+      });
+    }
   } catch (err: any) {
     console.warn('[NPROCURE_CRAWLER] General crawl error:', err);
+    discovered.push({
+      id: 'GUJ-ERR',
+      sr_no: '0',
+      tender_id: 'GUJ_ERR',
+      title: `GENERAL ERROR: ${err?.message || err}`,
+      location: 'Gujarat',
+      state: 'Gujarat',
+      raw_state: 'Gujarat',
+      amount_inr: 0,
+      value_cr: 0,
+      pre_bid_date: '',
+      due_date: 'N/A',
+      department: 'Gujarat',
+      type_of_work: 'Error',
+      sector: 'Error',
+      status: 'Error',
+      raw_status: 'Error',
+      document_link: '',
+      summary_sheet: '',
+      bidders: [],
+      bidders_count: 0,
+      l1_price_info: '',
+      remarks: String(err)
+    });
   }
 
   return discovered;
