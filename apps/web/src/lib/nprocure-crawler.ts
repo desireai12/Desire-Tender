@@ -16,14 +16,16 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   }
 }
 
-function extractAllCookies(res: Response): string {
+function extractTSessionId(res: Response): string {
   try {
+    let raw = '';
     if (typeof (res.headers as any).getSetCookie === 'function') {
-      const list: string[] = (res.headers as any).getSetCookie();
-      return list.map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
+      raw = (res.headers as any).getSetCookie().join('; ');
+    } else {
+      raw = res.headers.get('set-cookie') || '';
     }
-    const raw = res.headers.get('set-cookie') || '';
-    return raw.split(/,(?=[^;]*=)/).map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
+    const match = raw.match(/TSESSIONID=([^;,\s]+)/i);
+    return match ? `TSESSIONID=${match[1]}` : '';
   } catch {
     return '';
   }
@@ -81,7 +83,7 @@ export async function crawlGujaratNProcurePortal(
       cache: 'no-store'
     }, 8000);
 
-    const sessionCookie = extractAllCookies(homeRes);
+    const sessionCookie = extractTSessionId(homeRes);
     const homeHtml = await homeRes.text();
     const csrfMatch = homeHtml.match(/<meta\s+name=["']_csrf["']\s+content=["']([^"']*)["']/i);
     const csrf = csrfMatch ? csrfMatch[1] : '';
@@ -135,14 +137,16 @@ export async function crawlGujaratNProcurePortal(
             ...browserHeaders,
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'Referer': homeUrl,
             'Cookie': sessionCookie
           },
           body: bodyPayload,
           cache: 'no-store'
         }, 7000);
 
-        if (!apiRes.ok) return;
+        if (!apiRes.ok) {
+          console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' returned status ${apiRes.status}`);
+          return;
+        }
 
         const resJson = await apiRes.json();
         const dataList = resJson?.data || [];
