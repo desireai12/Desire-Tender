@@ -1442,7 +1442,7 @@ Return valid JSON only:
     if (subPath === 'scraper/scan' && method === 'POST') {
       const states: string[] = body?.states || ['Rajasthan', 'Haryana'];
       const keywords: string[] = body?.keywords || ['Solar', 'STP or treatment', 'Water Supply'];
-      const minValueCr: number = parseFloat(body?.min_value_cr) || 10.0;
+      const minValueCr: number = body?.min_value_cr !== undefined ? parseFloat(body.min_value_cr) : 10.0;
       // Adaptively scale maxPerKw to keep scan fast when many states are selected
       const requestedMax = parseInt(body?.max_per_kw) || 6;
       const maxPerKw = states.length > 6 ? Math.min(requestedMax, 3) : requestedMax;
@@ -1517,8 +1517,8 @@ Return valid JSON only:
                   amount_inr: t.amount_inr,
                   value_cr: t.value_cr,
                   due_date: t.due_date,
-                  portal_url: t.portal_url,
-                  source: 'GePNIC Portal'
+                  portal_url: t.portal_url || t.document_link,
+                  source: t.remarks || 'Live Government Portal'
                 },
                 updated_at: new Date().toISOString()
               })),

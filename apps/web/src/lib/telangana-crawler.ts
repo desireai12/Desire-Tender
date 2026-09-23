@@ -120,6 +120,7 @@ export async function crawlTelanganaPortal(
 
       let valueCr = 0.0;
       let amountInr = 0;
+      let preBidDate = '';
 
       // 4. Fetch details via ViewTender.html if procurementId is present
       if (procurementId) {
@@ -157,6 +158,26 @@ export async function crawlTelanganaPortal(
             amountInr = parseFloat(rawVal) || 0;
             valueCr = amountInr > 0 ? Math.round((amountInr / 10000000.0) * 100) / 100 : 0.0;
           }
+
+          // Extract Department Name
+          const deptMatch = detHtml.match(/Department\s*Name\s*:\s*([^:<]+)/i);
+          if (deptMatch) {
+            const deptClean = deptMatch[1].replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+            if (deptClean) division = deptClean;
+          }
+
+          // Extract Pre-Bid Meeting Date
+          const preBidMatch = detHtml.match(/Pre\s*Bid\s*Meeting\s*Opening\s*Date\s*&\s*Time\s*:\s*([^:<]+)/i);
+          if (preBidMatch) {
+            preBidDate = preBidMatch[1].trim();
+          }
+
+          // Extract Closing Date
+          const closeMatch = detHtml.match(/Bid\s*Submission\s*Closing\s*Date\s*&\s*Time\s*:\s*([^:<]+)/i);
+          if (closeMatch) {
+            const cleanClose = closeMatch[1].trim();
+            if (cleanClose) dueDate = cleanClose;
+          }
         } catch (detErr) {
           // Gracefully fallback to summary info
         }
@@ -175,7 +196,7 @@ export async function crawlTelanganaPortal(
         raw_state: 'Telangana',
         amount_inr: amountInr,
         value_cr: valueCr,
-        pre_bid_date: '',
+        pre_bid_date: preBidDate,
         due_date: dueDate,
         department: `Telangana - ${division}`,
         type_of_work: 'Turnkey Works',

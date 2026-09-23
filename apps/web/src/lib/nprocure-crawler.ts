@@ -77,8 +77,18 @@ export async function crawlGujaratNProcurePortal(
 
     const apiUrl = 'https://tender.nprocure.com/beforeLoginTenderTableList';
 
-    // 2. Iterate search keywords
-    for (const kw of keywords) {
+    // 2. Extract atomic keywords (e.g. "STP or treatment" -> "STP", "treatment")
+    const atomicKws: string[] = [];
+    for (const k of keywords) {
+      const parts = k.split(/\s+or\s+/i).map(s => s.trim()).filter(Boolean);
+      for (const p of parts) {
+        if (!atomicKws.includes(p)) atomicKws.push(p);
+      }
+    }
+    // Limit to top 4 search terms to stay safely within the 8s portal timeout
+    const searchTerms = atomicKws.length > 0 ? atomicKws.slice(0, 4) : ['Solar', 'Water'];
+
+    for (const kw of searchTerms) {
       try {
         const aoData = [
           { name: 'sEcho', value: 1 },
