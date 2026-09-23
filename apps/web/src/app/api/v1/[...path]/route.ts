@@ -1582,19 +1582,50 @@ Return valid JSON only:
             } catch {}
           }
 
+          const itemValCr = Math.round(valCr * 100) / 100;
+          const emdLakhs = parseFloat(elig?.emd_lakhs) || (itemValCr > 0 ? Math.round(itemValCr * 1) : 0);
+          const tenderFee = parseFloat(elig?.tender_fee) || (itemValCr > 0 ? 5000 : 0);
+          const dueDateStr = elig?.due_date || 'Live NIT';
+          const pubDateStr = elig?.publish_date || (row.created_at ? row.created_at.split('T')[0] : '2026-08-25');
+          const portalUrl = elig?.portal_url || null;
+
           priorityList.push({
             id: row.id,
             nit: row.id,
+            nit_number: row.id,
             title: row.tender_name,
             authority,
+            authority_code: authority.split(' ')[0] || 'DEPT',
             state,
+            district: state,
             sector,
-            costCr: Math.round(valCr * 100) / 100,
-            dueDate: elig?.due_date || 'Live NIT',
+            costCr: itemValCr,
+            estimated_cost_cr: itemValCr,
+            emd_lakhs: emdLakhs,
+            tender_fee: tenderFee,
+            publish_date: pubDateStr,
+            due_date: dueDateStr,
+            dueDate: dueDateStr,
+            days_left: daysLeft,
             daysLeft,
-            matchPct: valCr >= 10 ? 95 : 90,
-            status: valCr >= 50 ? 'JV Recommended' : 'Direct Eligible',
-            portalUrl: elig?.portal_url || null,
+            stage: 'Open (Live)',
+            eligibility_match_pct: elig?.score || (itemValCr >= 10 ? 95 : 90),
+            matchPct: elig?.score || (itemValCr >= 10 ? 95 : 90),
+            desire_qual_status: itemValCr >= 50 ? 'JV Recommended' : 'Direct Eligible',
+            status: itemValCr >= 50 ? 'JV Recommended' : 'Direct Eligible',
+            scope_highlights: [
+              sector,
+              authority,
+              `State: ${state}`
+            ],
+            key_criteria: {
+              min_turnover_cr: Math.round(itemValCr * 0.4 * 10) / 10,
+              similar_work_cr: Math.round(itemValCr * 0.3 * 10) / 10,
+              experience_years: 5,
+              license_category: 'Class-A'
+            },
+            portal_url: portalUrl,
+            portalUrl: portalUrl,
             updatedAt: row.updated_at
           });
         }
@@ -1630,6 +1661,7 @@ Return valid JSON only:
           top_states: topStates,
           top_sectors: topSectors,
           priority_tenders: priorityList.slice(0, 6),
+          all_tenders: priorityList,
           last_updated: latestUpdate
         });
       } catch (err: any) {

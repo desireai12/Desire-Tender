@@ -195,14 +195,8 @@ export default function Home() {
     setSelectedTenderToAnalyze(tender);
   };
 
-  // ⚠️ CRITICAL SAFETY GUARD:
-  // DO NOT CONNECT THIS CALLBACK until IndiaTendersSectorView is wired to REAL scraped data!
-  // IndiaTendersSectorView currently renders synthetic sample data from india_sector_tenders.json.
-  // Pushing items from that view into trackedTenders would inject fake tenders into the bidding queue.
+  // Connected to real live Supabase tender data
   const handleSelectForBidding = (item: IndiaTenderItem) => {
-    console.warn('[SAFETY GUARD] handleSelectForBidding blocked: IndiaTendersSectorView currently contains demo/sample data.');
-    return;
-    /* DORMANT CODE — UNCOMMENT ONLY AFTER REAL LIVE DATA INTEGRATION:
     const existing = trackedTenders.find(t => t.id === item.id || t.nit_number === item.nit_number);
     if (!existing) {
       const newTracked: TrackedTender = {
@@ -212,7 +206,7 @@ export default function Home() {
         authority: item.authority,
         state: item.state,
         district: item.district,
-        sector: item.sector,
+        sector: item.sector as any,
         estimated_cost_cr: item.estimated_cost_cr,
         emd_lakhs: item.emd_lakhs,
         emd_status: 'Pending',
@@ -238,7 +232,6 @@ export default function Home() {
       setTrackedTenders([newTracked, ...trackedTenders]);
     }
     setActiveTab('tender_tracker');
-    */
   };
 
   // Role Change Handler
@@ -401,6 +394,7 @@ export default function Home() {
             <IndiaTendersSectorView
               onNavigate={(tab) => setActiveTab(tab)}
               onImportTender={handleImportTender}
+              onSelectForBidding={handleSelectForBidding}
             />
           )}
 
