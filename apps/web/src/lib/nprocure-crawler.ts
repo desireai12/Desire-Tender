@@ -144,12 +144,15 @@ export async function crawlGujaratNProcurePortal(
         }, 7000);
 
         if (!apiRes.ok) {
-          console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' returned status ${apiRes.status}`);
+          diagInfo = `apiRes_status_${apiRes.status}_cookie_${sessionCookie.slice(0, 20)}`;
           return;
         }
 
         const resJson = await apiRes.json();
         const dataList = resJson?.data || [];
+        if (dataList.length === 0 && !diagInfo) {
+          diagInfo = `empty_data_${JSON.stringify(resJson).slice(0, 100)}`;
+        }
 
         for (const item of dataList) {
           const noticeNo = (item['1'] || '').trim();
@@ -215,12 +218,64 @@ export async function crawlGujaratNProcurePortal(
 
           if (discovered.length >= maxPerKw * (keywords.length || 1)) break;
         }
-      } catch (kwErr) {
+      } catch (kwErr: any) {
+        diagInfo = `kw_err_${kwErr?.message || kwErr}`;
         console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' crawl error:`, kwErr);
       }
     }));
-  } catch (err) {
+
+    if (discovered.length === 0 && diagInfo) {
+      discovered.push({
+        id: 'GUJ-DIAG',
+        sr_no: '0',
+        tender_id: 'GUJ_DIAGNOSTIC',
+        title: `DIAGNOSTIC: ${diagInfo} (cookie: ${sessionCookie ? 'PRESENT' : 'MISSING'})`,
+        location: 'Gujarat',
+        state: 'Gujarat',
+        raw_state: 'Gujarat',
+        amount_inr: 0,
+        value_cr: 0,
+        pre_bid_date: '',
+        due_date: 'N/A',
+        department: 'Gujarat',
+        type_of_work: 'Diag',
+        sector: 'Diag',
+        status: 'Diag',
+        raw_status: 'Diag',
+        document_link: '',
+        summary_sheet: '',
+        bidders: [],
+        bidders_count: 0,
+        l1_price_info: '',
+        remarks: diagInfo
+      });
+    }
+  } catch (err: any) {
     console.warn('[NPROCURE_CRAWLER] General crawl error:', err);
+    discovered.push({
+      id: 'GUJ-ERR',
+      sr_no: '0',
+      tender_id: 'GUJ_ERROR',
+      title: `GENERAL ERROR: ${err?.message || err}`,
+      location: 'Gujarat',
+      state: 'Gujarat',
+      raw_state: 'Gujarat',
+      amount_inr: 0,
+      value_cr: 0,
+      pre_bid_date: '',
+      due_date: 'N/A',
+      department: 'Gujarat',
+      type_of_work: 'Error',
+      sector: 'Error',
+      status: 'Error',
+      raw_status: 'Error',
+      document_link: '',
+      summary_sheet: '',
+      bidders: [],
+      bidders_count: 0,
+      l1_price_info: '',
+      remarks: String(err)
+    });
   }
 
   return discovered;
