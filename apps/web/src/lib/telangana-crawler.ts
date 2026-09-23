@@ -147,7 +147,7 @@ export async function crawlTelanganaPortal(
             },
             body: detailParams.toString(),
             cache: 'no-store'
-          }, 6000);
+          }, 3500);
 
           const detHtml = await detRes.text();
 

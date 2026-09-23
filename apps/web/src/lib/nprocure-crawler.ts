@@ -88,7 +88,7 @@ export async function crawlGujaratNProcurePortal(
     // Limit to top 4 search terms to stay safely within the 8s portal timeout
     const searchTerms = atomicKws.length > 0 ? atomicKws.slice(0, 4) : ['Solar', 'Water'];
 
-    for (const kw of searchTerms) {
+    await Promise.all(searchTerms.map(async (kw) => {
       try {
         const aoData = [
           { name: 'sEcho', value: 1 },
@@ -129,9 +129,9 @@ export async function crawlGujaratNProcurePortal(
           },
           body: bodyPayload,
           cache: 'no-store'
-        }, 8000);
+        }, 7000);
 
-        if (!apiRes.ok) continue;
+        if (!apiRes.ok) return;
 
         const resJson = await apiRes.json();
         const dataList = resJson?.data || [];
@@ -201,7 +201,7 @@ export async function crawlGujaratNProcurePortal(
       } catch (kwErr) {
         console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' crawl error:`, kwErr);
       }
-    }
+    }));
   } catch (err) {
     console.warn('[NPROCURE_CRAWLER] General crawl error:', err);
   }
