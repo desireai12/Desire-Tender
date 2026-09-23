@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { STATE_PORTALS, KEYWORD_CATEGORIES, crawlStateGePNICPortal } from '@/lib/gepnic-crawler';
+import { crawlTelanganaPortal } from '@/lib/telangana-crawler';
+import { crawlGujaratNProcurePortal } from '@/lib/nprocure-crawler';
 import vapiTenderData from '@/data/vapi_karvad_real_tender.json';
 import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
@@ -1464,11 +1466,19 @@ Return valid JSON only:
 
         const chunk = states.slice(i, i + CONCURRENCY_LIMIT);
         const chunkPromises = chunk.map(async (state) => {
-          const portalUrl = STATE_PORTALS[state];
-          if (!portalUrl) return { state, tenders: [] };
           try {
-            // Strict 10s cap per individual portal
-            const crawlPromise = crawlStateGePNICPortal(state, portalUrl, keywords, minValueCr, maxPerKw);
+            let crawlPromise: Promise<any[]>;
+            if (state === 'Telangana') {
+              crawlPromise = crawlTelanganaPortal(keywords, minValueCr, maxPerKw);
+            } else if (state === 'Gujarat') {
+              crawlPromise = crawlGujaratNProcurePortal(keywords, minValueCr, maxPerKw);
+            } else {
+              const portalUrl = STATE_PORTALS[state];
+              if (!portalUrl) return { state, tenders: [] };
+              crawlPromise = crawlStateGePNICPortal(state, portalUrl, keywords, minValueCr, maxPerKw);
+            }
+
+            // Strict 10s cap per individual portal (GePNIC or dedicated non-NIC)
             const timeoutPromise = new Promise<any[]>((_, reject) => 
               setTimeout(() => reject(new Error(`10s Timeout for ${state}`)), 10000)
             );

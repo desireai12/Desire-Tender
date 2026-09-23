@@ -358,7 +358,9 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
     { name: 'Indian Oil (IOCL)', url: 'https://iocletenders.nic.in/nicgep/app' },
     { name: 'Coal India (CIL)', url: 'https://coalindiatenders.nic.in/nicgep/app' },
     { name: 'PMGSY / NRRDA', url: 'http://pmgsytenders.gov.in/nicgep/app' },
-    { name: 'Defence eProcurement', url: 'https://defproc.gov.in/nicgep/app' }
+    { name: 'Defence eProcurement', url: 'https://defproc.gov.in/nicgep/app' },
+    { name: 'Telangana', url: 'https://tender.telangana.gov.in' },
+    { name: 'Gujarat', url: 'https://tender.nprocure.com' }
   ];
 
   const KEYWORD_GROUP_PRESETS: Record<string, string[]> = {
