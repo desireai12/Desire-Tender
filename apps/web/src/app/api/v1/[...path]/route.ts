@@ -9,6 +9,7 @@ import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export const maxDuration = 300; // Max serverless function execution limit (300s)
 export const dynamic = 'force-dynamic';

@@ -1,5 +1,7 @@
 import { GovtTenderResult, cleanSectorFromTitle } from './gepnic-crawler';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 7000): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -10,6 +12,19 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
     });
   } finally {
     clearTimeout(timeoutId);
+  }
+}
+
+function extractAllCookies(res: Response): string {
+  try {
+    if (typeof (res.headers as any).getSetCookie === 'function') {
+      const list: string[] = (res.headers as any).getSetCookie();
+      return list.map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
+    }
+    const raw = res.headers.get('set-cookie') || '';
+    return raw.split(/,(?=[^;]*=)/).map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
+  } catch {
+    return '';
   }
 }
 
@@ -27,15 +42,14 @@ export async function crawlTelanganaPortal(
   };
 
   try {
-    // 1. Fetch initial landing page to obtain JSESSIONID and CSRFToken
+    // 1. Fetch initial landing page to obtain JSESSIONID, Application Gateway cookies, and CSRFToken
     const homeUrl = 'https://tender.telangana.gov.in';
     const initRes = await fetchWithTimeout(homeUrl, {
       headers: browserHeaders,
       cache: 'no-store'
     }, 7000);
 
-    const initCookies = initRes.headers.get('set-cookie') || '';
-    const cookieHeader = initCookies.split(';')[0];
+    const initCookies = extractAllCookies(initRes);
     const initHtml = await initRes.text();
 
     const actionMatch = initHtml.match(/action=["']([^"']+)["']/i);
@@ -59,7 +73,7 @@ export async function crawlTelanganaPortal(
       method: 'POST',
       headers: {
         ...browserHeaders,
-        'Cookie': cookieHeader,
+        'Cookie': initCookies,
         'Referer': homeUrl,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
@@ -67,16 +81,15 @@ export async function crawlTelanganaPortal(
       cache: 'no-store'
     }, 8000);
 
+    const loginCookies = extractAllCookies(loginRes);
+    const mergedCookies = [initCookies, loginCookies].filter(Boolean).join('; ');
     const loginHtml = await loginRes.text();
 
-    // 3. Extract Live Tenders from #tab1default block
-    const tab1Match = loginHtml.match(/<div[^>]*id=["']tab1default["'][^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/i);
-    const searchScopeHtml = tab1Match ? tab1Match[1] : loginHtml;
-
-    const cardRegex = /<div[^>]*class=["'][^"']*updateNag[^"']*["'][^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
+    // 3. Extract Live Tenders from update-nag blocks in loginHtml
+    const cardRegex = /<div[^>]*class=["'][^"']*update-nag[^"']*["'][^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
     let cardMatch;
 
-    while ((cardMatch = cardRegex.exec(searchScopeHtml)) !== null) {
+    while ((cardMatch = cardRegex.exec(loginHtml)) !== null) {
       const cardHtml = cardMatch[1];
 
       // Extract Tender ID
@@ -95,13 +108,13 @@ export async function crawlTelanganaPortal(
 
       // Extract Division / Department
       const divMatch = cardHtml.match(/in\s*Division\s*No\s*:\s*([^.<]+)/i);
-      const division = divMatch ? divMatch[1].trim() : 'Telangana State Department';
+      let division = divMatch ? divMatch[1].trim() : 'Telangana State Department';
 
       // Extract Date
       const monthMatch = cardHtml.match(/<h4>([A-Za-z]+)<\/h4>/i);
       const dayMatch = cardHtml.match(/<h4>(\d+)<\/h4>/i);
       const timeMatch = cardHtml.match(/<h4>(\d{1,2}:\d{2}\s*[AP]M)<\/h4>/i);
-      const dueDate = (monthMatch && dayMatch)
+      let dueDate = (monthMatch && dayMatch)
         ? `${dayMatch[1]}-${monthMatch[1]}-2026 ${timeMatch ? timeMatch[1] : ''}`.trim()
         : 'Open';
 
@@ -111,12 +124,12 @@ export async function crawlTelanganaPortal(
 
       // Filter by keywords
       const titleUpper = title.toUpperCase();
-      const kwMatched = keywords.some(k => {
+      const kwMatched = keywords.length === 0 || keywords.some(k => {
         const parts = k.toUpperCase().split(/\s+OR\s+/i);
         return parts.some(p => titleUpper.includes(p.trim()));
       });
 
-      if (keywords.length > 0 && !kwMatched) continue;
+      if (!kwMatched) continue;
 
       let valueCr = 0.0;
       let amountInr = 0;
@@ -141,7 +154,7 @@ export async function crawlTelanganaPortal(
             method: 'POST',
             headers: {
               ...browserHeaders,
-              'Cookie': cookieHeader,
+              'Cookie': mergedCookies,
               'Referer': loginUrl,
               'Content-Type': 'application/x-www-form-urlencoded'
             },
@@ -211,7 +224,7 @@ export async function crawlTelanganaPortal(
         remarks: 'Live from tender.telangana.gov.in'
       });
 
-      if (discovered.length >= maxPerKw * keywords.length) break;
+      if (discovered.length >= maxPerKw * (keywords.length || 1)) break;
     }
   } catch (err) {
     console.warn('[TELANGANA_CRAWLER] Crawl error:', err);

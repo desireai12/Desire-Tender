@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 import { GovtTenderResult, cleanSectorFromTitle } from './gepnic-crawler';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 8000): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -11,6 +13,19 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
     });
   } finally {
     clearTimeout(timeoutId);
+  }
+}
+
+function extractAllCookies(res: Response): string {
+  try {
+    if (typeof (res.headers as any).getSetCookie === 'function') {
+      const list: string[] = (res.headers as any).getSetCookie();
+      return list.map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
+    }
+    const raw = res.headers.get('set-cookie') || '';
+    return raw.split(/,(?=[^;]*=)/).map(c => c.split(';')[0].trim()).filter(Boolean).join('; ');
+  } catch {
+    return '';
   }
 }
 
@@ -66,11 +81,7 @@ export async function crawlGujaratNProcurePortal(
       cache: 'no-store'
     }, 8000);
 
-    const rawCookies = homeRes.headers.get('set-cookie') || '';
-    // Extract TSESSIONID specifically
-    const tsessionMatch = rawCookies.match(/TSESSIONID=([^;]+)/i);
-    const sessionCookie = tsessionMatch ? `TSESSIONID=${tsessionMatch[1]}` : rawCookies.split(';')[0];
-
+    const sessionCookie = extractAllCookies(homeRes);
     const homeHtml = await homeRes.text();
     const csrfMatch = homeHtml.match(/<meta\s+name=["']_csrf["']\s+content=["']([^"']*)["']/i);
     const csrf = csrfMatch ? csrfMatch[1] : '';
@@ -85,7 +96,7 @@ export async function crawlGujaratNProcurePortal(
         if (!atomicKws.includes(p)) atomicKws.push(p);
       }
     }
-    // Limit to top 4 search terms to stay safely within the 8s portal timeout
+    // Limit to top 4 search terms to stay safely within the portal timeout
     const searchTerms = atomicKws.length > 0 ? atomicKws.slice(0, 4) : ['Solar', 'Water'];
 
     await Promise.all(searchTerms.map(async (kw) => {
@@ -140,13 +151,14 @@ export async function crawlGujaratNProcurePortal(
           const noticeNo = (item['1'] || '').trim();
           const briefHtml = item['2'] || '';
 
-          // Extract Tender ID
+          // Extract Tender ID (e.g. "Tender Id :347800")
           const tidMatch = briefHtml.match(/Tender\s*Id\s*:\s*([0-9]+)/i);
           const tenderId = tidMatch ? tidMatch[1] : '';
           if (!tenderId || seenIds.has(tenderId)) continue;
 
           // Extract Work Name / Title
-          const nameMatch = briefHtml.match(/Name\s*Of\s*Work\s*:\s*([^<]+)/i);
+          const nameMatch = briefHtml.match(/Name\s*Of\s*Work\s*:\s*(?:<\/strong>)?\s*([^<]+)/i) ||
+                            briefHtml.match(/<strong[^>]*>Name\s*Of\s*Work\s*:\s*<\/strong>\s*([^<]+)<\/a>/i);
           const title = nameMatch ? nameMatch[1].replace(/\s+/g, ' ').trim() : `Gujarat Tender ${tenderId}`;
 
           // Extract Department
@@ -165,7 +177,8 @@ export async function crawlGujaratNProcurePortal(
           }
 
           // Extract Submission Date
-          const dateMatch = briefHtml.match(/Submission\s*:\s*([0-9-]+\s*[0-9:]+)/i);
+          const dateMatch = briefHtml.match(/Submission\s*:\s*([0-9-]+\s*[0-9:]+)/i) ||
+                            briefHtml.match(/Last\s*Date\s*&\s*Time\s*For\s*Submission\s*:\s*([0-9-]+\s*[0-9:]+)/i);
           const dueDate = dateMatch ? dateMatch[1].trim() : 'Open';
 
           if (minValueCr > 0 && valueCr > 0 && valueCr < minValueCr) continue;
@@ -196,7 +209,7 @@ export async function crawlGujaratNProcurePortal(
             remarks: 'Live from tender.nprocure.com'
           });
 
-          if (discovered.length >= maxPerKw * keywords.length) break;
+          if (discovered.length >= maxPerKw * (keywords.length || 1)) break;
         }
       } catch (kwErr) {
         console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' crawl error:`, kwErr);
