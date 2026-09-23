@@ -1461,6 +1461,16 @@ Return valid JSON only:
         const sectorsMap: Record<string, { count: number; val: number }> = {};
         const priorityList: any[] = [];
 
+        const VALID_INDIAN_STATES = [
+          'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
+          'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 
+          'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 
+          'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 
+          'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 
+          'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Chandigarh', 'Puducherry', 
+          'Dadra and Nagar Haveli', 'Daman and Diu', 'Central (All India)', 'Coal India (CIL)'
+        ];
+
         for (const row of allRows) {
           if (row.updated_at && (!latestUpdate || row.updated_at > latestUpdate)) {
             latestUpdate = row.updated_at;
@@ -1470,9 +1480,31 @@ Return valid JSON only:
           const valCr = parseFloat(elig?.value_cr) || 0.0;
           totalValCr += valCr;
 
-          // State resolution
-          const state = elig?.state || row.department_assigned || 'Central / India';
-          const authority = elig?.source || row.department_assigned || `${state} Department`;
+          // Robust State resolution:
+          // Check explicit state field against valid Indian states/territories
+          let resolvedState: string | null = null;
+          const rawState = typeof elig?.state === 'string' ? elig.state.trim() : null;
+          if (rawState) {
+            const matched = VALID_INDIAN_STATES.find(s => s.toLowerCase() === rawState.toLowerCase());
+            if (matched) resolvedState = matched;
+          }
+
+          // If no state explicitly tagged, look into tender name, district, or reasoning text
+          if (!resolvedState) {
+            const combinedText = `${row.tender_name || ''} ${elig?.reasoning || ''}`.toLowerCase();
+            const matched = VALID_INDIAN_STATES.find(s => combinedText.includes(s.toLowerCase()));
+            if (matched) {
+              resolvedState = matched;
+            } else if (combinedText.includes('alwar') || combinedText.includes('phed rajasthan')) {
+              resolvedState = 'Rajasthan';
+            } else if (combinedText.includes('patan') || combinedText.includes('gwssb') || combinedText.includes('germi')) {
+              resolvedState = 'Gujarat';
+            }
+          }
+
+          // If genuine state cannot be verified, honestly categorize under "Unclassified"
+          const state = resolvedState || 'Unclassified';
+          const authority = elig?.source || (state !== 'Unclassified' ? `${state} Authority` : 'Internal / Unassigned');
 
           if (!statesMap[state]) {
             statesMap[state] = { count: 0, val: 0.0, authority };
@@ -1525,7 +1557,11 @@ Return valid JSON only:
             valNum: d.val,
             authority: d.authority
           }))
-          .sort((a, b) => (b.count !== a.count ? b.count - a.count : b.valNum - a.valNum));
+          .sort((a, b) => {
+            if (a.state === 'Unclassified' && b.state !== 'Unclassified') return 1;
+            if (b.state === 'Unclassified' && a.state !== 'Unclassified') return -1;
+            return b.count !== a.count ? b.count - a.count : b.valNum - a.valNum;
+          });
 
         const topSectors = Object.entries(sectorsMap)
           .map(([sec, d]) => ({

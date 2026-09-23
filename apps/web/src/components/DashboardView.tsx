@@ -132,7 +132,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     { 
       label: 'Total Market Value', 
       value: isLoadingSummary ? 'Loading...' : `₹${totalMarketValueCr.toLocaleString('en-IN')} Cr`, 
-      sub: `Across ${topStates.length} Active States`, 
+      sub: `Across ${topStates.filter(s => s.state !== 'Unclassified').length} Active States`, 
       icon: TrendingUp, 
       color: 'text-blue-800 dark:text-blue-400', 
       bg: 'bg-blue-50 dark:bg-blue-950/60' 
