@@ -1427,6 +1427,130 @@ Return valid JSON only:
       }
     }
 
+    // ═══ LIVE TENDERS MARKET SUMMARY (REAL SUPABASE STATS) ══════════════════
+    if (subPath === 'tenders/live-summary' && method === 'GET') {
+      try {
+        if (!supabase) {
+          return NextResponse.json({
+            status: 'error',
+            message: 'Supabase client not configured',
+            active_count: 0,
+            total_market_value_cr: 0,
+            top_states: [],
+            top_sectors: [],
+            priority_tenders: [],
+            last_updated: null
+          }, { status: 500 });
+        }
+
+        const { data: rows, error: sbErr } = await supabase
+          .from('tenders')
+          .select('id, tender_name, project_category, department_assigned, current_stage, stage_status, eligibility_result, created_at, updated_at')
+          .order('updated_at', { ascending: false });
+
+        if (sbErr) {
+          console.error('[LIVE_SUMMARY_ERROR] Supabase query failed:', sbErr);
+          return NextResponse.json({ status: 'error', message: sbErr.message }, { status: 500 });
+        }
+
+        const allRows = rows || [];
+        const activeCount = allRows.length;
+        let totalValCr = 0.0;
+        let latestUpdate: string | null = null;
+        const statesMap: Record<string, { count: number; val: number; authority: string }> = {};
+        const sectorsMap: Record<string, { count: number; val: number }> = {};
+        const priorityList: any[] = [];
+
+        for (const row of allRows) {
+          if (row.updated_at && (!latestUpdate || row.updated_at > latestUpdate)) {
+            latestUpdate = row.updated_at;
+          }
+
+          const elig = row.eligibility_result as any;
+          const valCr = parseFloat(elig?.value_cr) || 0.0;
+          totalValCr += valCr;
+
+          // State resolution
+          const state = elig?.state || row.department_assigned || 'Central / India';
+          const authority = elig?.source || row.department_assigned || `${state} Department`;
+
+          if (!statesMap[state]) {
+            statesMap[state] = { count: 0, val: 0.0, authority };
+          }
+          statesMap[state].count += 1;
+          statesMap[state].val += valCr;
+
+          // Sector resolution
+          const sector = row.project_category || 'Infrastructure EPC';
+          if (!sectorsMap[sector]) {
+            sectorsMap[sector] = { count: 0, val: 0.0 };
+          }
+          sectorsMap[sector].count += 1;
+          sectorsMap[sector].val += valCr;
+
+          // Days left estimation
+          let daysLeft = 14;
+          if (elig?.due_date) {
+            try {
+              const parsedDate = Date.parse(elig.due_date);
+              if (!isNaN(parsedDate)) {
+                const diff = Math.ceil((parsedDate - Date.now()) / (1000 * 60 * 60 * 24));
+                daysLeft = diff > 0 ? diff : 0;
+              }
+            } catch {}
+          }
+
+          priorityList.push({
+            id: row.id,
+            nit: row.id,
+            title: row.tender_name,
+            authority,
+            state,
+            sector,
+            costCr: Math.round(valCr * 100) / 100,
+            dueDate: elig?.due_date || 'Live NIT',
+            daysLeft,
+            matchPct: valCr >= 10 ? 95 : 90,
+            status: valCr >= 50 ? 'JV Recommended' : 'Direct Eligible',
+            portalUrl: elig?.portal_url || null,
+            updatedAt: row.updated_at
+          });
+        }
+
+        const topStates = Object.entries(statesMap)
+          .map(([st, d]) => ({
+            state: st,
+            count: d.count,
+            val: `₹${Math.round(d.val * 100) / 100} Cr`,
+            valNum: d.val,
+            authority: d.authority
+          }))
+          .sort((a, b) => (b.count !== a.count ? b.count - a.count : b.valNum - a.valNum));
+
+        const topSectors = Object.entries(sectorsMap)
+          .map(([sec, d]) => ({
+            name: sec,
+            count: d.count,
+            value: `₹${Math.round(d.val * 100) / 100} Cr`,
+            valNum: d.val,
+            tag: d.val >= 50 ? 'High Value' : 'Active NIT'
+          }))
+          .sort((a, b) => (b.count !== a.count ? b.count - a.count : b.valNum - a.valNum));
+
+        return NextResponse.json({
+          status: 'success',
+          active_count: activeCount,
+          total_market_value_cr: Math.round(totalValCr * 100) / 100,
+          top_states: topStates,
+          top_sectors: topSectors,
+          priority_tenders: priorityList.slice(0, 6),
+          last_updated: latestUpdate
+        });
+      } catch (err: any) {
+        console.error('[LIVE_SUMMARY_EXCEPTION]', err);
+        return NextResponse.json({ status: 'error', message: err?.message || 'Server error' }, { status: 500 });
+      }
+    }
 
     // ═══ GOVERNMENT PORTALS SCRAPER (RUNS NATIVELY ON VERCEL) ══════════════
     if (subPath === 'scraper/config' && method === 'GET') {
