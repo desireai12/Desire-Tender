@@ -315,7 +315,11 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
       'Punjab': 'https://eproc.punjab.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
       'Odisha': 'https://tendersodisha.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
       'Tamil Nadu': 'https://tntenders.gov.in/nicgep/app?page=FrontEndAdvancedSearch&service=page',
-      'Central (All India)': 'https://etenders.gov.in/eprocure/app?page=FrontEndAdvancedSearch&service=page'
+      'Central (All India)': 'https://etenders.gov.in/eprocure/app?page=FrontEndAdvancedSearch&service=page',
+      'Telangana': 'https://tender.telangana.gov.in',
+      'Gujarat': 'https://tender.nprocure.com',
+      'Karnataka': 'https://kppp.karnataka.gov.in',
+      'Chhattisgarh': 'https://eproc.cgstate.gov.in'
     };
 
     const targetUrl = tender.portal_search_url || STATE_PORTAL_SEARCH_MAP[tender.state] || tender.document_link || 'https://eproc.rajasthan.gov.in/nicgep/app';
@@ -359,8 +363,28 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
     { name: 'Coal India (CIL)', url: 'https://coalindiatenders.nic.in/nicgep/app' },
     { name: 'PMGSY / NRRDA', url: 'http://pmgsytenders.gov.in/nicgep/app' },
     { name: 'Defence eProcurement', url: 'https://defproc.gov.in/nicgep/app' },
-    { name: 'Telangana', url: 'https://tender.telangana.gov.in' },
-    { name: 'Gujarat', url: 'https://tender.nprocure.com' }
+    { name: 'Telangana', url: 'https://tender.telangana.gov.in' }
+  ];
+
+  const MANUAL_SEARCH_PORTALS = [
+    {
+      name: 'Gujarat (nProcure)',
+      url: 'https://tender.nprocure.com',
+      reason: 'Geo-Fenced (India IPs only — blocked on cloud serverless origins)',
+      searchTip: 'Search under "Live Tenders" using PBKDF2/AES encrypted portal.'
+    },
+    {
+      name: 'Karnataka (KPPP)',
+      url: 'https://kppp.karnataka.gov.in',
+      reason: 'Protected by Cloudflare Turnstile & interactive anti-bot session verification',
+      searchTip: 'Visit portal, complete Turnstile challenge, then search by Dept / Category.'
+    },
+    {
+      name: 'Chhattisgarh (eProc)',
+      url: 'https://eproc.cgstate.gov.in',
+      reason: 'Protected by mandatory server-side graphical CAPTCHA on tender search form',
+      searchTip: 'Visit portal, enter 6-digit image CAPTCHA to query active NITs.'
+    }
   ];
 
   const KEYWORD_GROUP_PRESETS: Record<string, string[]> = {
@@ -1600,6 +1624,46 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                       </button>
                     );
                   })}
+                </div>
+
+                {/* Step 1B: Manual Search Portals (Geo-Fenced / CAPTCHA-Gated) */}
+                <div className="mt-3 p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-900 dark:text-amber-200">
+                      <ShieldAlert className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                      <span>Manual Search Portals (Geo-Fenced / Anti-Bot Protected)</span>
+                    </div>
+                    <span className="text-[10px] text-amber-700/80 dark:text-amber-400/80 font-medium">
+                      Requires direct browser search
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                    These state portals cannot be queried directly from Vercel cloud serverless functions due to state-level IP firewalls (Gujarat) or interactive CAPTCHA challenges (Karnataka, Chhattisgarh). Click any portal below to open its search interface directly:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    {MANUAL_SEARCH_PORTALS.map((portal) => (
+                      <a
+                        key={portal.name}
+                        href={portal.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/60 hover:border-amber-400 transition-all flex flex-col justify-between group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                            {portal.name}
+                          </span>
+                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                        </div>
+                        <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium mt-1">
+                          {portal.reason}
+                        </div>
+                        <div className="text-[9px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                          {portal.searchTip}
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
 
