@@ -257,12 +257,12 @@ export async function crawlGujaratNProcurePortal(
       }
     }));
 
-    if (discovered.length === 0 && diagInfo) {
+    if (discovered.length === 0) {
       discovered.push({
         id: 'GUJ-DIAG',
         sr_no: '0',
         tender_id: 'GUJ_DIAG',
-        title: `DIAGNOSTIC: ${diagInfo}`,
+        title: `DIAGNOSTIC: diagInfo=[${diagInfo}] cookie=[${sessionCookie ? 'YES' : 'NO'}] homeStatus=[${homeRes.status}] bodyLen=[${homeRes.body.length}]`,
         location: 'Gujarat',
         state: 'Gujarat',
         raw_state: 'Gujarat',
@@ -280,7 +280,7 @@ export async function crawlGujaratNProcurePortal(
         bidders: [],
         bidders_count: 0,
         l1_price_info: '',
-        remarks: diagInfo
+        remarks: diagInfo || 'No tenders matched'
       });
     }
   } catch (err: any) {
