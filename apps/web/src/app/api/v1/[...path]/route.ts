@@ -1480,31 +1480,81 @@ Return valid JSON only:
           const valCr = parseFloat(elig?.value_cr) || 0.0;
           totalValCr += valCr;
 
-          // Robust State resolution:
-          // Check explicit state field against valid Indian states/territories
+          // ─── STRICT 3-TIER STATE RESOLUTION LOGIC ──────────────────
+          // PRIORITY 1 (HIGHEST): Issuing Authority / Department Field
           let resolvedState: string | null = null;
+          let resolvedAuthority: string = 'Internal / Unassigned';
+
+          // 1a. Explicit state tag in eligibility_result
           const rawState = typeof elig?.state === 'string' ? elig.state.trim() : null;
           if (rawState) {
             const matched = VALID_INDIAN_STATES.find(s => s.toLowerCase() === rawState.toLowerCase());
             if (matched) resolvedState = matched;
           }
 
-          // If no state explicitly tagged, look into tender name, district, or reasoning text
-          if (!resolvedState) {
-            const combinedText = `${row.tender_name || ''} ${elig?.reasoning || ''}`.toLowerCase();
-            const matched = VALID_INDIAN_STATES.find(s => combinedText.includes(s.toLowerCase()));
+          // 1b. Department / Issuing Authority field
+          // (Ignore generic internal roles like 'Admin', 'Business Development', etc.)
+          const INTERNAL_DEPARTMENTS = ['admin', 'business development', 'tender team', 'estimation team', 'management', 'finance'];
+          const deptRaw = (row.department_assigned || '').trim();
+          const isInternalDept = INTERNAL_DEPARTMENTS.includes(deptRaw.toLowerCase());
+          const authorityDeptField = isInternalDept ? '' : deptRaw;
+          const explicitAuthority = (elig?.authority || elig?.source || elig?.organisation || '').trim();
+          const combinedAuthority = `${authorityDeptField} ${explicitAuthority}`.toLowerCase();
+
+          if (!resolvedState && combinedAuthority.length > 0) {
+            const matched = VALID_INDIAN_STATES.find(s => combinedAuthority.includes(s.toLowerCase()));
             if (matched) {
               resolvedState = matched;
-            } else if (combinedText.includes('alwar') || combinedText.includes('phed rajasthan')) {
-              resolvedState = 'Rajasthan';
-            } else if (combinedText.includes('patan') || combinedText.includes('gwssb') || combinedText.includes('germi')) {
+            } else if (combinedAuthority.includes('gwssb') || combinedAuthority.includes('germi') || combinedAuthority.includes('gmdc') || combinedAuthority.includes('gsecl')) {
               resolvedState = 'Gujarat';
+            } else if (combinedAuthority.includes('phed') || combinedAuthority.includes('rvunl') || combinedAuthority.includes('rajcomp')) {
+              resolvedState = 'Rajasthan';
+            } else if (combinedAuthority.includes('sccl') || combinedAuthority.includes('tsredco') || combinedAuthority.includes('tstransco')) {
+              resolvedState = 'Telangana';
+            } else if (combinedAuthority.includes('dsiidc') || combinedAuthority.includes('dpcc') || combinedAuthority.includes('dtc') || combinedAuthority.includes('djb')) {
+              resolvedState = 'Delhi';
+            } else if (combinedAuthority.includes('rwss') || combinedAuthority.includes('gridco') || combinedAuthority.includes('optcl')) {
+              resolvedState = 'Odisha';
+            } else if (combinedAuthority.includes('coal india') || combinedAuthority.includes('cil')) {
+              resolvedState = 'Coal India (CIL)';
             }
+          }
+
+          // PRIORITY 2 (SECOND): Tender Title Text (tender_name)
+          // Scan strictly title text for district/city or explicit state names.
+          // CRITICAL: Free-text evaluation/eligibility/audit commentary is EXPLICITLY EXCLUDED.
+          if (!resolvedState && row.tender_name) {
+            const titleLower = row.tender_name.toLowerCase();
+            const matched = VALID_INDIAN_STATES.find(s => titleLower.includes(s.toLowerCase()));
+            if (matched) {
+              resolvedState = matched;
+            } else if (titleLower.includes('alwar') || titleLower.includes('jaipur') || titleLower.includes('jodhpur') || titleLower.includes('salumber') || titleLower.includes('sarada') || titleLower.includes('bikaner') || titleLower.includes('kota')) {
+              resolvedState = 'Rajasthan';
+            } else if (titleLower.includes('patan') || titleLower.includes('ahmedabad') || titleLower.includes('gandhinagar') || titleLower.includes('surat') || titleLower.includes('vadodara') || titleLower.includes('rajkot')) {
+              resolvedState = 'Gujarat';
+            } else if (titleLower.includes('new delhi') || titleLower.includes('ip estate')) {
+              resolvedState = 'Delhi';
+            } else if (titleLower.includes('cuttack') || titleLower.includes('jagatsinghpur') || titleLower.includes('bhubaneswar')) {
+              resolvedState = 'Odisha';
+            } else if (titleLower.includes('hyderabad') || titleLower.includes('warangal') || titleLower.includes('khammam')) {
+              resolvedState = 'Telangana';
+            }
+          }
+
+          // Authority string clean formatting
+          if (authorityDeptField) {
+            resolvedAuthority = authorityDeptField.split('||')[0].trim();
+          } else if (explicitAuthority) {
+            resolvedAuthority = explicitAuthority;
+          } else if (resolvedState) {
+            resolvedAuthority = `${resolvedState} Authority`;
+          } else {
+            resolvedAuthority = 'Internal / Unassigned';
           }
 
           // If genuine state cannot be verified, honestly categorize under "Unclassified"
           const state = resolvedState || 'Unclassified';
-          const authority = elig?.source || (state !== 'Unclassified' ? `${state} Authority` : 'Internal / Unassigned');
+          const authority = resolvedAuthority;
 
           if (!statesMap[state]) {
             statesMap[state] = { count: 0, val: 0.0, authority };
