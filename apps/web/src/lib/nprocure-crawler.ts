@@ -1,29 +1,61 @@
+import https from 'https';
 import crypto from 'crypto';
 import { GovtTenderResult, cleanSectorFromTitle } from './gepnic-crawler';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = 12000): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal
+function httpsGet(url: string, headers: Record<string, string>, timeoutMs: number = 12000): Promise<{ status: number; headers: any; body: string }> {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const req = https.request({
+      hostname: urlObj.hostname,
+      port: urlObj.port || 443,
+      path: urlObj.pathname + urlObj.search,
+      method: 'GET',
+      headers: headers,
+      rejectUnauthorized: false,
+      timeout: timeoutMs
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode || 200, headers: res.headers, body: data }));
     });
-  } finally {
-    clearTimeout(timeoutId);
-  }
+    req.on('timeout', () => { req.destroy(); reject(new Error(`Timeout after ${timeoutMs}ms`)); });
+    req.on('error', err => reject(err));
+    req.end();
+  });
 }
 
-function extractTSessionId(res: Response): string {
+function httpsPost(url: string, headers: Record<string, string>, body: string, timeoutMs: number = 10000): Promise<{ status: number; headers: any; body: string }> {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const bodyBuf = Buffer.from(body, 'utf-8');
+    const req = https.request({
+      hostname: urlObj.hostname,
+      port: urlObj.port || 443,
+      path: urlObj.pathname + urlObj.search,
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Length': bodyBuf.length
+      },
+      rejectUnauthorized: false,
+      timeout: timeoutMs
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve({ status: res.statusCode || 200, headers: res.headers, body: data }));
+    });
+    req.on('timeout', () => { req.destroy(); reject(new Error(`Timeout after ${timeoutMs}ms`)); });
+    req.on('error', err => reject(err));
+    req.write(bodyBuf);
+    req.end();
+  });
+}
+
+function extractTSessionId(setCookieHeader: string | string[] | undefined): string {
   try {
-    let raw = '';
-    if (typeof (res.headers as any).getSetCookie === 'function') {
-      raw = (res.headers as any).getSetCookie().join('; ');
-    } else {
-      raw = res.headers.get('set-cookie') || '';
-    }
+    const raw = Array.isArray(setCookieHeader) ? setCookieHeader.join('; ') : (setCookieHeader || '');
     const match = raw.match(/TSESSIONID=([^;,\s]+)/i);
     return match ? `TSESSIONID=${match[1]}` : '';
   } catch {
@@ -69,24 +101,19 @@ export async function crawlGujaratNProcurePortal(
 ): Promise<GovtTenderResult[]> {
   const discovered: GovtTenderResult[] = [];
   const seenIds = new Set<string>();
-  let diagInfo = '';
 
-  const browserHeaders = {
+  const browserHeaders: Record<string, string> = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
   };
 
   try {
-    // 1. Fetch homepage to get TSESSIONID and CSRF token (12s timeout for overseas latency)
+    // 1. Fetch homepage to get TSESSIONID and CSRF token using rejectUnauthorized=false
     const homeUrl = 'https://tender.nprocure.com';
-    const homeRes = await fetchWithTimeout(homeUrl, {
-      headers: browserHeaders,
-      cache: 'no-store'
-    }, 12000);
+    const homeRes = await httpsGet(homeUrl, browserHeaders, 12000);
 
-    const sessionCookie = extractTSessionId(homeRes);
-    const homeHtml = await homeRes.text();
-    const csrfMatch = homeHtml.match(/<meta\s+name=["']_csrf["']\s+content=["']([^"']*)["']/i);
+    const sessionCookie = extractTSessionId(homeRes.headers['set-cookie']);
+    const csrfMatch = homeRes.body.match(/<meta\s+name=["']_csrf["']\s+content=["']([^"']*)["']/i);
     const csrf = csrfMatch ? csrfMatch[1] : '';
 
     const apiUrl = 'https://tender.nprocure.com/beforeLoginTenderTableList';
@@ -99,7 +126,6 @@ export async function crawlGujaratNProcurePortal(
         if (!atomicKws.includes(p)) atomicKws.push(p);
       }
     }
-    // Limit to top 4 search terms to stay safely within the portal timeout
     const searchTerms = atomicKws.length > 0 ? atomicKws.slice(0, 4) : ['Solar', 'Water'];
 
     await Promise.all(searchTerms.map(async (kw) => {
@@ -132,28 +158,30 @@ export async function crawlGujaratNProcurePortal(
           key: enc.key
         });
 
-        const apiRes = await fetchWithTimeout(apiUrl, {
-          method: 'POST',
-          headers: {
-            ...browserHeaders,
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Cookie': sessionCookie
-          },
-          body: bodyPayload,
-          cache: 'no-store'
-        }, 10000);
+        const postHeaders: Record<string, string> = {
+          ...browserHeaders,
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        };
+        if (sessionCookie) {
+          postHeaders['Cookie'] = sessionCookie;
+        }
 
-        if (!apiRes.ok) {
-          diagInfo = `apiRes_status_${apiRes.status}_cookie_${sessionCookie.slice(0, 20)}`;
+        const apiRes = await httpsPost(apiUrl, postHeaders, bodyPayload, 10000);
+
+        if (apiRes.status !== 200) {
+          console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' returned status ${apiRes.status}`);
           return;
         }
 
-        const resJson = await apiRes.json();
-        const dataList = resJson?.data || [];
-        if (dataList.length === 0 && !diagInfo) {
-          diagInfo = `empty_data_${JSON.stringify(resJson).slice(0, 100)}`;
+        let resJson: any = null;
+        try {
+          resJson = JSON.parse(apiRes.body);
+        } catch {
+          return;
         }
+
+        const dataList = resJson?.data || [];
 
         for (const item of dataList) {
           const noticeNo = (item['1'] || '').trim();
@@ -220,63 +248,11 @@ export async function crawlGujaratNProcurePortal(
           if (discovered.length >= maxPerKw * (keywords.length || 1)) break;
         }
       } catch (kwErr: any) {
-        diagInfo = `kw_err_${kwErr?.message || kwErr}`;
         console.warn(`[NPROCURE_CRAWLER] Keyword '${kw}' crawl error:`, kwErr);
       }
     }));
-
-    if (discovered.length === 0 && diagInfo) {
-      discovered.push({
-        id: 'GUJ-DIAG',
-        sr_no: '0',
-        tender_id: 'GUJ_DIAGNOSTIC',
-        title: `DIAGNOSTIC: ${diagInfo} (cookie: ${sessionCookie ? 'PRESENT' : 'MISSING'})`,
-        location: 'Gujarat',
-        state: 'Gujarat',
-        raw_state: 'Gujarat',
-        amount_inr: 0,
-        value_cr: 0,
-        pre_bid_date: '',
-        due_date: 'N/A',
-        department: 'Gujarat',
-        type_of_work: 'Diag',
-        sector: 'Diag',
-        status: 'Diag',
-        raw_status: 'Diag',
-        document_link: '',
-        summary_sheet: '',
-        bidders: [],
-        bidders_count: 0,
-        l1_price_info: '',
-        remarks: diagInfo
-      });
-    }
   } catch (err: any) {
     console.warn('[NPROCURE_CRAWLER] General crawl error:', err);
-    discovered.push({
-      id: 'GUJ-ERR',
-      sr_no: '0',
-      tender_id: 'GUJ_ERROR',
-      title: `GENERAL ERROR: ${err?.message || err}`,
-      location: 'Gujarat',
-      state: 'Gujarat',
-      raw_state: 'Gujarat',
-      amount_inr: 0,
-      value_cr: 0,
-      pre_bid_date: '',
-      due_date: 'N/A',
-      department: 'Gujarat',
-      type_of_work: 'Error',
-      sector: 'Error',
-      status: 'Error',
-      raw_status: 'Error',
-      document_link: '',
-      summary_sheet: '',
-      bidders: [],
-      bidders_count: 0,
-      l1_price_info: '',
-      remarks: String(err)
-    });
   }
 
   return discovered;
