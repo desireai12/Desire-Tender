@@ -1469,10 +1469,16 @@ Return valid JSON only:
         const chunkPromises = chunk.map(async (state) => {
           try {
             let crawlPromise: Promise<any[]>;
-            if (state === 'Telangana') {
+            if (state === 'Gujarat') {
+              // Gujarat nProcure enforces state-level IP geofencing (India IPs only).
+              // Vercel serverless runs in AWS US-East, which is blocked at TCP SYN level.
+              return {
+                state: 'Gujarat',
+                tenders: [],
+                error: 'GEO_FENCED_MANUAL_SEARCH_ONLY: Gujarat (nProcure) drops non-India serverless requests. Search directly via https://tender.nprocure.com or run from an Indian IP.'
+              };
+            } else if (state === 'Telangana') {
               crawlPromise = crawlTelanganaPortal(keywords, minValueCr, maxPerKw);
-            } else if (state === 'Gujarat') {
-              crawlPromise = crawlGujaratNProcurePortal(keywords, minValueCr, maxPerKw);
             } else {
               const portalUrl = STATE_PORTALS[state];
               if (!portalUrl) return { state, tenders: [] };
