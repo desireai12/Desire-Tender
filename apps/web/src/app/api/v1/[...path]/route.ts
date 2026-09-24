@@ -1475,6 +1475,9 @@ Return valid JSON only:
           if (row.updated_at && (!latestUpdate || row.updated_at > latestUpdate)) {
             latestUpdate = row.updated_at;
           }
+          if (row.created_at && (!latestUpdate || row.created_at > latestUpdate)) {
+            latestUpdate = row.created_at;
+          }
 
           const elig = row.eligibility_result as any;
           const valCr = parseFloat(elig?.value_cr) || 0.0;

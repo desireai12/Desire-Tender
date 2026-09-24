@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { DataFreshnessBar } from './DataFreshnessBar';
 import { 
   MapPin, 
   Search, 
@@ -174,55 +175,52 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Fetch real data from live-summary endpoint backed by Supabase
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/v1/tenders/live-summary', { cache: 'no-store' });
-        if (res.ok) {
-          const json = await res.json();
-          if (isMounted) {
-            const list: IndiaTenderItem[] = (json.all_tenders || json.priority_tenders || []).map((t: any) => ({
-              id: t.id,
-              nit_number: t.nit_number || t.nit || t.id,
-              title: t.title || t.tender_name,
-              authority: t.authority || 'Government Authority',
-              authority_code: t.authority_code || t.authority?.split(' ')[0] || 'GOVT',
-              state: t.state || 'Unclassified',
-              district: t.district || t.state || 'General',
-              sector: t.sector || 'Infrastructure EPC',
-              estimated_cost_cr: parseFloat(t.estimated_cost_cr ?? t.costCr) || 0,
-              emd_lakhs: parseFloat(t.emd_lakhs) || 0,
-              tender_fee: parseFloat(t.tender_fee) || 0,
-              publish_date: t.publish_date || '2026-08-25',
-              due_date: t.due_date || t.dueDate || 'Live NIT',
-              days_left: parseInt(t.days_left ?? t.daysLeft) || 14,
-              stage: (t.stage || 'Open (Live)') as any,
-              eligibility_match_pct: parseInt(t.eligibility_match_pct ?? t.matchPct) || 90,
-              desire_qual_status: (t.desire_qual_status || t.status || 'Direct Eligible') as any,
-              scope_highlights: Array.isArray(t.scope_highlights) ? t.scope_highlights : [t.sector, t.authority],
-              key_criteria: t.key_criteria || {
-                min_turnover_cr: Math.round((parseFloat(t.costCr) || 0) * 0.4 * 10) / 10,
-                similar_work_cr: Math.round((parseFloat(t.costCr) || 0) * 0.3 * 10) / 10,
-                experience_years: 5,
-                license_category: 'Class-A'
-              },
-              portal_url: t.portal_url || t.portalUrl || STATE_PORTAL_MAP[t.state]?.url || STATE_PORTAL_MAP['All India']?.url
-            }));
-            setTenders(list);
-            setLastUpdated(json.last_updated || null);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching live tenders in IndiaTendersSectorView:', err);
-      } finally {
-        if (isMounted) setLoading(false);
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/v1/tenders/live-summary', { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        const list: IndiaTenderItem[] = (json.all_tenders || json.priority_tenders || []).map((t: any) => ({
+          id: t.id,
+          nit_number: t.nit_number || t.nit || t.id,
+          title: t.title || t.tender_name,
+          authority: t.authority || 'Government Authority',
+          authority_code: t.authority_code || t.authority?.split(' ')[0] || 'GOVT',
+          state: t.state || 'Unclassified',
+          district: t.district || t.state || 'General',
+          sector: t.sector || 'Infrastructure EPC',
+          estimated_cost_cr: parseFloat(t.estimated_cost_cr ?? t.costCr) || 0,
+          emd_lakhs: parseFloat(t.emd_lakhs) || 0,
+          tender_fee: parseFloat(t.tender_fee) || 0,
+          publish_date: t.publish_date || '2026-08-25',
+          due_date: t.due_date || t.dueDate || 'Live NIT',
+          days_left: parseInt(t.days_left ?? t.daysLeft) || 14,
+          stage: (t.stage || 'Open (Live)') as any,
+          eligibility_match_pct: parseInt(t.eligibility_match_pct ?? t.matchPct) || 90,
+          desire_qual_status: (t.desire_qual_status || t.status || 'Direct Eligible') as any,
+          scope_highlights: Array.isArray(t.scope_highlights) ? t.scope_highlights : [t.sector, t.authority],
+          key_criteria: t.key_criteria || {
+            min_turnover_cr: Math.round((parseFloat(t.costCr) || 0) * 0.4 * 10) / 10,
+            similar_work_cr: Math.round((parseFloat(t.costCr) || 0) * 0.3 * 10) / 10,
+            experience_years: 5,
+            license_category: 'Class-A'
+          },
+          portal_url: t.portal_url || t.portalUrl || STATE_PORTAL_MAP[t.state]?.url || STATE_PORTAL_MAP['All India']?.url
+        }));
+        setTenders(list);
+        setLastUpdated(json.last_updated || null);
       }
+    } catch (err) {
+      console.error('Error fetching live tenders in IndiaTendersSectorView:', err);
+    } finally {
+      setLoading(false);
     }
-    loadData();
-    return () => { isMounted = false; };
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Dynamic state stats calculated from full live dataset
   const stateStats = useMemo(() => {
@@ -397,8 +395,13 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
           </div>
         </div>
 
+        {/* Live Freshness Indicator & Manual Refresh Button */}
+        <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <DataFreshnessBar lastUpdated={lastUpdated} onRefreshComplete={loadData} />
+        </div>
+
         {/* 1.1 Direct Government Portals Launcher Strip */}
-        <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center justify-between mb-2.5">
             <span className="text-xs font-mono font-bold uppercase text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
               <Landmark className="w-3.5 h-3.5 text-emerald-600" />
@@ -791,16 +794,25 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                       </button>
 
                       {onSelectForBidding && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectForBidding(tender);
-                          }}
-                          className="px-2.5 py-1.5 rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-900 dark:text-blue-300 text-xs font-bold transition cursor-pointer"
-                          title="Track this tender for bidding in Tender Tracker"
-                        >
-                          Bid Track
-                        </button>
+                        (tender.state === 'Unclassified' || tender.id?.startsWith('tr-')) ? (
+                          <span
+                            className="px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 text-[11px] font-semibold cursor-not-allowed opacity-60"
+                            title="Unclassified draft tender cannot be tracked for bidding"
+                          >
+                            Draft
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectForBidding(tender);
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-900 dark:text-blue-300 text-xs font-bold transition cursor-pointer"
+                            title="Track this real government tender for bidding in Tender Tracker & Bid Flow"
+                          >
+                            Bid Track
+                          </button>
+                        )
                       )}
 
                       <button
@@ -1172,16 +1184,26 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
 
               <div className="flex items-center space-x-2">
                 {onSelectForBidding && (
-                  <button
-                    onClick={() => {
-                      onSelectForBidding(selectedTenderModal);
-                      setSelectedTenderModal(null);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Track for Bidding</span>
-                  </button>
+                  (selectedTenderModal.state === 'Unclassified' || selectedTenderModal.id?.startsWith('tr-')) ? (
+                    <span
+                      className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center space-x-1.5 cursor-not-allowed opacity-70"
+                      title="Unclassified draft tender cannot be tracked for bidding"
+                    >
+                      <AlertCircle className="w-4 h-4 text-slate-400" />
+                      <span>Unclassified Draft (Cannot Track)</span>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        onSelectForBidding(selectedTenderModal);
+                        setSelectedTenderModal(null);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Track for Bidding</span>
+                    </button>
+                  )
                 )}
 
                 <button

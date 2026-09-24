@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { DataFreshnessBar } from './DataFreshnessBar';
 import { 
   Sparkles, 
   Search, 
@@ -77,35 +78,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [priorityTenders, setPriorityTenders] = useState<LivePriorityTender[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  // Fetch real data from /api/v1/tenders/live-summary on mount
-  useEffect(() => {
-    let isMounted = true;
-    async function loadLiveSummary() {
-      try {
-        setIsLoadingSummary(true);
-        const res = await fetch('/api/v1/tenders/live-summary', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          if (isMounted && data.status === 'success') {
-            setActiveTendersCount(data.active_count || 0);
-            setTotalMarketValueCr(data.total_market_value_cr || 0);
-            setTopStates(data.top_states || []);
-            setTopSectors(data.top_sectors || []);
-            setPriorityTenders(data.priority_tenders || []);
-            setLastUpdated(data.last_updated || null);
-          }
+  // Fetch real data from /api/v1/tenders/live-summary
+  const loadLiveSummary = useCallback(async () => {
+    try {
+      setIsLoadingSummary(true);
+      const res = await fetch('/api/v1/tenders/live-summary', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'success') {
+          setActiveTendersCount(data.active_count || 0);
+          setTotalMarketValueCr(data.total_market_value_cr || 0);
+          setTopStates(data.top_states || []);
+          setTopSectors(data.top_sectors || []);
+          setPriorityTenders(data.priority_tenders || []);
+          setLastUpdated(data.last_updated || null);
         }
-      } catch (err) {
-        console.warn('[DASHBOARD_LIVE_SUMMARY_FETCH_FAILED]', err);
-      } finally {
-        if (isMounted) setIsLoadingSummary(false);
       }
+    } catch (err) {
+      console.warn('[DASHBOARD_LIVE_SUMMARY_FETCH_FAILED]', err);
+    } finally {
+      setIsLoadingSummary(false);
     }
-    loadLiveSummary();
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  useEffect(() => {
+    loadLiveSummary();
+  }, [loadLiveSummary]);
 
   // Format timestamp helper
   const formattedLastUpdated = lastUpdated 
@@ -165,20 +163,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* 1. Modern Clean Search & Action Header (BidAssist / Infralens inspired) */}
       <div className="glass-card p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#0b1426] shadow-sm relative overflow-hidden">
         <div className="max-w-4xl space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-xs font-mono font-bold flex items-center space-x-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-              <span>Desire Tender Intelligence Portal</span>
-            </span>
-            <span className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Live Government Portals Connected</span>
-            </span>
-            {lastUpdated && (
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                Last updated: {formattedLastUpdated}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-xs font-mono font-bold flex items-center space-x-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                <span>Desire Tender Intelligence Portal</span>
               </span>
-            )}
+              <span className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Live Government Portals Connected</span>
+              </span>
+            </div>
+            
+            {/* Live Freshness Indicator & Manual Refresh Button */}
+            <DataFreshnessBar
+              lastUpdated={lastUpdated}
+              onRefreshComplete={loadLiveSummary}
+              className="w-full sm:w-auto"
+            />
           </div>
 
           <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">

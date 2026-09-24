@@ -195,13 +195,27 @@ export default function Home() {
     setSelectedTenderToAnalyze(tender);
   };
 
-  // Connected to real live Supabase tender data
-  const handleSelectForBidding = (item: IndiaTenderItem) => {
+  // Connected to real live Supabase tender data with strict verification guards
+  const handleSelectForBidding = async (item: IndiaTenderItem) => {
+    // 🛡️ RE-VALIDATION GUARD:
+    // Block any tender that lacks an authentic Supabase ID, is an unclassified draft, or has a synthetic ID format
+    if (
+      !item.id ||
+      item.id.startsWith('tr-') ||
+      item.id.startsWith('demo-') ||
+      item.state === 'Unclassified' ||
+      item.title === 'asdf' ||
+      item.title === 'test'
+    ) {
+      console.warn('[SAFETY GUARD] Blocked tender selection: Tender must be a genuine classified tender backed by Supabase with a valid state authority.', item);
+      return;
+    }
+
     const existing = trackedTenders.find(t => t.id === item.id || t.nit_number === item.nit_number);
     if (!existing) {
       const newTracked: TrackedTender = {
-        id: item.id || `tr-${Date.now()}`,
-        nit_number: item.nit_number,
+        id: item.id, // Strictly preserve authentic Supabase ID, never generate synthetic 'tr-...'
+        nit_number: item.nit_number || item.id,
         title: item.title,
         authority: item.authority,
         state: item.state,
@@ -230,6 +244,28 @@ export default function Home() {
         portal_url: item.portal_url
       };
       setTrackedTenders([newTracked, ...trackedTenders]);
+
+      // Also persist to live Supabase Bid Flow pipeline table
+      try {
+        await fetch('/api/v1/bid-flow', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tender_id: item.id,
+            tender_title: item.title,
+            authority: item.authority,
+            state: item.state,
+            estimated_value_cr: item.estimated_cost_cr,
+            deadline: item.due_date,
+            document_url: item.portal_url,
+            status: 'Live',
+            responsible_person_name: currentUser?.full_name || 'Tender Lead',
+            created_by: 'Pan-India Directory Live Selection'
+          })
+        });
+      } catch (err) {
+        console.warn('[BID_FLOW_SYNC] Could not sync to Supabase bid-flow:', err);
+      }
     }
     setActiveTab('tender_tracker');
   };
