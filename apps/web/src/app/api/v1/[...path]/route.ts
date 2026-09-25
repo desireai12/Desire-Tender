@@ -647,27 +647,6 @@ let GLOBAL_BID_FLOW_ITEMS: any[] = [
     created_at: "2026-09-18T05:09:23.697Z",
     updated_at: "2026-09-18T05:09:23.697Z",
     created_by: "Government Portal Scraper"
-  },
-  {
-    id: "0e1bd43a-c418-4566-8c72-44eab54e6fe5",
-    tender_id: "TEST_2026_NIT_001",
-    tender_title: "Test JJM Bulk Water Supply Pipeline Scheme",
-    authority: "PHED Rajasthan",
-    state: "Rajasthan",
-    estimated_value_cr: 42.5,
-    deadline: "2026-10-15",
-    document_url: "https://eproc.rajasthan.gov.in",
-    status: "Technical Bid Opening",
-    final_status: null,
-    pre_bid_meeting_date: null,
-    bid_submission_deadline: null,
-    responsible_person_name: null,
-    responsible_person_email: null,
-    cc_emails: [],
-    notes: null,
-    created_at: "2026-09-18T04:56:46.123Z",
-    updated_at: "2026-09-18T04:56:53.295Z",
-    created_by: "Scraper Ingestion"
   }
 ];
 
