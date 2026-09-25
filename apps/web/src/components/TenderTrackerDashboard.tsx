@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Layers, 
   Search, 
@@ -52,6 +52,7 @@ import {
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
 import { NavTab } from './Sidebar';
+import { CANONICAL_STATUSES, CanonicalStatus, normalizeStatus, getStatusBadgeStyle } from '@/lib/tender-status';
 
 import overallTendersRaw from '@/data/overall_tenders.json';
 import progressTrackerRaw from '@/data/progress_tracker.json';
@@ -225,8 +226,115 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   const [activeSubView, setActiveSubView] = useState<SubViewType>('overall');
   const [trackerTenders, setTrackerTenders] = useState<TrackedTender[]>(propTenders || INITIAL_TRACKED_TENDERS);
 
-  // Dynamic Overall Tenders with Live Govt Portal Ingestion
-  const [allOverallTenders, setAllOverallTenders] = useState<any[]>(overallTendersRaw as any[]);
+  // Dynamic Overall Tenders with Live Govt Portal Ingestion & Normalization
+  const [allOverallTenders, setAllOverallTenders] = useState<any[]>(() =>
+    (overallTendersRaw as any[]).map(t => ({
+      ...t,
+      status: normalizeStatus(t.status)
+    }))
+  );
+
+  // Status overrides sync, row expansion & copy feedback
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  const [statusToast, setStatusToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isSyncingOverrides, setIsSyncingOverrides] = useState(false);
+
+  // Live Supabase Sync on Mount for Persistent Statuses across refreshes
+  useEffect(() => {
+    let isMounted = true;
+    const syncStatusOverrides = async () => {
+      try {
+        setIsSyncingOverrides(true);
+        const res = await fetch('/api/v1/overall-tenders/status-overrides');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === 'success' && data.overrides && Object.keys(data.overrides).length > 0) {
+          if (!isMounted) return;
+          setAllOverallTenders(prev =>
+            prev.map(t => {
+              const override = data.overrides[t.id] || data.overrides[t.tender_id];
+              if (override) {
+                return { ...t, status: normalizeStatus(override) };
+              }
+              return t;
+            })
+          );
+        }
+      } catch (err) {
+        console.warn('[STATUS_OVERRIDES_FETCH_ERROR]', err);
+      } finally {
+        if (isMounted) setIsSyncingOverrides(false);
+      }
+    };
+
+    syncStatusOverrides();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Update Status directly on tender row & persist to Supabase
+  const handleStatusChange = async (tenderId: string, tenderCode: string, newRawStatus: string) => {
+    const canonical = normalizeStatus(newRawStatus);
+    const existing = allOverallTenders.find(t => t.id === tenderId || t.tender_id === tenderCode);
+    if (existing && existing.status === canonical) return;
+
+    const previousStatus = existing ? existing.status : 'Archived';
+
+    // 1. Optimistic update
+    setAllOverallTenders(prev =>
+      prev.map(t =>
+        (t.id === tenderId || t.tender_id === tenderCode) ? { ...t, status: canonical } : t
+      )
+    );
+
+    setStatusToast({
+      message: `Status for ${tenderCode || tenderId} set to "${canonical}"`,
+      type: 'success'
+    });
+    setTimeout(() => setStatusToast(null), 3500);
+
+    // 2. Persist to Supabase
+    try {
+      const res = await fetch('/api/v1/overall-tenders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: tenderId,
+          tender_id: tenderCode,
+          status: canonical
+        })
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      if (data.status === 'error') {
+        throw new Error(data.message || 'Supabase update failed');
+      }
+    } catch (err: any) {
+      // Revert optimistic update on failure
+      setAllOverallTenders(prev =>
+        prev.map(t =>
+          (t.id === tenderId || t.tender_id === tenderCode) ? { ...t, status: previousStatus } : t
+        )
+      );
+      setStatusToast({
+        message: `Failed to save status to database: ${err.message || 'Connection error'}`,
+        type: 'error'
+      });
+      setTimeout(() => setStatusToast(null), 4500);
+    }
+  };
+
+  const handleCopyTenderId = (tId: string) => {
+    if (tId && typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(tId);
+      setCopiedId(tId);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
 
   // Overall Tenders Filters & Pagination
   const [searchQuery, setSearchQuery] = useState('');
@@ -487,7 +595,10 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
       if (selectedSector !== 'ALL' && t.sector !== selectedSector) return false;
 
       // Status Filter
-      if (selectedStatus !== 'ALL' && t.status !== selectedStatus) return false;
+      if (selectedStatus !== 'ALL') {
+        const canonical = normalizeStatus(t.status);
+        if (canonical !== selectedStatus) return false;
+      }
 
       return true;
     }).sort((a, b) => {
@@ -496,7 +607,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
       if (sortBy === 'due_date') return (b.due_date || '').localeCompare(a.due_date || '');
       return (a.tender_id || '').localeCompare(b.tender_id || '');
     });
-  }, [searchQuery, selectedState, selectedSector, selectedStatus, sortBy]);
+  }, [allOverallTenders, searchQuery, selectedState, selectedSector, selectedStatus, sortBy]);
 
   // Paginated overall tenders
   const totalPages = Math.max(1, Math.ceil(filteredOverallTenders.length / pageSize));
@@ -518,11 +629,16 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
     return Object.entries(counts).sort((a: any, b: any) => b[1] - a[1]);
   }, []);
 
-  // Status List with Counts
+  // Status List with Counts (dynamically calculated from allOverallTenders)
   const statusOptions = useMemo(() => {
-    const counts = (trackerSummaryRaw as any).status_breakdown || {};
-    return Object.entries(counts).sort((a: any, b: any) => b[1] - a[1]);
-  }, []);
+    const counts: Record<string, number> = {};
+    CANONICAL_STATUSES.forEach(st => { counts[st] = 0; });
+    for (const t of allOverallTenders) {
+      const st = normalizeStatus(t.status);
+      counts[st] = (counts[st] || 0) + 1;
+    }
+    return CANONICAL_STATUSES.map(st => [st, counts[st] || 0] as [string, number]);
+  }, [allOverallTenders]);
 
   const handleExportCSV = (data: any[], filename: string) => {
     if (!data.length) return;
@@ -547,23 +663,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
   };
 
   const getStatusBadge = (status: string) => {
-    const s = (status || '').toLowerCase();
-    if (s.includes('live')) {
-      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800';
-    }
-    if (s.includes('financial')) {
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300 dark:border-amber-800';
-    }
-    if (s.includes('technical')) {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-300 dark:border-blue-800';
-    }
-    if (s.includes('aoc') || s.includes('awarded')) {
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-300 dark:border-purple-800';
-    }
-    if (s.includes('cancel')) {
-      return 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300 dark:border-rose-800';
-    }
-    return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700';
+    return getStatusBadgeStyle(status).badge;
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -828,7 +928,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
               <div className="flex items-center space-x-2">
                 <span className="text-slate-500 font-medium">Status:</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {['ALL', 'Live', 'Financial Bid Opening', 'Technical Evaluation', 'Awarded (AOC)', 'Opening in Progress', 'Cancelled', 'Archived'].map((st) => (
+                  {['ALL', ...CANONICAL_STATUSES].map((st) => (
                     <button
                       key={st}
                       onClick={() => { setSelectedStatus(st); setCurrentPage(1); }}
@@ -860,6 +960,30 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
             </div>
           </div>
 
+          {/* Status Update Feedback Toast */}
+          {statusToast && (
+            <div className={`p-3 rounded-xl border text-xs flex items-center justify-between shadow-sm animate-in fade-in ${
+              statusToast.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-950/70 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200'
+                : 'bg-rose-50 dark:bg-rose-950/70 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200'
+            }`}>
+              <div className="flex items-center space-x-2">
+                {statusToast.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                )}
+                <span className="font-semibold">{statusToast.message}</span>
+              </div>
+              <button
+                onClick={() => setStatusToast(null)}
+                className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
           {/* Master Table */}
           <div className="glass-card bg-white dark:bg-[#0b1426] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
@@ -867,141 +991,284 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
                     <th className="p-3 w-12 text-center">#</th>
-                    <th className="p-3 w-40">Tender ID</th>
-                    <th className="p-3 min-w-[280px]">Tender Description & Location</th>
+                    <th className="p-3 w-36">Tender ID</th>
+                    <th className="p-3 min-w-[260px]">Tender Name</th>
                     <th className="p-3 w-28">State</th>
                     <th className="p-3 w-28 text-right">Value (₹ Cr)</th>
-                    <th className="p-3 w-32">Status</th>
+                    <th className="p-3 w-44">Status</th>
                     <th className="p-3 w-28">Due Date</th>
-                    <th className="p-3 w-24 text-center">Bidders</th>
-                    <th className="p-3 w-32 text-center">Actions</th>
+                    <th className="p-3 w-36 text-center">Document Link</th>
+                    <th className="p-3 w-20 text-center">Bidders</th>
+                    <th className="p-3 w-28 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {paginatedOverallTenders.map((t: any, i) => (
-                    <tr 
-                      key={t.id} 
-                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
-                    >
-                      <td className="p-3 text-center text-slate-400 font-mono text-[11px]">
-                        {(currentPage - 1) * pageSize + i + 1}
-                      </td>
+                  {paginatedOverallTenders.map((t: any, i) => {
+                    const isExpanded = expandedRowId === t.id;
+                    const isCopied = copiedId === t.tender_id;
+                    const statusBadge = getStatusBadgeStyle(t.status);
+                    const hasDoc = Boolean(t.document_link && (String(t.document_link).startsWith('http://') || String(t.document_link).startsWith('https://')));
+                    const isSharePoint = hasDoc && String(t.document_link).includes('sharepoint.com');
 
-                      <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">
-                        <button
-                          onClick={() => handleOpenPortalTender(t)}
-                          className="text-left group flex items-center space-x-1 hover:text-emerald-600 transition-colors cursor-pointer"
-                          title="Click to copy Tender ID & open government portal"
-                        >
-                          <span className="truncate max-w-[135px]">{t.tender_id || '—'}</span>
-                          <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 shrink-0" />
-                        </button>
-                        <div className="text-[10px] font-normal text-slate-500 dark:text-slate-400 truncate" title={t.department}>
-                          {t.department || '—'}
-                        </div>
-                      </td>
+                    return (
+                      <React.Fragment key={t.id}>
+                        <tr className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${isExpanded ? 'bg-slate-50/70 dark:bg-slate-800/40' : ''}`}>
+                          {/* Row Index & Details Toggle */}
+                          <td className="p-3 text-center">
+                            <div className="flex flex-col items-center justify-center space-y-0.5">
+                              <button
+                                onClick={() => setExpandedRowId(isExpanded ? null : t.id)}
+                                className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                title={isExpanded ? 'Collapse row details' : 'Expand row details (Remarks, L1 bids, Summary sheet)'}
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                ) : (
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                              <span className="text-slate-400 font-mono text-[10px]">
+                                {(currentPage - 1) * pageSize + i + 1}
+                              </span>
+                            </div>
+                          </td>
 
-                      <td className="p-3">
-                        <div className="font-medium text-slate-900 dark:text-slate-100 line-clamp-2" title={t.title}>
-                          {t.title}
-                        </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                            {t.sector}
-                          </span>
-                          {t.location && (
-                            <span className="text-[11px] text-slate-500 flex items-center space-x-0.5">
-                              <MapPin className="w-3 h-3 text-slate-400" />
-                              <span className="truncate max-w-[160px]">{t.location}</span>
+                          {/* Tender ID */}
+                          <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">
+                            <div className="flex items-center space-x-1.5">
+                              <span className="truncate max-w-[125px]" title={t.tender_id || '—'}>{t.tender_id || '—'}</span>
+                              <button
+                                onClick={() => handleCopyTenderId(t.tender_id)}
+                                className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                title="Copy Tender ID"
+                              >
+                                {isCopied ? (
+                                  <Check className="w-3 h-3 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </button>
+                            </div>
+                            <div className="text-[10px] font-normal text-slate-500 dark:text-slate-400 truncate max-w-[145px]" title={t.department}>
+                              {t.department || '—'}
+                            </div>
+                          </td>
+
+                          {/* Tender Name & Sector */}
+                          <td className="p-3">
+                            <div className="font-semibold text-slate-900 dark:text-slate-100 line-clamp-2" title={t.title}>
+                              {t.title}
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                {t.sector}
+                              </span>
+                              {t.location && (
+                                <span className="text-[11px] text-slate-500 flex items-center space-x-0.5">
+                                  <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[160px]">{t.location}</span>
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* State */}
+                          <td className="p-3">
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">
+                              {t.state}
                             </span>
-                          )}
-                        </div>
-                      </td>
+                          </td>
 
-                      <td className="p-3">
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
-                          {t.state}
-                        </span>
-                      </td>
+                          {/* Value (₹ Cr) */}
+                          <td className="p-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                            {t.value_cr > 0 ? (
+                              <>
+                                <div>₹{t.value_cr.toFixed(2)} Cr</div>
+                                {t.emd_cr > 0 ? (
+                                  <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${t.emd_cr} Cr`}>
+                                    EMD: ₹{t.emd_cr.toFixed(2)} Cr
+                                  </div>
+                                ) : t.emd_lakhs > 0 ? (
+                                  <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${t.emd_lakhs} Lakhs`}>
+                                    EMD: ₹{t.emd_lakhs} L
+                                  </div>
+                                ) : null}
+                              </>
+                            ) : t.amount_inr > 0 ? (
+                              <>₹{(t.amount_inr / 10000000).toFixed(2)} Cr</>
+                            ) : (
+                              <span className="text-slate-400 font-normal">N/A</span>
+                            )}
+                          </td>
 
-                      <td className="p-3 text-right font-mono font-bold text-slate-900 dark:text-white">
-                        {t.value_cr > 0 ? (
-                          <>
-                            <div>₹{t.value_cr.toFixed(2)} Cr</div>
-                            {t.emd_cr > 0 ? (
-                              <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${t.emd_cr} Cr`}>
-                                EMD: ₹{t.emd_cr.toFixed(2)} Cr
+                          {/* Status Dropdown Control */}
+                          <td className="p-3">
+                            <div className="relative inline-block w-full max-w-[165px]" onClick={(e) => e.stopPropagation()}>
+                              <select
+                                value={normalizeStatus(t.status)}
+                                onChange={(e) => handleStatusChange(t.id, t.tender_id, e.target.value)}
+                                className={`w-full text-[11px] font-bold py-1.5 pl-2.5 pr-6 rounded-lg border appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm transition-all ${statusBadge.badge}`}
+                                title="Click to change status (persists live to database)"
+                              >
+                                {CANONICAL_STATUSES.map((st) => (
+                                  <option key={st} value={st} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-medium">
+                                    {st}
+                                  </option>
+                                ))}
+                              </select>
+                              <ChevronDown className="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
+                            </div>
+                          </td>
+
+                          {/* Due Date */}
+                          <td className="p-3 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
+                            {t.due_date || '—'}
+                          </td>
+
+                          {/* Document Link (Real SharePoint Link) */}
+                          <td className="p-3 text-center">
+                            {hasDoc ? (
+                              <a
+                                href={t.document_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300 font-bold text-[11px] border border-emerald-200 dark:border-emerald-800 transition-colors shadow-sm group"
+                                title={`Open Tender Document: ${t.document_link}`}
+                              >
+                                <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                                <span>{isSharePoint ? 'SharePoint Doc' : 'Document'}</span>
+                                <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                              </a>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 dark:text-slate-500 italic">
+                                No document uploaded
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Bidders */}
+                          <td className="p-3 text-center">
+                            {t.bidders && t.bidders.length > 0 ? (
+                              <button
+                                onClick={() => setInspectingTender(t)}
+                                className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[11px] cursor-pointer"
+                                title="View competing bidders"
+                              >
+                                <Users className="w-3 h-3 mr-1 text-slate-500" />
+                                <span>{t.bidders.length}</span>
+                              </button>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="p-3 text-center">
+                            <div className="flex items-center justify-center space-x-1.5">
+                              <button
+                                onClick={() => setExpandedRowId(isExpanded ? null : t.id)}
+                                className={`px-2 py-1 rounded-lg border text-[11px] font-semibold flex items-center space-x-1 transition-colors cursor-pointer ${
+                                  isExpanded
+                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300'
+                                    : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                }`}
+                                title={isExpanded ? 'Hide Details' : 'View Full Details'}
+                              >
+                                <span>{isExpanded ? 'Hide' : 'Details'}</span>
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  if (onSelectTenderForAnalysis) {
+                                    onSelectTenderForAnalysis(t);
+                                  } else if (onNavigateTab) {
+                                    onNavigateTab('eligibility');
+                                  }
+                                }}
+                                className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] flex items-center space-x-1 cursor-pointer border border-emerald-200 dark:border-emerald-800"
+                                title="Analyze Tender Eligibility with AI"
+                              >
+                                <Sparkles className="w-3 h-3" />
+                                <span>AI Audit</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* Expandable Row Detail */}
+                        {isExpanded && (
+                          <tr className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
+                            <td colSpan={10} className="p-4 sm:p-5">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                                {/* Remarks */}
+                                <div className="bg-white dark:bg-[#0b1426] p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+                                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Tender Remarks</span>
+                                  </div>
+                                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                                    {t.remarks || 'No specific remarks recorded in master tracker.'}
+                                  </p>
+                                </div>
+
+                                {/* L1 & Bidder Pricing Detail */}
+                                <div className="bg-white dark:bg-[#0b1426] p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+                                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <BarChart3 className="w-3.5 h-3.5 text-amber-600" />
+                                    <span>L1 & Bidder Pricing Detail</span>
+                                  </div>
+                                  <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-mono">
+                                    {t.l1_price_info || (t.bidders && t.bidders.length > 0 ? `${t.bidders.length} bidders submitted: ${t.bidders.join(', ')}` : 'Pricing & L1 evaluation data pending / not published.')}
+                                  </p>
+                                </div>
+
+                                {/* Summary Sheet & Department Information */}
+                                <div className="bg-white dark:bg-[#0b1426] p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+                                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <FileSpreadsheet className="w-3.5 h-3.5 text-purple-600" />
+                                    <span>Summary Sheet & Department</span>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    {t.summary_sheet ? (
+                                      <a
+                                        href={t.summary_sheet}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-700 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800 text-[11px]"
+                                      >
+                                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                                        <span>Open SharePoint Summary Sheet</span>
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    ) : (
+                                      <span className="text-slate-400 italic block text-[11px]">No summary sheet uploaded</span>
+                                    )}
+                                    <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                                      <span className="font-semibold">Department:</span> {t.department || '—'}
+                                    </div>
+                                    {t.pre_bid_date && (
+                                      <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                                        <span className="font-semibold">Pre-Bid Meeting:</span> {t.pre_bid_date}
+                                      </div>
+                                    )}
+                                    {t.type_of_work && (
+                                      <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                                        <span className="font-semibold">Work Type:</span> {t.type_of_work}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                            ) : t.emd_lakhs > 0 ? (
-                              <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400 font-sans" title={`EMD Deposit: ₹${t.emd_lakhs} Lakhs`}>
-                                EMD: ₹{t.emd_lakhs} L
-                              </div>
-                            ) : null}
-                          </>
-                        ) : t.amount_inr > 0 ? (
-                          <>₹{(t.amount_inr / 10000000).toFixed(2)} Cr</>
-                        ) : (
-                          <span className="text-slate-400 font-normal">N/A</span>
+                            </td>
+                          </tr>
                         )}
-                      </td>
-
-                      <td className="p-3">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadge(t.status)}`}>
-                          {t.status}
-                        </span>
-                      </td>
-
-                      <td className="p-3 text-slate-600 dark:text-slate-300 font-mono text-[11px]">
-                        {t.due_date || '—'}
-                      </td>
-
-                      <td className="p-3 text-center">
-                        {t.bidders && t.bidders.length > 0 ? (
-                          <button
-                            onClick={() => setInspectingTender(t)}
-                            className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[11px] cursor-pointer"
-                            title="View competing bidders"
-                          >
-                            <Users className="w-3 h-3 mr-1 text-slate-500" />
-                            <span>{t.bidders.length}</span>
-                          </button>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center space-x-1.5">
-                          <button
-                            onClick={() => handleOpenPortalTender(t)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 dark:bg-slate-800 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer"
-                            title="Copy Tender ID & Open State Portal"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              if (onSelectTenderForAnalysis) {
-                                onSelectTenderForAnalysis(t);
-                              } else if (onNavigateTab) {
-                                onNavigateTab('eligibility');
-                              }
-                            }}
-                            className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] flex items-center space-x-1 cursor-pointer"
-                            title="Analyze Tender Eligibility with AI"
-                          >
-                            <Sparkles className="w-3 h-3" />
-                            <span>AI Audit</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                      </React.Fragment>
+                    );
+                  })}
 
                   {paginatedOverallTenders.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-slate-500">
+                      <td colSpan={10} className="p-8 text-center text-slate-500">
                         No tenders found matching your search and filter criteria.
                       </td>
                     </tr>

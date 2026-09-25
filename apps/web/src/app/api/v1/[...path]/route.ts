@@ -6,6 +6,7 @@ import { crawlTelanganaPortal } from '@/lib/telangana-crawler';
 import { crawlGujaratNProcurePortal } from '@/lib/nprocure-crawler';
 import vapiTenderData from '@/data/vapi_karvad_real_tender.json';
 import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
+import { normalizeStatus } from '@/lib/tender-status';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
 
@@ -1324,7 +1325,8 @@ Return valid JSON only:
 
     // ═══ BID FLOW PIPELINE (NATIVE VERCEL SERVERLESS & SUPABASE) ═══════════
     if (subPath === 'bid-flow' || subPath.startsWith('bid-flow/')) {
-      const bidId = subPath.startsWith('bid-flow/') ? subPath.replace('bid-flow/', '').trim() : null;
+      const urlBidId = subPath.startsWith('bid-flow/') ? subPath.replace('bid-flow/', '').trim() : null;
+      const isUuidStr = (val: any) => typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val.trim());
 
       if (method === 'GET') {
         let bidsList = GLOBAL_BID_FLOW_ITEMS;
@@ -1347,7 +1349,7 @@ Return valid JSON only:
 
       if (method === 'POST') {
         const item = {
-          id: body?.id || `bf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          id: isUuidStr(body?.id) ? body.id.trim() : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined),
           tender_id: body?.tender_id,
           tender_title: body?.tender_title || 'Untitled Tender',
           authority: body?.authority || null,
@@ -1370,9 +1372,12 @@ Return valid JSON only:
 
         if (supabase) {
           try {
-            await supabase.from('bid_flow').upsert(item, { onConflict: 'tender_id' });
+            const { error: upsertErr } = await supabase.from('bid_flow').upsert(item, { onConflict: 'tender_id' });
+            if (upsertErr) {
+              console.error('[BID_FLOW_POST] Supabase upsert error:', upsertErr);
+            }
           } catch (sbErr) {
-            console.error('[BID_FLOW_POST] Supabase upsert error:', sbErr);
+            console.error('[BID_FLOW_POST] Supabase upsert exception:', sbErr);
           }
         }
 
@@ -1386,26 +1391,57 @@ Return valid JSON only:
         return NextResponse.json({ status: 'success', message: 'Tender added to Bid Flow', data: item });
       }
 
-      if (method === 'PATCH' && bidId) {
-        let updatedItem: any = null;
-        const updateFields: any = { ...body, updated_at: new Date().toISOString() };
+      if (method === 'PATCH') {
+        const targetId = (urlBidId || body?.id || body?.tender_id || '').trim();
+        if (!targetId) {
+          return NextResponse.json({ status: 'error', message: 'Missing bid ID or tender ID for PATCH' }, { status: 400 });
+        }
 
-        if (supabase) {
-          try {
-            const { data, error } = await supabase
-              .from('bid_flow')
-              .update(updateFields)
-              .or(`id.eq.${bidId},tender_id.eq.${bidId}`)
-              .select('*');
-            if (!error && data && data.length > 0) {
-              updatedItem = data[0];
-            }
-          } catch (sbErr) {
-            console.error('[BID_FLOW_PATCH] Supabase update error:', sbErr);
+        let updatedItem: any = null;
+        const updateFields: any = { updated_at: new Date().toISOString() };
+        const ALLOWED_COLS = [
+          'tender_id', 'tender_title', 'authority', 'state', 'estimated_value_cr',
+          'deadline', 'document_url', 'status', 'final_status', 'pre_bid_meeting_date',
+          'bid_submission_deadline', 'responsible_person_name', 'responsible_person_email',
+          'cc_emails', 'notes'
+        ];
+        for (const col of ALLOWED_COLS) {
+          if (col in body && body[col] !== undefined) {
+            updateFields[col] = body[col];
           }
         }
 
-        const idx = GLOBAL_BID_FLOW_ITEMS.findIndex(b => b.id === bidId || b.tender_id === bidId);
+        if (supabase) {
+          try {
+            // Safe query: UUID column only queried if targetId is actually a valid UUID!
+            // Prevents PostgreSQL fatal error: invalid input syntax for type uuid
+            const isTargetUuid = isUuidStr(targetId);
+            const isBodyUuid = isUuidStr(body?.id);
+
+            let primaryRes = await (isTargetUuid
+              ? supabase.from('bid_flow').update(updateFields).eq('id', targetId).select('*')
+              : supabase.from('bid_flow').update(updateFields).eq('tender_id', targetId).select('*')
+            );
+
+            if (!primaryRes.error && primaryRes.data && primaryRes.data.length > 0) {
+              updatedItem = primaryRes.data[0];
+            } else {
+              // Try fallback matches
+              if (!updatedItem && isBodyUuid) {
+                const fb1 = await supabase.from('bid_flow').update(updateFields).eq('id', body.id.trim()).select('*');
+                if (!fb1.error && fb1.data && fb1.data.length > 0) updatedItem = fb1.data[0];
+              }
+              if (!updatedItem && body?.tender_id) {
+                const fb2 = await supabase.from('bid_flow').update(updateFields).eq('tender_id', String(body.tender_id).trim()).select('*');
+                if (!fb2.error && fb2.data && fb2.data.length > 0) updatedItem = fb2.data[0];
+              }
+            }
+          } catch (sbErr) {
+            console.error('[BID_FLOW_PATCH] Supabase update exception:', sbErr);
+          }
+        }
+
+        const idx = GLOBAL_BID_FLOW_ITEMS.findIndex(b => b.id === targetId || b.tender_id === targetId || (body?.tender_id && b.tender_id === body.tender_id));
         if (idx >= 0) {
           GLOBAL_BID_FLOW_ITEMS[idx] = { ...GLOBAL_BID_FLOW_ITEMS[idx], ...updateFields };
           if (!updatedItem) updatedItem = GLOBAL_BID_FLOW_ITEMS[idx];
@@ -1414,17 +1450,95 @@ Return valid JSON only:
         return NextResponse.json({ status: 'success', message: 'Bid Flow updated', data: updatedItem || updateFields });
       }
 
-      if (method === 'DELETE' && bidId) {
-        if (supabase) {
+      if (method === 'DELETE') {
+        const targetDeleteId = (urlBidId || body?.id || body?.tender_id || '').trim();
+        if (supabase && targetDeleteId) {
           try {
-            await supabase.from('bid_flow').delete().or(`id.eq.${bidId},tender_id.eq.${bidId}`);
+            if (isUuidStr(targetDeleteId)) {
+              await supabase.from('bid_flow').delete().eq('id', targetDeleteId);
+            } else {
+              await supabase.from('bid_flow').delete().eq('tender_id', targetDeleteId);
+            }
           } catch (sbErr) {
-            console.error('[BID_FLOW_DELETE] Supabase delete error:', sbErr);
+            console.error('[BID_FLOW_DELETE] Supabase delete exception:', sbErr);
           }
         }
-        GLOBAL_BID_FLOW_ITEMS = GLOBAL_BID_FLOW_ITEMS.filter(b => b.id !== bidId && b.tender_id !== bidId);
+        GLOBAL_BID_FLOW_ITEMS = GLOBAL_BID_FLOW_ITEMS.filter(b => b.id !== targetDeleteId && b.tender_id !== targetDeleteId);
         return NextResponse.json({ status: 'success', message: 'Bid removed from Bid Flow' });
       }
+    }
+
+    // ═══ OVERALL TENDERS TRACKER STATUS PERSISTENCE ═════════════════════════
+    if (subPath === 'overall-tenders/status-overrides' || subPath === 'overall-tenders/statuses') {
+      if (method === 'GET') {
+        const overrides: Record<string, string> = {};
+        if (supabase) {
+          try {
+            const { data, error } = await supabase
+              .from('overall_tenders')
+              .select('id, tender_id, status');
+            if (!error && data) {
+              for (const row of data) {
+                if (row.id) overrides[row.id] = row.status;
+                if (row.tender_id) overrides[row.tender_id] = row.status;
+              }
+            } else if (error) {
+              console.warn('[OVERALL_TENDERS_STATUSES] Supabase select error:', error);
+            }
+          } catch (e: any) {
+            console.warn('[OVERALL_TENDERS_STATUSES] Exception:', e);
+          }
+        }
+        return NextResponse.json({ status: 'success', overrides, count: Object.keys(overrides).length });
+      }
+    }
+
+    if ((subPath === 'overall-tenders' || subPath.startsWith('overall-tenders/')) && (method === 'PATCH' || method === 'POST')) {
+      const rawId = subPath.startsWith('overall-tenders/') ? subPath.replace('overall-tenders/', '').trim() : '';
+      const tenderId = body?.id || body?.tender_id || rawId;
+      const rawStatus = body?.status;
+      const canonicalStatus = normalizeStatus(rawStatus);
+
+      if (!tenderId) {
+        return NextResponse.json({ status: 'error', message: 'Tender ID is required' }, { status: 400 });
+      }
+
+      let dbUpdated = false;
+      let dbError: any = null;
+
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from('overall_tenders')
+            .update({ 
+              status: canonicalStatus, 
+              updated_at: new Date().toISOString() 
+            })
+            .or(`id.eq.${tenderId},tender_id.eq.${tenderId}`)
+            .select();
+
+          if (error) {
+            dbError = error.message;
+            console.error('[OVERALL_TENDER_UPDATE] Supabase update error:', error);
+          } else {
+            dbUpdated = true;
+          }
+        } catch (sbErr: any) {
+          dbError = sbErr?.message || String(sbErr);
+          console.error('[OVERALL_TENDER_UPDATE] Exception:', sbErr);
+        }
+      }
+
+      return NextResponse.json({
+        status: dbUpdated ? 'success' : (supabase ? 'error' : 'success'),
+        message: dbUpdated 
+          ? `Status for "${tenderId}" updated to "${canonicalStatus}" in Supabase` 
+          : `Status updated locally to "${canonicalStatus}"`,
+        tender_id: tenderId,
+        new_status: canonicalStatus,
+        persisted_to_db: dbUpdated,
+        error: dbError
+      });
     }
 
     // ═══ LIVE TENDERS MARKET SUMMARY (REAL SUPABASE STATS) ══════════════════

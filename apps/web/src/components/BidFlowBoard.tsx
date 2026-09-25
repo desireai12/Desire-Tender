@@ -313,7 +313,7 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
       const res = await fetch(`/api/v1/bid-flow/${bidId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status: newStatus, id: bid.id, tender_id: bid.tender_id })
       });
       if (!res.ok) {
         throw new Error('Database update failed');
@@ -348,6 +348,8 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
     try {
       const allowedFinal = isFinalStatusAllowed(editForm.status);
       const payload: Partial<BidFlowItem> = {
+        id: selectedBidForEdit.id,
+        tender_id: selectedBidForEdit.tender_id,
         status: editForm.status,
         final_status: allowedFinal ? ((editForm.final_status as BidFlowFinalStatus) || null) : null,
         pre_bid_meeting_date: editForm.pre_bid_meeting_date ? new Date(editForm.pre_bid_meeting_date).toISOString() : null,

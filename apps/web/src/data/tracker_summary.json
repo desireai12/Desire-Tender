@@ -1,5 +1,5 @@
 {
-  "total_tenders": 2956,
+  "total_tenders": 2957,
   "total_value_cr": 514688.83,
   "total_progress_items": 29,
   "total_bonb_items": 63,
@@ -45,15 +45,15 @@
     "JJM & Rural Water Supply": 1
   },
   "status_breakdown": {
-    "Live": 168,
-    "Cancelled": 464,
-    "Financial Bid Opening": 523,
-    "Technical Evaluation": 125,
     "Archived": 857,
+    "Financial Bid Opening": 523,
+    "Cancelled": 464,
+    "Opening in Progress": 268,
+    "AOC": 212,
+    "Live": 167,
     "Technical Bid Opening": 137,
     "Financial Evaluation": 126,
-    "Awarded (AOC)": 212,
-    "Retender": 78,
-    "Opening in Progress": 266
+    "Technical Evaluation": 125,
+    "Retender": 78
   }
 }
