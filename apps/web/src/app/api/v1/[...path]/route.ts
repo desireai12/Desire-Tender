@@ -654,7 +654,7 @@ let GLOBAL_BID_FLOW_ITEMS: any[] = [
 // ═══ DETERMINISTIC SCORING ENGINE ═════════════════════════════════════════
 function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selectedJvPartnerId?: string) {
   const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
-  const jvPartners = comps.filter((c: any) => c.id !== desireComp.id && c.type !== 'Desire Energy');
+  const jvPartners = comps.filter((c: any) => c.type === 'JV Partner');
 
   if (desireComp.average_turnover === undefined || desireComp.average_turnover === null || isNaN(Number(desireComp.average_turnover))) {
     throw new Error(`Missing required financial metric 'average_turnover' for ${desireComp.name || 'Desire Energy'} (${desireComp.id}).`);

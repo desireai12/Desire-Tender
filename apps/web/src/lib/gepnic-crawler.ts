@@ -109,6 +109,9 @@ export function cleanCurrencyToCr(valStr?: string): number {
 
 export function cleanSectorFromTitle(title: string, workType: string = ''): string {
   const t = (title + ' ' + workType).toUpperCase();
+  if (/(BUILDING|OFFICE|COMPLEX|HOSTEL|QUARTERS|RESIDENTIAL|SCHOOL|COLLEGE|COURT|HOSPITAL|HALL|AUDITORIUM)/.test(t) && !/(WATER SUPPLY NETWORK|BULK PIPELINE|MAIN TRANSMISSION)/.test(t)) {
+    return 'Building & Civil Construction';
+  }
   if (/(STP|SEW|EFFLUENT|CETP|ETP|DRAIN|SLUDGE|WASTE WATER|TREATMENT)/.test(t)) {
     return 'STP & Sewerage Network';
   }

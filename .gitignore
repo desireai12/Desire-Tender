@@ -36,6 +36,14 @@ yarn-error.log*
 *.log
 tmp/
 temp/
+scratch/
+apps/api/scratch/
+apps/api/*.json
+apps/api/diagnose.py
+apps/api/full_system_check.py
+apps/api/test_*.py
+apps/api/inspect_*.py
+apps/api/enable_*.py
 coverage/
 
 # Supabase Local

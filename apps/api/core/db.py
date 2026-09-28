@@ -205,14 +205,7 @@ VALUES
 ('comp-04', 'Shakti Pumps', 'KUSUM Solar Pumps', 45, 40, '[]'::jsonb, '["Direct manufacturer of solar pumps & RMS controllers", "Lowest component bill-of-materials"]'::jsonb, '["Limited large EPC pipeline experience"]'::jsonb, '["Focus on turnkey civil & distribution capabilities where pump-only specs are insufficient"]'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
--- Seed Users
-INSERT INTO public.users (id, employee_id, full_name, email, phone, password_hash, role, department, status, permissions, assigned_projects)
-VALUES 
-('b1b2c3d4-0001-4000-8000-000000000001', 'EMP001', 'Ankit Purohit', 'ankit.purohit@desireenergy.com', '9829012345', '7cf2c366b56b3e7bc230fb15e5108f972b9a76d75c5ecbebc8b3bc7f8ad8efc3', 'Administrator', 'Admin', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb, '["SOLAR", "RHDS", "KUSUM", "EPC", "ESCO", "STP"]'::jsonb),
-('b1b2c3d4-0002-4000-8000-000000000002', 'EMP002', 'Deepak Khandelwal', 'deepak.khandelwal@desireenergy.com', '9829023456', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'Sr Estimator', 'Estimation Team', 'Active', '["eligibility", "cost_estimation"]'::jsonb, '["SOLAR", "RHDS", "KUSUM", "EPC"]'::jsonb),
-('b1b2c3d4-0003-4000-8000-000000000003', 'EMP003', 'Suresh Sharma', 'suresh.sharma@desireenergy.com', '9829034567', '4a7d1ed414474e4033ac29ccb8653d9b', 'Chief Engineer', 'Engineering', 'Active', '["eligibility", "ai_analysis"]'::jsonb, '["SOLAR", "RHDS", "STP"]'::jsonb),
-('b1b2c3d4-0004-4000-8000-000000000004', 'EMP004', 'Vikas Verma', 'vikas.verma@desireenergy.com', '9829045678', '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', 'Tender Head', 'Tender Team', 'Active', '["eligibility", "bid_submission", "bid_details", "tender_result"]'::jsonb, '["SOLAR", "RHDS", "KUSUM", "EPC", "ESCO", "STP"]'::jsonb)
-ON CONFLICT (employee_id) DO NOTHING;
+-- User accounts are seeded locally via seed_accounts.js
 
 -- Seed Audit Trail
 INSERT INTO public.audit_logs (id, actor, action, target, details)

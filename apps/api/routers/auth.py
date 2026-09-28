@@ -18,7 +18,7 @@ def hash_password(plain_password: str) -> str:
 # Initial Dev Admin Credentials
 ADMIN_ACCOUNT = {
     "admin_id": "admin",
-    "password_hash": "520448f8a157582b130ba279585ea150c9df7643b9d8858e727ecfaeaebfa82a",
+    "password_hash": "",
     "must_change_password": True,
     "last_login": "Never"
 }

@@ -285,16 +285,19 @@ export function saveProject(project: Project): Project[] {
 
 // --- PERSISTENT AUTHENTICATION SESSION MANAGEMENT ---
 
-export function saveUserSession(user: UserProfile): void {
+export function saveUserSession(user: UserProfile, token?: string): void {
   if (typeof window === 'undefined') return;
   try {
     const sessionData = {
       user,
+      token,
       login_time: new Date().toISOString(),
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
     };
     localStorage.setItem('DESIRE_ACTIVE_USER_SESSION', JSON.stringify(sessionData));
-    document.cookie = `desire_user_session=${encodeURIComponent(user.employee_id)}; path=/; max-age=604800; SameSite=Lax`;
+    if (token) {
+      document.cookie = `desire_session_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+    }
   } catch (e) {}
 }
 
@@ -319,20 +322,23 @@ export function clearUserSession(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('DESIRE_ACTIVE_USER_SESSION');
-    document.cookie = `desire_user_session=; path=/; max-age=0`;
+    document.cookie = `desire_session_token=; path=/; max-age=0`;
   } catch (e) {}
 }
 
-export function saveAdminSession(adminData: any): void {
+export function saveAdminSession(adminData: any, token?: string): void {
   if (typeof window === 'undefined') return;
   try {
     const sessionData = {
       admin: adminData,
+      token,
       login_time: new Date().toISOString(),
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
     };
     localStorage.setItem('DESIRE_ACTIVE_ADMIN_SESSION', JSON.stringify(sessionData));
-    document.cookie = `desire_admin_session=true; path=/; max-age=86400; SameSite=Lax`;
+    if (token) {
+      document.cookie = `desire_session_token=${encodeURIComponent(token)}; path=/; max-age=86400; SameSite=Lax`;
+    }
   } catch (e) {}
 }
 
@@ -357,6 +363,6 @@ export function clearAdminSession(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('DESIRE_ACTIVE_ADMIN_SESSION');
-    document.cookie = `desire_admin_session=; path=/; max-age=0`;
+    document.cookie = `desire_session_token=; path=/; max-age=0`;
   } catch (e) {}
 }
