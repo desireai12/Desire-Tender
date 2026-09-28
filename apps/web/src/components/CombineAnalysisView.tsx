@@ -135,8 +135,8 @@ export const CombineAnalysisView: React.FC = () => {
     handleRunEvaluation();
   }, [selectedCategory, desireCompanyId, jvPartnerId]);
 
-  const desireComp = companies.find(c => c.id === desireCompanyId) || { name: 'Desire Energy Solutions Pvt. Ltd.', average_turnover: 300.93, net_worth: 95.0 };
-  const jvComp = companies.find(c => c.id === jvPartnerId) || { name: 'Divija Construction', average_turnover: 37.01, net_worth: 6.58 };
+  const desireComp = companies.find(c => c.id === desireCompanyId || c.type === 'Desire Energy') || companies[0] || {} as any;
+  const jvComp = companies.find(c => c.id === jvPartnerId || c.type === 'JV Partner') || {} as any;
 
   return (
     <div className="space-y-6">
@@ -241,11 +241,11 @@ export const CombineAnalysisView: React.FC = () => {
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Avg Turnover:</span>
-              <span className="font-bold text-slate-900 dark:text-white">₹{desireComp.average_turnover || 300.93} Cr</span>
+              <span className="font-bold text-slate-900 dark:text-white">₹{desireComp.average_turnover ?? '—'} Cr</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Net Worth:</span>
-              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-bold">₹{desireComp.net_worth || 95.0} Cr</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-bold">₹{desireComp.net_worth ?? '—'} Cr</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Status:</span>
@@ -266,18 +266,18 @@ export const CombineAnalysisView: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{jvComp.name}</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{jvComp.name || 'Select Partner'}</h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1">Partner standalone capability evaluation</p>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Avg Turnover:</span>
-              <span className="font-bold text-slate-900 dark:text-white">₹{jvComp.average_turnover || 37.01} Cr</span>
+              <span className="font-bold text-slate-900 dark:text-white">₹{jvComp.average_turnover ?? '—'} Cr</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Net Worth:</span>
-              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-bold">₹{jvComp.net_worth || 6.58} Cr</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-bold">₹{jvComp.net_worth ?? '—'} Cr</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Status:</span>
@@ -305,11 +305,11 @@ export const CombineAnalysisView: React.FC = () => {
           <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Combined Turnover:</span>
-              <span className="font-bold text-emerald-800 dark:text-emerald-300">₹{((desireComp.average_turnover||300.93) + (jvComp.average_turnover||37.01)).toFixed(2)} Cr</span>
+              <span className="font-bold text-emerald-800 dark:text-emerald-300">₹{(Number(desireComp.average_turnover || 0) + Number(jvComp.average_turnover || 0)).toFixed(2)} Cr</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Combined Net Worth:</span>
-              <span className="font-bold text-emerald-800 dark:text-emerald-300 font-bold">₹{((desireComp.net_worth||95) + (jvComp.net_worth||6.58)).toFixed(2)} Cr</span>
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 font-bold">₹{(Number(desireComp.net_worth || 0) + Number(jvComp.net_worth || 0)).toFixed(2)} Cr</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Final Verdict:</span>

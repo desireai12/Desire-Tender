@@ -131,8 +131,8 @@ CREATE TABLE IF NOT EXISTS public.competitors (
 -- 11. SEED INITIAL DEMO DATA
 INSERT INTO public.users (employee_id, full_name, email, phone, password_hash, role, department, status, permissions)
 VALUES 
-('EMP001', 'Ankit Purohit', 'ankit.purohit@desireenergy.com', '9829012345', 'Ankit@EMP001#2026', 'Administrator', 'Admin', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb),
-('EMP002', 'Deepak Khandelwal', 'deepak.khandelwal@desireenergy.com', '9829023456', 'Deepak@EMP002#2026', 'Sr Estimator', 'Estimation Team', 'Active', '["eligibility", "cost_estimation"]'::jsonb)
+('EMP001', 'Ankit Purohit', 'ankit.purohit@desireenergy.com', '9829012345', 'ee660286034c615c9a8aec8920efaa32:197099e5bca9d42ac7735285dc4210ffdf8b1fcb1a490a8ca3145d96eeafdd4894291fa2368f179f242e2119cc0b6d2143599004051ccd2e10f2ce5ca832200f', 'Administrator', 'Admin', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb),
+('EMP002', 'Deepak Khandelwal', 'deepak.khandelwal@desireenergy.com', '9829023456', '0b6ffddfdcc58afe114cc6d01ab10428:3e39f93c5f239520d7cca21b10a27d3531e3cd0ea43122e0641177dc411c2c3cfad5b8bcb685965106b5c1367ce5c02333bf4f259944405247f741e9c7fad690', 'Sr Estimator', 'Estimation Team', 'Active', '["eligibility", "cost_estimation"]'::jsonb)
 ON CONFLICT (employee_id) DO NOTHING;
 
 INSERT INTO public.projects (id, name, type, client, description, status)
@@ -158,7 +158,7 @@ ALTER TABLE public.competitors DISABLE ROW LEVEL SECURITY;
 -- 13. SEED AUTHORITATIVE DESIRE ENERGY & JV TENDER KNOWLEDGE BASE
 INSERT INTO public.users (employee_id, full_name, email, phone, password_hash, role, department, status, permissions)
 VALUES 
-('EMP005', 'Dharmesh Khandelwal', 'dharmeshkhandelwal@desireenergy.com', '7230037296', 'Dharmesh@EMP005#2026', 'Director & JV Lead', 'Tender Team', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb)
+('EMP005', 'Dharmesh Khandelwal', 'dharmeshkhandelwal@desireenergy.com', '7230037296', '54a6fcf6b620d21723853767df8046e3:009045101574cfb791c72ce368628a0fa479bb313b14dbefecbd6c82a464ded89e21ad795bbcaaeea143de49fc2cbad460a08699d912dc1487ad9335dfd80956', 'Director & JV Lead', 'Tender Team', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb)
 ON CONFLICT (employee_id) DO NOTHING;
 
 INSERT INTO public.knowledge_base (id, title, category, file_name, file_url, description, status, chunks_count, created_at)
@@ -222,7 +222,7 @@ CREATE TABLE IF NOT EXISTS public.jv_evaluations (
 -- 13. SEED AUTHORITATIVE DESIRE ENERGY & JV TENDER KNOWLEDGE BASE
 INSERT INTO public.users (employee_id, full_name, email, phone, password_hash, role, department, status, permissions)
 VALUES 
-('EMP005', 'Dharmesh Khandelwal', 'dharmeshkhandelwal@desireenergy.com', '7230037296', 'Dharmesh@EMP005#2026', 'Director & JV Lead', 'Tender Team', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb)
+('EMP005', 'Dharmesh Khandelwal', 'dharmeshkhandelwal@desireenergy.com', '7230037296', '54a6fcf6b620d21723853767df8046e3:009045101574cfb791c72ce368628a0fa479bb313b14dbefecbd6c82a464ded89e21ad795bbcaaeea143de49fc2cbad460a08699d912dc1487ad9335dfd80956', 'Director & JV Lead', 'Tender Team', 'Active', '["eligibility", "ai_analysis", "cost_estimation", "bid_decision", "bid_details", "tender_result", "admin"]'::jsonb)
 ON CONFLICT (employee_id) DO NOTHING;
 
 INSERT INTO public.knowledge_base (id, title, category, file_name, file_url, description, status, chunks_count, created_at)

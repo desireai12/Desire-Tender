@@ -656,9 +656,20 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
   const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
   const jvPartners = comps.filter((c: any) => c.id !== desireComp.id && c.type !== 'Desire Energy');
 
-  const dT = desireComp.average_turnover || 300.93;
-  const dNW = desireComp.net_worth || 95.0;
-  const dS = (desireComp as any).solvency_amount || 72.18;
+  if (desireComp.average_turnover === undefined || desireComp.average_turnover === null || isNaN(Number(desireComp.average_turnover))) {
+    throw new Error(`Missing required financial metric 'average_turnover' for ${desireComp.name || 'Desire Energy'} (${desireComp.id}).`);
+  }
+  if (desireComp.net_worth === undefined || desireComp.net_worth === null || isNaN(Number(desireComp.net_worth))) {
+    throw new Error(`Missing required financial metric 'net_worth' for ${desireComp.name || 'Desire Energy'} (${desireComp.id}).`);
+  }
+  const desireSolvency = (desireComp as any).solvency ?? (desireComp as any).solvency_amount;
+  if (desireSolvency === undefined || desireSolvency === null || isNaN(Number(desireSolvency))) {
+    throw new Error(`Missing required financial metric 'solvency' for ${desireComp.name || 'Desire Energy'} (${desireComp.id}).`);
+  }
+
+  const dT = Number(desireComp.average_turnover);
+  const dNW = Number(desireComp.net_worth);
+  const dS = Number(desireSolvency);
 
   function evalClause(c: any, partner: any) {
     const reqType = c.requirement_type || 'Technical';
@@ -676,9 +687,20 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       }
     }
 
-    const jT = partner.average_turnover || 37.01;
-    const jNW = partner.net_worth || 6.58;
-    const jS = (partner as any).solvency_amount || 10.0;
+    if (partner.average_turnover === undefined || partner.average_turnover === null || isNaN(Number(partner.average_turnover))) {
+      throw new Error(`Missing required financial metric 'average_turnover' for JV partner ${partner.name || 'Partner'} (${partner.id}).`);
+    }
+    if (partner.net_worth === undefined || partner.net_worth === null || isNaN(Number(partner.net_worth))) {
+      throw new Error(`Missing required financial metric 'net_worth' for JV partner ${partner.name || 'Partner'} (${partner.id}).`);
+    }
+    const partnerSolvency = (partner as any).solvency ?? (partner as any).solvency_amount;
+    if (partnerSolvency === undefined || partnerSolvency === null || isNaN(Number(partnerSolvency))) {
+      throw new Error(`Missing required financial metric 'solvency' for JV partner ${partner.name || 'Partner'} (${partner.id}).`);
+    }
+
+    const jT = Number(partner.average_turnover);
+    const jNW = Number(partner.net_worth);
+    const jS = Number(partnerSolvency);
     const jvSectors = Array.isArray(partner.sector_experience) ? partner.sector_experience : [];
 
     let dRawPct = 0, jRawPct = 0, cRawPct = 0;
@@ -892,11 +914,242 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     clauses_breakdown: selectedEval ? selectedEval.clauses : [],
     partnerEvaluations
   };
+// ─── HMAC-SHA256 SESSION TOKEN & SCRYPT PASSWORD ENGINE ───────────────────────
+const RAW_SESSION_SECRET = (process.env.SESSION_SECRET || process.env.SECRET_KEY || '').trim();
+const IS_SECRET_VALID = RAW_SESSION_SECRET.length >= 32;
+const SESSION_SECRET = IS_SECRET_VALID ? RAW_SESSION_SECRET : '';
+
+const RATE_LIMIT_MAP = new Map<string, { count: number; resetTime: number }>();
+
+function checkRateLimit(ip: string, maxAttempts = 5, windowMs = 60000): boolean {
+  const now = Date.now();
+  const entry = RATE_LIMIT_MAP.get(ip);
+  if (!entry || now > entry.resetTime) {
+    RATE_LIMIT_MAP.set(ip, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  if (entry.count >= maxAttempts) {
+    return false;
+  }
+  entry.count += 1;
+  return true;
+}
+
+async function checkSupabaseRateLimitAndLockout(empId: string, clientIp: string): Promise<{ isAllowed: boolean; detail?: string }> {
+  if (!supabase) return { isAllowed: true };
+  try {
+    const windowStart = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+
+    let lastSuccessTime = windowStart;
+    if (empId) {
+      const { data: lastSuccess } = await supabase
+        .from('audit_logs')
+        .select('timestamp')
+        .eq('actor', empId)
+        .eq('action', 'LOGIN_SUCCESS')
+        .order('timestamp', { ascending: false })
+        .limit(1);
+
+      if (lastSuccess && lastSuccess.length > 0 && lastSuccess[0].timestamp) {
+        if (new Date(lastSuccess[0].timestamp).getTime() > new Date(windowStart).getTime()) {
+          lastSuccessTime = lastSuccess[0].timestamp;
+        }
+      }
+    }
+
+    const { data: failedLogs } = await supabase
+      .from('audit_logs')
+      .select('id')
+      .eq('action', 'LOGIN_FAILURE')
+      .gte('timestamp', lastSuccessTime)
+      .eq('actor', empId || 'UNKNOWN')
+      .eq('target', clientIp);
+
+    if (failedLogs && failedLogs.length >= 5) {
+      return {
+        isAllowed: false,
+        detail: 'Account locked out due to 5 consecutive failed login attempts for this user and IP combination. Please wait 15 minutes before trying again or request an Admin unlock.'
+      };
+    }
+  } catch (e) {
+    console.error('[AUTH_RATE_LIMIT_ERROR]', e);
+  }
+  return { isAllowed: true };
+}
+
+async function recordLoginAudit(empId: string, clientIp: string, isSuccess: boolean, detailMsg: string) {
+  if (!supabase) return;
+  try {
+    await supabase.from('audit_logs').insert([{
+      actor: empId || 'UNKNOWN',
+      action: isSuccess ? 'LOGIN_SUCCESS' : 'LOGIN_FAILURE',
+      target: clientIp,
+      details: detailMsg,
+      timestamp: new Date().toISOString()
+    }]);
+  } catch (e) {}
+}
+
+function hashPasswordScrypt(plain: string, saltInput?: string): string {
+  const salt = saltInput || crypto.randomBytes(16).toString('hex');
+  const derivedKey = crypto.scryptSync(plain.trim(), salt, 64);
+  return `${salt}:${derivedKey.toString('hex')}`;
+}
+
+function verifyPasswordScrypt(plain: string, storedHash: string): { isValid: boolean; needsRehash: boolean } {
+  if (!plain || !storedHash) return { isValid: false, needsRehash: false };
+
+  // 1. Check if storedHash is in scrypt format "salt:hex"
+  if (storedHash.includes(':')) {
+    const [salt, hex] = storedHash.split(':');
+    if (salt && hex) {
+      try {
+        const derivedKey = crypto.scryptSync(plain.trim(), salt, 64);
+        const isValid = crypto.timingSafeEqual(Buffer.from(hex, 'hex'), derivedKey);
+        return { isValid, needsRehash: false };
+      } catch (e) {
+        return { isValid: false, needsRehash: false };
+      }
+    }
+  }
+
+  // 2. Legacy unsalted SHA-256 compare ONLY (strictly remove plaintext comparison)
+  const legacySha256 = crypto.createHash('sha256').update(plain.trim()).digest('hex');
+  const isLegacyMatch = legacySha256.toLowerCase() === storedHash.toLowerCase();
+
+  return { isValid: isLegacyMatch, needsRehash: isLegacyMatch };
+}
+
+export interface SessionTokenPayload {
+  employee_id: string;
+  role: string;
+  full_name?: string;
+  exp: number;
+}
+
+export function createSessionToken(payload: { employee_id: string; role: string; full_name?: string }, expiresInSeconds = 12 * 3600): string | null {
+  if (!IS_SECRET_VALID) return null;
+  const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
+  const fullPayload: SessionTokenPayload = { ...payload, exp };
+  const payloadBase64 = Buffer.from(JSON.stringify(fullPayload)).toString('base64url');
+  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(payloadBase64).digest('base64url');
+  return `${payloadBase64}.${signature}`;
+}
+
+export function verifySessionToken(token: string): SessionTokenPayload | null {
+  if (!IS_SECRET_VALID || !token || typeof token !== 'string' || !token.includes('.')) return null;
+  const [payloadBase64, signature] = token.split('.');
+  if (!payloadBase64 || !signature) return null;
+
+  const expectedSignature = crypto.createHmac('sha256', SESSION_SECRET).update(payloadBase64).digest('base64url');
+  if (signature !== expectedSignature) return null;
+
+  try {
+    const payload: SessionTokenPayload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf8'));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+async function getSessionFromRequest(req: NextRequest): Promise<SessionTokenPayload | null> {
+  let rawToken = '';
+  const authHeader = req.headers.get('authorization') || '';
+  if (authHeader.startsWith('Bearer ')) {
+    rawToken = authHeader.substring(7).trim();
+  } else if (req.headers.get('x-session-token')) {
+    rawToken = req.headers.get('x-session-token')!.trim();
+  } else {
+    const cookiesStr = req.headers.get('cookie') || '';
+    cookiesStr.split(';').forEach(c => {
+      const [k, v] = c.split('=');
+      if (k && k.trim() === 'desire_session_token' && v) {
+        rawToken = decodeURIComponent(v.trim());
+      }
+    });
+  }
+
+  if (!rawToken) return null;
+
+  const verified = verifySessionToken(rawToken);
+  if (!verified) return null;
+
+  // Re-check user status & role from Supabase DB on each request
+  if (supabase && verified.employee_id) {
+    try {
+      const { data: dbUser } = await supabase
+        .from('users')
+        .select('employee_id, role, status, full_name')
+        .eq('employee_id', verified.employee_id)
+        .maybeSingle();
+
+      if (!dbUser || dbUser.status !== 'Active') {
+        return null; // Reject session if user does not exist or is not Active
+      }
+
+      return {
+        ...verified,
+        role: dbUser.role || verified.role,
+        full_name: dbUser.full_name || verified.full_name
+      };
+    } catch (e) {
+      return verified;
+    }
+  }
+
+  return verified;
 }
 
 async function handleRequest(req: NextRequest, params: { path: string[] }) {
   const subPath = params.path.join('/');
   const method = req.method;
+
+  // ═══ STRICT SESSION_SECRET AUDIT ═════════════════════════════════════════
+  if (!IS_SECRET_VALID) {
+    console.error('[SECURITY_ERROR] SESSION_SECRET is missing or shorter than 32 characters in server configuration.');
+    return NextResponse.json(
+      {
+        status: 'error',
+        error_type: 'SERVER_CONFIG_ERROR',
+        message: 'SERVER CONFIGURATION ERROR: SESSION_SECRET environment variable is missing or shorter than 32 characters.'
+      },
+      { status: 500 }
+    );
+  }
+
+  // ═══ AUTHENTICATION & AUTHORIZATION GUARD ═════════════════════════════════
+  const isPublicAllowlist = 
+    (subPath === '' || subPath === 'health') ||
+    subPath.startsWith('auth/') ||
+    subPath === 'scraper/config';
+
+  const session = await getSessionFromRequest(req);
+
+  if (!isPublicAllowlist) {
+    if (!session) {
+      return NextResponse.json(
+        { status: 'error', error_type: 'UNAUTHORIZED', message: 'Authentication required. Please log in with valid credentials.' },
+        { status: 401 }
+      );
+    }
+
+    const isAdminRoute = 
+      (subPath.startsWith('admin') || subPath === 'credentials' || subPath === 'users') &&
+      subPath !== 'users/assignees';
+
+    const isAdminUser = session.role === 'Administrator' || session.role === 'Admin' || session.employee_id === 'EMP001' || session.employee_id === 'ADMIN';
+
+    if (isAdminRoute && !isAdminUser) {
+      return NextResponse.json(
+        { status: 'error', error_type: 'FORBIDDEN', message: 'Forbidden. Administrator privileges required for this route.' },
+        { status: 403 }
+      );
+    }
+  }
+
   try {
     let body: any = {};
     let formCategory = '', formFilename = '', formTenderTitle = '', formJvPartnerId = '';
@@ -917,6 +1170,212 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           body = await req.json().catch(() => ({}));
         }
       } catch (e) { body = {}; }
+    }
+
+    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
+
+    // ═══ AUTHENTICATION ENDPOINTS (PUBLIC ALLOWLIST) ══════════════════════════
+    if (subPath === 'auth/login' && method === 'POST') {
+      const empId = (body?.employee_id || body?.username || '').trim().toUpperCase();
+      const pass = (body?.password || '').trim();
+      if (!empId || !pass) {
+        return NextResponse.json({ status: 'error', detail: 'Employee ID and password are required.' }, { status: 400 });
+      }
+
+      // 1. Supabase IP + Username Rate Limiting & Account Lockout Check
+      const rateLimitCheck = await checkSupabaseRateLimitAndLockout(empId, clientIp);
+      if (!rateLimitCheck.isAllowed) {
+        return NextResponse.json({ status: 'error', detail: rateLimitCheck.detail }, { status: 429 });
+      }
+
+      let matchedUser: any = null;
+      if (supabase) {
+        try {
+          const { data: dbUsers } = await supabase.from('users').select('*').eq('employee_id', empId);
+          if (dbUsers && dbUsers.length > 0) {
+            const u = dbUsers[0];
+            const { isValid, needsRehash } = verifyPasswordScrypt(pass, u.password_hash || u.password);
+            if (isValid) {
+              matchedUser = u;
+              if (needsRehash) {
+                const newScryptHash = hashPasswordScrypt(pass);
+                supabase.from('users').update({ password_hash: newScryptHash }).eq('employee_id', empId).then(() => {
+                  console.log(`[AUTH] Successfully rehashed password for user ${empId}`);
+                }).catch(() => null);
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (!matchedUser) {
+        await recordLoginAudit(empId, clientIp, false, 'Invalid credentials');
+        return NextResponse.json({ status: 'error', detail: 'Access Denied: Invalid Employee ID or Password.' }, { status: 401 });
+      }
+
+      // BLOCK PENDING USERS FROM LOGGING IN
+      if (matchedUser.status === 'Pending' || matchedUser.status !== 'Active') {
+        await recordLoginAudit(empId, clientIp, false, `Account status ${matchedUser.status}`);
+        return NextResponse.json(
+          { status: 'error', detail: 'Account Pending Admin Approval or Inactive. Please contact administrator to activate your account.' },
+          { status: 403 }
+        );
+      }
+
+      await recordLoginAudit(empId, clientIp, true, 'User login successful');
+
+      const token = createSessionToken({
+        employee_id: matchedUser.employee_id,
+        role: matchedUser.role || 'User',
+        full_name: matchedUser.full_name
+      }, 12 * 3600);
+
+      if (!token) {
+        return NextResponse.json({ status: 'error', detail: 'Failed to issue session token due to server configuration error.' }, { status: 500 });
+      }
+
+      const response = NextResponse.json({
+        status: 'success',
+        message: `Welcome back, ${matchedUser.full_name}!`,
+        session_token: token,
+        user: sanitizeUser(matchedUser)
+      });
+
+      response.cookies.set({
+        name: 'desire_session_token',
+        value: token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 12 * 3600,
+        sameSite: 'lax'
+      });
+
+      return response;
+    }
+
+    if (subPath === 'auth/admin-login' && method === 'POST') {
+      const adminIdClean = (body?.admin_id || body?.username || '').trim().toUpperCase();
+      const passClean = (body?.password || '').trim();
+
+      if (!adminIdClean || !passClean) {
+        return NextResponse.json({ status: 'error', detail: 'Admin ID and password are required.' }, { status: 400 });
+      }
+
+      const rateLimitCheck = await checkSupabaseRateLimitAndLockout(adminIdClean, clientIp);
+      if (!rateLimitCheck.isAllowed) {
+        return NextResponse.json({ status: 'error', detail: rateLimitCheck.detail }, { status: 429 });
+      }
+
+      let matchedAdmin: any = null;
+      if (supabase) {
+        try {
+          const targetEmpId = adminIdClean === 'ADMIN' ? 'EMP001' : adminIdClean;
+          const { data: dbUsers } = await supabase.from('users').select('*').eq('employee_id', targetEmpId);
+          if (dbUsers && dbUsers.length > 0) {
+            const u = dbUsers[0];
+            const { isValid, needsRehash } = verifyPasswordScrypt(passClean, u.password_hash || u.password);
+            if (isValid && (u.role === 'Administrator' || u.role === 'Admin') && u.status === 'Active') {
+              matchedAdmin = u;
+              if (needsRehash) {
+                const newScryptHash = hashPasswordScrypt(passClean);
+                supabase.from('users').update({ password_hash: newScryptHash }).eq('employee_id', u.employee_id).catch(() => null);
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (!matchedAdmin) {
+        await recordLoginAudit(adminIdClean, clientIp, false, 'Invalid admin credentials');
+        return NextResponse.json({ status: 'error', detail: 'Access Denied: Invalid Admin Credentials.' }, { status: 401 });
+      }
+
+      await recordLoginAudit(adminIdClean, clientIp, true, 'Admin login successful');
+
+      const token = createSessionToken({
+        employee_id: matchedAdmin.employee_id,
+        role: matchedAdmin.role || 'Administrator',
+        full_name: matchedAdmin.full_name
+      }, 12 * 3600);
+
+      if (!token) {
+        return NextResponse.json({ status: 'error', detail: 'Failed to issue admin token.' }, { status: 500 });
+      }
+
+      const response = NextResponse.json({
+        status: 'success',
+        message: 'Admin authentication successful.',
+        session_token: token,
+        must_change_password: false,
+        admin: sanitizeUser(matchedAdmin)
+      });
+
+      response.cookies.set({
+        name: 'desire_session_token',
+        value: token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 12 * 3600,
+        sameSite: 'lax'
+      });
+
+      return response;
+    }
+
+    if (subPath === 'admin/unlock-account' && method === 'POST') {
+      const targetEmpId = (body?.employee_id || body?.username || '').trim().toUpperCase();
+      const targetIp = (body?.ip || body?.client_ip || '').trim();
+
+      if (!targetEmpId) {
+        return NextResponse.json({ status: 'error', detail: 'Employee ID is required to unlock account.' }, { status: 400 });
+      }
+
+      if (supabase) {
+        try {
+          await supabase.from('audit_logs').insert([{
+            actor: targetEmpId,
+            action: 'LOGIN_SUCCESS',
+            target: targetIp || clientIp,
+            details: `Account manually unlocked by Admin`,
+            timestamp: new Date().toISOString()
+          }]);
+        } catch (e) {
+          console.error('[ADMIN_UNLOCK_ERROR]', e);
+        }
+      }
+
+      return NextResponse.json({
+        status: 'success',
+        message: `Account '${targetEmpId}' has been successfully unlocked.`
+      });
+    }
+
+    // ═══ MINIMAL AUTHENTICATED ASSIGNEES ENDPOINT FOR BID FLOW CHIPS ════════
+    if (subPath === 'users/assignees' && method === 'GET') {
+      let assignees = [
+        { id: 'usr-101', employee_id: 'EMP001', full_name: 'Ankit Purohit', email: 'ankit.purohit@desireenergy.com' },
+        { id: 'usr-102', employee_id: 'EMP002', full_name: 'Deepak Khandelwal', email: 'deepak.khandelwal@desireenergy.com' },
+        { id: 'usr-103', employee_id: 'EMP003', full_name: 'Suresh Sharma', email: 'suresh.sharma@desireenergy.com' },
+        { id: 'usr-104', employee_id: 'EMP004', full_name: 'Vikas Verma', email: 'vikas.verma@desireenergy.com' },
+        { id: 'usr-105', employee_id: 'EMP005', full_name: 'Dharmesh Khandelwal', email: 'dharmeshkhandelwal@desireenergy.com' }
+      ];
+
+      if (supabase) {
+        try {
+          const { data: dbUsers } = await supabase
+            .from('users')
+            .select('id, employee_id, full_name, email')
+            .eq('status', 'Active');
+
+          if (dbUsers && dbUsers.length > 0) {
+            assignees = dbUsers;
+          }
+        } catch (e) {}
+      }
+
+      return NextResponse.json({ status: 'success', data: assignees });
     }
 
     // ═══ ACTIVE VERIFIED STAFF USERS HANDLER ═════════════════════════════════
@@ -1546,7 +2005,23 @@ Return valid JSON only:
           return NextResponse.json({ status: 'error', message: sbErr.message }, { status: 500 });
         }
 
-        const allRows = rows || [];
+        const rawRows = rows || [];
+        // Filter out internal test rows and duplicate entries
+        const JUNK_IDS = new Set(['TND-714135', 'TND-848273', 'TND-261164', 'TEST', 'ASDF']);
+        const seenIds = new Set<string>();
+        const allRows = rawRows.filter(r => {
+          const idUpper = (r.id || '').trim().toUpperCase();
+          const nameLower = (r.tender_name || '').trim().toLowerCase();
+          if (JUNK_IDS.has(idUpper) || nameLower === 'test' || nameLower === 'asdf' || nameLower.startsWith('test tender')) {
+            return false;
+          }
+          if (seenIds.has(idUpper)) {
+            return false; // Deduplicate
+          }
+          seenIds.add(idUpper);
+          return true;
+        });
+
         const activeCount = allRows.length;
         let totalValCr = 0.0;
         let latestUpdate: string | null = null;
@@ -1577,19 +2052,15 @@ Return valid JSON only:
           totalValCr += valCr;
 
           // ─── STRICT 3-TIER STATE RESOLUTION LOGIC ──────────────────
-          // PRIORITY 1 (HIGHEST): Issuing Authority / Department Field
           let resolvedState: string | null = null;
           let resolvedAuthority: string = 'Internal / Unassigned';
 
-          // 1a. Explicit state tag in eligibility_result
           const rawState = typeof elig?.state === 'string' ? elig.state.trim() : null;
           if (rawState) {
             const matched = VALID_INDIAN_STATES.find(s => s.toLowerCase() === rawState.toLowerCase());
             if (matched) resolvedState = matched;
           }
 
-          // 1b. Department / Issuing Authority field
-          // (Ignore generic internal roles like 'Admin', 'Business Development', etc.)
           const INTERNAL_DEPARTMENTS = ['admin', 'business development', 'tender team', 'estimation team', 'management', 'finance'];
           const deptRaw = (row.department_assigned || '').trim();
           const isInternalDept = INTERNAL_DEPARTMENTS.includes(deptRaw.toLowerCase());
@@ -1616,9 +2087,6 @@ Return valid JSON only:
             }
           }
 
-          // PRIORITY 2 (SECOND): Tender Title Text (tender_name)
-          // Scan strictly title text for district/city or explicit state names.
-          // CRITICAL: Free-text evaluation/eligibility/audit commentary is EXPLICITLY EXCLUDED.
           if (!resolvedState && row.tender_name) {
             const titleLower = row.tender_name.toLowerCase();
             const matched = VALID_INDIAN_STATES.find(s => titleLower.includes(s.toLowerCase()));
@@ -1637,7 +2105,6 @@ Return valid JSON only:
             }
           }
 
-          // Authority string clean formatting
           if (authorityDeptField) {
             resolvedAuthority = authorityDeptField.split('||')[0].trim();
           } else if (explicitAuthority) {
@@ -1648,7 +2115,6 @@ Return valid JSON only:
             resolvedAuthority = 'Internal / Unassigned';
           }
 
-          // If genuine state cannot be verified, honestly categorize under "Unclassified"
           const state = resolvedState || 'Unclassified';
           const authority = resolvedAuthority;
 
@@ -1658,7 +2124,6 @@ Return valid JSON only:
           statesMap[state].count += 1;
           statesMap[state].val += valCr;
 
-          // Sector resolution
           const sector = row.project_category || 'Infrastructure EPC';
           if (!sectorsMap[sector]) {
             sectorsMap[sector] = { count: 0, val: 0.0 };
@@ -1666,8 +2131,8 @@ Return valid JSON only:
           sectorsMap[sector].count += 1;
           sectorsMap[sector].val += valCr;
 
-          // Days left estimation
-          let daysLeft = 14;
+          // Days left calculation (null if no valid deadline provided)
+          let daysLeft: number | null = null;
           if (elig?.due_date) {
             try {
               const parsedDate = Date.parse(elig.due_date);
@@ -1679,11 +2144,22 @@ Return valid JSON only:
           }
 
           const itemValCr = Math.round(valCr * 100) / 100;
-          const emdLakhs = parseFloat(elig?.emd_lakhs) || (itemValCr > 0 ? Math.round(itemValCr * 1) : 0);
-          const tenderFee = parseFloat(elig?.tender_fee) || (itemValCr > 0 ? 5000 : 0);
-          const dueDateStr = elig?.due_date || 'Live NIT';
-          const pubDateStr = elig?.publish_date || (row.created_at ? row.created_at.split('T')[0] : '2026-08-25');
+          const emdLakhs = parseFloat(elig?.emd_lakhs) || null;
+          const tenderFee = parseFloat(elig?.tender_fee) || null;
+          const dueDateStr = elig?.due_date || null;
+          const pubDateStr = elig?.publish_date || (row.created_at ? row.created_at.split('T')[0] : null);
           const portalUrl = elig?.portal_url || null;
+
+          // Real eligibility evaluation data check (no hardcoded/fake formula fallbacks)
+          const isEvaluated = Boolean(elig && typeof elig.score === 'number');
+          const realScore = isEvaluated ? elig.score : null;
+          const realStatus = isEvaluated ? (elig.score >= 90 ? 'Direct Eligible' : 'JV Recommended') : 'Not analysed';
+          const realKeyCriteria = isEvaluated ? {
+            min_turnover_cr: elig.min_turnover_cr ?? null,
+            similar_work_cr: elig.similar_work_cr ?? null,
+            experience_years: elig.experience_years ?? null,
+            license_category: elig.license_category ?? null
+          } : 'Not analysed';
 
           priorityList.push({
             id: row.id,
@@ -1705,21 +2181,16 @@ Return valid JSON only:
             days_left: daysLeft,
             daysLeft,
             stage: 'Open (Live)',
-            eligibility_match_pct: elig?.score || (itemValCr >= 10 ? 95 : 90),
-            matchPct: elig?.score || (itemValCr >= 10 ? 95 : 90),
-            desire_qual_status: itemValCr >= 50 ? 'JV Recommended' : 'Direct Eligible',
-            status: itemValCr >= 50 ? 'JV Recommended' : 'Direct Eligible',
+            eligibility_match_pct: realScore,
+            matchPct: realScore,
+            desire_qual_status: realStatus,
+            status: realStatus,
             scope_highlights: [
               sector,
               authority,
               `State: ${state}`
             ],
-            key_criteria: {
-              min_turnover_cr: Math.round(itemValCr * 0.4 * 10) / 10,
-              similar_work_cr: Math.round(itemValCr * 0.3 * 10) / 10,
-              experience_years: 5,
-              license_category: 'Class-A'
-            },
+            key_criteria: realKeyCriteria,
             portal_url: portalUrl,
             portalUrl: portalUrl,
             updatedAt: row.updated_at

@@ -240,21 +240,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onBackToUserPortal }) 
       }
     } catch (err: any) {}
 
-    // Failsafe Fallback Check
-    const isDefaultAdminId = (aId === 'admin' || aId === 'emp001' || aId === 'emp999' || aId.includes('admin'));
-    const isDefaultPassword = (aPass === 'admin@1234' || aPass === 'AquaAdmin@2026#DES' || aPass === getAdminPassword());
-
-    if (isDefaultAdminId && isDefaultPassword) {
-      setIsAdminAuthenticated(true);
-      saveAdminSession({ admin_id: aId, role: 'Admin' });
-      if (getAdminMustChangePassword() && (aPass === 'AquaAdmin@2026#DES')) {
-        setMustChangePassword(true);
-      } else {
-        setMustChangePassword(false);
-      }
-      return;
-    }
-
+    // Server API handles password verification securely via scrypt hash comparison.
     setLoginError('Access Denied: Invalid Admin Credentials.');
   };
 
