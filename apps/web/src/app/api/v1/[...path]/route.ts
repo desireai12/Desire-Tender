@@ -914,6 +914,8 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     clauses_breakdown: selectedEval ? selectedEval.clauses : [],
     partnerEvaluations
   };
+}
+
 // ─── HMAC-SHA256 SESSION TOKEN & SCRYPT PASSWORD ENGINE ───────────────────────
 const RAW_SESSION_SECRET = (process.env.SESSION_SECRET || process.env.SECRET_KEY || '').trim();
 const IS_SECRET_VALID = RAW_SESSION_SECRET.length >= 32;
@@ -1199,7 +1201,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
               matchedUser = u;
               if (needsRehash) {
                 const newScryptHash = hashPasswordScrypt(pass);
-                supabase.from('users').update({ password_hash: newScryptHash }).eq('employee_id', empId).then(() => {
+                Promise.resolve(supabase.from('users').update({ password_hash: newScryptHash }).eq('employee_id', empId)).then(() => {
                   console.log(`[AUTH] Successfully rehashed password for user ${empId}`);
                 }).catch(() => null);
               }
@@ -1279,7 +1281,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
               matchedAdmin = u;
               if (needsRehash) {
                 const newScryptHash = hashPasswordScrypt(passClean);
-                supabase.from('users').update({ password_hash: newScryptHash }).eq('employee_id', u.employee_id).catch(() => null);
+                Promise.resolve(supabase.from('users').update({ password_hash: newScryptHash }).eq('employee_id', u.employee_id)).catch(() => null);
               }
             }
           }

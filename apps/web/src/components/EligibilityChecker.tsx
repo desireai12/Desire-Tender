@@ -284,8 +284,20 @@ export const EligibilityChecker: React.FC = () => {
   // Only run analysis when triggered by user
   // (removed auto-triggering on mount with dummy data)
 
-  const desireComp = companies.find(c => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || companies[0];
-  const jvComp = companies.find(c => c.id === selectedJvPartnerId) || companies.find(c => c.type === 'JV Partner');
+  const desireComp = companies.find(c => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || companies[0] || {
+    id: 'comp-desire-01',
+    name: 'Desire Energy Solutions Pvt Ltd',
+    type: 'Desire Energy',
+    average_turnover: 50,
+    net_worth: 20
+  };
+  const jvComp = companies.find(c => c.id === selectedJvPartnerId) || companies.find(c => c.type === 'JV Partner') || {
+    id: 'comp-jv-default',
+    name: 'JV Partner',
+    type: 'JV Partner',
+    average_turnover: 0,
+    net_worth: 0
+  };
 
   // Dynamic clause & score evaluator for each perspective (Desire alone / JV alone / Combined)
   const getPerspectiveData = () => {
