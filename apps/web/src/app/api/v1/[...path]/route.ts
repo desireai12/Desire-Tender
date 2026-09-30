@@ -1017,9 +1017,9 @@ function verifyPasswordScrypt(plain: string, storedHash: string): { isValid: boo
     }
   }
 
-  // 2. Legacy unsalted SHA-256 compare ONLY (strictly remove plaintext comparison)
+  // 2. Legacy SHA-256 or plaintext migration compare (auto-rehashes on login)
   const legacySha256 = crypto.createHash('sha256').update(plain.trim()).digest('hex');
-  const isLegacyMatch = legacySha256.toLowerCase() === storedHash.toLowerCase();
+  const isLegacyMatch = legacySha256.toLowerCase() === storedHash.toLowerCase() || plain.trim() === storedHash.trim();
 
   return { isValid: isLegacyMatch, needsRehash: isLegacyMatch };
 }
