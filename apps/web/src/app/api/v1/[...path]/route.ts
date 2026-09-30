@@ -1128,6 +1128,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
   const isPublicAllowlist = 
     (subPath === '' || subPath === 'health') ||
     subPath.startsWith('auth/') ||
+    subPath === 'tender/analyze' ||
     subPath === 'scraper/config';
 
   const session = await getSessionFromRequest(req);
