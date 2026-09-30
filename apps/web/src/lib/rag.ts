@@ -273,3 +273,99 @@ export async function retrieveRAGContextForTender(
     indexedCount: selectedChunks.length
   };
 }
+
+/**
+ * Asynchronously embeds and stores document chunks into Supabase pgvector table (public.tender_chunks)
+ * in rate-limited background batches without blocking user-facing HTTP response.
+ */
+export async function ingestDocumentInBackground(
+  tenderId: string,
+  fullText: string,
+  apiKey: string
+): Promise<{ success: boolean; count: number }> {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://udwjptggvaavoemuvjbm.supabase.co';
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+    if (!supabaseUrl || !supabaseKey || !apiKey) {
+      console.warn('[BACKGROUND_RAG_INGESTION] Missing credentials, skipping background vector indexing.');
+      return { success: false, count: 0 };
+    }
+
+    // 1. Check if already ingested
+    const checkUrl = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/tender_chunks?select=id&tender_id=eq.${encodeURIComponent(tenderId)}&limit=1`;
+    const checkRes = await fetch(checkUrl, {
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`
+      }
+    });
+
+    if (checkRes.ok) {
+      const existing = await checkRes.json();
+      if (Array.isArray(existing) && existing.length > 0) {
+        console.log(`[BACKGROUND_RAG_INGESTION] Tender ${tenderId} is already indexed in pgvector. Skipping.`);
+        return { success: true, count: existing.length };
+      }
+    }
+
+    // 2. Chunk document
+    const chunks = splitText(fullText, 1000, 200);
+    if (chunks.length === 0) return { success: true, count: 0 };
+
+    console.log(`[BACKGROUND_RAG_INGESTION] Starting background vector indexing for tender ${tenderId} (${chunks.length} chunks)...`);
+
+    // 3. Batch embed & store in rate-limited batches (15 chunks/batch, 12s delay between batches to stay under 100 RPM limit)
+    const BATCH_SIZE = 15;
+    const DELAY_MS = 12000;
+    let totalStored = 0;
+
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      const batch = chunks.slice(i, i + BATCH_SIZE);
+      const batchTexts = batch.map(c => c.content);
+
+      try {
+        const embeddings = await batchEmbedTexts(batchTexts, apiKey);
+        const rows = batch.map((c, idx) => ({
+          tender_id: tenderId,
+          chunk_index: c.chunk_index,
+          content: c.content,
+          embedding: JSON.stringify(embeddings[idx])
+        }));
+
+        const insertUrl = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/tender_chunks`;
+        const insertRes = await fetch(insertUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(rows)
+        });
+
+        if (insertRes.ok) {
+          totalStored += rows.length;
+          console.log(`[BACKGROUND_RAG_INGESTION] Embedded & saved chunks ${i + 1} to ${i + rows.length}/${chunks.length} for ${tenderId}`);
+        } else {
+          const errText = await insertRes.text().catch(() => '');
+          console.error(`[BACKGROUND_RAG_INGESTION] Supabase insert failed for batch ${i}: ${errText}`);
+        }
+      } catch (batchErr) {
+        console.error(`[BACKGROUND_RAG_INGESTION] Error embedding batch starting at ${i}:`, batchErr);
+      }
+
+      if (i + BATCH_SIZE < chunks.length) {
+        await new Promise(res => setTimeout(res, DELAY_MS));
+      }
+    }
+
+    console.log(`[BACKGROUND_RAG_INGESTION] Completed background indexing for ${tenderId}: ${totalStored}/${chunks.length} chunks stored in pgvector.`);
+    return { success: true, count: totalStored };
+  } catch (err) {
+    console.error('[BACKGROUND_RAG_INGESTION] Fatal error during background ingestion:', err);
+    return { success: false, count: 0 };
+  }
+}
+
