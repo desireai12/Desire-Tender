@@ -919,10 +919,9 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 }
 
 // ─── HMAC-SHA256 SESSION TOKEN & SCRYPT PASSWORD ENGINE ───────────────────────
-const DEFAULT_DEV_SECRET = "desire_tender_super_secret_jwt_key_2026_production_secure_token";
-const RAW_SESSION_SECRET = (process.env.SESSION_SECRET || process.env.SECRET_KEY || DEFAULT_DEV_SECRET).trim();
+const RAW_SESSION_SECRET = (process.env.SESSION_SECRET || process.env.SECRET_KEY || '').trim();
 const IS_SECRET_VALID = RAW_SESSION_SECRET.length >= 32;
-const SESSION_SECRET = IS_SECRET_VALID ? RAW_SESSION_SECRET : DEFAULT_DEV_SECRET;
+const SESSION_SECRET = IS_SECRET_VALID ? RAW_SESSION_SECRET : '';
 
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetTime: number }>();
 
