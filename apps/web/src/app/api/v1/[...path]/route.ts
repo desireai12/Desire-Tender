@@ -9,6 +9,7 @@ import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
 import { normalizeStatus } from '@/lib/tender-status';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
+import { retrieveRAGContextForTender } from '@/lib/rag';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -1520,7 +1521,19 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       let comps = GLOBAL_SERVER_COMPANIES;
       if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
 
-      const snippet = extractedPdfText ? extractedPdfText.slice(0, 60000) : `Filename: ${filename}. Title: ${titleInput}`;
+      let snippet = extractedPdfText ? extractedPdfText.slice(0, 60000) : `Filename: ${filename}. Title: ${titleInput}`;
+      let ragMetrics = { chunkCount: 0, indexedCount: 0 };
+      if (extractedPdfText && extractedPdfText.length > 0) {
+        try {
+          const ragResult = await retrieveRAGContextForTender(`tender-${Date.now()}`, extractedPdfText, geminiKey);
+          if (ragResult.ragContextText && ragResult.ragContextText.length > 50) {
+            snippet = ragResult.ragContextText;
+            ragMetrics = { chunkCount: ragResult.chunkCount, indexedCount: ragResult.indexedCount };
+          }
+        } catch (ragErr) {
+          console.warn('[RAG_PIPELINE] RAG retrieval warning, falling back to direct snippet:', ragErr);
+        }
+      }
 
       const prompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor.
 Your ONLY job is to read the provided tender document text and EXTRACT the raw eligibility clauses, titles, requirement types, text descriptions, and required numeric threshold values.
