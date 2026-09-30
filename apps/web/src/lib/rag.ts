@@ -178,7 +178,7 @@ export async function retrieveRAGContextForTender(
     selectedIndices.add(0);
     if (chunks.length > 1) selectedIndices.add(1);
 
-    // Perform domain keyword relevance scoring across all chunks
+    // 1. FAST KEYWORD SCANNER PASS
     for (const kwGroup of targetDomainKeywords) {
       let bestIdx = -1;
       let maxScore = 0;
@@ -202,7 +202,57 @@ export async function retrieveRAGContextForTender(
       }
     }
 
-    // If selected count is small, pad with evenly spaced structural stride chunks
+    // 2. PGVECTOR REAL SEMANTIC SIMILARITY PASS
+    const semanticDomainQueries = [
+      "minimum annual financial turnover requirement and CA balance sheet",
+      "similar technical work experience single project value pipeline",
+      "technical specialized equipment certification electrical license",
+      "remote digital monitoring control system solar automation",
+      "penalty and liquidated damages clause bank guarantee EMD"
+    ];
+
+    try {
+      // Query pgvector RPC for semantic similarity matches across stored chunks
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://udwjptggvaavoemuvjbm.supabase.co';
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+      if (supabaseUrl && supabaseKey) {
+        for (const qText of semanticDomainQueries) {
+          try {
+            const qVec = await embedText(qText, apiKey);
+            const rpcUrl = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/rpc/match_tender_chunks`;
+            const rpcRes = await fetch(rpcUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`
+              },
+              body: JSON.stringify({
+                query_embedding: qVec,
+                match_tender_id: tenderId,
+                match_count: 2
+              })
+            });
+
+            if (rpcRes.ok) {
+              const matches: { chunk_index: number; similarity: number }[] = await rpcRes.json();
+              for (const m of matches) {
+                if (typeof m.chunk_index === 'number' && m.chunk_index >= 0 && m.chunk_index < chunks.length) {
+                  selectedIndices.add(m.chunk_index);
+                }
+              }
+            }
+          } catch (semErr) {
+            // Fallback gracefully if single query fails
+          }
+        }
+      }
+    } catch (vectorErr) {
+      console.warn('[RAG_PIPELINE] pgvector semantic retrieval fallback:', vectorErr);
+    }
+
+    // Pad with structural stride chunks if needed
     if (selectedIndices.size < 10) {
       const step = Math.floor(chunks.length / 8);
       for (let i = 0; i < chunks.length; i += step) {
