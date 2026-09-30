@@ -112,6 +112,37 @@ export async function embedText(text: string, apiKey: string): Promise<number[]>
 }
 
 /**
+ * Call Gemini Embedding Batch API for efficient multi-chunk vector generation
+ */
+export async function batchEmbedTexts(texts: string[], apiKey: string): Promise<number[][]> {
+  if (texts.length === 0) return [];
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key=${apiKey}`;
+  const requests = texts.map(t => ({
+    model: 'models/gemini-embedding-001',
+    content: { parts: [{ text: t.trim().slice(0, 2048) }] },
+    outputDimensionality: 768
+  }));
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requests })
+  });
+
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '');
+    throw new Error(`Gemini Batch Embedding API Error (${response.status}): ${errBody}`);
+  }
+
+  const data = await response.json();
+  if (!data?.embeddings || !Array.isArray(data.embeddings)) {
+    throw new Error('Gemini Batch Embedding API returned invalid response format.');
+  }
+
+  return data.embeddings.map((item: any) => item.values);
+}
+
+/**
  * High-performance vector RAG context retriever for tender documents
  */
 export async function retrieveRAGContextForTender(
