@@ -9,6 +9,7 @@ import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
 import { normalizeStatus } from '@/lib/tender-status';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
+import { waitUntil } from '@vercel/functions';
 import { retrieveRAGContextForTender, ingestDocumentInBackground } from '@/lib/rag';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -1532,10 +1533,12 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
             ragMetrics = { chunkCount: ragResult.chunkCount, indexedCount: ragResult.indexedCount };
           }
 
-          // Trigger non-blocking background vector indexing into Supabase pgvector
-          ingestDocumentInBackground(currentTenderId, extractedPdfText, geminiKey).catch(bgErr => {
-            console.warn('[BACKGROUND_RAG_TRIGGER] Background ingestion task error:', bgErr);
-          });
+          // Register non-blocking background vector indexing with Vercel waitUntil SDK
+          waitUntil(
+            ingestDocumentInBackground(currentTenderId, extractedPdfText, geminiKey).catch(bgErr => {
+              console.warn('[BACKGROUND_RAG_TRIGGER] Background ingestion task error:', bgErr);
+            })
+          );
         } catch (ragErr) {
           console.warn('[RAG_PIPELINE] RAG retrieval warning, falling back to direct snippet:', ragErr);
         }
