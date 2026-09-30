@@ -156,35 +156,63 @@ export async function retrieveRAGContextForTender(
     return { ragContextText: fullText.slice(0, 60000), chunkCount: 0, indexedCount: 0 };
   }
 
-  // 2. High-priority target query domains for tender qualification
-  const targetDomainQueries = [
-    "annual financial turnover requirement and CA audited balance sheet",
-    "similar technical work experience single project value pipeline water supply",
-    "liquid assets fund based bank credit facilities solvency certificate",
-    "joint venture consortium rules lead partner financial share percentage",
-    "contractor class registration gujarat WRD R&B electrical license",
-    "equipment machinery excavators pipe layers crane testing rig",
-    "defect liability period operation maintenance O&M trial run duration"
+  // 2. High-priority target domain keywords & queries for tender qualification
+  const targetDomainKeywords = [
+    ["turnover", "financial", "balance sheet", "ca certificate", "revenue"],
+    ["work experience", "similar work", "prime contractor", "completed work", "pipeline", "water supply"],
+    ["liquid assets", "bank credit", "solvency", "net worth", "credit facility"],
+    ["joint venture", "consortium", "lead partner", "financial share", "partner"],
+    ["registration", "wrd", "r&b", "class-a", "electrical license", "contractor"],
+    ["scada", "solar", "automation", "telemetry", "specialized"],
+    ["penalty", "liquidated damages", "delay", "emd", "bank guarantee", "performance security"],
+    ["equipment", "machinery", "excavator", "crane", "testing rig"]
   ];
 
-  // 3. Generate embeddings and store top chunks in Supabase (or memory pool if Supabase vector RPC isn't enabled)
   let selectedChunks: TextChunk[] = [];
 
   if (chunks.length <= 15) {
     selectedChunks = chunks;
   } else {
-    // Top domain chunk selection based on query vectors
     const selectedIndices = new Set<number>();
-    // Always include first 2 chunks (metadata / title page)
+    // Always include metadata / title page (chunks 0 and 1)
     selectedIndices.add(0);
     if (chunks.length > 1) selectedIndices.add(1);
 
-    // Pick domain chunks spread across the document length
-    const step = Math.floor(chunks.length / 10);
-    for (let i = 0; i < chunks.length; i += step) {
-      selectedIndices.add(i);
+    // Perform domain keyword relevance scoring across all chunks
+    for (const kwGroup of targetDomainKeywords) {
+      let bestIdx = -1;
+      let maxScore = 0;
+
+      for (let i = 0; i < chunks.length; i++) {
+        const textLower = chunks[i].content.toLowerCase();
+        let score = 0;
+        for (const kw of kwGroup) {
+          if (textLower.includes(kw)) {
+            score += 1;
+          }
+        }
+        if (score > maxScore) {
+          maxScore = score;
+          bestIdx = i;
+        }
+      }
+
+      if (bestIdx >= 0 && maxScore > 0) {
+        selectedIndices.add(bestIdx);
+      }
     }
-    selectedChunks = Array.from(selectedIndices).sort((a, b) => a - b).map(idx => chunks[idx]);
+
+    // If selected count is small, pad with evenly spaced structural stride chunks
+    if (selectedIndices.size < 10) {
+      const step = Math.floor(chunks.length / 8);
+      for (let i = 0; i < chunks.length; i += step) {
+        selectedIndices.add(i);
+      }
+    }
+
+    selectedChunks = Array.from(selectedIndices)
+      .sort((a, b) => a - b)
+      .map(idx => chunks[idx]);
   }
 
   const ragContextText = selectedChunks.map(c => `[DOCUMENT CHUNK #${c.chunk_index}]:\n${c.content}`).join("\n\n---\n\n");
