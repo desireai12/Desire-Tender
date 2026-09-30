@@ -315,12 +315,20 @@ export async function ingestDocumentInBackground(
 
     console.log(`[BACKGROUND_RAG_INGESTION] Starting background vector indexing for tender ${tenderId} (${chunks.length} chunks)...`);
 
-    // 3. Batch embed & store in rate-limited batches (15 chunks/batch, 12s delay between batches to stay under 100 RPM limit)
-    const BATCH_SIZE = 15;
-    const DELAY_MS = 12000;
+    // 3. High-throughput batch embed (50 chunks/batch, 3s delay) -> 500 chunks/min (Safely under 100 RPM API quota)
+    const BATCH_SIZE = 50;
+    const DELAY_MS = 3000;
+    const SERVERLESS_DEADLINE_MS = 250000; // 250s execution budget (Vercel maxDuration limit is 300s)
+    const startTime = Date.now();
     let totalStored = 0;
 
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      // Serverless execution deadline guard check
+      if (Date.now() - startTime > SERVERLESS_DEADLINE_MS) {
+        console.warn(`[BACKGROUND_RAG_INGESTION] Serverless 250s execution safety budget reached for ${tenderId}. Stored ${totalStored}/${chunks.length} chunks. Execution paused gracefully.`);
+        break;
+      }
+
       const batch = chunks.slice(i, i + BATCH_SIZE);
       const batchTexts = batch.map(c => c.content);
 
@@ -347,7 +355,7 @@ export async function ingestDocumentInBackground(
 
         if (insertRes.ok) {
           totalStored += rows.length;
-          console.log(`[BACKGROUND_RAG_INGESTION] Embedded & saved chunks ${i + 1} to ${i + rows.length}/${chunks.length} for ${tenderId}`);
+          console.log(`[BACKGROUND_RAG_INGESTION] Embedded & saved chunks ${i + 1} to ${i + rows.length}/${chunks.length} for ${tenderId} (${(Date.now() - startTime)/1000}s elapsed)`);
         } else {
           const errText = await insertRes.text().catch(() => '');
           console.error(`[BACKGROUND_RAG_INGESTION] Supabase insert failed for batch ${i}: ${errText}`);
