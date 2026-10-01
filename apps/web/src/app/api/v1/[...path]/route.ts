@@ -787,10 +787,11 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     const isIso = title.includes('iso') || reqText.includes('iso');
     const isGst = title.includes('gst') || reqText.includes('gst');
     const isPan = /\bpan\b/i.test(title) || /\bpan\b/i.test(reqText);
+    const isEmdClause = title.includes('emd') || title.includes('earnest money') || reqText.includes('earnest money') || (reqText.includes('emd') && !reqText.includes('scheme'));
     const isStaff = title.includes('staff') || title.includes('manpower') || title.includes('engineer') || reqText.includes('diploma') || reqText.includes('engineer') || reqText.includes('technical staff');
     const isRegClause = (title.includes('registration') || title.includes('enlistment') || title.includes('class') || title.includes('license') ||
-                        reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license') ||
-                        reqText.includes('wrd') || reqText.includes('phed') || reqText.includes('pwd')) && !isGst && !isPan;
+                        reqText.includes('registration') || reqText.includes('enlistment') ||
+                        reqText.includes('wrd') || reqText.includes('pwd')) && !isGst && !isPan && !isEmdClause;
     const hasEquivalence = reqText.includes('equivalent') || reqText.includes('equivalence') || reqText.includes('reciprocity') ||
                            reqText.includes('inter-state') || reqText.includes('interstate') || reqText.includes('other state') ||
                            reqText.includes('other department') || reqText.includes('reciprocal') || reqText.includes('any state');
@@ -812,6 +813,26 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       dVal = dHasPan ? `Desire actual: Valid PAN Card (PAN: ${desireComp.pan_number || 'AAECD3266E'}) -> 100% MATCH` : 'DATA NOT AVAILABLE — No PAN Card record on file';
       jPct = 100; jVal = `${partner.name} actual: Valid PAN Card -> 100% MATCH`;
       cPct = 100; cVal = 'Combined: Meets PAN requirements -> 100% MATCH';
+    } else if (isEmdClause) {
+      const dEmdCap = Number((desireComp as any).emd_bg_facility_limit || (desireComp as any).emd_capacity || 0);
+      if (dEmdCap > 0) {
+        dPct = (reqNum && reqNum > 0) ? Math.min(100, Math.floor((dEmdCap / reqNum) * 100)) : 100;
+        dVal = `Desire actual: Bank Guarantee / EMD facility limit of Rs ${dEmdCap} Cr on file -> ${dPct}% MATCH`;
+      } else {
+        dPct = 0;
+        dVal = 'DATA NOT AVAILABLE — No EMD / Bank Guarantee facility limit record on file';
+      }
+      
+      const jEmdCap = Number((partner as any).emd_bg_facility_limit || (partner as any).emd_capacity || 0);
+      if (jEmdCap > 0) {
+        jPct = (reqNum && reqNum > 0) ? Math.min(100, Math.floor((jEmdCap / reqNum) * 100)) : 100;
+        jVal = `${partner.name} actual: Bank Guarantee / EMD facility limit of Rs ${jEmdCap} Cr -> ${jPct}% MATCH`;
+      } else {
+        jPct = 0;
+        jVal = `${partner.name} actual: DATA NOT AVAILABLE — No EMD / BG capacity record on file`;
+      }
+      cPct = Math.max(dPct, jPct);
+      cVal = cPct > 0 ? `Combined: Verified EMD facility capacity -> ${cPct}% MATCH` : 'Combined: DATA NOT AVAILABLE — EMD / BG facility record missing';
     } else if (isIso) {
       const dHasIso = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('iso'));
       dPct = dHasIso ? 100 : 0;
