@@ -10,7 +10,7 @@ import { normalizeStatus } from '@/lib/tender-status';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
 import { waitUntil } from '@vercel/functions';
-import { retrieveRAGContextForTender, ingestDocumentInBackground } from '@/lib/rag';
+import { retrieveRAGContextForTender, ingestDocumentInBackground, INGESTION_TRACKER } from '@/lib/rag';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -1116,6 +1116,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     (subPath === '' || subPath === 'health') ||
     subPath.startsWith('auth/') ||
     subPath === 'tender/analyze' ||
+    subPath === 'tender/status' ||
+    subPath === 'tender/ingestion-status' ||
     subPath === 'scraper/config';
 
   const session = await getSessionFromRequest(req);
@@ -1458,11 +1460,58 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       return NextResponse.json(banasTenderData);
     }
 
+    // ═══ TENDER INGESTION STATUS ══════════════════════════════════════════════
+    if ((subPath === 'tender/status' || subPath === 'tender/ingestion-status') && method === 'GET') {
+      const searchParams = req.nextUrl.searchParams;
+      const tenderId = searchParams.get('tender_id') || searchParams.get('id') || '';
+      if (!tenderId) {
+        return NextResponse.json({ status: 'error', message: 'tender_id parameter is required' }, { status: 400 });
+      }
+
+      let storedChunks = 0;
+      let totalChunks = 0;
+      let isComplete = false;
+
+      const tracked = INGESTION_TRACKER[tenderId];
+      if (tracked) {
+        storedChunks = tracked.stored_chunks;
+        totalChunks = tracked.total_chunks;
+        isComplete = tracked.status === 'completed' || (totalChunks > 0 && storedChunks >= totalChunks);
+      }
+
+      if (supabase) {
+        try {
+          const { count } = await supabase
+            .from('tender_chunks')
+            .select('id', { count: 'exact', head: true })
+            .eq('tender_id', tenderId);
+
+          if (typeof count === 'number' && count > 0) {
+            storedChunks = Math.max(storedChunks, count);
+            if (totalChunks > 0 && storedChunks >= totalChunks) {
+              isComplete = true;
+            }
+          }
+        } catch (e) {}
+      }
+
+      return NextResponse.json({
+        status: 'success',
+        tender_id: tenderId,
+        stored_chunks: storedChunks,
+        total_chunks: totalChunks || storedChunks,
+        is_complete: isComplete,
+        analysis_mode: isComplete ? 'full' : 'preview'
+      });
+    }
+
     // ═══ TENDER ANALYZE ═══════════════════════════════════════════════════════
     if (subPath === 'tender/analyze' && method === 'POST') {
       const filename = formFilename || body.filename || 'uploaded_document.pdf';
       const titleInput = formTenderTitle || body.tender_title || '';
       const jvPartnerId = formJvPartnerId || body.jv_partner_id || 'comp-vhp-04';
+      const inputTenderId = (body.tender_id || body.id || '').trim();
+      const currentTenderId = inputTenderId || `tender-${Date.now()}`;
 
       if (!formFileBuffer || formFileBuffer.length === 0) {
         return buildErrorResponse('FILE_UPLOAD_FAILED', 'Uploaded file buffer is empty or 0 bytes.');
@@ -1514,7 +1563,6 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       let ragMetrics = { chunkCount: 0, indexedCount: 0 };
       if (extractedPdfText && extractedPdfText.length > 0) {
         try {
-          const currentTenderId = `tender-${Date.now()}`;
           const ragResult = await retrieveRAGContextForTender(currentTenderId, extractedPdfText, geminiKey);
           if (ragResult.ragContextText && ragResult.ragContextText.length > 50) {
             snippet = ragResult.ragContextText;
@@ -1706,11 +1754,27 @@ Return valid JSON only:
       aiResult.recommended_partner_id = partnerRecommendations[0].partner_id;
       aiResult.recommended_partner_name = partnerRecommendations[0].partner_name;
 
+      const isFullScan = ragMetrics.indexedCount >= ragMetrics.chunkCount && ragMetrics.chunkCount > 0;
       const cleanAi = sanitizeReportClauses(aiResult, jvName);
+      cleanAi.tender_id = currentTenderId;
+      cleanAi.analysis_mode = isFullScan ? 'full' : 'preview';
+      cleanAi.is_background_ingesting = !isFullScan;
+      cleanAi.chunk_metrics = {
+        total_chunks: ragMetrics.chunkCount,
+        indexed_chunks: ragMetrics.indexedCount
+      };
+
       return NextResponse.json({
         status: 'success',
         is_rejected_non_tender: false,
-        message: 'Gemini AI tender evaluation complete.',
+        message: isFullScan ? 'Full semantic RAG tender evaluation complete.' : 'Fast preview tender evaluation complete.',
+        tender_id: currentTenderId,
+        analysis_mode: isFullScan ? 'full' : 'preview',
+        is_background_ingesting: !isFullScan,
+        chunk_metrics: {
+          total_chunks: ragMetrics.chunkCount,
+          indexed_chunks: ragMetrics.indexedCount
+        },
         evaluation_report: cleanAi,
         report: cleanAi,
         debug: {

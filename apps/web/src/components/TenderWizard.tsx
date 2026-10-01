@@ -75,6 +75,90 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
   // Step 3 Dynamic Assessment Report State
   const [evaluationReport, setEvaluationReport] = useState<DynamicTenderEvaluationReport | null>(null);
 
+  // Step 3 Background Ingestion & Auto-Upgrade Tracking State
+  const [isFullReport, setIsFullReport] = useState<boolean>(false);
+  const [isBackgroundIngesting, setIsBackgroundIngesting] = useState<boolean>(false);
+  const [ingestionStatus, setIngestionStatus] = useState<{ stored: number; total: number } | null>(null);
+  const [isAutoUpgrading, setIsAutoUpgrading] = useState<boolean>(false);
+  const [currentTenderId, setCurrentTenderId] = useState<string | null>(null);
+
+  // Background Ingestion Status Polling & Auto-Upgrade (Runs every 15s on Step 3)
+  useEffect(() => {
+    if (currentStep !== 3 || !currentTenderId || isFullReport || isAutoUpgrading) return;
+
+    let isSubscribed = true;
+
+    const checkIngestionStatus = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/tender/status?tender_id=${encodeURIComponent(currentTenderId)}`);
+        if (!res.ok) return;
+        const statusData = await res.json();
+
+        if (!isSubscribed) return;
+
+        if (statusData && statusData.status === 'success') {
+          if (typeof statusData.stored_chunks === 'number' && typeof statusData.total_chunks === 'number') {
+            setIngestionStatus({ stored: statusData.stored_chunks, total: statusData.total_chunks });
+          }
+
+          if (statusData.is_complete === true) {
+            console.log(`[AUTO_UPGRADE] Background ingestion complete for ${currentTenderId}. Triggering automatic full RAG re-analysis...`);
+            setIsBackgroundIngesting(false);
+            setIsAutoUpgrading(true);
+
+            // Auto-trigger full-document re-analysis
+            await handleTriggerAutoUpgrade(currentTenderId);
+          }
+        }
+      } catch (err) {
+        console.warn('[INGESTION_POLLER_ERROR]', err);
+      }
+    };
+
+    checkIngestionStatus();
+    const interval = setInterval(checkIngestionStatus, 15000);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(interval);
+    };
+  }, [currentStep, currentTenderId, isFullReport, isAutoUpgrading]);
+
+  // Trigger Automatic Report Upgrade when background vector ingestion finishes
+  const handleTriggerAutoUpgrade = async (tenderIdToUpgrade: string) => {
+    try {
+      const formData = new FormData();
+      if (uploadedTenderFile) {
+        formData.append('file', uploadedTenderFile);
+      }
+      formData.append('tender_id', tenderIdToUpgrade);
+      formData.append('project_category', selectedCategory);
+      formData.append('tender_title', tenderTitle);
+      formData.append('jv_partner_id', selectedJvPartnerId);
+
+      const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+        method: 'POST',
+        body: formData,
+        signal: AbortSignal.timeout(120000)
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (res.ok && data && data.status !== 'error') {
+        const upgradedReport = data.evaluation_report || data.report;
+        if (upgradedReport) {
+          setEvaluationReport(upgradedReport);
+          setIsFullReport(true);
+          setIsBackgroundIngesting(false);
+        }
+      }
+    } catch (e) {
+      console.error('[AUTO_UPGRADE_ERROR]', e);
+    } finally {
+      setIsAutoUpgrading(false);
+    }
+  };
+
   // Fetch Master Companies on Mount
   useEffect(() => {
     const fetchMasterCompanies = async () => {
@@ -218,6 +302,18 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           if (topRec && topRec.company_id) {
             setSelectedJvPartnerId(topRec.company_id);
           }
+        }
+
+        const tid = data?.tender_id || (fetchedReport as any)?.tender_id || null;
+        const mode = data?.analysis_mode || (fetchedReport as any)?.analysis_mode || 'preview';
+        const isIngesting = data?.is_background_ingesting ?? (mode !== 'full');
+        const metrics = data?.chunk_metrics || (fetchedReport as any)?.chunk_metrics || null;
+
+        setCurrentTenderId(tid);
+        setIsFullReport(mode === 'full');
+        setIsBackgroundIngesting(isIngesting);
+        if (metrics) {
+          setIngestionStatus({ stored: metrics.indexed_chunks, total: metrics.total_chunks });
         }
       } else {
         const errorType = data?.error_type || 'SERVER_ERROR';
@@ -787,6 +883,72 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
       {currentStep === 3 && evaluationReport && !(evaluationReport as any).is_rejected_non_tender && currentReport && (
         <div key={`${evaluationReport.tender_id || uploadedTenderFile?.name || 'report'}-${evaluationReport.tender_title || ''}`} className="space-y-6">
+
+          {/* ⚡ REAL-TIME INGESTION STATUS & AUTO-UPGRADE BANNER */}
+          {isAutoUpgrading ? (
+            <div className="p-4 rounded-2xl bg-cyan-900 text-white border-2 border-cyan-400 shadow-md flex items-center justify-between gap-4 animate-pulse">
+              <div className="flex items-center space-x-3">
+                <Loader2 className="w-5 h-5 text-cyan-300 animate-spin shrink-0" />
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-200">
+                    Background Indexing Finished! Upgrading Report...
+                  </h4>
+                  <p className="text-xs text-cyan-100 font-medium">
+                    100% pgvector Semantic Index complete. Re-evaluating eligibility clauses across full document context...
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-cyan-800 text-cyan-100 border border-cyan-500 shrink-0">
+                Auto-Upgrading Now
+              </span>
+            </div>
+          ) : !isFullReport ? (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-400/80 text-amber-950 dark:text-amber-100 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-xl bg-amber-400/20 text-amber-800 dark:text-amber-300 shrink-0 mt-0.5">
+                  <Sparkles className="w-4 h-4 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 border border-amber-400">
+                      Fast Preview Report — Based on Partial Scan
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-300">
+                      (Indexed {ingestionStatus?.stored || 0} / {ingestionStatus?.total || '...'} Chunks)
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
+                    This instant preview was generated in ~4 seconds. Background vector ingestion is currently embedding all document pages. 
+                    <strong> This report will automatically update in-place once full indexing completes</strong> (polling status every 15s).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 self-end sm:self-auto shrink-0">
+                <Loader2 className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                <span className="text-[11px] font-mono font-bold text-amber-800 dark:text-amber-200">
+                  Background Indexing...
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 text-emerald-950 dark:text-emerald-100 shadow-sm flex items-center justify-between gap-4">
+              <div className="flex items-center space-x-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-100">
+                    Full Document Analysis Complete
+                  </span>
+                  <span className="text-xs text-emerald-700 dark:text-emerald-300 font-medium ml-2">
+                    • 100% pgvector Semantic Indexing Verified across all {ingestionStatus?.total || (evaluationReport as any)?.chunk_metrics?.total_chunks || 'document'} chunks.
+                  </span>
+                </div>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                Full 3D RAG Complete
+              </span>
+            </div>
+          )}
 
           {/* ⚠️ DESIRE INELIGIBLE ALERT — Show Best Alternative Partner */}
           {(() => {

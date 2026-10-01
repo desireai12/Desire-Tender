@@ -274,6 +274,17 @@ export async function retrieveRAGContextForTender(
   };
 }
 
+export interface IngestionStatusRecord {
+  tender_id: string;
+  total_chunks: number;
+  stored_chunks: number;
+  status: 'ingesting' | 'completed' | 'failed';
+  started_at: number;
+  completed_at?: number;
+}
+
+export const INGESTION_TRACKER: Record<string, IngestionStatusRecord> = {};
+
 /**
  * Asynchronously embeds and stores document chunks into Supabase pgvector table (public.tender_chunks)
  * in rate-limited background batches without blocking user-facing HTTP response.
@@ -292,8 +303,20 @@ export async function ingestDocumentInBackground(
       return { success: false, count: 0 };
     }
 
-    // 1. Check if already ingested
-    const checkUrl = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/tender_chunks?select=id&tender_id=eq.${encodeURIComponent(tenderId)}&limit=1`;
+    // 1. Chunk document
+    const chunks = splitText(fullText, 1000, 200);
+    if (chunks.length === 0) return { success: true, count: 0 };
+
+    INGESTION_TRACKER[tenderId] = {
+      tender_id: tenderId,
+      total_chunks: chunks.length,
+      stored_chunks: 0,
+      status: 'ingesting',
+      started_at: Date.now()
+    };
+
+    // 2. Check if already ingested
+    const checkUrl = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/tender_chunks?select=id&tender_id=eq.${encodeURIComponent(tenderId)}`;
     const checkRes = await fetch(checkUrl, {
       headers: {
         'apikey': supabaseKey,
@@ -303,15 +326,19 @@ export async function ingestDocumentInBackground(
 
     if (checkRes.ok) {
       const existing = await checkRes.json();
-      if (Array.isArray(existing) && existing.length > 0) {
-        console.log(`[BACKGROUND_RAG_INGESTION] Tender ${tenderId} is already indexed in pgvector. Skipping.`);
+      if (Array.isArray(existing) && existing.length >= chunks.length && chunks.length > 0) {
+        console.log(`[BACKGROUND_RAG_INGESTION] Tender ${tenderId} is already fully indexed (${existing.length} chunks). Skipping.`);
+        INGESTION_TRACKER[tenderId] = {
+          tender_id: tenderId,
+          total_chunks: chunks.length,
+          stored_chunks: existing.length,
+          status: 'completed',
+          started_at: Date.now(),
+          completed_at: Date.now()
+        };
         return { success: true, count: existing.length };
       }
     }
-
-    // 2. Chunk document
-    const chunks = splitText(fullText, 1000, 200);
-    if (chunks.length === 0) return { success: true, count: 0 };
 
     console.log(`[BACKGROUND_RAG_INGESTION] Starting background vector indexing for tender ${tenderId} (${chunks.length} chunks)...`);
 
@@ -355,6 +382,9 @@ export async function ingestDocumentInBackground(
 
         if (insertRes.ok) {
           totalStored += rows.length;
+          if (INGESTION_TRACKER[tenderId]) {
+            INGESTION_TRACKER[tenderId].stored_chunks = totalStored;
+          }
           console.log(`[BACKGROUND_RAG_INGESTION] Embedded & saved chunks ${i + 1} to ${i + rows.length}/${chunks.length} for ${tenderId} (${(Date.now() - startTime)/1000}s elapsed)`);
         } else {
           const errText = await insertRes.text().catch(() => '');
@@ -369,9 +399,18 @@ export async function ingestDocumentInBackground(
       }
     }
 
+    if (INGESTION_TRACKER[tenderId]) {
+      INGESTION_TRACKER[tenderId].stored_chunks = totalStored;
+      INGESTION_TRACKER[tenderId].status = 'completed';
+      INGESTION_TRACKER[tenderId].completed_at = Date.now();
+    }
+
     console.log(`[BACKGROUND_RAG_INGESTION] Completed background indexing for ${tenderId}: ${totalStored}/${chunks.length} chunks stored in pgvector.`);
     return { success: true, count: totalStored };
   } catch (err) {
+    if (INGESTION_TRACKER[tenderId]) {
+      INGESTION_TRACKER[tenderId].status = 'failed';
+    }
     console.error('[BACKGROUND_RAG_INGESTION] Fatal error during background ingestion:', err);
     return { success: false, count: 0 };
   }
