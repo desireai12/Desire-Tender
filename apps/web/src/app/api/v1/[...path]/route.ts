@@ -1024,15 +1024,21 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 
     const dStatus = (dPct === 85 || dVal.includes('Possible Match') || dVal.includes('Manual Verification'))
       ? 'POSSIBLE MATCH'
-      : (dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING'));
+      : (dVal.includes('DATA NOT AVAILABLE') || dVal.includes('No company record') || dVal.includes('record on file') || dVal.includes('missing'))
+      ? 'DATA MISSING'
+      : (dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT ELIGIBLE'));
 
     const jStatus = (jPct === 85 || jVal.includes('Possible Match') || jVal.includes('Manual Verification'))
       ? 'POSSIBLE MATCH'
-      : (jPct >= 100 ? 'MATCH' : (jPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING'));
+      : (jVal.includes('DATA NOT AVAILABLE') || jVal.includes('No partner record') || jVal.includes('record on file') || jVal.includes('missing'))
+      ? 'DATA MISSING'
+      : (jPct >= 100 ? 'MATCH' : (jPct >= 50 ? 'PARTIAL MATCH' : 'NOT ELIGIBLE'));
 
     const cStatus = (cPct === 85 || cVal.includes('Possible Match') || cVal.includes('Manual Verification'))
       ? 'POSSIBLE MATCH'
-      : (cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING'));
+      : (cVal.includes('DATA NOT AVAILABLE') || cVal.includes('missing from company') || cVal.includes('record on file') || cVal.includes('missing'))
+      ? 'DATA MISSING'
+      : (cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT ELIGIBLE'));
 
     let gapNotes = dPct < 100 ? `Desire gap bridged by JV Partner ${partner.name}` : 'Desire satisfies standalone';
     if (dPct === 85 || dVal.includes('Possible Match')) {

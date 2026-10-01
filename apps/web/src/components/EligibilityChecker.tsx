@@ -349,19 +349,26 @@ export const EligibilityChecker: React.FC = () => {
           }
         }
 
+        // Desire evaluation on this clause
+        let dStatus: string = (c.desire_status as any) || 'MATCH';
+        const dVal = (c.desire_value || '').toLowerCase();
+        if (c.desire_status === 'POSSIBLE MATCH' || dVal.includes('possible match') || dVal.includes('manual verification')) {
+          dStatus = 'POSSIBLE MATCH';
+        } else if (c.desire_status === 'DATA MISSING' || c.desire_status === 'DATA NOT AVAILABLE' || dVal.includes('data not available') || dVal.includes('no company record') || dVal.includes('record on file') || dVal.includes('no gst registration') || dVal.includes('no technical staff') || dVal.includes('no pan card') || dVal.includes('no emd') || dVal.includes('no bank guarantee')) {
+          dStatus = 'DATA MISSING';
+        } else if (c.desire_status === 'NOT ELIGIBLE' || c.desire_status === 'NOT MATCHING' || dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('cannot bid') || dVal.includes('ineligible') || dVal.includes('falls short')) {
+          dStatus = 'NOT ELIGIBLE';
+        }
+
         // JV evaluation on this clause
         let jStatus: string = (c.jv_status as any) || 'MATCH';
         const jVal = (c.jv_value || '').toLowerCase();
         if (c.jv_status === 'POSSIBLE MATCH' || jVal.includes('possible match') || jVal.includes('manual verification')) {
           jStatus = 'POSSIBLE MATCH';
-        } else if (!c.jv_status) {
-          if (jVal.includes('data not') || jVal.includes('missing')) {
-            jStatus = 'DATA NOT AVAILABLE';
-          } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
-            jStatus = 'NOT MATCHING';
-          } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('63%') || jVal.includes('67%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('75%') || jVal.includes('gap') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
-            jStatus = 'PARTIAL MATCH';
-          }
+        } else if (c.jv_status === 'DATA MISSING' || c.jv_status === 'DATA NOT AVAILABLE' || jVal.includes('data not available') || jVal.includes('no partner record') || jVal.includes('record on file')) {
+          jStatus = 'DATA MISSING';
+        } else if (c.jv_status === 'NOT ELIGIBLE' || c.jv_status === 'NOT MATCHING' || jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('falls short')) {
+          jStatus = 'NOT ELIGIBLE';
         }
 
         if (mode === 'desire') {
@@ -373,7 +380,6 @@ export const EligibilityChecker: React.FC = () => {
           status = jStatus;
           pct = status === 'MATCH' ? 100 : status === 'POSSIBLE MATCH' ? 85 : status === 'PARTIAL MATCH' ? 50 : 0;
         } else {
-          // Combined: If either party matches 100% or combined pooling matches, status is MATCH
           val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
           if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
             status = 'MATCH';
@@ -381,11 +387,11 @@ export const EligibilityChecker: React.FC = () => {
           } else if (dStatus === 'POSSIBLE MATCH' || jStatus === 'POSSIBLE MATCH' || c.status === 'POSSIBLE MATCH') {
             status = 'POSSIBLE MATCH';
             pct = 85;
-          } else if (dStatus === 'PARTIAL MATCH' || jStatus === 'PARTIAL MATCH' || c.status === 'PARTIAL MATCH') {
-            status = 'PARTIAL MATCH';
-            pct = 50;
+          } else if (dStatus === 'DATA MISSING' && jStatus === 'DATA MISSING') {
+            status = 'DATA MISSING';
+            pct = 0;
           } else {
-            status = 'NOT MATCHING';
+            status = 'NOT ELIGIBLE';
             pct = 0;
           }
         }
@@ -399,14 +405,13 @@ export const EligibilityChecker: React.FC = () => {
       });
 
       const matched = evaluated.filter(c => c.active_status === 'MATCH').length;
-      const possible = evaluated.filter(c => c.active_status === 'POSSIBLE MATCH').length;
-      const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
-      const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
-      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
+      const possible = evaluated.filter(c => c.active_status === 'POSSIBLE MATCH' || c.active_status === 'PARTIAL MATCH').length;
+      const notEligible = evaluated.filter(c => c.active_status === 'NOT ELIGIBLE' || c.active_status === 'NOT MATCHING').length;
+      const dataMissing = evaluated.filter(c => c.active_status === 'DATA MISSING' || c.active_status === 'DATA NOT AVAILABLE').length;
 
       // Synchronize score with backend report to guarantee distinct realistic percentages
       const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : combinedTargetScore;
-      const calcScore = Math.min(100, Math.round(((matched * 100) + (possible * 85) + (partial * 50)) / totalCount));
+      const calcScore = Math.min(100, Math.round(((matched * 100) + (possible * 85)) / totalCount));
       const score = (targetScore !== undefined && targetScore !== null) ? targetScore : calcScore;
 
       return {
@@ -417,9 +422,8 @@ export const EligibilityChecker: React.FC = () => {
           total_criteria: totalCount,
           matched,
           possible,
-          partial,
-          not_matching: notMatching,
-          data_missing: missing
+          not_eligible: notEligible,
+          data_missing: dataMissing
         }
       };
     };
@@ -488,7 +492,7 @@ export const EligibilityChecker: React.FC = () => {
       fulfilled_pct: activeEval.pctStr,
       recommendation,
       executive_summary: activeAnalysisOption === 'desire'
-        ? `Desire Energy Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses for '${report.tender_title}' against Desire Energy credentials (₹${desireComp.average_turnover} Cr avg turnover, ₹${desireComp.net_worth} Cr net worth). Desire Energy satisfies ${activeEval.pctStr} of requirements with ${activeEval.counts.matched} criteria fully met and ${activeEval.counts.partial} partial.`
+        ? `Desire Energy Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses for '${report.tender_title}' against Desire Energy credentials (₹${desireComp.average_turnover} Cr avg turnover, ₹${desireComp.net_worth} Cr net worth). Desire Energy satisfies ${activeEval.pctStr} of requirements with ${activeEval.counts.matched} criteria fully met and ${activeEval.counts.possible} possible.`
         : activeAnalysisOption === 'jv'
         ? `${jvComp.name} Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses against ${jvComp.name} company credentials (₹${jvComp.average_turnover} Cr avg turnover, ₹${jvComp.net_worth} Cr net worth). Partner satisfies ${activeEval.pctStr} of requirements with ${activeEval.counts.matched} criteria met.`
         : `Combined Consortium AI Analysis: Evaluated ${totalCount} extracted tender clauses against Desire Energy + ${jvComp.name} master data with 100% turnover pooling. Combined consortium achieves ${activeEval.pctStr} qualification across all financial, technical, and licensing criteria.`,
@@ -503,6 +507,168 @@ export const EligibilityChecker: React.FC = () => {
   };
 
   const perspective = getPerspectiveData();
+
+  // Printable PDF Export Handler
+  const handleDownloadPdf = () => {
+    if (!report || !perspective) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow popups to download the PDF report.');
+      return;
+    }
+
+    const dateStr = new Date().toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Tender Eligibility Report - ${report.tender_id || 'Evaluation'}</title>
+          <style>
+            @page { size: A4 portrait; margin: 12mm; }
+            body { font-family: 'Segoe UI', Roboto, sans-serif; color: #0f172a; background: #fff; margin: 0; padding: 0; font-size: 10pt; line-height: 1.4; }
+            .header { border-bottom: 3px solid #059669; padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start; }
+            .logo { font-size: 16pt; font-weight: 800; color: #065f46; letter-spacing: 0.5px; }
+            .sub-logo { font-size: 8pt; color: #475569; font-weight: 600; font-family: monospace; }
+            .report-meta { text-align: right; font-size: 8.5pt; color: #475569; }
+            .title-box { background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; }
+            .tender-title { font-size: 12pt; font-weight: bold; color: #064e3b; margin-bottom: 6px; }
+            .verdict-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 9pt; text-transform: uppercase; background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+            .summary-tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; text-align: center; }
+            .tile { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; background: #f8fafc; }
+            .tile-label { font-size: 7.5pt; font-family: monospace; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; margin-bottom: 2px; }
+            .tile-value { font-size: 13pt; font-weight: bold; }
+            .tile-matched { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+            .tile-possible { background: #fffbebf; border-color: #fde68a; color: #92400e; }
+            .tile-not-eligible { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+            .tile-missing { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
+            .executive-summary { background: #f8fafc; border-left: 4px solid #059669; padding: 10px 14px; margin-bottom: 16px; font-size: 9pt; color: #334155; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 8.5pt; }
+            th { background: #0f172a; color: #f8fafc; font-family: monospace; font-size: 7.5pt; text-transform: uppercase; text-align: left; padding: 7px 8px; }
+            td { border-bottom: 1px solid #e2e8f0; padding: 7px 8px; vertical-align: top; }
+            tr:nth-child(even) { background: #f8fafc; }
+            .status-badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 7.5pt; font-weight: bold; font-family: monospace; }
+            .badge-matched { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+            .badge-possible { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+            .badge-not-eligible { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+            .badge-missing { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+            .footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 7.5pt; color: #94a3b8; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="logo">DESIRE ENERGY SOLUTIONS</div>
+              <div class="sub-logo">AI TENDER ELIGIBILITY EVALUATION REPORT</div>
+            </div>
+            <div class="report-meta">
+              <div><strong>Date:</strong> ${dateStr}</div>
+              <div><strong>Option:</strong> ${perspective.badge}</div>
+              <div><strong>Document:</strong> ${report.filename || 'Tender PDF'}</div>
+            </div>
+          </div>
+
+          <div class="title-box">
+            <div class="tender-title">${report.tender_title}</div>
+            <div>
+              <span class="verdict-badge">${perspective.verdict} (${perspective.fulfilled_pct})</span>
+            </div>
+          </div>
+
+          <div class="summary-tiles">
+            <div class="tile">
+              <span class="tile-label">Total Criteria</span>
+              <span class="tile-value">${perspective.summary_counts.total_criteria}</span>
+            </div>
+            <div class="tile tile-matched">
+              <span class="tile-label">Matched (100%)</span>
+              <span class="tile-value">${perspective.summary_counts.matched}</span>
+            </div>
+            <div class="tile tile-possible">
+              <span class="tile-label">Possible Match</span>
+              <span class="tile-value">${perspective.summary_counts.possible}</span>
+            </div>
+            <div class="tile tile-not-eligible">
+              <span class="tile-label">Not Eligible</span>
+              <span class="tile-value">${perspective.summary_counts.not_eligible}</span>
+            </div>
+            <div class="tile tile-missing">
+              <span class="tile-label">Data Missing</span>
+              <span class="tile-value">${perspective.summary_counts.data_missing}</span>
+            </div>
+          </div>
+
+          <div class="executive-summary">
+            <strong>Executive Summary & Recommendation:</strong><br/>
+            ${perspective.executive_summary}<br/><br/>
+            <strong>Recommendation:</strong> ${perspective.recommendation}
+          </div>
+
+          <h4 style="margin: 12px 0 4px 0; color: #0f172a; font-size: 10pt;">Detailed Clause Evaluation</h4>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 15%;">Clause & Ref</th>
+                <th style="width: 30%;">Tender Requirement</th>
+                <th style="width: 25%;">Desire / Consortium Actual</th>
+                <th style="width: 15%;">Status</th>
+                <th style="width: 15%;">Gap & Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${perspective.evaluatedClauses.map(item => {
+                const st = item.active_status;
+                let badgeCls = 'badge-missing';
+                let badgeText = 'Unknown — No Record on File';
+                if (st === 'MATCH') {
+                  badgeCls = 'badge-matched';
+                  badgeText = 'MATCH (100%)';
+                } else if (st === 'POSSIBLE MATCH' || st.includes('POSSIBLE')) {
+                  badgeCls = 'badge-possible';
+                  badgeText = 'Possible Match';
+                } else if (st === 'NOT ELIGIBLE' || st === 'NOT MATCHING') {
+                  badgeCls = 'badge-not-eligible';
+                  badgeText = 'Not Eligible (0%)';
+                }
+
+                return `
+                  <tr>
+                    <td><strong>${item.clause_no}</strong><br/><span style="font-size: 7.5pt; color: #64748b;">${item.page_ref}</span></td>
+                    <td>${item.tender_requirement}</td>
+                    <td style="font-family: monospace; font-size: 8pt;">${item.active_val || item.desire_value || ''}</td>
+                    <td><span class="status-badge ${badgeCls}">${badgeText}</span></td>
+                    <td style="font-size: 8pt; color: #475569;">${item.gap_notes || ''}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+
+          <div class="footer">
+            Confidential — Generated by Desire Energy AI Engine. Verified against Supabase Public Master Data.
+          </div>
+
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 400);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
 
   return (
     <div className="space-y-6">
@@ -637,60 +803,72 @@ export const EligibilityChecker: React.FC = () => {
       {/* AI Summary Dashboard Cards */}
       {report && !report.is_rejected_non_tender && perspective && (
         <div key={`${report.tender_id || tenderFile?.name || 'report'}-${report.tender_title || ''}`} className="space-y-6">
-          {/* 3 Dynamic Analysis Options Selection Tabs */}
-          <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setActiveAnalysisOption('desire')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
-                activeAnalysisOption === 'desire'
-                  ? 'bg-emerald-700 dark:bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <Building2 className="w-4 h-4" />
-              <span>OPTION 1 — DESIRE ALONE</span>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                activeAnalysisOption === 'desire' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
-              }`}>
-                {perspective.tabScores.desire}
-              </span>
-            </button>
+          {/* 3 Dynamic Analysis Options Selection Tabs & Download Report Button */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+            <div className="flex items-center space-x-2 overflow-x-auto w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setActiveAnalysisOption('desire')}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
+                  activeAnalysisOption === 'desire'
+                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Building2 className="w-4 h-4" />
+                <span>OPTION 1 — DESIRE ALONE</span>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                  activeAnalysisOption === 'desire' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                }`}>
+                  {perspective.tabScores.desire}
+                </span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveAnalysisOption('jv')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
-                activeAnalysisOption === 'jv'
-                  ? 'bg-emerald-700 dark:bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <Building2 className="w-4 h-4" />
-              <span>OPTION 2 — JV ALONE ({jvComp.name})</span>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                activeAnalysisOption === 'jv' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
-              }`}>
-                {perspective.tabScores.jv}
-              </span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setActiveAnalysisOption('jv')}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
+                  activeAnalysisOption === 'jv'
+                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Building2 className="w-4 h-4" />
+                <span>OPTION 2 — JV ALONE ({jvComp.name})</span>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                  activeAnalysisOption === 'jv' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                }`}>
+                  {perspective.tabScores.jv}
+                </span>
+              </button>
 
+              <button
+                type="button"
+                onClick={() => setActiveAnalysisOption('combined')}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
+                  activeAnalysisOption === 'combined'
+                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <GitMerge className="w-4 h-4" />
+                <span>OPTION 3 — DESIRE + {jvComp.name} COMBINED</span>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                  activeAnalysisOption === 'combined' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                }`}>
+                  {perspective.tabScores.combined}
+                </span>
+              </button>
+            </div>
+
+            {/* Download Report Button */}
             <button
               type="button"
-              onClick={() => setActiveAnalysisOption('combined')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all shrink-0 cursor-pointer ${
-                activeAnalysisOption === 'combined'
-                  ? 'bg-emerald-700 dark:bg-emerald-600 text-white shadow-md shadow-emerald-900/20'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
+              onClick={handleDownloadPdf}
+              className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 font-bold text-xs shadow flex items-center space-x-2 transition-all shrink-0 cursor-pointer"
             >
-              <GitMerge className="w-4 h-4" />
-              <span>OPTION 3 — DESIRE + {jvComp.name} COMBINED</span>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                activeAnalysisOption === 'combined' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
-              }`}>
-                {perspective.tabScores.combined}
-              </span>
+              <Download className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
+              <span>Download Report (PDF)</span>
             </button>
           </div>
 
@@ -722,7 +900,7 @@ export const EligibilityChecker: React.FC = () => {
             </div>
           </div>
 
-          {/* Dynamic Criteria Summary Stats (Perfect Mathematical Consistency: Matched + Partial + NotMatching + Missing = Total) */}
+          {/* Four Distinct Summary Category Tiles (Matched / Possible Match / Not Eligible / Data Missing) */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
             <div className="glass-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
               <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Total Criteria</span>
@@ -733,16 +911,16 @@ export const EligibilityChecker: React.FC = () => {
               <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">{perspective.summary_counts.matched}</span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50 dark:bg-amber-950/40">
-              <span className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-bold uppercase block">Partial Match (50%)</span>
-              <span className="text-sm font-bold text-amber-900 dark:text-amber-200 font-bold">{perspective.summary_counts.partial}</span>
+              <span className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-bold uppercase block">Possible Match</span>
+              <span className="text-sm font-bold text-amber-900 dark:text-amber-200 font-bold">{perspective.summary_counts.possible}</span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/40">
-              <span className="text-[10px] font-mono text-rose-800 dark:text-rose-300 font-bold uppercase block">Not Matching (0%)</span>
-              <span className="text-sm font-bold text-rose-800 dark:text-rose-300">{perspective.summary_counts.not_matching}</span>
+              <span className="text-[10px] font-mono text-rose-800 dark:text-rose-300 font-bold uppercase block">Not Eligible</span>
+              <span className="text-sm font-bold text-rose-800 dark:text-rose-300">{perspective.summary_counts.not_eligible}</span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Data Missing</span>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{perspective.summary_counts.data_missing}</span>
+            <div className="glass-card p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80">
+              <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 font-bold uppercase block">Data Missing</span>
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{perspective.summary_counts.data_missing}</span>
             </div>
           </div>
 
@@ -806,20 +984,25 @@ export const EligibilityChecker: React.FC = () => {
                               statusVal === 'MATCH'
                                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
                                 : (statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE') || statusVal.includes('MANUAL'))
-                                ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700 shadow-sm font-bold'
-                                : statusVal === 'PARTIAL MATCH'
-                                ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
-                                : statusVal === 'NOT MATCHING'
+                                ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-800 shadow-sm'
+                                : (statusVal === 'NOT ELIGIBLE' || statusVal === 'NOT MATCHING')
                                 ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
                                 : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
                             }`}
                           >
-                            {statusVal === 'MATCH' && <CheckCircle2 className="w-3 h-3" />}
-                            {(statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE') || statusVal.includes('MANUAL')) && <AlertTriangle className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />}
-                            {statusVal === 'PARTIAL MATCH' && <AlertTriangle className="w-3 h-3 text-amber-600" />}
-                            {statusVal === 'NOT MATCHING' && <XCircle className="w-3 h-3" />}
-                            {statusVal === 'DATA NOT AVAILABLE' && <HelpCircle className="w-3 h-3" />}
-                            <span>{statusVal === 'POSSIBLE MATCH' ? 'Possible Match — Manual Verification Required' : statusVal}</span>
+                            {statusVal === 'MATCH' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                            {(statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE') || statusVal.includes('MANUAL')) && <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />}
+                            {(statusVal === 'NOT ELIGIBLE' || statusVal === 'NOT MATCHING') && <XCircle className="w-3.5 h-3.5 text-rose-600" />}
+                            {(statusVal === 'DATA MISSING' || statusVal === 'DATA NOT AVAILABLE') && <HelpCircle className="w-3.5 h-3.5 text-slate-500" />}
+                            <span>
+                              {statusVal === 'MATCH'
+                                ? 'MATCH (100%)'
+                                : (statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE'))
+                                ? 'Possible Match — Manual Verification Required'
+                                : (statusVal === 'NOT ELIGIBLE' || statusVal === 'NOT MATCHING')
+                                ? 'Not Eligible (0%)'
+                                : 'Unknown — No Record on File'}
+                            </span>
                           </span>
                         </td>
                         <td className="p-3 font-mono font-bold text-emerald-700 dark:text-emerald-400">
