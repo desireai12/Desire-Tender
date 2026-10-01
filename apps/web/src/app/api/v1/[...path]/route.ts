@@ -1464,19 +1464,23 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     if ((subPath === 'tender/status' || subPath === 'tender/ingestion-status') && method === 'GET') {
       const searchParams = req.nextUrl.searchParams;
       const tenderId = searchParams.get('tender_id') || searchParams.get('id') || '';
+      const queryExpected = parseInt(searchParams.get('expected_chunks') || searchParams.get('total_chunks') || '0', 10);
+
       if (!tenderId) {
         return NextResponse.json({ status: 'error', message: 'tender_id parameter is required' }, { status: 400 });
       }
 
       let storedChunks = 0;
       let totalChunks = 0;
-      let isComplete = false;
 
       const tracked = INGESTION_TRACKER[tenderId];
       if (tracked) {
         storedChunks = tracked.stored_chunks;
         totalChunks = tracked.total_chunks;
-        isComplete = tracked.status === 'completed' || (totalChunks > 0 && storedChunks >= totalChunks);
+      }
+
+      if (queryExpected > 0 && totalChunks === 0) {
+        totalChunks = queryExpected;
       }
 
       if (supabase) {
@@ -1488,18 +1492,18 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
           if (typeof count === 'number' && count > 0) {
             storedChunks = Math.max(storedChunks, count);
-            if (totalChunks > 0 && storedChunks >= totalChunks) {
-              isComplete = true;
-            }
           }
         } catch (e) {}
       }
+
+      const effectiveTotal = totalChunks > 0 ? totalChunks : storedChunks;
+      const isComplete = effectiveTotal > 0 && storedChunks >= effectiveTotal && (tracked ? tracked.status === 'completed' || storedChunks >= effectiveTotal : storedChunks > 1);
 
       return NextResponse.json({
         status: 'success',
         tender_id: tenderId,
         stored_chunks: storedChunks,
-        total_chunks: totalChunks || storedChunks,
+        total_chunks: effectiveTotal,
         is_complete: isComplete,
         analysis_mode: isComplete ? 'full' : 'preview'
       });
