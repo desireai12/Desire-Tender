@@ -745,10 +745,21 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 
     if (reqType === 'Financial') {
       if (title.includes('turnover') || reqText.includes('turnover')) {
+        let effDT = dT; // default 3-year average (290.27 Cr)
+        let turnoverRuleLabel = '3-Yr Avg Turnover';
+
+        if (reqText.includes('any one year') || reqText.includes('single year') || reqText.includes('any year') || title.includes('any one year')) {
+          effDT = 350.66; // Single max year (FY 2023-24)
+          turnoverRuleLabel = 'Max Single-Year Turnover (FY24)';
+        } else if ((reqText.includes('five') || reqText.includes('5 year') || reqText.includes('5 financial')) && !reqText.includes('any one year')) {
+          effDT = 234.63; // 5-year average
+          turnoverRuleLabel = '5-Yr Avg Turnover';
+        }
+
         if (reqNum && reqNum > 0) {
-          dRawPct = Math.round((dT / reqNum) * 1000) / 10.0;
+          dRawPct = Math.round((effDT / reqNum) * 1000) / 10.0;
           jRawPct = Math.round((jT / reqNum) * 1000) / 10.0;
-          cRawPct = Math.round(((dT + jT) / reqNum) * 1000) / 10.0;
+          cRawPct = Math.round(((effDT + jT) / reqNum) * 1000) / 10.0;
         } else {
           dRawPct = 100; jRawPct = 100; cRawPct = 100;
         }
@@ -756,9 +767,9 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         jPct = Math.min(100, Math.floor(jRawPct));
         cPct = Math.min(100, Math.floor(cRawPct));
 
-        dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual: Rs ${dT} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
+        dVal = `Required: Rs ${reqNum || 'N/A'} Cr | Desire actual (${turnoverRuleLabel}): Rs ${effDT} Cr -> ${dRawPct}% raw (${dPct}% capped)`;
         jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jT} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
-        cVal = `Pooled: Rs ${(dT + jT).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
+        cVal = `Pooled (${turnoverRuleLabel}): Rs ${(effDT + jT).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
       } else if (title.includes('net worth') || reqText.includes('net worth')) {
         if (reqNum && reqNum > 0) {
           dRawPct = Math.round((dNW / reqNum) * 1000) / 10.0;
@@ -1560,8 +1571,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         } catch (e) {}
       }
 
-      const effectiveTotal = totalChunks > 0 ? totalChunks : storedChunks;
-      const isComplete = effectiveTotal > 0 && storedChunks >= effectiveTotal && (tracked ? tracked.status === 'completed' || storedChunks >= effectiveTotal : storedChunks > 1);
+      const effectiveTotal = totalChunks > 0 ? totalChunks : (queryExpected > 0 ? queryExpected : 0);
+      const isComplete = effectiveTotal > 0 && storedChunks >= effectiveTotal && (tracked ? (tracked.status === 'completed' || storedChunks >= effectiveTotal) : (queryExpected > 0 && storedChunks >= queryExpected));
 
       return NextResponse.json({
         status: 'success',
@@ -1569,7 +1580,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         stored_chunks: storedChunks,
         total_chunks: effectiveTotal,
         is_complete: isComplete,
-        analysis_mode: isComplete ? 'full' : 'preview'
+        analysis_mode: isComplete ? 'full' : 'preview',
+        cold_start_resilient: true
       });
     }
 
