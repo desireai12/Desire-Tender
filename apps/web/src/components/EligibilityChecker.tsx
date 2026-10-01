@@ -32,15 +32,15 @@ export interface ClauseBreakdownItem {
   tender_requirement: string;
   required_value: string;
   desire_value: string;
-  desire_status?: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | string;
+  desire_status?: string;
   desire_pct?: number;
   jv_value: string;
-  jv_status?: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | string;
+  jv_status?: string;
   jv_pct?: number;
   combined_value: string;
   combined_pct?: number;
   applicable_jv_rule: string;
-  status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' | 'NOT APPLICABLE' | 'REQUIRES MANUAL REVIEW' | string;
+  status: string;
   fulfilled_pct: string;
   gap_notes: string;
   required_doc: string;
@@ -331,23 +331,8 @@ export const EligibilityChecker: React.FC = () => {
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
       const evaluated = clauses.map(c => {
         let val = c.combined_value;
-        let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.status as any) || 'MATCH';
+        let status: string = (c.status as any) || 'MATCH';
         let pct = 100;
-
-        // Desire evaluation on this clause
-        let dStatus: string = (c.desire_status as any) || 'MATCH';
-        const dVal = (c.desire_value || '').toLowerCase();
-        if (c.desire_status === 'POSSIBLE MATCH' || dVal.includes('possible match') || dVal.includes('manual verification') || dVal.includes('inter-state registration equivalence')) {
-          dStatus = 'POSSIBLE MATCH';
-        } else if (!c.desire_status) {
-          if (dVal.includes('data not') || dVal.includes('missing')) {
-            dStatus = 'DATA NOT AVAILABLE';
-          } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
-            dStatus = 'NOT MATCHING';
-          } else if (dVal.includes('partial') || dVal.includes('50%') || dVal.includes('75%') || dVal.includes('requires jv') || dVal.includes('gap')) {
-            dStatus = 'PARTIAL MATCH';
-          }
-        }
 
         // Desire evaluation on this clause
         let dStatus: string = (c.desire_status as any) || 'MATCH';

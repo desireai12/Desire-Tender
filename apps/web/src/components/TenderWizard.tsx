@@ -462,7 +462,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
       const evaluated = clauses.map(c => {
         let val = c.combined_value;
-        let status: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.status as any) || 'MATCH';
+        let status: string = (c.status as any) || 'MATCH';
         let pct = 100;
 
         // Desire standalone capability on this clause
