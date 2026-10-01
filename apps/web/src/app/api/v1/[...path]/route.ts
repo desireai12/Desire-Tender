@@ -786,7 +786,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 
     const isIso = title.includes('iso') || reqText.includes('iso');
     const isGst = title.includes('gst') || reqText.includes('gst');
-    const isPan = title.includes('pan') || reqText.includes('pan');
+    const isPan = /\bpan\b/i.test(title) || /\bpan\b/i.test(reqText);
     const isStaff = title.includes('staff') || title.includes('manpower') || title.includes('engineer') || reqText.includes('diploma') || reqText.includes('engineer') || reqText.includes('technical staff');
     const isRegClause = (title.includes('registration') || title.includes('enlistment') || title.includes('class') || title.includes('license') ||
                         reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license') ||
