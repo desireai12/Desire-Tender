@@ -216,8 +216,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     id: 'comp-desire-01',
     name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', 
     type: 'Desire Energy',
-    average_turnover: 300.93, 
-    net_worth: 95.0, 
+    average_turnover: 290.27, 
+    net_worth: 52.62, 
     solvency_amount: 72.18 
   };
   
