@@ -463,8 +463,32 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
       c.gap_notes = c.gap_notes || `Desire Energy's water pipeline experience provides partial credit. ${jvName}'s sewerage specialization fills the gap.`;
     }
 
+    // ── INTER-STATE REGISTRATION EQUIVALENCE CLAUSES ─────────────────────────
+    const isRegEquivalenceClause = (
+      cTitle.includes('registration') || cTitle.includes('enlistment') || cTitle.includes('class') || cTitle.includes('license') ||
+      reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license') ||
+      desireVal.includes('class') || desireVal.includes('license')
+    ) && (
+      reqText.includes('equivalent') || reqText.includes('equivalence') || reqText.includes('reciprocity') ||
+      reqText.includes('inter-state') || reqText.includes('interstate') || reqText.includes('other state') ||
+      reqText.includes('other department') || reqText.includes('reciprocal') || reqText.includes('any state')
+    );
+
+    if (isRegEquivalenceClause) {
+      const quoteText = c.tender_requirement || c.required_value || c.clause_title || 'Inter-state registration equivalence clause';
+      c.desire_status = 'POSSIBLE MATCH';
+      c.desire_value = `Possible Match — Requires Manual Verification: Tender clause relies on inter-state registration equivalence. Quoted Clause: "${quoteText}". Desire Energy holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.`;
+      c.desire_pct = 85;
+      if (c.status === 'MATCH' && c.jv_status !== 'MATCH') {
+        c.status = 'POSSIBLE MATCH';
+        c.fulfilled_pct = '85%';
+        c.combined_value = `Possible Match — Requires Manual Verification (Quoted clause: "${quoteText}")`;
+      }
+      c.gap_notes = `POSSIBLE MATCH — REQUIRES MANUAL VERIFICATION: Inter-state contractor registration equivalence relies on department reciprocity rules. Quoted clause: "${quoteText}". A real person must verify genuine equivalence before relying on it for a bid decision.`;
+    }
+
     // ── NON-SEWER TENDERS: normalize combined status ───────────────────────
-    if (!isSewerTender) {
+    if (!isSewerTender && !isRegEquivalenceClause) {
       if (c.status === 'MATCH') {
         c.fulfilled_pct = '100%';
       } else if (c.fulfilled_pct) {
@@ -476,7 +500,7 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
           c.fulfilled_pct = '100%';
         }
       } else {
-        c.fulfilled_pct = c.status === 'MATCH' ? '100%' : c.status === 'PARTIAL MATCH' ? '50%' : '0%';
+        c.fulfilled_pct = c.status === 'MATCH' ? '100%' : c.status === 'POSSIBLE MATCH' ? '85%' : c.status === 'PARTIAL MATCH' ? '50%' : '0%';
       }
     }
   });
@@ -812,22 +836,55 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
         cVal = cPct === 100 ? 'Combined: Lead Member (Desire) holds valid ISO 9001 -> 100% MATCH' : 'Combined: Neither member holds ISO 9001 -> 0% NOT MATCHING';
       } else {
+        const isRegClause = title.includes('registration') || title.includes('enlistment') || title.includes('class') || title.includes('license') ||
+                            reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license') ||
+                            reqText.includes('wrd') || reqText.includes('phed') || reqText.includes('pwd');
+
+        const hasEquivalence = reqText.includes('equivalent') || reqText.includes('equivalence') || reqText.includes('reciprocity') ||
+                               reqText.includes('inter-state') || reqText.includes('interstate') || reqText.includes('other state') ||
+                               reqText.includes('other department') || reqText.includes('reciprocal') || reqText.includes('any state');
+
         const dHasReg = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license'));
         const jHasReg = jCerts.some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license') || c.toLowerCase().includes('registration'));
 
-        dPct = dHasReg ? 100 : 0;
-        jPct = jHasReg ? 100 : 0;
-        cPct = Math.max(dPct, jPct);
+        if (isRegClause && hasEquivalence) {
+          dPct = 85;
+          jPct = jHasReg ? 100 : 0;
+          cPct = Math.max(dPct, jPct);
 
-        dVal = dHasReg ? 'Desire actual: Holds Class-A PHED & AA Class Gujarat License -> 100% MATCH' : 'Desire actual: Missing Contractor License -> 0% NOT MATCHING';
-        jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
-        cVal = 'Combined: Meets registration criteria -> 100% MATCH';
+          const quoteText = c.tender_requirement || c.required_value || c.clause_title || 'Inter-state registration equivalence clause';
+          dVal = `Possible Match — Requires Manual Verification: Tender requirement depends on inter-state registration equivalence. Quoted Clause: "${quoteText}". Desire holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.`;
+          jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
+          cVal = cPct === 100 ? `Combined: ${partner.name} holds direct state registration -> 100% MATCH` : `Combined: Possible Match — Requires Manual Verification (Quoted clause: "${quoteText}")`;
+        } else {
+          dPct = dHasReg ? 100 : 0;
+          jPct = jHasReg ? 100 : 0;
+          cPct = Math.max(dPct, jPct);
+
+          dVal = dHasReg ? 'Desire actual: Holds Class-A PHED & AA Class Gujarat License -> 100% MATCH' : 'Desire actual: Missing Contractor License -> 0% NOT MATCHING';
+          jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
+          cVal = 'Combined: Meets registration criteria -> 100% MATCH';
+        }
       }
     }
 
-    const dStatus = dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
-    const jStatus = jPct >= 100 ? 'MATCH' : (jPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
-    const cStatus = cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING');
+    const dStatus = (dPct === 85 || dVal.includes('Possible Match') || dVal.includes('Manual Verification'))
+      ? 'POSSIBLE MATCH'
+      : (dPct >= 100 ? 'MATCH' : (dPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING'));
+
+    const jStatus = (jPct === 85 || jVal.includes('Possible Match') || jVal.includes('Manual Verification'))
+      ? 'POSSIBLE MATCH'
+      : (jPct >= 100 ? 'MATCH' : (jPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING'));
+
+    const cStatus = (cPct === 85 || cVal.includes('Possible Match') || cVal.includes('Manual Verification'))
+      ? 'POSSIBLE MATCH'
+      : (cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT MATCHING'));
+
+    let gapNotes = dPct < 100 ? `Desire gap bridged by JV Partner ${partner.name}` : 'Desire satisfies standalone';
+    if (dPct === 85 || dVal.includes('Possible Match')) {
+      const quoteText = c.tender_requirement || c.required_value || c.clause_title || '';
+      gapNotes = `POSSIBLE MATCH — REQUIRES MANUAL VERIFICATION: Inter-state registration equivalence relies on department reciprocity rules. Quoted clause: "${quoteText}". A real person must verify genuine equivalence before relying on it for a bid decision.`;
+    }
 
     return {
       clause_no: c.clause_no || 'Clause 1',
@@ -846,7 +903,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       status: cStatus,
       fulfilled_pct: `${cPct}%`,
       applicable_jv_rule: c.applicable_jv_rule || 'Lead Member / JV Pooling',
-      gap_notes: dPct < 100 ? `Desire gap bridged by JV Partner ${partner.name}` : 'Desire satisfies standalone',
+      gap_notes: gapNotes,
       required_doc: c.required_doc || 'Documentary Proof',
       page_ref: c.page_ref || 'Tender Technical Bid'
     };

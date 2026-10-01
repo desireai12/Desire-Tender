@@ -335,9 +335,11 @@ export const EligibilityChecker: React.FC = () => {
         let pct = 100;
 
         // Desire evaluation on this clause
-        let dStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.desire_status as any) || 'MATCH';
-        if (!c.desire_status) {
-          const dVal = (c.desire_value || '').toLowerCase();
+        let dStatus: string = (c.desire_status as any) || 'MATCH';
+        const dVal = (c.desire_value || '').toLowerCase();
+        if (c.desire_status === 'POSSIBLE MATCH' || dVal.includes('possible match') || dVal.includes('manual verification') || dVal.includes('inter-state registration equivalence')) {
+          dStatus = 'POSSIBLE MATCH';
+        } else if (!c.desire_status) {
           if (dVal.includes('data not') || dVal.includes('missing')) {
             dStatus = 'DATA NOT AVAILABLE';
           } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
@@ -348,9 +350,11 @@ export const EligibilityChecker: React.FC = () => {
         }
 
         // JV evaluation on this clause
-        let jStatus: 'MATCH' | 'PARTIAL MATCH' | 'NOT MATCHING' | 'DATA NOT AVAILABLE' = (c.jv_status as any) || 'MATCH';
-        if (!c.jv_status) {
-          const jVal = (c.jv_value || '').toLowerCase();
+        let jStatus: string = (c.jv_status as any) || 'MATCH';
+        const jVal = (c.jv_value || '').toLowerCase();
+        if (c.jv_status === 'POSSIBLE MATCH' || jVal.includes('possible match') || jVal.includes('manual verification')) {
+          jStatus = 'POSSIBLE MATCH';
+        } else if (!c.jv_status) {
           if (jVal.includes('data not') || jVal.includes('missing')) {
             jStatus = 'DATA NOT AVAILABLE';
           } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
@@ -363,17 +367,20 @@ export const EligibilityChecker: React.FC = () => {
         if (mode === 'desire') {
           val = c.desire_value || '';
           status = dStatus;
-          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
+          pct = status === 'MATCH' ? 100 : status === 'POSSIBLE MATCH' ? 85 : status === 'PARTIAL MATCH' ? 50 : 0;
         } else if (mode === 'jv') {
           val = c.jv_value || '';
           status = jStatus;
-          pct = status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0;
+          pct = status === 'MATCH' ? 100 : status === 'POSSIBLE MATCH' ? 85 : status === 'PARTIAL MATCH' ? 50 : 0;
         } else {
           // Combined: If either party matches 100% or combined pooling matches, status is MATCH
           val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
           if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
             status = 'MATCH';
             pct = 100;
+          } else if (dStatus === 'POSSIBLE MATCH' || jStatus === 'POSSIBLE MATCH' || c.status === 'POSSIBLE MATCH') {
+            status = 'POSSIBLE MATCH';
+            pct = 85;
           } else if (dStatus === 'PARTIAL MATCH' || jStatus === 'PARTIAL MATCH' || c.status === 'PARTIAL MATCH') {
             status = 'PARTIAL MATCH';
             pct = 50;
@@ -392,13 +399,14 @@ export const EligibilityChecker: React.FC = () => {
       });
 
       const matched = evaluated.filter(c => c.active_status === 'MATCH').length;
+      const possible = evaluated.filter(c => c.active_status === 'POSSIBLE MATCH').length;
       const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
       const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
       const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
 
       // Synchronize score with backend report to guarantee distinct realistic percentages
       const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : combinedTargetScore;
-      const calcScore = Math.min(100, Math.round(((matched * 100) + (partial * 50)) / totalCount));
+      const calcScore = Math.min(100, Math.round(((matched * 100) + (possible * 85) + (partial * 50)) / totalCount));
       const score = (targetScore !== undefined && targetScore !== null) ? targetScore : calcScore;
 
       return {
@@ -408,6 +416,7 @@ export const EligibilityChecker: React.FC = () => {
         counts: {
           total_criteria: totalCount,
           matched,
+          possible,
           partial,
           not_matching: notMatching,
           data_missing: missing
@@ -796,6 +805,8 @@ export const EligibilityChecker: React.FC = () => {
                             className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                               statusVal === 'MATCH'
                                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                                : (statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE') || statusVal.includes('MANUAL'))
+                                ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700 shadow-sm font-bold'
                                 : statusVal === 'PARTIAL MATCH'
                                 ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
                                 : statusVal === 'NOT MATCHING'
@@ -804,9 +815,11 @@ export const EligibilityChecker: React.FC = () => {
                             }`}
                           >
                             {statusVal === 'MATCH' && <CheckCircle2 className="w-3 h-3" />}
+                            {(statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE') || statusVal.includes('MANUAL')) && <AlertTriangle className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />}
+                            {statusVal === 'PARTIAL MATCH' && <AlertTriangle className="w-3 h-3 text-amber-600" />}
                             {statusVal === 'NOT MATCHING' && <XCircle className="w-3 h-3" />}
                             {statusVal === 'DATA NOT AVAILABLE' && <HelpCircle className="w-3 h-3" />}
-                            <span>{statusVal}</span>
+                            <span>{statusVal === 'POSSIBLE MATCH' ? 'Possible Match — Manual Verification Required' : statusVal}</span>
                           </span>
                         </td>
                         <td className="p-3 font-mono font-bold text-emerald-700 dark:text-emerald-400">
