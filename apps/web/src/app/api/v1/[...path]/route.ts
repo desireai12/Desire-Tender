@@ -95,7 +95,53 @@ function buildErrorResponse(category: ErrorCategory, rawDetail?: string, debugDa
 // ─── HIGH-CAPACITY SERVERLESS PDF TEXT EXTRACTOR ─────────────────────────
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   try {
-    // 1. Fast zero-dependency pure stream text extraction
+    // 1. Try unpdf first (fast ESM/WASM PDF engine built for serverless)
+    try {
+      const modName = 'unpdf';
+      const unpdf = await import(/* webpackIgnore: true */ modName).catch(() => null);
+      if (unpdf && unpdf.getDocumentProxy && unpdf.extractText) {
+        const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+        const pdf = await unpdf.getDocumentProxy(uint8Array);
+        const { text } = await unpdf.extractText(pdf, { mergePages: true });
+        const fullText = (text || '').trim();
+        if (fullText.length >= 50) {
+          console.log(`[PDF_EXTRACT] unpdf successfully extracted ${fullText.length} characters`);
+          return fullText;
+        }
+      }
+    } catch (unpdfErr: any) {
+      console.warn(`[PDF_EXTRACT] unpdf attempt warning: ${unpdfErr?.message || unpdfErr}`);
+    }
+
+    // 2. Fallback to pdf-parse
+    try {
+      const dynamicRequire = eval('require');
+      const pdfLib = dynamicRequire('pdf-parse');
+      let fullText = '';
+      if (pdfLib && pdfLib.PDFParse) {
+        try {
+          const { pathToFileURL } = dynamicRequire('url');
+          const worker = dynamicRequire('pdf-parse/worker');
+          if (worker && worker.getPath) {
+            pdfLib.PDFParse.setWorker(pathToFileURL(worker.getPath()).href);
+          }
+        } catch (wErr) {}
+        const parser = new pdfLib.PDFParse({ data: buffer });
+        const res = await parser.getText();
+        fullText = (res?.text || '').trim();
+      } else if (typeof pdfLib === 'function') {
+        const parsed = await pdfLib(buffer);
+        fullText = (parsed?.text || '').trim();
+      }
+      if (fullText.length >= 50) {
+        console.log(`[PDF_EXTRACT] pdf-parse successfully extracted ${fullText.length} characters`);
+        return fullText;
+      }
+    } catch (pdfErr: any) {
+      console.warn(`[PDF_EXTRACT] pdf-parse attempt warning: ${pdfErr?.message || pdfErr}`);
+    }
+
+    // 3. Last resort zero-dependency stream text parser
     try {
       const zlib = require('zlib');
       const str = buffer.toString('latin1');
@@ -119,49 +165,10 @@ async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
       }
       const cleanedPure = pureText.trim();
       if (cleanedPure.length >= 20) {
+        console.log(`[PDF_EXTRACT] Stream regex fallback extracted ${cleanedPure.length} characters`);
         return cleanedPure;
       }
     } catch (pureErr) {}
-
-    // 2. Fallback to unpdf if available
-    try {
-      const modName = 'unpdf';
-      const unpdf = await import(/* webpackIgnore: true */ modName).catch(() => null);
-      if (unpdf && unpdf.getDocumentProxy && unpdf.extractText) {
-        const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-        const pdf = await unpdf.getDocumentProxy(uint8Array);
-        const { text } = await unpdf.extractText(pdf, { mergePages: true });
-        const fullText = (text || '').trim();
-        if (fullText.length >= 20) {
-          return fullText;
-        }
-      }
-    } catch (unpdfErr) {}
-
-    // 3. Fallback to dynamic node require for pdf-parse
-    try {
-      const dynamicRequire = eval('require');
-      const pdfLib = dynamicRequire('pdf-parse');
-      let fullText = '';
-      if (pdfLib && pdfLib.PDFParse) {
-        try {
-          const { pathToFileURL } = dynamicRequire('url');
-          const worker = dynamicRequire('pdf-parse/worker');
-          if (worker && worker.getPath) {
-            pdfLib.PDFParse.setWorker(pathToFileURL(worker.getPath()).href);
-          }
-        } catch (wErr) {}
-        const parser = new pdfLib.PDFParse({ data: buffer });
-        const res = await parser.getText();
-        fullText = (res?.text || '').trim();
-      } else if (typeof pdfLib === 'function') {
-        const parsed = await pdfLib(buffer);
-        fullText = (parsed?.text || '').trim();
-      }
-      if (fullText.length >= 20) {
-        return fullText;
-      }
-    } catch (pdfErr) {}
 
     throw new Error('PDF contains less than 20 characters of extractable text.');
   } catch (err: any) {
