@@ -784,7 +784,80 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     const jCerts = Array.isArray(partner.certifications) ? partner.certifications : [];
     const jTech = (partner.technical_experience || '') + ' ' + (Array.isArray(partner.sector_experience) ? partner.sector_experience.join(' ') : '');
 
-    if (reqType === 'Financial') {
+    const isIso = title.includes('iso') || reqText.includes('iso');
+    const isGst = title.includes('gst') || reqText.includes('gst');
+    const isPan = title.includes('pan') || reqText.includes('pan');
+    const isStaff = title.includes('staff') || title.includes('manpower') || title.includes('engineer') || reqText.includes('diploma') || reqText.includes('engineer') || reqText.includes('technical staff');
+    const isRegClause = (title.includes('registration') || title.includes('enlistment') || title.includes('class') || title.includes('license') ||
+                        reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license') ||
+                        reqText.includes('wrd') || reqText.includes('phed') || reqText.includes('pwd')) && !isGst && !isPan;
+    const hasEquivalence = reqText.includes('equivalent') || reqText.includes('equivalence') || reqText.includes('reciprocity') ||
+                           reqText.includes('inter-state') || reqText.includes('interstate') || reqText.includes('other state') ||
+                           reqText.includes('other department') || reqText.includes('reciprocal') || reqText.includes('any state');
+    const isAdministrative = title.includes('validity') || title.includes('defect') || title.includes('dlp') || reqText.includes('validity') || reqText.includes('defect liability');
+
+    if (isGst) {
+      const dHasGst = desireComp.gst_number || (desireComp.statutory_docs || []).some((d: string) => d.toLowerCase().includes('gst'));
+      dPct = dHasGst ? 100 : 0;
+      dVal = dHasGst ? `Desire actual: Valid GST Registration Certificate (GSTIN: ${desireComp.gst_number || '24AAECD3266E1ZZ'}) -> 100% MATCH` : 'DATA NOT AVAILABLE — No GST registration record on file';
+      
+      const jHasGst = partner.gst_number || (partner.statutory_docs || []).some((d: string) => d.toLowerCase().includes('gst'));
+      jPct = jHasGst ? 100 : 0;
+      jVal = jHasGst ? `${partner.name} actual: Valid GST Registration -> 100% MATCH` : 'DATA NOT AVAILABLE — No GST registration in partner record';
+      cPct = Math.max(dPct, jPct);
+      cVal = cPct === 100 ? 'Combined: Valid GST Registration verified -> 100% MATCH' : 'Combined: DATA NOT AVAILABLE — GST registration missing';
+    } else if (isPan) {
+      const dHasPan = desireComp.pan_number || (desireComp.statutory_docs || []).some((d: string) => d.toLowerCase().includes('pan'));
+      dPct = dHasPan ? 100 : 0;
+      dVal = dHasPan ? `Desire actual: Valid PAN Card (PAN: ${desireComp.pan_number || 'AAECD3266E'}) -> 100% MATCH` : 'DATA NOT AVAILABLE — No PAN Card record on file';
+      jPct = 100; jVal = `${partner.name} actual: Valid PAN Card -> 100% MATCH`;
+      cPct = 100; cVal = 'Combined: Meets PAN requirements -> 100% MATCH';
+    } else if (isIso) {
+      const dHasIso = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('iso'));
+      dPct = dHasIso ? 100 : 0;
+      dVal = dHasIso ? 'Desire actual: Holds ISO 9001/14001/45001 Certifications -> 100% MATCH' : 'DATA NOT AVAILABLE — Missing ISO Certification';
+
+      const jHasIso = jCerts.some((c: string) => c.toLowerCase().includes('iso'));
+      jPct = jHasIso ? 100 : 0;
+      jVal = jHasIso ? `${partner.name} actual: Holds ISO 9001 Certification in credentials -> 100% MATCH` : `${partner.name} actual: NO ISO 9001 in stored certifications list -> 0% NOT MATCHING`;
+
+      cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
+      cVal = cPct === 100 ? 'Combined: Lead Member (Desire) holds valid ISO 9001 -> 100% MATCH' : 'Combined: Neither member holds ISO 9001 -> 0% NOT MATCHING';
+    } else if (isRegClause) {
+      const dHasReg = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license'));
+      const jHasReg = jCerts.some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license') || c.toLowerCase().includes('registration'));
+
+      if (hasEquivalence) {
+        dPct = 85;
+        jPct = jHasReg ? 100 : 0;
+        cPct = Math.max(dPct, jPct);
+
+        const quoteText = c.tender_requirement || c.required_value || c.clause_title || 'Inter-state registration equivalence clause';
+        dVal = `Possible Match — Requires Manual Verification: Tender requirement depends on inter-state registration equivalence. Quoted Clause: "${quoteText}". Desire holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.`;
+        jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
+        cVal = cPct === 100 ? `Combined: ${partner.name} holds direct state registration -> 100% MATCH` : `Combined: Possible Match — Requires Manual Verification (Quoted clause: "${quoteText}")`;
+      } else {
+        dPct = dHasReg ? 100 : 0;
+        jPct = jHasReg ? 100 : 0;
+        cPct = Math.max(dPct, jPct);
+
+        dVal = dHasReg ? 'Desire actual: Holds Class-A Special PHED & AA Class Gujarat Enlistment -> 100% MATCH' : 'DATA NOT AVAILABLE — Missing Contractor License';
+        jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
+        cVal = 'Combined: Meets registration criteria -> 100% MATCH';
+      }
+    } else if (isStaff) {
+      const dHasStaff = (desireComp.manpower_technical_staff || []).length > 0;
+      dPct = dHasStaff ? 100 : 0;
+      dVal = dHasStaff ? `Desire actual: Employs ${(desireComp.manpower_technical_staff || []).slice(0, 2).join(', ')} -> 100% MATCH` : 'DATA NOT AVAILABLE — No technical staff deployment record on file';
+      jPct = 100; jVal = `${partner.name} actual: Qualified engineering staff on payroll -> 100% MATCH`;
+      cPct = Math.max(dPct, jPct);
+      cVal = 'Combined: Meets technical staff requirements -> 100% MATCH';
+    } else if (isAdministrative) {
+      dPct = 100; jPct = 100; cPct = 100;
+      dVal = 'Desire actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH';
+      jVal = `${partner.name} actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH`;
+      cVal = 'Combined: Administrative term satisfied upon bid submission -> 100% MATCH';
+    } else if (reqType === 'Financial') {
       if (title.includes('turnover') || reqText.includes('turnover')) {
         let effDT = dT; // default 3-year average (290.27 Cr)
         let turnoverRuleLabel = '3-Yr Avg Turnover';
@@ -842,15 +915,45 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         jVal = `Required: Rs ${reqNum || 'N/A'} Cr | ${partner.name} actual: Rs ${jS} Cr -> ${jRawPct}% raw (${jPct}% capped)`;
         cVal = `Pooled: Rs ${(dS + jS).toFixed(2)} Cr -> ${cRawPct}% raw (${cPct}% capped)`;
       } else if (title.includes('emd') || title.includes('earnest money') || reqText.includes('earnest money') || reqText.includes('emd')) {
-        dPct = 100; jPct = 100; cPct = 100;
-        dVal = `Desire actual: EMD to be deposited via e-Challan / Bank Guarantee as per tender terms -> 100% MATCH`;
-        jVal = `${partner.name} actual: EMD to be deposited via Bank Guarantee / Cash -> 100% MATCH`;
-        cVal = `Combined: EMD payable upon submission -> 100% MATCH`;
+        const dEmdCap = Number((desireComp as any).emd_bg_facility_limit || (desireComp as any).emd_capacity || 0);
+        if (dEmdCap > 0) {
+          dPct = (reqNum && reqNum > 0) ? Math.min(100, Math.floor((dEmdCap / reqNum) * 100)) : 100;
+          dVal = `Desire actual: Bank Guarantee / EMD facility limit of Rs ${dEmdCap} Cr on file -> ${dPct}% MATCH`;
+        } else {
+          dPct = 0;
+          dVal = 'DATA NOT AVAILABLE — No EMD / Bank Guarantee facility limit record on file';
+        }
+        
+        const jEmdCap = Number((partner as any).emd_bg_facility_limit || (partner as any).emd_capacity || 0);
+        if (jEmdCap > 0) {
+          jPct = (reqNum && reqNum > 0) ? Math.min(100, Math.floor((jEmdCap / reqNum) * 100)) : 100;
+          jVal = `${partner.name} actual: Bank Guarantee / EMD facility limit of Rs ${jEmdCap} Cr -> ${jPct}% MATCH`;
+        } else {
+          jPct = 0;
+          jVal = `${partner.name} actual: DATA NOT AVAILABLE — No EMD / BG capacity record on file`;
+        }
+        cPct = Math.max(dPct, jPct);
+        cVal = cPct > 0 ? `Combined: Verified EMD facility capacity -> ${cPct}% MATCH` : 'Combined: DATA NOT AVAILABLE — EMD / BG facility record missing';
       } else if (title.includes('performance') || reqText.includes('performance security') || reqText.includes('unbalanced bid') || reqText.includes('low bid')) {
-        dPct = 100; jPct = 100; cPct = 100;
-        dVal = `Desire actual: Standard financial contract guarantee (submitted upon award via BG/deduction) -> 100% MATCH`;
-        jVal = `${partner.name} actual: Standard financial contract guarantee -> 100% MATCH`;
-        cVal = `Combined: Performance security payable upon award -> 100% MATCH`;
+        const dBgCap = Number((desireComp as any).bg_facility_limit || (desireComp as any).emd_bg_facility_limit || 0);
+        if (dBgCap > 0) {
+          dPct = (reqNum && reqNum > 0) ? Math.min(100, Math.floor((dBgCap / reqNum) * 100)) : 100;
+          dVal = `Desire actual: Bank Guarantee facility limit of Rs ${dBgCap} Cr on file -> ${dPct}% MATCH`;
+        } else {
+          dPct = 0;
+          dVal = 'DATA NOT AVAILABLE — No Bank Guarantee facility limit record on file';
+        }
+        
+        const jBgCap = Number((partner as any).bg_facility_limit || (partner as any).emd_bg_facility_limit || 0);
+        if (jBgCap > 0) {
+          jPct = (reqNum && reqNum > 0) ? Math.min(100, Math.floor((jBgCap / reqNum) * 100)) : 100;
+          jVal = `${partner.name} actual: Bank Guarantee facility limit of Rs ${jBgCap} Cr -> ${jPct}% MATCH`;
+        } else {
+          jPct = 0;
+          jVal = `${partner.name} actual: DATA NOT AVAILABLE — No BG facility limit record on file`;
+        }
+        cPct = Math.max(dPct, jPct);
+        cVal = cPct > 0 ? `Combined: Verified Performance Guarantee facility capacity -> ${cPct}% MATCH` : 'Combined: DATA NOT AVAILABLE — Performance Security / BG facility record missing';
       } else {
         dPct = 0; jPct = 0; cPct = 0;
         dVal = 'DATA NOT AVAILABLE — No company record for this requirement';
@@ -891,90 +994,11 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         cPct = Math.max(dPct, jPct);
         cVal = 'Combined: Meets technical experience criteria -> 100% MATCH';
       }
-    } else if (reqType === 'Compliance' || reqType === 'Organizational') {
-      const isIso = title.includes('iso') || reqText.includes('iso');
-      const isGst = title.includes('gst') || reqText.includes('gst');
-      const isPan = title.includes('pan') || reqText.includes('pan');
-      const isStaff = title.includes('staff') || title.includes('manpower') || title.includes('engineer') || reqText.includes('diploma') || reqText.includes('engineer') || reqText.includes('technical staff');
-      const isRegClause = title.includes('registration') || title.includes('enlistment') || title.includes('class') || title.includes('license') ||
-                          reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license') ||
-                          reqText.includes('wrd') || reqText.includes('phed') || reqText.includes('pwd');
-
-      const hasEquivalence = reqText.includes('equivalent') || reqText.includes('equivalence') || reqText.includes('reciprocity') ||
-                             reqText.includes('inter-state') || reqText.includes('interstate') || reqText.includes('other state') ||
-                             reqText.includes('other department') || reqText.includes('reciprocal') || reqText.includes('any state');
-
-      const isAdministrative = title.includes('validity') || title.includes('defect') || title.includes('dlp') || reqText.includes('validity') || reqText.includes('defect liability');
-
-      if (isGst) {
-        const dHasGst = desireComp.gst_number || (desireComp.statutory_docs || []).some((d: string) => d.toLowerCase().includes('gst'));
-        dPct = dHasGst ? 100 : 0;
-        dVal = dHasGst ? `Desire actual: Valid GST Registration Certificate (GSTIN: ${desireComp.gst_number || '24AAECD3266E1ZZ'}) -> 100% MATCH` : 'DATA NOT AVAILABLE — No GST registration record on file';
-        
-        const jHasGst = partner.gst_number || (partner.statutory_docs || []).some((d: string) => d.toLowerCase().includes('gst'));
-        jPct = jHasGst ? 100 : 0;
-        jVal = jHasGst ? `${partner.name} actual: Valid GST Registration -> 100% MATCH` : 'DATA NOT AVAILABLE — No GST registration in partner record';
-        cPct = Math.max(dPct, jPct);
-        cVal = cPct === 100 ? 'Combined: Valid GST Registration verified -> 100% MATCH' : 'Combined: DATA NOT AVAILABLE — GST registration missing';
-      } else if (isPan) {
-        const dHasPan = desireComp.pan_number || (desireComp.statutory_docs || []).some((d: string) => d.toLowerCase().includes('pan'));
-        dPct = dHasPan ? 100 : 0;
-        dVal = dHasPan ? `Desire actual: Valid PAN Card (PAN: ${desireComp.pan_number || 'AAECD3266E'}) -> 100% MATCH` : 'DATA NOT AVAILABLE — No PAN Card record on file';
-        jPct = 100; jVal = `${partner.name} actual: Valid PAN Card -> 100% MATCH`;
-        cPct = 100; cVal = 'Combined: Meets PAN requirements -> 100% MATCH';
-      } else if (isStaff) {
-        const dHasStaff = (desireComp.manpower_technical_staff || []).length > 0;
-        dPct = dHasStaff ? 100 : 0;
-        dVal = dHasStaff ? `Desire actual: Employs ${(desireComp.manpower_technical_staff || []).slice(0, 2).join(', ')} -> 100% MATCH` : 'DATA NOT AVAILABLE — No technical staff deployment record on file';
-        jPct = 100; jVal = `${partner.name} actual: Qualified engineering staff on payroll -> 100% MATCH`;
-        cPct = Math.max(dPct, jPct);
-        cVal = 'Combined: Meets technical staff requirements -> 100% MATCH';
-      } else if (isIso) {
-        const dHasIso = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('iso'));
-        dPct = dHasIso ? 100 : 0;
-        dVal = dHasIso ? 'Desire actual: Holds ISO 9001/14001/45001 Certifications -> 100% MATCH' : 'DATA NOT AVAILABLE — Missing ISO Certification';
-
-        const jHasIso = jCerts.some((c: string) => c.toLowerCase().includes('iso'));
-        jPct = jHasIso ? 100 : 0;
-        jVal = jHasIso ? `${partner.name} actual: Holds ISO 9001 Certification in credentials -> 100% MATCH` : `${partner.name} actual: NO ISO 9001 in stored certifications list -> 0% NOT MATCHING`;
-
-        cPct = (dPct > 0 || jPct > 0) ? 100 : 0;
-        cVal = cPct === 100 ? 'Combined: Lead Member (Desire) holds valid ISO 9001 -> 100% MATCH' : 'Combined: Neither member holds ISO 9001 -> 0% NOT MATCHING';
-      } else if (isRegClause) {
-        const dHasReg = (desireComp.certifications || []).some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license'));
-        const jHasReg = jCerts.some((c: string) => c.toLowerCase().includes('class') || c.toLowerCase().includes('license') || c.toLowerCase().includes('registration'));
-
-        if (hasEquivalence) {
-          dPct = 85;
-          jPct = jHasReg ? 100 : 0;
-          cPct = Math.max(dPct, jPct);
-
-          const quoteText = c.tender_requirement || c.required_value || c.clause_title || 'Inter-state registration equivalence clause';
-          dVal = `Possible Match — Requires Manual Verification: Tender requirement depends on inter-state registration equivalence. Quoted Clause: "${quoteText}". Desire holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.`;
-          jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
-          cVal = cPct === 100 ? `Combined: ${partner.name} holds direct state registration -> 100% MATCH` : `Combined: Possible Match — Requires Manual Verification (Quoted clause: "${quoteText}")`;
-        } else {
-          dPct = dHasReg ? 100 : 0;
-          jPct = jHasReg ? 100 : 0;
-          cPct = Math.max(dPct, jPct);
-
-          dVal = dHasReg ? 'Desire actual: Holds Class-A Special PHED & AA Class Gujarat Enlistment -> 100% MATCH' : 'DATA NOT AVAILABLE — Missing Contractor License';
-          jVal = jHasReg ? `${partner.name} actual: Holds AA Class Civil Contractor Registration -> 100% MATCH` : `${partner.name} actual: Missing Contractor Registration -> 0% NOT MATCHING`;
-          cVal = 'Combined: Meets registration criteria -> 100% MATCH';
-        }
-      } else if (isAdministrative) {
-        dPct = 100; jPct = 100; cPct = 100;
-        dVal = 'Desire actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH';
-        jVal = `${partner.name} actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH`;
-        cVal = 'Combined: Administrative term satisfied upon bid submission -> 100% MATCH';
-      } else {
-        dPct = 0;
-        dVal = 'DATA NOT AVAILABLE — No company record for this requirement';
-        jPct = 0;
-        jVal = `${partner.name} actual: DATA NOT AVAILABLE — No partner record for this requirement`;
-        cPct = 0;
-        cVal = 'Combined: DATA NOT AVAILABLE — Requirement missing from company profiles';
-      }
+    } else {
+      dPct = 0; jPct = 0; cPct = 0;
+      dVal = 'DATA NOT AVAILABLE — No company record for this requirement';
+      jVal = `${partner.name} actual: DATA NOT AVAILABLE — No partner record for this requirement`;
+      cVal = 'Combined: DATA NOT AVAILABLE — Requirement missing from company profiles';
     }
 
     const dStatus = (dPct === 85 || dVal.includes('Possible Match') || dVal.includes('Manual Verification'))
