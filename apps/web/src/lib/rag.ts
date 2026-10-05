@@ -214,7 +214,10 @@ export async function retrieveRAGContextForTender(
     try {
       // Query pgvector RPC for semantic similarity matches across stored chunks
       const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://udwjptggvaavoemuvjbm.supabase.co';
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+      const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+      if (!supabaseKey) {
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing in environment variables for RAG vector search.');
+      }
 
       if (supabaseUrl && supabaseKey) {
         for (const qText of semanticDomainQueries) {
@@ -296,9 +299,12 @@ export async function ingestDocumentInBackground(
 ): Promise<{ success: boolean; count: number }> {
   try {
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://udwjptggvaavoemuvjbm.supabase.co';
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 
-    if (!supabaseUrl || !supabaseKey || !apiKey) {
+    if (!supabaseKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing in environment variables for RAG ingestion.');
+    }
+    if (!supabaseUrl || !apiKey) {
       console.warn('[BACKGROUND_RAG_INGESTION] Missing credentials, skipping background vector indexing.');
       return { success: false, count: 0 };
     }

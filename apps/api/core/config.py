@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Supabase / Postgres Vector DB Settings
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    # NOTE: Localhost fallback for DATABASE_URL is acceptable ONLY because apps/api is a local
+    # standalone Python crawler/utility backend and is NOT deployed to Vercel or any cloud hosting environment.
+    # If apps/api is ever deployed to production, DATABASE_URL MUST be set via environment variable.
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
         "postgresql://postgres:postgres@localhost:5432/postgres"
