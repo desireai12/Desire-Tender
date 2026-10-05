@@ -555,7 +555,11 @@ export default function Home() {
             <SettingsView activeRole={activeRole} onProviderChange={setProvider} />
           )}
 
-          {(activeTab === 'admin' || activeTab === 'admin_kb') && (
+          {activeTab === 'admin_kb' && (
+            <AdminKnowledgeBase activeRole={activeRole} />
+          )}
+
+          {activeTab === 'admin' && (
             <AdminPortal onBackToUserPortal={() => setActiveTab('dashboard')} />
           )}
 

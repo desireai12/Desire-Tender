@@ -16,7 +16,8 @@ import {
   Settings,
   Shield,
   ChevronRight,
-  Workflow
+  Workflow,
+  Database
 } from 'lucide-react';
 import { DepartmentRole } from '@/lib/types';
 
@@ -88,6 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'master_company', label: 'Company Master DB', icon: Building2 },
         { id: 'competitors', label: 'Competitors Profile', icon: Swords },
+        { id: 'admin_kb', label: 'Vector DB & Knowledge', icon: Database },
       ]
     },
     {
