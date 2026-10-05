@@ -21,7 +21,7 @@ import { TenderTrackerDashboard, TrackedTender, INITIAL_TRACKED_TENDERS } from '
 import { BidFlowBoard } from '@/components/BidFlowBoard';
 import { DepartmentRole, TenderProcess, UserProfile } from '@/lib/types';
 import { ShieldAlert, Loader2, Sparkles } from 'lucide-react';
-import { getActiveUserSession, saveUserSession, clearUserSession } from '@/lib/store';
+import { getActiveUserSession, saveUserSession, clearUserSession, getActiveAdminSession, saveAdminSession, getSessionToken } from '@/lib/store';
 import { API_BASE_URL } from '@/lib/api';
 import { getAuthHeaders } from '@/lib/store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -112,25 +112,65 @@ export default function Home() {
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([DEFAULT_SEED_TENDER]);
   const [selectedTenderToAnalyze, setSelectedTenderToAnalyze] = useState<IndiaTenderItem | null>(null);
 
-  // RESTORE AUTHENTICATION SESSION ON MOUNT
+  // RESTORE OR AUTO-AUTHENTICATE DEFAULT ADMIN SESSION ON MOUNT
   useEffect(() => {
-    try {
-      const activeSessionUser = getActiveUserSession();
-      if (activeSessionUser) {
-        const adminUser = {
-          ...activeSessionUser,
-          department: 'Admin' as DepartmentRole,
-          status: 'Active' as const,
-          permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'] as any
-        };
-        setCurrentUser(adminUser);
+    const initSession = async () => {
+      try {
+        const activeSessionUser = getActiveUserSession();
+        const activeToken = getSessionToken();
+
+        if (activeSessionUser && activeToken) {
+          const adminUser = {
+            ...activeSessionUser,
+            department: 'Admin' as DepartmentRole,
+            status: 'Active' as const,
+            permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'] as any
+          };
+          setCurrentUser(adminUser);
+          setActiveRole('Admin');
+          return;
+        }
+
+        // Auto-authenticate Chief Administrator (EMP001) seamlessly to bypass sign in screen
+        try {
+          const res = await fetch('/api/v1/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ employee_id: 'EMP001', password: 'Desire@1234' })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.session_token) {
+              const adminUser = {
+                ...DEFAULT_ADMIN_USER,
+                department: 'Admin' as DepartmentRole,
+                status: 'Active' as const,
+                permissions: ['eligibility', 'ai_analysis', 'cost_estimation', 'bid_decision', 'bid_details', 'tender_result', 'admin'] as any
+              };
+              saveUserSession(adminUser, data.session_token);
+              saveAdminSession(adminUser, data.session_token);
+              setCurrentUser(adminUser);
+              setActiveRole('Admin');
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('[AUTO_LOGIN] Could not fetch server session token automatically:', e);
+        }
+
+        // Default admin fallback
+        saveUserSession(DEFAULT_ADMIN_USER);
+        setCurrentUser(DEFAULT_ADMIN_USER);
         setActiveRole('Admin');
-      } else {
-        setCurrentUser(null);
+      } catch (e) {
+        setCurrentUser(DEFAULT_ADMIN_USER);
+      } finally {
+        setIsInitializingSession(false);
       }
-    } catch (e) {} finally {
-      setIsInitializingSession(false);
-    }
+    };
+
+    initSession();
   }, []);
 
   // PROACTIVE SESSION EXPIRATION MONITOR (Focus, Visibility, Custom Event, 15s Interval)
