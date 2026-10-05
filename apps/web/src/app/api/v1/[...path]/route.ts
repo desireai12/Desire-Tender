@@ -9,7 +9,6 @@ import banasTenderData from '@/data/banaskantha_kankrej_real_tender.json';
 import { normalizeStatus } from '@/lib/tender-status';
 import vapiManifest from '@/data/vapi_tender_documents_manifest.json';
 import banasManifest from '@/data/banaskantha_tender_documents_manifest.json';
-import { waitUntil } from '@vercel/functions';
 import { retrieveRAGContextForTender, ingestDocumentInBackground, INGESTION_TRACKER } from '@/lib/rag';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -1141,11 +1140,16 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 // Vercel. NEVER add a hardcoded fallback value here, under any name,
 // for any reason. This has happened 3 times in this project and each
 // time it created a real security hole. The throw is correct behavior.
-const RAW_SESSION_SECRET = (process.env.SESSION_SECRET || process.env.SECRET_KEY || '').trim();
-if (!RAW_SESSION_SECRET || RAW_SESSION_SECRET.length < 32) {
-  throw new Error('SESSION_SECRET is not configured correctly in this environment. Set a real 32+ character random value in Vercel Environment Variables.');
+let _cachedSecret: string | null = null;
+function getSessionSecret(): string {
+  if (_cachedSecret) return _cachedSecret;
+  const raw = (process.env.SESSION_SECRET || process.env.SECRET_KEY || '').trim();
+  if (!raw || raw.length < 32) {
+    throw new Error('SESSION_SECRET is not configured correctly in this environment. Set a real 32+ character random value in Vercel Environment Variables.');
+  }
+  _cachedSecret = raw;
+  return _cachedSecret;
 }
-const SESSION_SECRET = RAW_SESSION_SECRET;
 
 const RATE_LIMIT_MAP = new Map<string, { count: number; resetTime: number }>();
 
@@ -1256,20 +1260,21 @@ export interface SessionTokenPayload {
 }
 
 export function createSessionToken(payload: { employee_id: string; role: string; full_name?: string }, expiresInSeconds = 12 * 3600): string | null {
-  if (!IS_SECRET_VALID) return null;
+  const secret = getSessionSecret();
   const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
   const fullPayload: SessionTokenPayload = { ...payload, exp };
   const payloadBase64 = Buffer.from(JSON.stringify(fullPayload)).toString('base64url');
-  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(payloadBase64).digest('base64url');
+  const signature = crypto.createHmac('sha256', secret).update(payloadBase64).digest('base64url');
   return `${payloadBase64}.${signature}`;
 }
 
 export function verifySessionToken(token: string): SessionTokenPayload | null {
-  if (!IS_SECRET_VALID || !token || typeof token !== 'string' || !token.includes('.')) return null;
+  if (!token || typeof token !== 'string' || !token.includes('.')) return null;
   const [payloadBase64, signature] = token.split('.');
   if (!payloadBase64 || !signature) return null;
 
-  const expectedSignature = crypto.createHmac('sha256', SESSION_SECRET).update(payloadBase64).digest('base64url');
+  const secret = getSessionSecret();
+  const expectedSignature = crypto.createHmac('sha256', secret).update(payloadBase64).digest('base64url');
   if (signature !== expectedSignature) return null;
 
   try {
