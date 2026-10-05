@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '@/lib/api';
+import { getAuthHeaders } from '@/lib/store';
 import { UserProfile, DepartmentRole, ProjectCategory } from '@/lib/types';
 import { 
   ShieldCheck, 
@@ -280,7 +281,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   const fetchCredentials = async () => {
     try {
-      const res = await fetch(`/api/v1/admin/credentials`).catch(() => null);
+      const res = await fetch(`/api/v1/admin/credentials`, { headers: getAuthHeaders() }).catch(() => null);
       if (res && res.ok) {
         try { const data = await res.json(); if (data.status === 'success') setCredentials(data.credentials); } catch(e) {}
       }
@@ -291,7 +292,7 @@ export const AdminBackendConfig: React.FC<AdminBackendConfigProps> = ({ activeRo
 
   const fetchAIConfigs = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/ai-config`).catch(() => null);
+      const res = await fetch(`${API_BASE_URL}/admin/ai-config`, { headers: getAuthHeaders() }).catch(() => null);
       if (res && res.ok) {
         try {
           const data = await res.json();

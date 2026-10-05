@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { DataFreshnessBar } from './DataFreshnessBar';
+import { getAuthHeaders } from '@/lib/store';
 import { 
   MapPin, 
   Search, 
@@ -178,7 +179,10 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/v1/tenders/live-summary', { cache: 'no-store' });
+      const res = await fetch('/api/v1/tenders/live-summary', {
+        cache: 'no-store',
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const json = await res.json();
         const list: IndiaTenderItem[] = (json.all_tenders || json.priority_tenders || []).map((t: any) => ({

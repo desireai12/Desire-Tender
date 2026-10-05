@@ -96,6 +96,21 @@ export const KEYWORD_CATEGORIES: Record<string, string[]> = {
   ]
 };
 
+export function extractValueFromText(text: string): number {
+  if (!text) return 0.0;
+  const crMatch = text.match(/([0-9]+(?:\.[0-9]+)?)\s*(?:cr|crore|crores)/i);
+  if (crMatch) {
+    const num = parseFloat(crMatch[1]);
+    if (!isNaN(num)) return Math.round(num * 100) / 100;
+  }
+  const lakhMatch = text.match(/([0-9]+(?:\.[0-9]+)?)\s*(?:lac|lacs|lakh|lakhs)/i);
+  if (lakhMatch) {
+    const num = parseFloat(lakhMatch[1]);
+    if (!isNaN(num)) return Math.round((num / 100.0) * 100) / 100;
+  }
+  return 0.0;
+}
+
 export function cleanCurrencyToCr(valStr?: string): number {
   if (!valStr) return 0.0;
   const s = String(valStr).replace(/,/g, '').replace(/₹/g, '').replace(/&#8377;/g, '').trim();
@@ -207,7 +222,15 @@ export async function crawlStateGePNICPortal(
 
       const searchHtml = await searchRes.text();
 
-      // 3. Extract direct tender links
+      // 3. Extract table rows (<tr class="even"> or <tr class="odd">)
+      const rowRegex = /<tr[^>]*class=["'](?:even|odd)["'][^>]*>([\s\S]*?)<\/tr>/gi;
+      const extractedRows: string[] = [];
+      let rMatch;
+      while ((rMatch = rowRegex.exec(searchHtml)) !== null) {
+        extractedRows.push(rMatch[1]);
+      }
+
+      // Fallback: extract direct links if table rows not matched
       const directLinks: { href: string; title: string }[] = [];
       const linkRegex = /<a\s+[^>]*href=["']([^"']*component=%24DirectLink[^"']*sp=[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
       let linkMatch;
@@ -218,30 +241,10 @@ export async function crawlStateGePNICPortal(
         }
       }
 
-      // 4. Inspect details for tenders up to maxPerKw
-      for (const item of directLinks.slice(0, maxPerKw)) {
-        try {
-          const detailUrl = item.href.startsWith('http') 
-            ? item.href 
-            : `${baseDomain}${item.href.replace(/&amp;/g, '&')}`;
-
-          const detRes = await fetchWithTimeout(detailUrl, {
-            headers: {
-              ...browserHeaders,
-              'Referer': portalUrl,
-              'Cookie': cookies
-            },
-            cache: 'no-store'
-          }, 6000);
-
-          const detHtml = await detRes.text();
-
-          // Extract table rows in pairs
-          const tenderInfo: Record<string, string> = {};
-          const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-          let rowMatch;
-          while ((rowMatch = rowRegex.exec(detHtml)) !== null) {
-            const rowContent = rowMatch[1];
+      // 4. Process each search result row
+      if (extractedRows.length > 0) {
+        for (const rowContent of extractedRows.slice(0, maxPerKw)) {
+          try {
             const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
             const cells: string[] = [];
             let cellMatch;
@@ -249,76 +252,154 @@ export async function crawlStateGePNICPortal(
               const clean = cellMatch[1].replace(/<[^>]+>/g, '').replace(/&#8377;/g, '₹').replace(/\s+/g, ' ').trim();
               cells.push(clean);
             }
-            for (let i = 0; i < cells.length - 1; i += 2) {
-              const k = cells[i].trim();
-              const v = cells[i + 1].trim();
-              if (k && v) {
-                tenderInfo[k] = v;
+            if (cells.length < 5) continue;
+
+            const pubDate = cells[1] || '';
+            const dueDate = cells[2] || '';
+            const fullCol4 = cells[4] || cells[3] || '';
+            const dept = cells[5] || `${stateName} Govt`;
+
+            // Extract Tender ID from col 4 e.g. [2026_CEPWD_603142_1]
+            const idMatch = fullCol4.match(/\[([0-9]{4}_[A-Z0-9_]+)\]/) || fullCol4.match(/([0-9]{4}_[A-Z0-9_]+)/);
+            const tenderId = idMatch ? idMatch[1] : `${stateName.slice(0, 2).toUpperCase()}-${Date.now() % 1000000}`;
+
+            if (seenIds.has(tenderId)) continue;
+
+            const cleanTitle = fullCol4.replace(/\[.*?\]/g, '').trim() || fullCol4;
+
+            // Extract href link for detail page
+            const linkInRow = rowContent.match(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>/i);
+            const href = linkInRow ? linkInRow[1] : '';
+
+            // 1. First extract estimated value from title text
+            let valCr = extractValueFromText(cleanTitle);
+            let emdCr = 0.0;
+            let emdRaw = '';
+            let isEstimatedFromEmd = false;
+
+            // 2. If title has no value, or to get EMD, fetch detail page (fast 4s timeout)
+            if (href && (valCr <= 0 || minValueCr > 0)) {
+              try {
+                const detailUrl = href.startsWith('http')
+                  ? href
+                  : `${baseDomain}${href.replace(/&amp;/g, '&')}`;
+
+                const detRes = await fetchWithTimeout(detailUrl, {
+                  headers: {
+                    ...browserHeaders,
+                    'Referer': portalUrl,
+                    'Cookie': cookies
+                  },
+                  cache: 'no-store'
+                }, 4000);
+
+                const detHtml = await detRes.text();
+                const tenderInfo: Record<string, string> = {};
+                const dRowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+                let dRowMatch;
+                while ((dRowMatch = dRowRegex.exec(detHtml)) !== null) {
+                  const dCells: string[] = [];
+                  let dCellMatch;
+                  const dCellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+                  while ((dCellMatch = dCellRegex.exec(dRowMatch[1])) !== null) {
+                    dCells.push(dCellMatch[1].replace(/<[^>]+>/g, '').replace(/&#8377;/g, '₹').replace(/\s+/g, ' ').trim());
+                  }
+                  for (let i = 0; i < dCells.length - 1; i += 2) {
+                    if (dCells[i] && dCells[i + 1]) tenderInfo[dCells[i]] = dCells[i + 1];
+                  }
+                }
+
+                for (const [k, v] of Object.entries(tenderInfo)) {
+                  if (/emd amount/i.test(k)) {
+                    emdRaw = v;
+                    emdCr = cleanCurrencyToCr(v);
+                    break;
+                  }
+                }
+
+                if (valCr <= 0) {
+                  for (const [k, v] of Object.entries(tenderInfo)) {
+                    if (/tender value|estimated value/i.test(k)) {
+                      const parsed = cleanCurrencyToCr(v);
+                      if (parsed > 0) {
+                        valCr = parsed;
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                if (valCr <= 0.0 && emdCr >= 0.20) {
+                  valCr = Math.round(emdCr * 50 * 100) / 100;
+                  isEstimatedFromEmd = true;
+                }
+              } catch (detErr) {
+                // Ignore detail fetch failure & keep title-extracted value
               }
             }
-          }
 
-          let tenderId = tenderInfo['Tender ID'] || '';
-          if (!tenderId) {
-            const idMatch = item.title.match(/\[([0-9]{4}_[A-Z0-9_]+)\]/);
-            tenderId = idMatch ? idMatch[1] : `${stateName.slice(0, 2).toUpperCase()}-${Date.now() % 1000000}`;
-          }
+            // Value Threshold Filter (If minValueCr === 0, keep all; otherwise valCr >= minValueCr)
+            if (valCr >= minValueCr || minValueCr <= 0.01) {
+              const tenderObj: GovtTenderResult = {
+                id: `govt-${tenderId}`,
+                sr_no: String(seenIds.size + 1),
+                tender_id: tenderId,
+                title: cleanTitle,
+                location: stateName,
+                state: stateName,
+                raw_state: stateName,
+                amount_inr: Math.round(valCr * 10000000),
+                value_cr: valCr,
+                emd_cr: emdCr > 0 ? emdCr : undefined,
+                emd_lakhs: emdCr > 0 ? Math.round(emdCr * 100 * 100) / 100 : undefined,
+                emd_raw: emdRaw || undefined,
+                is_estimated_from_emd: isEstimatedFromEmd,
+                pre_bid_date: pubDate,
+                due_date: dueDate,
+                department: dept,
+                type_of_work: kw,
+                sector: cleanSectorFromTitle(cleanTitle, kw),
+                status: 'Live',
+                raw_status: 'Live',
+                document_link: `${portalUrl}?page=FrontEndAdvancedSearch&service=page`,
+                summary_sheet: '',
+                bidders: [],
+                bidders_count: 0,
+                l1_price_info: '',
+                remarks: `Live ingested from ${stateName} GePNIC portal for keyword: '${kw}' (Value ₹${valCr} Cr, EMD ₹${emdCr} Cr)`
+              };
 
+              discovered.push(tenderObj);
+              seenIds.add(tenderId);
+            }
+          } catch (rowErr) {
+            // Ignore row error
+          }
+        }
+      } else {
+        // Fallback for directLinks if no table rows parsed
+        for (const item of directLinks.slice(0, maxPerKw)) {
+          const idMatch = item.title.match(/\[([0-9]{4}_[A-Z0-9_]+)\]/);
+          const tenderId = idMatch ? idMatch[1] : `${stateName.slice(0, 2).toUpperCase()}-${Date.now() % 1000000}`;
           if (seenIds.has(tenderId)) continue;
+          const cleanTitle = item.title.replace(/\[.*?\]/g, '').trim() || item.title;
+          const valCr = extractValueFromText(cleanTitle);
 
-          // Find Tender Value
-          let valRaw = '';
-          for (const [k, v] of Object.entries(tenderInfo)) {
-            if (/tender value|estimated value/i.test(k)) {
-              valRaw = v;
-              break;
-            }
-          }
-
-          let valCr = cleanCurrencyToCr(valRaw);
-
-          // EMD fallback calculation
-          let emdRaw = '';
-          for (const [k, v] of Object.entries(tenderInfo)) {
-            if (/emd amount/i.test(k)) {
-              emdRaw = v;
-              break;
-            }
-          }
-          const emdCr = cleanCurrencyToCr(emdRaw);
-          let isEstimatedFromEmd = false;
-          if (valCr <= 0.0 && emdCr >= 0.20) {
-            valCr = Math.round(emdCr * 50 * 100) / 100;
-            isEstimatedFromEmd = true;
-          }
-
-          // STRICT RULE ENFORCEMENT: Tender Value >= minValueCr (Default: 10 Cr)
-          if (valCr >= minValueCr) {
-            const cleanTitle = (tenderInfo['Title'] || tenderInfo['Work Description'] || item.title)
-              .replace(/\[.*?\]/g, '').trim() || item.title;
-            const dept = tenderInfo['Organisation Chain'] || tenderInfo['Tender Inviting Authority'] || `${stateName} Govt`;
-            const loc = tenderInfo['Location'] || stateName;
-            const dueDate = tenderInfo['Bid Submission End Date'] || '';
-            const preBid = tenderInfo['Pre Bid Meeting Date'] || '';
-
-            const tenderObj: GovtTenderResult = {
+          if (valCr >= minValueCr || minValueCr <= 0.01) {
+            discovered.push({
               id: `govt-${tenderId}`,
               sr_no: String(seenIds.size + 1),
               tender_id: tenderId,
               title: cleanTitle,
-              location: loc,
+              location: stateName,
               state: stateName,
               raw_state: stateName,
               amount_inr: Math.round(valCr * 10000000),
               value_cr: valCr,
-              emd_cr: emdCr > 0 ? emdCr : undefined,
-              emd_lakhs: emdCr > 0 ? Math.round(emdCr * 100 * 100) / 100 : undefined,
-              emd_raw: emdRaw || undefined,
-              is_estimated_from_emd: isEstimatedFromEmd,
-              pre_bid_date: preBid,
-              due_date: dueDate,
-              department: dept,
-              type_of_work: tenderInfo['Product Category'] || kw,
+              pre_bid_date: '',
+              due_date: '',
+              department: `${stateName} Govt`,
+              type_of_work: kw,
               sector: cleanSectorFromTitle(cleanTitle, kw),
               status: 'Live',
               raw_status: 'Live',
@@ -327,14 +408,10 @@ export async function crawlStateGePNICPortal(
               bidders: [],
               bidders_count: 0,
               l1_price_info: '',
-              remarks: `Live ingested from ${stateName} GePNIC portal for keyword: '${kw}' (Value ₹${valCr} Cr, EMD ₹${emdCr} Cr)`
-            };
-
-            discovered.push(tenderObj);
+              remarks: `Live ingested from ${stateName} GePNIC portal for keyword: '${kw}' (Value ₹${valCr} Cr)`
+            });
             seenIds.add(tenderId);
           }
-        } catch (detailErr) {
-          // Continue to next tender
         }
       }
     } catch (kwErr) {

@@ -283,7 +283,22 @@ export function saveProject(project: Project): Project[] {
   return updated;
 }
 
-// --- PERSISTENT AUTHENTICATION SESSION MANAGEMENT ---
+// Helper to parse JWT payload exp without requiring external libraries
+function isJwtExpired(token?: string): boolean {
+  if (!token || typeof token !== 'string' || !token.includes('.')) return false;
+  try {
+    const parts = token.split('.');
+    if (!parts[0]) return false;
+    // Handle base64url decoding
+    const base64 = parts[0].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonStr = atob(base64);
+    const payload = JSON.parse(jsonStr);
+    if (payload && typeof payload.exp === 'number') {
+      return payload.exp * 1000 < Date.now();
+    }
+  } catch (e) {}
+  return false;
+}
 
 export function saveUserSession(user: UserProfile, token?: string): void {
   if (typeof window === 'undefined') return;
@@ -292,11 +307,11 @@ export function saveUserSession(user: UserProfile, token?: string): void {
       user,
       token,
       login_time: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
+      expires_at: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() // 12 hours
     };
     localStorage.setItem('DESIRE_ACTIVE_USER_SESSION', JSON.stringify(sessionData));
     if (token) {
-      document.cookie = `desire_session_token=${encodeURIComponent(token)}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `desire_session_token=${encodeURIComponent(token)}; path=/; max-age=43200; SameSite=Lax`;
     }
   } catch (e) {}
 }
@@ -308,7 +323,9 @@ export function getActiveUserSession(): UserProfile | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || !parsed.user) return null;
-    if (parsed.expires_at && new Date(parsed.expires_at) < new Date()) {
+    
+    // Check both expires_at timestamp and JWT token payload exp
+    if ((parsed.expires_at && new Date(parsed.expires_at) < new Date()) || isJwtExpired(parsed.token)) {
       clearUserSession();
       return null;
     }
@@ -333,11 +350,11 @@ export function saveAdminSession(adminData: any, token?: string): void {
       admin: adminData,
       token,
       login_time: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      expires_at: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() // 12 hours
     };
     localStorage.setItem('DESIRE_ACTIVE_ADMIN_SESSION', JSON.stringify(sessionData));
     if (token) {
-      document.cookie = `desire_session_token=${encodeURIComponent(token)}; path=/; max-age=86400; SameSite=Lax`;
+      document.cookie = `desire_session_token=${encodeURIComponent(token)}; path=/; max-age=43200; SameSite=Lax`;
     }
   } catch (e) {}
 }
@@ -349,7 +366,9 @@ export function getActiveAdminSession(): any | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || !parsed.admin) return null;
-    if (parsed.expires_at && new Date(parsed.expires_at) < new Date()) {
+
+    // Check both expires_at timestamp and JWT token payload exp
+    if ((parsed.expires_at && new Date(parsed.expires_at) < new Date()) || isJwtExpired(parsed.token)) {
       clearAdminSession();
       return null;
     }
@@ -365,4 +384,30 @@ export function clearAdminSession(): void {
     localStorage.removeItem('DESIRE_ACTIVE_ADMIN_SESSION');
     document.cookie = `desire_session_token=; path=/; max-age=0`;
   } catch (e) {}
+}
+
+export function getSessionToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const adminRaw = localStorage.getItem('DESIRE_ACTIVE_ADMIN_SESSION');
+    if (adminRaw) {
+      const parsed = JSON.parse(adminRaw);
+      if (parsed?.token && !isJwtExpired(parsed.token)) return parsed.token;
+    }
+    const userRaw = localStorage.getItem('DESIRE_ACTIVE_USER_SESSION');
+    if (userRaw) {
+      const parsed = JSON.parse(userRaw);
+      if (parsed?.token && !isJwtExpired(parsed.token)) return parsed.token;
+    }
+  } catch (e) {}
+  return null;
+}
+
+export function getAuthHeaders(): Record<string, string> {
+  const token = getSessionToken();
+  if (!token) return {};
+  return {
+    'Authorization': `Bearer ${token}`,
+    'x-session-token': token
+  };
 }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Clock, AlertTriangle, CheckCircle2, Globe2, Loader2 } from 'lucide-react';
 import { STATE_PORTALS } from '@/lib/gepnic-crawler';
+import { getAuthHeaders, clearUserSession, clearAdminSession } from '@/lib/store';
 
 interface DataFreshnessBarProps {
   lastUpdated: string | null;
@@ -132,7 +133,10 @@ export const DataFreshnessBar: React.FC<DataFreshnessBarProps> = ({
     try {
       const res = await fetch('/api/v1/scraper/scan', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
         body: JSON.stringify({
           states: AUTOMATED_SCAN_PORTALS,
           keywords: DEFAULT_SCAN_KEYWORDS,
@@ -140,6 +144,14 @@ export const DataFreshnessBar: React.FC<DataFreshnessBarProps> = ({
           max_per_kw: 3
         })
       });
+
+      if (res.status === 401) {
+        clearUserSession();
+        clearAdminSession();
+        setStatusType('error');
+        setStatusMessage('Scan failed: Session expired (12-hour limit). Please log in again.');
+        return;
+      }
 
       const data = await res.json();
 

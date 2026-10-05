@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { NavTab } from './Sidebar';
 
+import { getAuthHeaders } from '@/lib/store';
+
 interface DashboardViewProps {
   onNavigate: (tab: NavTab) => void;
   tendersCount?: number;
@@ -82,7 +84,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const loadLiveSummary = useCallback(async () => {
     try {
       setIsLoadingSummary(true);
-      const res = await fetch('/api/v1/tenders/live-summary', { cache: 'no-store' });
+      const res = await fetch('/api/v1/tenders/live-summary', {
+        cache: 'no-store',
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.status === 'success') {

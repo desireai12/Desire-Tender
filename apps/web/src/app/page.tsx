@@ -23,6 +23,7 @@ import { DepartmentRole, TenderProcess, UserProfile } from '@/lib/types';
 import { ShieldAlert, Loader2, Sparkles } from 'lucide-react';
 import { getActiveUserSession, saveUserSession, clearUserSession } from '@/lib/store';
 import { API_BASE_URL } from '@/lib/api';
+import { getAuthHeaders } from '@/lib/store';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 const DEFAULT_SEED_TENDER: TenderProcess = {
@@ -111,12 +112,11 @@ export default function Home() {
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([DEFAULT_SEED_TENDER]);
   const [selectedTenderToAnalyze, setSelectedTenderToAnalyze] = useState<IndiaTenderItem | null>(null);
 
-  // RESTORE AUTHENTICATION SESSION ON MOUNT (AUTO-LOAD AS ADMIN USER)
+  // RESTORE AUTHENTICATION SESSION ON MOUNT
   useEffect(() => {
     try {
       const activeSessionUser = getActiveUserSession();
       if (activeSessionUser) {
-        // Upgrade existing session to Admin if previously restricted
         const adminUser = {
           ...activeSessionUser,
           department: 'Admin' as DepartmentRole,
@@ -125,16 +125,35 @@ export default function Home() {
         };
         setCurrentUser(adminUser);
         setActiveRole('Admin');
-        saveUserSession(adminUser);
       } else {
-        setCurrentUser(DEFAULT_ADMIN_USER);
-        setActiveRole('Admin');
-        saveUserSession(DEFAULT_ADMIN_USER);
+        setCurrentUser(null);
       }
     } catch (e) {} finally {
       setIsInitializingSession(false);
     }
   }, []);
+
+  // PROACTIVE SESSION EXPIRATION MONITOR (Focus, Visibility, 15s Interval)
+  useEffect(() => {
+    const checkProactiveExpiry = () => {
+      const activeUser = getActiveUserSession();
+      const activeAdmin = getActiveAdminSession();
+      if (!activeUser && !activeAdmin && currentUser !== null) {
+        console.warn('[SESSION_MONITOR] Active session expired. Clearing user state proactively.');
+        setCurrentUser(null);
+      }
+    };
+
+    window.addEventListener('focus', checkProactiveExpiry);
+    window.addEventListener('visibilitychange', checkProactiveExpiry);
+    const intervalId = setInterval(checkProactiveExpiry, 15000);
+
+    return () => {
+      window.removeEventListener('focus', checkProactiveExpiry);
+      window.removeEventListener('visibilitychange', checkProactiveExpiry);
+      clearInterval(intervalId);
+    };
+  }, [currentUser]);
 
   // LOAD LIVE TENDERS FROM API AND DIRECT SUPABASE DB ON MOUNT
   useEffect(() => {
@@ -249,7 +268,10 @@ export default function Home() {
       try {
         await fetch('/api/v1/bid-flow', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders()
+          },
           body: JSON.stringify({
             tender_id: item.id,
             tender_title: item.title,

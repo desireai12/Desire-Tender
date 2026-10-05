@@ -54,6 +54,8 @@ import { DepartmentRole } from '@/lib/types';
 import { NavTab } from './Sidebar';
 import { CANONICAL_STATUSES, CanonicalStatus, normalizeStatus, getStatusBadgeStyle } from '@/lib/tender-status';
 
+import { getAuthHeaders, clearUserSession, clearAdminSession } from '@/lib/store';
+
 import overallTendersRaw from '@/data/overall_tenders.json';
 import progressTrackerRaw from '@/data/progress_tracker.json';
 import bidOrNoBidRaw from '@/data/bid_or_no_bid.json';
@@ -246,7 +248,9 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
     const syncStatusOverrides = async () => {
       try {
         setIsSyncingOverrides(true);
-        const res = await fetch('/api/v1/overall-tenders/status-overrides');
+        const res = await fetch('/api/v1/overall-tenders/status-overrides', {
+          headers: getAuthHeaders()
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (data.status === 'success' && data.overrides && Object.keys(data.overrides).length > 0) {
@@ -299,7 +303,10 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
     try {
       const res = await fetch('/api/v1/overall-tenders', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
         body: JSON.stringify({
           id: tenderId,
           tender_id: tenderCode,
@@ -371,7 +378,10 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
     try {
       const res = await fetch('/api/v1/bid-flow', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
         body: JSON.stringify({
           tender_id: tenderId,
           tender_title: item.title || 'Untitled Tender',
@@ -522,7 +532,10 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
     try {
       const res = await fetch('/api/v1/scraper/scan', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
         body: JSON.stringify({
           states: scannerStates,
           keywords: scannerKeywords,
@@ -532,8 +545,15 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
         })
       });
 
+      if (res.status === 401) {
+        clearUserSession();
+        clearAdminSession();
+        throw new Error('Your session has expired (12-hour limit). Please log in again to perform portal scans.');
+      }
+
       if (!res.ok) {
-        throw new Error(`Scraper returned status ${res.status}`);
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || errBody.detail || `Scraper returned status ${res.status}`);
       }
 
       const data = await res.json();

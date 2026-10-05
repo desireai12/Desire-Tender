@@ -29,6 +29,7 @@ import {
   UserCheck,
   AlertTriangle
 } from 'lucide-react';
+import { getAuthHeaders } from '@/lib/store';
 import { BidFlowItem, BidFlowStatus, BidFlowFinalStatus, UserProfile } from '@/lib/types';
 
 interface BidFlowBoardProps {
@@ -166,7 +167,9 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
 
   const fetchVerifiedStaff = async () => {
     try {
-      const res = await fetch('/api/v1/users');
+      const res = await fetch('/api/v1/users', {
+        headers: getAuthHeaders()
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.data && Array.isArray(json.data)) {
@@ -181,7 +184,9 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
   const fetchBids = async () => {
     try {
       setErrorMessage('');
-      const res = await fetch('/api/v1/bid-flow');
+      const res = await fetch('/api/v1/bid-flow', {
+        headers: getAuthHeaders()
+      });
       if (!res.ok) {
         throw new Error(`Failed to load bid flows: HTTP ${res.status}`);
       }
@@ -312,7 +317,10 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
     try {
       const res = await fetch(`/api/v1/bid-flow/${bidId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
         body: JSON.stringify({ status: newStatus, id: bid.id, tender_id: bid.tender_id })
       });
       if (!res.ok) {
@@ -362,7 +370,10 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
 
       const res = await fetch(`/api/v1/bid-flow/${selectedBidForEdit.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
         body: JSON.stringify(payload)
       });
       if (!res.ok) {
@@ -389,7 +400,8 @@ export const BidFlowBoard: React.FC<BidFlowBoardProps> = ({ currentUser, onSelec
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/v1/bid-flow/${selectedBidForEdit.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
       if (!res.ok) {
         throw new Error('Failed to delete tender from Bid Flow');
