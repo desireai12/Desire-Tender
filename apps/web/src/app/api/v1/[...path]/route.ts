@@ -1136,6 +1136,11 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 }
 
 // ─── HMAC-SHA256 SESSION TOKEN & SCRYPT PASSWORD ENGINE ───────────────────────
+// PERMANENT RULE — DO NOT REMOVE OR WORK AROUND THIS CHECK:
+// If this throws, the fix is to set the real environment variable in
+// Vercel. NEVER add a hardcoded fallback value here, under any name,
+// for any reason. This has happened 3 times in this project and each
+// time it created a real security hole. The throw is correct behavior.
 const RAW_SESSION_SECRET = (process.env.SESSION_SECRET || process.env.SECRET_KEY || '').trim();
 if (!RAW_SESSION_SECRET || RAW_SESSION_SECRET.length < 32) {
   throw new Error('SESSION_SECRET is not configured correctly in this environment. Set a real 32+ character random value in Vercel Environment Variables.');
