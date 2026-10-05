@@ -340,6 +340,7 @@ export function clearUserSession(): void {
   try {
     localStorage.removeItem('DESIRE_ACTIVE_USER_SESSION');
     document.cookie = `desire_session_token=; path=/; max-age=0`;
+    window.dispatchEvent(new Event('desire-session-expired'));
   } catch (e) {}
 }
 
@@ -383,6 +384,7 @@ export function clearAdminSession(): void {
   try {
     localStorage.removeItem('DESIRE_ACTIVE_ADMIN_SESSION');
     document.cookie = `desire_session_token=; path=/; max-age=0`;
+    window.dispatchEvent(new Event('desire-session-expired'));
   } catch (e) {}
 }
 

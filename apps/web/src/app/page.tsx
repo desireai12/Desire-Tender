@@ -133,7 +133,7 @@ export default function Home() {
     }
   }, []);
 
-  // PROACTIVE SESSION EXPIRATION MONITOR (Focus, Visibility, 15s Interval)
+  // PROACTIVE SESSION EXPIRATION MONITOR (Focus, Visibility, Custom Event, 15s Interval)
   useEffect(() => {
     const checkProactiveExpiry = () => {
       const activeUser = getActiveUserSession();
@@ -146,11 +146,13 @@ export default function Home() {
 
     window.addEventListener('focus', checkProactiveExpiry);
     window.addEventListener('visibilitychange', checkProactiveExpiry);
+    window.addEventListener('desire-session-expired', checkProactiveExpiry);
     const intervalId = setInterval(checkProactiveExpiry, 15000);
 
     return () => {
       window.removeEventListener('focus', checkProactiveExpiry);
       window.removeEventListener('visibilitychange', checkProactiveExpiry);
+      window.removeEventListener('desire-session-expired', checkProactiveExpiry);
       clearInterval(intervalId);
     };
   }, [currentUser]);
