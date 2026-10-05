@@ -2633,12 +2633,12 @@ Return valid JSON only:
           try {
             const { data, error } = await supabase.from('tenders').upsert(
               chunkDiscovered.map(t => ({
-                id: t.tender_id,
-                tender_name: t.title,
-                project_category: t.sector,
-                department_assigned: t.department || t.state,
+                id: String(t.tender_id || `tnd-${Date.now()}`).trim().slice(0, 95),
+                tender_name: String(t.title || 'Untitled Tender').trim().slice(0, 250),
+                project_category: String(t.sector || 'Infrastructure EPC').trim().slice(0, 95),
+                department_assigned: String(t.department || t.state || 'General').trim().slice(0, 95),
                 current_stage: 'DISCOVERY',
-                stage_status: t.status || 'Live',
+                stage_status: String(t.status || 'Live').trim().slice(0, 95),
                 eligibility_result: {
                   state: t.state,
                   amount_inr: t.amount_inr,
