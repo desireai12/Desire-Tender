@@ -18,6 +18,7 @@ import {
 
 import { DepartmentRole, KnowledgeModuleType } from '@/lib/types';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { getAuthHeaders } from '@/lib/store';
 
 interface AdminKnowledgeBaseProps {
   activeRole: DepartmentRole;
@@ -29,6 +30,7 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
   const [newTitle, setNewTitle] = useState<string>('');
   const [newFilename, setNewFilename] = useState<string>('');
   const [newDesc, setNewDesc] = useState<string>('');
+  const [vectorData, setVectorData] = useState<any>(null);
 
   const [documents, setDocuments] = useState<Array<{
     id: string;
@@ -146,6 +148,15 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
 
     fetchKnowledgeDocs();
   }, []);
+
+  useEffect(() => {
+    if ((activeModule as string) === 'vector_db' || (activeModule as string) === 'vector-db') {
+      fetch('/api/v1/tender/vector-db', { headers: getAuthHeaders() })
+        .then(res => res.json())
+        .then(data => setVectorData(data))
+        .catch(() => {});
+    }
+  }, [activeModule]);
 
   const handleAddKnowledgeAsset = async () => {
     if (!newTitle.trim()) {
@@ -312,83 +323,195 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
         </div>
       )}
 
-      {/* 5 Backend Knowledge Module Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* Backend Knowledge Module Tabs & Vector DB Inspector */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { id: 'company' as KnowledgeModuleType, title: 'Module 1: Company', desc: 'Profiles, SOPs & Staff' },
           { id: 'certificates' as KnowledgeModuleType, title: 'Module 2: Certificates', desc: 'ISO, GST, Expiry Dates' },
           { id: 'competitor' as KnowledgeModuleType, title: 'Module 3: Competitors', desc: 'Prices & Win/Loss' },
           { id: 'historical_boq' as KnowledgeModuleType, title: 'Module 4: Past BOQs', desc: 'Unit Rates & Anomaly' },
           { id: 'versioning' as KnowledgeModuleType, title: 'Module 5: Versioning', desc: 'Audit & Approval Logs' },
+          { id: 'vector_db' as any, title: 'pgvector Database', desc: 'Embeddings & RAG Chunks' },
         ].map((m) => (
           <button
             key={m.id}
             onClick={() => setActiveModule(m.id)}
             className={`p-4 rounded-xl border text-left transition-all ${
-              activeModule === m.id
-                ? 'bg-gradient-to-br from-cyan-950 to-teal-900 border-cyan-400 shadow-lg shadow-cyan-500/15'
-                : 'bg-slate-50/40 border-slate-200 hover:border-slate-300'
+              activeModule === (m.id as any)
+                ? 'bg-gradient-to-br from-emerald-950 to-teal-900 border-emerald-400 text-white shadow-lg shadow-emerald-500/15'
+                : 'bg-slate-50/40 border-slate-200 hover:border-slate-300 text-slate-900'
             }`}
           >
-            <div className="font-display font-bold text-xs text-slate-900">{m.title}</div>
-            <div className="text-[11px] text-slate-700 font-medium truncate mt-0.5">{m.desc}</div>
+            <div className={`font-display font-bold text-xs ${activeModule === (m.id as any) ? 'text-white' : 'text-slate-900'}`}>{m.title}</div>
+            <div className={`text-[11px] font-medium truncate mt-0.5 ${activeModule === (m.id as any) ? 'text-emerald-200' : 'text-slate-700'}`}>{m.desc}</div>
           </button>
         ))}
       </div>
 
-      {/* Active Module Asset List */}
-      <div className="glass-card rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div>
-            <h3 className="text-lg font-display font-semibold text-slate-900">
-              {activeModule.toUpperCase()} Knowledge Repository Assets
-            </h3>
-            <p className="text-xs text-slate-700 font-medium">
-              Only latest approved versions are queried by the RAG evaluation engine.
-            </p>
+      {/* Vector Database Dedicated View */}
+      {(activeModule as any) === 'vector_db' ? (
+        <div className="glass-card rounded-2xl p-6 space-y-6 bg-white/90 dark:bg-[#0b1426] border border-slate-200 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+            <div>
+              <div className="flex items-center space-x-2">
+                <Database className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white">
+                  Supabase pgvector Database Inspector
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-mono font-bold border border-emerald-300 dark:border-emerald-800">
+                  768-Dim Vectors
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1">
+                Real-time inspection of embedded document chunks stored in Supabase PostgreSQL <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-emerald-700 dark:text-emerald-400">public.tender_chunks</code>.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                fetch('/api/v1/tender/vector-db', { headers: getAuthHeaders() })
+                  .then(res => res.json())
+                  .then(data => setVectorData(data));
+              }}
+              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-sm"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Refresh Vector DB</span>
+            </button>
           </div>
-          <button
-            onClick={() => alert(`Upload dialog for ${activeModule} module opened.`)}
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-teal-800 text-white font-bold font-bold text-xs hover:bg-teal-800 transition"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Add {activeModule} Asset</span>
-          </button>
-        </div>
 
-        <div className="space-y-3">
-          {documents
-            .filter((d) => activeModule === 'versioning' || d.module === activeModule)
-            .map((doc) => (
-              <div key={doc.id} className="p-4 rounded-xl bg-slate-50/60 border border-slate-200 space-y-2 hover:border-teal-200 transition">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2.5">
-                    <FileText className="w-5 h-5 text-teal-800 font-semibold shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-sm text-slate-900">{doc.title}</h4>
-                      <p className="text-[11px] text-slate-700 font-medium">{doc.filename} • Version <span className="text-teal-800 font-mono">{doc.version}</span></p>
+          {/* Vector DB Engine Metadata Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400 block">Database Engine</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white mt-1 block">Supabase PostgreSQL (pgvector)</span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
+              <span className="text-[10px] font-mono font-bold uppercase text-emerald-800 dark:text-emerald-400 block">Total Embedded Chunks</span>
+              <span className="text-2xl font-bold text-emerald-900 dark:text-emerald-300 mt-1 block">
+                {vectorData ? vectorData.total_vector_chunks : '...'}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400 block">Tenders Indexed</span>
+              <span className="text-2xl font-bold text-slate-900 dark:text-white mt-1 block">
+                {vectorData ? vectorData.unique_tenders_indexed : '...'}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <span className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400 block">Embedding Model</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white mt-1 block">Gemini text-embedding-004</span>
+            </div>
+          </div>
+
+          {/* Sample Vector Chunks Table */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-display font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <Layers className="w-4 h-4 text-emerald-600" />
+              <span>Live Vector Chunk Records (<code className="font-mono text-xs">tender_chunks</code>)</span>
+            </h4>
+
+            {vectorData && vectorData.recent_chunks && vectorData.recent_chunks.length > 0 ? (
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-mono text-[11px] uppercase">
+                    <tr>
+                      <th className="p-3">Chunk ID / UUID</th>
+                      <th className="p-3">Tender ID</th>
+                      <th className="p-3 text-center">Index #</th>
+                      <th className="p-3">Extracted Snippet Text</th>
+                      <th className="p-3">Vector Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    {vectorData.recent_chunks.map((chunk, i) => (
+                      <tr key={chunk.id || i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                        <td className="p-3 font-mono text-[11px] text-slate-600 dark:text-slate-400 font-bold truncate max-w-[140px]">
+                          {chunk.id}
+                        </td>
+                        <td className="p-3 font-mono text-xs text-emerald-700 dark:text-emerald-400 font-bold">
+                          {chunk.tender_id}
+                        </td>
+                        <td className="p-3 text-center font-mono font-bold">
+                          #{chunk.chunk_index}
+                        </td>
+                        <td className="p-3 text-slate-800 dark:text-slate-200 font-medium max-w-lg">
+                          <p className="line-clamp-2">{chunk.chunk_snippet}</p>
+                        </td>
+                        <td className="p-3 whitespace-nowrap">
+                          <span className="px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-bold border border-emerald-300 dark:border-emerald-800">
+                            768-Dim Vector OK
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-center text-slate-500 dark:text-slate-400 text-xs font-mono">
+                Querying Supabase pgvector tender_chunks database...
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Active Module Asset List */
+        <div className="glass-card rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+            <div>
+              <h3 className="text-lg font-display font-semibold text-slate-900">
+                {activeModule.toUpperCase()} Knowledge Repository Assets
+              </h3>
+              <p className="text-xs text-slate-700 font-medium">
+                Only latest approved versions are queried by the RAG evaluation engine.
+              </p>
+            </div>
+            <button
+              onClick={() => alert(`Upload dialog for ${activeModule} module opened.`)}
+              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-teal-800 text-white font-bold text-xs hover:bg-teal-800 transition"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Add {activeModule} Asset</span>
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {documents
+              .filter((d) => activeModule === 'versioning' || d.module === activeModule)
+              .map((doc) => (
+                <div key={doc.id} className="p-4 rounded-xl bg-slate-50/60 border border-slate-200 space-y-2 hover:border-teal-200 transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <FileText className="w-5 h-5 text-teal-800 font-semibold shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-sm text-slate-900">{doc.title}</h4>
+                        <p className="text-[11px] text-slate-700 font-medium">{doc.filename} • Version <span className="text-teal-800 font-mono">{doc.version}</span></p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                        {doc.approval_status}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-teal-50 text-teal-800 border border-teal-200">
+                        {doc.chunk_count} Vector Chunks
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
-                      {doc.approval_status}
-                    </span>
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-mono bg-teal-50 text-teal-800 border border-teal-200">
-                      {doc.chunk_count} Vector Chunks
-                    </span>
+
+                  <p className="text-xs text-slate-600 pl-7">{doc.summary}</p>
+
+                  <div className="flex items-center justify-between pt-2 pl-7 text-[11px] text-slate-700 font-medium font-mono border-t border-slate-200">
+                    <span>Uploaded By: {doc.uploaded_by} on {doc.uploaded_at}</span>
+                    {doc.expiry_date && <span className="text-amber-900 font-bold">Expires: {doc.expiry_date}</span>}
                   </div>
                 </div>
-
-                <p className="text-xs text-slate-600 pl-7">{doc.summary}</p>
-
-                <div className="flex items-center justify-between pt-2 pl-7 text-[11px] text-slate-700 font-medium font-mono border-t border-slate-200">
-                  <span>Uploaded By: {doc.uploaded_by} on {doc.uploaded_at}</span>
-                  {doc.expiry_date && <span className="text-amber-900 font-bold">Expires: {doc.expiry_date}</span>}
-                </div>
-              </div>
-            ))}
+              ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

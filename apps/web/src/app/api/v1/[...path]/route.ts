@@ -1739,6 +1739,50 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       });
     }
 
+    // ═══ PGVECTOR KNOWLEDGE BASE & VECTOR DB INSPECTOR ═════════════════════════
+    if ((subPath === 'tender/vector-db' || subPath === 'vector-db') && method === 'GET') {
+      let totalCount = 0;
+      let chunksList: any[] = [];
+      let tenderSummary: Record<string, number> = {};
+
+      if (supabase) {
+        try {
+          const { count, data } = await supabase
+            .from('tender_chunks')
+            .select('id, tender_id, chunk_index, chunk_text, created_at', { count: 'exact' })
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+          if (typeof count === 'number') totalCount = count;
+          if (data && data.length > 0) {
+            chunksList = data.map(c => {
+              const tid = c.tender_id || 'UNKNOWN';
+              tenderSummary[tid] = (tenderSummary[tid] || 0) + 1;
+              return {
+                id: c.id,
+                tender_id: tid,
+                chunk_index: c.chunk_index ?? 0,
+                chunk_snippet: (c.chunk_text || '').slice(0, 300),
+                created_at: c.created_at || new Date().toISOString()
+              };
+            });
+          }
+        } catch (e: any) {
+          console.error('[VECTOR_DB_INSPECTOR] Error querying pgvector tender_chunks:', e);
+        }
+      }
+
+      return NextResponse.json({
+        status: 'success',
+        database_engine: 'Supabase PostgreSQL (pgvector extension)',
+        embedding_model: 'Gemini Text Embeddings (768-dimensional vectors)',
+        total_vector_chunks: totalCount,
+        unique_tenders_indexed: Object.keys(tenderSummary).length,
+        tender_breakdown: tenderSummary,
+        recent_chunks: chunksList
+      });
+    }
+
     // ═══ TENDER ANALYZE ═══════════════════════════════════════════════════════
     if (subPath === 'tender/analyze' && method === 'POST') {
       const filename = formFilename || body.filename || 'uploaded_document.pdf';
