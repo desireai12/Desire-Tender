@@ -1355,6 +1355,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
     (subPath === '' || subPath === 'health') ||
     subPath.startsWith('auth/') ||
     subPath === 'tender/analyze' ||
+    subPath === 'tender/analyze-full' ||
     subPath === 'tender/status' ||
     subPath === 'tender/ingestion-status' ||
     subPath === 'scraper/config';
