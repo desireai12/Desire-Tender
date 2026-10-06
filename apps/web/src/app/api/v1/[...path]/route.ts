@@ -449,9 +449,9 @@ Return valid JSON only:
   let detectedCategory = 'EPC';
   let execSummaries: string[] = [];
 
-  for (let idx = 0; idx < windows.length; idx++) {
-    const winText = windows[idx];
-    const winPrompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor.
+  const windowResults = await Promise.all(
+    windows.map(async (winText, idx) => {
+      const winPrompt = `You are Desire Tender AI, an expert Government & Corporate Tender Qualification Auditor.
 Extract EVERY SINGLE ELIGIBILITY AND QUALIFICATION REQUIREMENT in this section window (${idx + 1} of ${windows.length}) of tender document "${docFilename}".
 
 SECTION WINDOW TEXT:
@@ -488,25 +488,31 @@ Return valid JSON only:
   ]
 }`;
 
-    try {
-      const res = await callGeminiAI(winPrompt, apiKey);
-      if (res.data) {
-        if (res.data.tender_title && res.data.tender_title.length > 5 && detectedTitle === docFilename.replace(/\.[^/.]+$/, '')) {
-          detectedTitle = res.data.tender_title;
-        }
-        if (res.data.project_category) {
-          detectedCategory = res.data.project_category;
-        }
-        if (res.data.window_summary) {
-          execSummaries.push(res.data.window_summary);
-        }
-        const cls = Array.isArray(res.data.clauses) ? res.data.clauses : (Array.isArray(res.data.clauses_breakdown) ? res.data.clauses_breakdown : []);
-        if (cls.length > 0) {
-          allClauses.push(...cls);
-        }
+      try {
+        const res = await callGeminiAI(winPrompt, apiKey);
+        return res.data || null;
+      } catch (winErr) {
+        console.warn(`[FULL_COVERAGE_EXTRACTION] Window ${idx + 1} processing error:`, winErr);
+        return null;
       }
-    } catch (winErr) {
-      console.warn(`[FULL_COVERAGE_EXTRACTION] Window ${idx + 1} processing error:`, winErr);
+    })
+  );
+
+  for (const resData of windowResults) {
+    if (resData) {
+      if (resData.tender_title && resData.tender_title.length > 5 && detectedTitle === docFilename.replace(/\.[^/.]+$/, '')) {
+        detectedTitle = resData.tender_title;
+      }
+      if (resData.project_category) {
+        detectedCategory = resData.project_category;
+      }
+      if (resData.window_summary) {
+        execSummaries.push(resData.window_summary);
+      }
+      const cls = Array.isArray(resData.clauses) ? resData.clauses : (Array.isArray(resData.clauses_breakdown) ? resData.clauses_breakdown : []);
+      if (cls.length > 0) {
+        allClauses.push(...cls);
+      }
     }
   }
 
