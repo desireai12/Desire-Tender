@@ -1749,7 +1749,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         try {
           const { count, data } = await supabase
             .from('tender_chunks')
-            .select('id, tender_id, chunk_index, chunk_text, created_at', { count: 'exact' })
+            .select('id, tender_id, chunk_index, content, created_at', { count: 'exact' })
             .order('created_at', { ascending: false })
             .limit(50);
 
@@ -1762,7 +1762,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
                 id: c.id,
                 tender_id: tid,
                 chunk_index: c.chunk_index ?? 0,
-                chunk_snippet: (c.chunk_text || '').slice(0, 300),
+                chunk_snippet: (c.content || '').slice(0, 300),
                 created_at: c.created_at || new Date().toISOString()
               };
             });
