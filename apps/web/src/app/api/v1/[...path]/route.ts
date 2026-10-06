@@ -1747,6 +1747,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
       if (supabase) {
         try {
+          // 1. Get exact total count and 50 recent chunk snippets for preview
           const { count, data } = await supabase
             .from('tender_chunks')
             .select('id, tender_id, chunk_index, content, created_at', { count: 'exact' })
@@ -1755,16 +1756,24 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
           if (typeof count === 'number') totalCount = count;
           if (data && data.length > 0) {
-            chunksList = data.map(c => {
-              const tid = c.tender_id || 'UNKNOWN';
+            chunksList = data.map(c => ({
+              id: c.id,
+              tender_id: c.tender_id || 'UNKNOWN',
+              chunk_index: c.chunk_index ?? 0,
+              chunk_snippet: (c.content || '').slice(0, 300),
+              created_at: c.created_at || new Date().toISOString()
+            }));
+          }
+
+          // 2. Aggregate full tender breakdown across ALL chunks (not limited to 50)
+          const { data: fullTenders } = await supabase
+            .from('tender_chunks')
+            .select('tender_id');
+
+          if (fullTenders && fullTenders.length > 0) {
+            fullTenders.forEach(row => {
+              const tid = row.tender_id || 'UNKNOWN';
               tenderSummary[tid] = (tenderSummary[tid] || 0) + 1;
-              return {
-                id: c.id,
-                tender_id: tid,
-                chunk_index: c.chunk_index ?? 0,
-                chunk_snippet: (c.content || '').slice(0, 300),
-                created_at: c.created_at || new Date().toISOString()
-              };
             });
           }
         } catch (e: any) {
