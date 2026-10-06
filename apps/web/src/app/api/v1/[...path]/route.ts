@@ -717,7 +717,8 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
 
     report.clauses_breakdown.forEach((c: any) => {
       const st = c.status || 'NOT MATCHING';
-      const pctVal = parseFloat(String(c.fulfilled_pct || '0').replace('%', '')) || (st === 'MATCH' ? 100 : st === 'POSSIBLE MATCH' ? 85 : st === 'PARTIAL MATCH' ? 50 : 0);
+      const parsedPct = parseFloat(String(c.fulfilled_pct || '').replace('%', '').trim());
+      const pctVal = !isNaN(parsedPct) ? parsedPct : (st === 'MATCH' ? 100 : st === 'POSSIBLE MATCH' ? 85 : st === 'PARTIAL MATCH' ? 50 : 0);
       totalPct += pctVal;
 
       if (st === 'MATCH') matched++;
