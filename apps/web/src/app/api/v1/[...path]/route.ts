@@ -94,6 +94,16 @@ function buildErrorResponse(category: ErrorCategory, rawDetail?: string, debugDa
 // ─── HIGH-CAPACITY SERVERLESS PDF TEXT EXTRACTOR ─────────────────────────
 async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
   try {
+    // 0. Plain text buffer check
+    const headerStr = buffer.toString('utf-8', 0, 8);
+    if (!headerStr.startsWith('%PDF-')) {
+      const utf8Text = buffer.toString('utf-8').trim();
+      if (utf8Text.length >= 30) {
+        console.log(`[PDF_EXTRACT] Plain text buffer detected, returning ${utf8Text.length} characters`);
+        return utf8Text;
+      }
+    }
+
     // 1. Try unpdf first (fast ESM/WASM PDF engine built for serverless)
     try {
       const modName = 'unpdf';
