@@ -1,0 +1,759 @@
+{
+  "status": "success",
+  "is_rejected_non_tender": false,
+  "message": "Full semantic RAG tender evaluation complete.",
+  "tender_id": "tender-1790871134798",
+  "analysis_mode": "full",
+  "is_background_ingesting": false,
+  "chunk_metrics": {
+    "total_chunks": 1,
+    "indexed_chunks": 1
+  },
+  "evaluation_report": {
+    "is_rejected_non_tender": false,
+    "tender_title": "Operation and Maintenance of water supply system to provide drinking water facility during Pushkar Fair -2026 at City Sub division-X Pushkar (Ajmer)",
+    "project_category": "CIVIL",
+    "verdict": "Conditional",
+    "overall_health": "Yellow",
+    "recommendation": "Review all mandatory registrations, EMD deposits, and technical enlistment criteria before bid submission.",
+    "executive_summary": "Extracted tender clauses include requirements for contractor enlistment class, Earnest Money Deposit (EMD), Security Deposit, GST registration, technical staff deployment, and financial/legal declarations under RTPP Act.",
+    "clauses_breakdown": [
+      {
+        "clause_no": "2.1(i)",
+        "clause_title": "Enlistment / Registration",
+        "requirement_type": "Organizational",
+        "tender_requirement": "The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.",
+        "required_value": "Appropriate class registration",
+        "desire_value": "Possible Match \u2014 Requires Manual Verification: Tender clause relies on inter-state registration equivalence. Quoted Clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". Desire Energy holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.",
+        "desire_status": "POSSIBLE MATCH",
+        "desire_pct": 85,
+        "jv_value": "VINOD H PATEL actual: Holds AA Class Civil Contractor Registration -> 100% MATCH",
+        "jv_status": "MATCH",
+        "jv_pct": 100,
+        "combined_pct": 100,
+        "combined_value": "Combined: VINOD H PATEL holds direct state registration -> 100% MATCH",
+        "status": "MATCH",
+        "fulfilled_pct": "100%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "POSSIBLE MATCH \u2014 REQUIRES MANUAL VERIFICATION: Inter-state contractor registration equivalence relies on department reciprocity rules. Quoted clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". A real person must verify genuine equivalence before relying on it for a bid decision.",
+        "required_doc": "Self-attested copy of Registration Certificate",
+        "page_ref": "Page 4"
+      },
+      {
+        "clause_no": "1.2",
+        "clause_title": "GST Registration",
+        "requirement_type": "Compliance",
+        "tender_requirement": "Bidders shall have to submit GST registration certificate without which the tenders may not be entertained.",
+        "required_value": "Valid GST registration",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No GST registration record on file",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "DATA NOT AVAILABLE \u2014 No GST registration in partner record",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 GST registration missing",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "GST Registration Certificate",
+        "page_ref": "Page 5"
+      },
+      {
+        "clause_no": "2.3",
+        "clause_title": "Earnest Money Deposit (EMD)",
+        "requirement_type": "Financial",
+        "tender_requirement": "An Earnest money @ 2% of Estimated cost of work accompany each tender through e-challan at egrass system in favour of Executive Engineer PHED city division II Ajmer. Enlisted Tenderers required to pay 1/2%.",
+        "required_value": "Rs. 24,360.00 (2% of Estimated Cost of Rs. 12.18 Lakhs)",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No EMD / Bank Guarantee facility limit record on file",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No EMD / BG capacity record on file",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 EMD / BG facility record missing",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "e-challan receipt via egrass system",
+        "page_ref": "Page 4"
+      },
+      {
+        "clause_no": "Annex-11",
+        "clause_title": "Historical Contract Non-Performance",
+        "requirement_type": "Organizational",
+        "tender_requirement": "Affidavit on Rs. 500 non-judicial stamp paper certifying that the firm is not blacklisted/debarred by Govt of Rajasthan or Central Government.",
+        "required_value": "Not blacklisted/debarred",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No company record for this requirement",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 Requirement missing from company profiles",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "Affidavit on Rs. 500 Stamp Paper duly attested by Notary Public",
+        "page_ref": "Page 18"
+      },
+      {
+        "clause_no": "39",
+        "clause_title": "Technical Staff Deployment",
+        "requirement_type": "Technical",
+        "tender_requirement": "For works costing between Rs. 15 Lac and Rs. 50 Lac - One qualified diploma holder.",
+        "required_value": "One qualified diploma holder",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No technical staff deployment record on file",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: Qualified engineering staff on payroll -> 100% MATCH",
+        "jv_status": "MATCH",
+        "jv_pct": 100,
+        "combined_pct": 100,
+        "combined_value": "Combined: Meets technical staff requirements -> 100% MATCH",
+        "status": "MATCH",
+        "fulfilled_pct": "100%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "Resume and qualification certificates of deployed staff",
+        "page_ref": "Page 74"
+      },
+      {
+        "clause_no": "Annex-10",
+        "clause_title": "Declaration of Qualifications under RTPP Act",
+        "requirement_type": "Compliance",
+        "tender_requirement": "Declaration under Section 7 of Rajasthan Transparency in Public Procurement Act, 2013 regarding professional, technical, financial and managerial resources.",
+        "required_value": "Signed Declaration Form",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No company record for this requirement",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 Requirement missing from company profiles",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "Signed Declaration Document",
+        "page_ref": "Page 17"
+      },
+      {
+        "clause_no": "11.1",
+        "clause_title": "Bid Validity Period",
+        "requirement_type": "Compliance",
+        "tender_requirement": "The bids for works shall remain open for acceptance for the period of 90 days from the date of opening of tenders.",
+        "required_value": "90 Days",
+        "desire_value": "Desire actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH",
+        "desire_status": "MATCH",
+        "desire_pct": 100,
+        "jv_value": "VINOD H PATEL actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH",
+        "jv_status": "MATCH",
+        "jv_pct": 100,
+        "combined_pct": 100,
+        "combined_value": "Combined: Administrative term satisfied upon bid submission -> 100% MATCH",
+        "status": "MATCH",
+        "fulfilled_pct": "100%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire satisfies standalone",
+        "required_doc": "Bid Submission Letter",
+        "page_ref": "Page 4"
+      }
+    ],
+    "desire_alone": {
+      "score": 26,
+      "fulfilled_pct": "26%",
+      "status": "Ineligible Standalone"
+    },
+    "jv_alone": {
+      "score": 43,
+      "fulfilled_pct": "43%",
+      "status": "Partner Ineligible Standalone"
+    },
+    "combined_jv": {
+      "score": 43,
+      "fulfilled_pct": "43%",
+      "status": "Partially Qualified Consortium"
+    },
+    "summary_line": "Desire Energy does not qualify standalone (Score: 26%). Recommended: JV with VINOD H PATEL to reach 43% combined.",
+    "recommended_jv_partner": {
+      "id": "comp-vhp-04",
+      "name": "VINOD H PATEL",
+      "type": "JV Partner",
+      "registration_class": "Class A",
+      "profile": "Govt Approved AA Class Contractor (Gujarat WRD & R&B) specializing in Bulk Water Supply Pipelines, Pumping Stations, and Civil Infrastructure.",
+      "contact_details": {
+        "email": "vinodhpatel@gmail.com",
+        "phone": "02762-253598",
+        "mobile": "9825012345",
+        "contact_person": "Patel Mit Vinodchandra / Vinod H. Patel"
+      },
+      "major_projects": [
+        "Palanpur Group Water Supply Package 2 (Rs 99.41 Cr)",
+        "Mehsana Water Pipeline Network",
+        "Banaskantha Lift Irrigation Project"
+      ],
+      "financials": {
+        "FY 2020-21": 160.9,
+        "FY 2021-22": 131.77,
+        "FY 2022-23": 249.61,
+        "FY 2023-24": 280.15,
+        "FY 2024-25": 134.55
+      },
+      "created_at": "2026-09-28T06:26:10.368286+00:00",
+      "updated_at": "2026-09-28T08:02:35.051898+00:00",
+      "registered_address": null,
+      "corporate_address": null,
+      "cin_registration": null,
+      "gst_number": null,
+      "pan_number": null,
+      "annual_turnover": {},
+      "average_turnover": 191.39,
+      "net_worth": 33.37,
+      "solvency": 25,
+      "technical_experience": "Executed Palanpur Group Water Supply Package 2 (Rising/Gravity DI/PVC Pipeline & Pumping Station) worth Rs 99.41 Cr",
+      "past_projects": [],
+      "work_orders": [],
+      "client_details": [],
+      "sector_experience": [],
+      "equipment_machinery": [],
+      "manpower_technical_staff": [],
+      "certifications": [
+        "AA Class Civil Contractor (Gujarat WRD & R&B)",
+        "Gujarat Electrical Contractor License",
+        "EPF Registration",
+        "ROF Certificate"
+      ],
+      "statutory_docs": [],
+      "tender_experience": [],
+      "uploaded_documents": []
+    },
+    "tender_id": "tender-1790871134798",
+    "filename": "TD23PUSHKAR.pdf",
+    "parameter_matrix": [
+      {
+        "parameter": "Enlistment / Registration",
+        "tender_requirement": "The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.",
+        "company_capability": "Desire: Possible Match \u2014 Requires Manual Verification: Tender requirement depends on inter-state registration equivalence. Quoted Clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". Desire holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations. | JV: VINOD H PATEL actual: Holds AA Class Civil Contractor Registration -> 100% MATCH",
+        "status": "Met",
+        "gap_notes": "POSSIBLE MATCH \u2014 REQUIRES MANUAL VERIFICATION: Inter-state registration equivalence relies on department reciprocity rules. Quoted clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". A real person must verify genuine equivalence before relying on it for a bid decision."
+      },
+      {
+        "parameter": "GST Registration",
+        "tender_requirement": "Bidders shall have to submit GST registration certificate without which the tenders may not be entertained.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No GST registration record on file | JV: DATA NOT AVAILABLE \u2014 No GST registration in partner record",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Earnest Money Deposit (EMD)",
+        "tender_requirement": "An Earnest money @ 2% of Estimated cost of work accompany each tender through e-challan at egrass system in favour of Executive Engineer PHED city division II Ajmer. Enlisted Tenderers required to pay 1/2%.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No EMD / Bank Guarantee facility limit record on file | JV: VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No EMD / BG capacity record on file",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Historical Contract Non-Performance",
+        "tender_requirement": "Affidavit on Rs. 500 non-judicial stamp paper certifying that the firm is not blacklisted/debarred by Govt of Rajasthan or Central Government.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No company record for this requirement | JV: VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Technical Staff Deployment",
+        "tender_requirement": "For works costing between Rs. 15 Lac and Rs. 50 Lac - One qualified diploma holder.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No technical staff deployment record on file | JV: VINOD H PATEL actual: Qualified engineering staff on payroll -> 100% MATCH",
+        "status": "Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Declaration of Qualifications under RTPP Act",
+        "tender_requirement": "Declaration under Section 7 of Rajasthan Transparency in Public Procurement Act, 2013 regarding professional, technical, financial and managerial resources.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No company record for this requirement | JV: VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Bid Validity Period",
+        "tender_requirement": "The bids for works shall remain open for acceptance for the period of 90 days from the date of opening of tenders.",
+        "company_capability": "Desire: Desire actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH | JV: VINOD H PATEL actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH",
+        "status": "Met",
+        "gap_notes": "Desire satisfies standalone"
+      }
+    ],
+    "jv_rules_audit": [
+      {
+        "rule": "Lead Member Equity Share",
+        "requirement": ">= 51%",
+        "actual": "51% (Desire Energy)",
+        "status": "PASSED"
+      },
+      {
+        "rule": "Minimum Partner Share",
+        "requirement": ">= 20%",
+        "actual": "49% (VINOD H PATEL)",
+        "status": "PASSED"
+      },
+      {
+        "rule": "Turnover Pooling",
+        "requirement": "100% Sum",
+        "actual": "Rs.481.66 Cr",
+        "status": "PASSED"
+      }
+    ],
+    "partner_recommendations": [
+      {
+        "company_id": "comp-vhp-04",
+        "partner_id": "comp-vhp-04",
+        "company_name": "VINOD H PATEL",
+        "partner_name": "VINOD H PATEL",
+        "rank": 1,
+        "type": "JV Partner",
+        "turnover_cr": 191.39,
+        "net_worth_cr": 33.37,
+        "solvency_cr": 25,
+        "key_advantage": "Bulk Water Supply Pipelines, Palanpur Group Project (\u20b999.41 Cr), Gujarat AA Class Contractor Registration",
+        "reason": "High turnover (\u20b9191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.",
+        "suitability": "Strong Financial & High Turnover Partner",
+        "equity_suggestion": "Desire 51% : Partner 49%",
+        "fills_gaps": [
+          "Bulk Water Pipelines",
+          "GWSSB Credentials"
+        ],
+        "match_score": 88
+      },
+      {
+        "company_id": "comp-aapl-05",
+        "partner_id": "comp-aapl-05",
+        "company_name": "ADROIT ASSOCIATES PRIVATE LIMITED",
+        "partner_name": "ADROIT ASSOCIATES PRIVATE LIMITED",
+        "rank": 2,
+        "type": "JV Partner",
+        "turnover_cr": 35.22,
+        "net_worth_cr": 14.27,
+        "solvency_cr": 10,
+        "key_advantage": "Roshni-1 Water Scheme (\u20b946.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network",
+        "reason": "Deep lift irrigation & rural distribution credentials (\u20b946.73 Cr Roshni project) perfectly complement Desire Energy.",
+        "suitability": "Specialized Water Supply & Lift Irrigation Partner",
+        "equity_suggestion": "Desire 75% : Partner 25%",
+        "fills_gaps": [
+          "Piped Distribution",
+          "Lift Irrigation"
+        ],
+        "match_score": 85
+      },
+      {
+        "company_id": "comp-divija-02",
+        "partner_id": "comp-divija-02",
+        "company_name": "DIVIJA CONSTRUCTION",
+        "partner_name": "DIVIJA CONSTRUCTION",
+        "rank": 3,
+        "type": "JV Partner",
+        "turnover_cr": 37.01,
+        "net_worth_cr": 6.58,
+        "solvency_cr": 10,
+        "key_advantage": "136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling",
+        "reason": "Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.",
+        "suitability": "Underground Utilities & Drainage Partner",
+        "equity_suggestion": "Desire 75% : Partner 25%",
+        "fills_gaps": [
+          "Sewerage Network",
+          "STP Experience"
+        ],
+        "match_score": 72
+      }
+    ],
+    "recommended_partner_id": "comp-vhp-04",
+    "recommended_partner_name": "VINOD H PATEL",
+    "analysis_mode": "full",
+    "is_background_ingesting": false,
+    "chunk_metrics": {
+      "total_chunks": 1,
+      "indexed_chunks": 1
+    }
+  },
+  "report": {
+    "is_rejected_non_tender": false,
+    "tender_title": "Operation and Maintenance of water supply system to provide drinking water facility during Pushkar Fair -2026 at City Sub division-X Pushkar (Ajmer)",
+    "project_category": "CIVIL",
+    "verdict": "Conditional",
+    "overall_health": "Yellow",
+    "recommendation": "Review all mandatory registrations, EMD deposits, and technical enlistment criteria before bid submission.",
+    "executive_summary": "Extracted tender clauses include requirements for contractor enlistment class, Earnest Money Deposit (EMD), Security Deposit, GST registration, technical staff deployment, and financial/legal declarations under RTPP Act.",
+    "clauses_breakdown": [
+      {
+        "clause_no": "2.1(i)",
+        "clause_title": "Enlistment / Registration",
+        "requirement_type": "Organizational",
+        "tender_requirement": "The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.",
+        "required_value": "Appropriate class registration",
+        "desire_value": "Possible Match \u2014 Requires Manual Verification: Tender clause relies on inter-state registration equivalence. Quoted Clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". Desire Energy holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.",
+        "desire_status": "POSSIBLE MATCH",
+        "desire_pct": 85,
+        "jv_value": "VINOD H PATEL actual: Holds AA Class Civil Contractor Registration -> 100% MATCH",
+        "jv_status": "MATCH",
+        "jv_pct": 100,
+        "combined_pct": 100,
+        "combined_value": "Combined: VINOD H PATEL holds direct state registration -> 100% MATCH",
+        "status": "MATCH",
+        "fulfilled_pct": "100%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "POSSIBLE MATCH \u2014 REQUIRES MANUAL VERIFICATION: Inter-state contractor registration equivalence relies on department reciprocity rules. Quoted clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". A real person must verify genuine equivalence before relying on it for a bid decision.",
+        "required_doc": "Self-attested copy of Registration Certificate",
+        "page_ref": "Page 4"
+      },
+      {
+        "clause_no": "1.2",
+        "clause_title": "GST Registration",
+        "requirement_type": "Compliance",
+        "tender_requirement": "Bidders shall have to submit GST registration certificate without which the tenders may not be entertained.",
+        "required_value": "Valid GST registration",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No GST registration record on file",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "DATA NOT AVAILABLE \u2014 No GST registration in partner record",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 GST registration missing",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "GST Registration Certificate",
+        "page_ref": "Page 5"
+      },
+      {
+        "clause_no": "2.3",
+        "clause_title": "Earnest Money Deposit (EMD)",
+        "requirement_type": "Financial",
+        "tender_requirement": "An Earnest money @ 2% of Estimated cost of work accompany each tender through e-challan at egrass system in favour of Executive Engineer PHED city division II Ajmer. Enlisted Tenderers required to pay 1/2%.",
+        "required_value": "Rs. 24,360.00 (2% of Estimated Cost of Rs. 12.18 Lakhs)",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No EMD / Bank Guarantee facility limit record on file",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No EMD / BG capacity record on file",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 EMD / BG facility record missing",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "e-challan receipt via egrass system",
+        "page_ref": "Page 4"
+      },
+      {
+        "clause_no": "Annex-11",
+        "clause_title": "Historical Contract Non-Performance",
+        "requirement_type": "Organizational",
+        "tender_requirement": "Affidavit on Rs. 500 non-judicial stamp paper certifying that the firm is not blacklisted/debarred by Govt of Rajasthan or Central Government.",
+        "required_value": "Not blacklisted/debarred",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No company record for this requirement",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 Requirement missing from company profiles",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "Affidavit on Rs. 500 Stamp Paper duly attested by Notary Public",
+        "page_ref": "Page 18"
+      },
+      {
+        "clause_no": "39",
+        "clause_title": "Technical Staff Deployment",
+        "requirement_type": "Technical",
+        "tender_requirement": "For works costing between Rs. 15 Lac and Rs. 50 Lac - One qualified diploma holder.",
+        "required_value": "One qualified diploma holder",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No technical staff deployment record on file",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: Qualified engineering staff on payroll -> 100% MATCH",
+        "jv_status": "MATCH",
+        "jv_pct": 100,
+        "combined_pct": 100,
+        "combined_value": "Combined: Meets technical staff requirements -> 100% MATCH",
+        "status": "MATCH",
+        "fulfilled_pct": "100%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "Resume and qualification certificates of deployed staff",
+        "page_ref": "Page 74"
+      },
+      {
+        "clause_no": "Annex-10",
+        "clause_title": "Declaration of Qualifications under RTPP Act",
+        "requirement_type": "Compliance",
+        "tender_requirement": "Declaration under Section 7 of Rajasthan Transparency in Public Procurement Act, 2013 regarding professional, technical, financial and managerial resources.",
+        "required_value": "Signed Declaration Form",
+        "desire_value": "DATA NOT AVAILABLE \u2014 No company record for this requirement",
+        "desire_status": "DATA MISSING",
+        "desire_pct": 0,
+        "jv_value": "VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "jv_status": "DATA MISSING",
+        "jv_pct": 0,
+        "combined_pct": 0,
+        "combined_value": "Combined: DATA NOT AVAILABLE \u2014 Requirement missing from company profiles",
+        "status": "DATA MISSING",
+        "fulfilled_pct": "0%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL",
+        "required_doc": "Signed Declaration Document",
+        "page_ref": "Page 17"
+      },
+      {
+        "clause_no": "11.1",
+        "clause_title": "Bid Validity Period",
+        "requirement_type": "Compliance",
+        "tender_requirement": "The bids for works shall remain open for acceptance for the period of 90 days from the date of opening of tenders.",
+        "required_value": "90 Days",
+        "desire_value": "Desire actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH",
+        "desire_status": "MATCH",
+        "desire_pct": 100,
+        "jv_value": "VINOD H PATEL actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH",
+        "jv_status": "MATCH",
+        "jv_pct": 100,
+        "combined_pct": 100,
+        "combined_value": "Combined: Administrative term satisfied upon bid submission -> 100% MATCH",
+        "status": "MATCH",
+        "fulfilled_pct": "100%",
+        "applicable_jv_rule": "Lead Member / JV Pooling",
+        "gap_notes": "Desire satisfies standalone",
+        "required_doc": "Bid Submission Letter",
+        "page_ref": "Page 4"
+      }
+    ],
+    "desire_alone": {
+      "score": 26,
+      "fulfilled_pct": "26%",
+      "status": "Ineligible Standalone"
+    },
+    "jv_alone": {
+      "score": 43,
+      "fulfilled_pct": "43%",
+      "status": "Partner Ineligible Standalone"
+    },
+    "combined_jv": {
+      "score": 43,
+      "fulfilled_pct": "43%",
+      "status": "Partially Qualified Consortium"
+    },
+    "summary_line": "Desire Energy does not qualify standalone (Score: 26%). Recommended: JV with VINOD H PATEL to reach 43% combined.",
+    "recommended_jv_partner": {
+      "id": "comp-vhp-04",
+      "name": "VINOD H PATEL",
+      "type": "JV Partner",
+      "registration_class": "Class A",
+      "profile": "Govt Approved AA Class Contractor (Gujarat WRD & R&B) specializing in Bulk Water Supply Pipelines, Pumping Stations, and Civil Infrastructure.",
+      "contact_details": {
+        "email": "vinodhpatel@gmail.com",
+        "phone": "02762-253598",
+        "mobile": "9825012345",
+        "contact_person": "Patel Mit Vinodchandra / Vinod H. Patel"
+      },
+      "major_projects": [
+        "Palanpur Group Water Supply Package 2 (Rs 99.41 Cr)",
+        "Mehsana Water Pipeline Network",
+        "Banaskantha Lift Irrigation Project"
+      ],
+      "financials": {
+        "FY 2020-21": 160.9,
+        "FY 2021-22": 131.77,
+        "FY 2022-23": 249.61,
+        "FY 2023-24": 280.15,
+        "FY 2024-25": 134.55
+      },
+      "created_at": "2026-09-28T06:26:10.368286+00:00",
+      "updated_at": "2026-09-28T08:02:35.051898+00:00",
+      "registered_address": null,
+      "corporate_address": null,
+      "cin_registration": null,
+      "gst_number": null,
+      "pan_number": null,
+      "annual_turnover": {},
+      "average_turnover": 191.39,
+      "net_worth": 33.37,
+      "solvency": 25,
+      "technical_experience": "Executed Palanpur Group Water Supply Package 2 (Rising/Gravity DI/PVC Pipeline & Pumping Station) worth Rs 99.41 Cr",
+      "past_projects": [],
+      "work_orders": [],
+      "client_details": [],
+      "sector_experience": [],
+      "equipment_machinery": [],
+      "manpower_technical_staff": [],
+      "certifications": [
+        "AA Class Civil Contractor (Gujarat WRD & R&B)",
+        "Gujarat Electrical Contractor License",
+        "EPF Registration",
+        "ROF Certificate"
+      ],
+      "statutory_docs": [],
+      "tender_experience": [],
+      "uploaded_documents": []
+    },
+    "tender_id": "tender-1790871134798",
+    "filename": "TD23PUSHKAR.pdf",
+    "parameter_matrix": [
+      {
+        "parameter": "Enlistment / Registration",
+        "tender_requirement": "The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.",
+        "company_capability": "Desire: Possible Match \u2014 Requires Manual Verification: Tender requirement depends on inter-state registration equivalence. Quoted Clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". Desire holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations. | JV: VINOD H PATEL actual: Holds AA Class Civil Contractor Registration -> 100% MATCH",
+        "status": "Met",
+        "gap_notes": "POSSIBLE MATCH \u2014 REQUIRES MANUAL VERIFICATION: Inter-state registration equivalence relies on department reciprocity rules. Quoted clause: \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\". A real person must verify genuine equivalence before relying on it for a bid decision."
+      },
+      {
+        "parameter": "GST Registration",
+        "tender_requirement": "Bidders shall have to submit GST registration certificate without which the tenders may not be entertained.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No GST registration record on file | JV: DATA NOT AVAILABLE \u2014 No GST registration in partner record",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Earnest Money Deposit (EMD)",
+        "tender_requirement": "An Earnest money @ 2% of Estimated cost of work accompany each tender through e-challan at egrass system in favour of Executive Engineer PHED city division II Ajmer. Enlisted Tenderers required to pay 1/2%.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No EMD / Bank Guarantee facility limit record on file | JV: VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No EMD / BG capacity record on file",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Historical Contract Non-Performance",
+        "tender_requirement": "Affidavit on Rs. 500 non-judicial stamp paper certifying that the firm is not blacklisted/debarred by Govt of Rajasthan or Central Government.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No company record for this requirement | JV: VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Technical Staff Deployment",
+        "tender_requirement": "For works costing between Rs. 15 Lac and Rs. 50 Lac - One qualified diploma holder.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No technical staff deployment record on file | JV: VINOD H PATEL actual: Qualified engineering staff on payroll -> 100% MATCH",
+        "status": "Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Declaration of Qualifications under RTPP Act",
+        "tender_requirement": "Declaration under Section 7 of Rajasthan Transparency in Public Procurement Act, 2013 regarding professional, technical, financial and managerial resources.",
+        "company_capability": "Desire: DATA NOT AVAILABLE \u2014 No company record for this requirement | JV: VINOD H PATEL actual: DATA NOT AVAILABLE \u2014 No partner record for this requirement",
+        "status": "Not Met",
+        "gap_notes": "Desire gap bridged by JV Partner VINOD H PATEL"
+      },
+      {
+        "parameter": "Bid Validity Period",
+        "tender_requirement": "The bids for works shall remain open for acceptance for the period of 90 days from the date of opening of tenders.",
+        "company_capability": "Desire: Desire actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH | JV: VINOD H PATEL actual: Administrative tender term (agreed upon bid submission) -> 100% MATCH",
+        "status": "Met",
+        "gap_notes": "Desire satisfies standalone"
+      }
+    ],
+    "jv_rules_audit": [
+      {
+        "rule": "Lead Member Equity Share",
+        "requirement": ">= 51%",
+        "actual": "51% (Desire Energy)",
+        "status": "PASSED"
+      },
+      {
+        "rule": "Minimum Partner Share",
+        "requirement": ">= 20%",
+        "actual": "49% (VINOD H PATEL)",
+        "status": "PASSED"
+      },
+      {
+        "rule": "Turnover Pooling",
+        "requirement": "100% Sum",
+        "actual": "Rs.481.66 Cr",
+        "status": "PASSED"
+      }
+    ],
+    "partner_recommendations": [
+      {
+        "company_id": "comp-vhp-04",
+        "partner_id": "comp-vhp-04",
+        "company_name": "VINOD H PATEL",
+        "partner_name": "VINOD H PATEL",
+        "rank": 1,
+        "type": "JV Partner",
+        "turnover_cr": 191.39,
+        "net_worth_cr": 33.37,
+        "solvency_cr": 25,
+        "key_advantage": "Bulk Water Supply Pipelines, Palanpur Group Project (\u20b999.41 Cr), Gujarat AA Class Contractor Registration",
+        "reason": "High turnover (\u20b9191.39 Cr) and extensive Gujarat WRD credentials satisfy large civil and pipeline criteria.",
+        "suitability": "Strong Financial & High Turnover Partner",
+        "equity_suggestion": "Desire 51% : Partner 49%",
+        "fills_gaps": [
+          "Bulk Water Pipelines",
+          "GWSSB Credentials"
+        ],
+        "match_score": 88
+      },
+      {
+        "company_id": "comp-aapl-05",
+        "partner_id": "comp-aapl-05",
+        "company_name": "ADROIT ASSOCIATES PRIVATE LIMITED",
+        "partner_name": "ADROIT ASSOCIATES PRIVATE LIMITED",
+        "rank": 2,
+        "type": "JV Partner",
+        "turnover_cr": 35.22,
+        "net_worth_cr": 14.27,
+        "solvency_cr": 10,
+        "key_advantage": "Roshni-1 Water Scheme (\u20b946.73 Cr), Lift Irrigation, MP/CG PWD Class-A, DI/HDPE Distribution Network",
+        "reason": "Deep lift irrigation & rural distribution credentials (\u20b946.73 Cr Roshni project) perfectly complement Desire Energy.",
+        "suitability": "Specialized Water Supply & Lift Irrigation Partner",
+        "equity_suggestion": "Desire 75% : Partner 25%",
+        "fills_gaps": [
+          "Piped Distribution",
+          "Lift Irrigation"
+        ],
+        "match_score": 85
+      },
+      {
+        "company_id": "comp-divija-02",
+        "partner_id": "comp-divija-02",
+        "company_name": "DIVIJA CONSTRUCTION",
+        "partner_name": "DIVIJA CONSTRUCTION",
+        "rank": 3,
+        "type": "JV Partner",
+        "turnover_cr": 37.01,
+        "net_worth_cr": 6.58,
+        "solvency_cr": 10,
+        "key_advantage": "136 km Underground Sewer Network, DLB Class-AA, 8 MLD Sewage Pumping Station, Micro-tunneling",
+        "reason": "Extensive 136 km underground sewer and pump house track record fulfills DLB/RUDSICO qualifications.",
+        "suitability": "Underground Utilities & Drainage Partner",
+        "equity_suggestion": "Desire 75% : Partner 25%",
+        "fills_gaps": [
+          "Sewerage Network",
+          "STP Experience"
+        ],
+        "match_score": 72
+      }
+    ],
+    "recommended_partner_id": "comp-vhp-04",
+    "recommended_partner_name": "VINOD H PATEL",
+    "analysis_mode": "full",
+    "is_background_ingesting": false,
+    "chunk_metrics": {
+      "total_chunks": 1,
+      "indexed_chunks": 1
+    }
+  },
+  "debug": {
+    "extracted_text_length": 251564,
+    "extracted_text_sample_start": "Government of Rajasthan\nPublic Health Engineering Department\n\u201cOperation and Maintenance\nfacility during Pushkar Fair\nOFFICE OF THE\nPublic Health Engineering Department\n1\nGovernment of Rajasthan\nPublic Health Engineering Department\n(NIB No. 23/2026-27)\naintenance of water supply system to provide dri",
+    "extracted_text_sample_end": "actor\nName & Address\nEXECUTIVE ENGINEER\nP.H.E.D. CITY DIVISION II AJMER\nList of CWT\u2019s & MS Tanks used Pushkar Fair\n120\nList of CWT\u2019s & MS Tanks used Pushkar Fair\nSignature of Contractor\nName & Address\n121\nEXECUTIVE ENGINEER\nP.H.E.D. CITY DIVISION II\nEXECUTIVE ENGINEER\nP.H.E.D. CITY DIVISION II AJMER",
+    "classification_raw_ai_response": "{\n  \"is_tender\": true,\n  \"confidence\": 1.0,\n  \"document_type\": \"Bidding Document / Notice Inviting Tender (NIT)\",\n  \"quote_of_evidence\": \"Government of Rajasthan Public Health Engineering Department (NIB No. 23/2026-27) aintenance of water supply system to provide drinking water facility during Pushkar Fair -2026 at City Sub division-X Pushkar (Ajmer) Volume I Bid Document (Technical Bid)\",\n  \"reason\": \"The document contains standard bidding terms, Notice Inviting Bid (NIB) details, important dates for tender availability and submission, earnest money deposit instructions, and instructions to tenderers issued by a government department.\"\n}",
+    "clause_extraction_raw_ai_response": "{\n  \"is_rejected_non_tender\": false,\n  \"tender_title\": \"Operation and Maintenance of water supply system to provide drinking water facility during Pushkar Fair -2026 at City Sub division-X Pushkar (Ajmer)\",\n  \"project_category\": \"CIVIL\",\n  \"verdict\": \"Conditional\",\n  \"overall_health\": \"Yellow\",\n  \"recommendation\": \"Review all mandatory registrations, EMD deposits, and technical enlistment criteria before bid submission.\",\n  \"executive_summary\": \"Extracted tender clauses include requirements for contractor enlistment class, Earnest Money Deposit (EMD), Security Deposit, GST registration, technical staff deployment, and financial/legal declarations under RTPP Act.\",\n  \"clauses_breakdown\": [\n    {\n      \"clause_no\": \"2.1(i)\",\n      \"clause_title\": \"Enlistment / Registration\",\n      \"requirement_type\": \"Organizational\",\n      \"tender_requirement\": \"The tenderer should be enlisted in appropriate class with PHED, Rajasthan, or equivalent to appropriate class of Rajasthan with CPWD, Postal, Telecom, Railway, MES, other State Govts/Central Govt Undertakings/Organizations.\",\n      \"required_value_num\": null,\n      \"required_value_unit\": null,\n      \"required_value\": \"Appropriate class registration\",\n      \"required_doc\": \"Self-attested copy of Registration Certificate\",\n      \"page_ref\": \"Page 4\"\n    },\n    {\n      \"clause_no\": \"1.2\",\n      \"clause_title\": \"GST Registration\",\n      \"requirement_type\": \"Compliance\",\n      \"tender_requirement\": \"Bidders shall have to submit GST registration certificate without which the tenders may not be entertained.\",\n      \"required_value_num\": null,\n      \"required_value_unit\": null,\n      \"required_value\": \"Valid GST registration\",\n      \"required_doc\": \"GST Registration Certificate\",\n      \"page_ref\": \"Page 5\"\n    },\n    {\n      \"clause_no\": \"2.3\",\n      \"clause_title\": \"Earnest Money Deposit (EMD)\",\n      \"requirement_type\": \"Financial\",\n      \"tender_requirement\": \"An Earnest money @ 2% of Estimated cost of work accompany each tender through e-challan at egrass system in favour of Executive Engineer PHED city division II Ajmer. Enlisted Tenderers required to pay 1/2%.\",\n      \"required_value_num\": 0.2436,\n      \"required_value_unit\": \"Lakhs\",\n      \"required_value\": \"Rs. 24,360.00 (2% of Estimated Cost of Rs. 12.18 Lakhs)\",\n      \"required_doc\": \"e-challan receipt via egrass system\",\n      \"page_ref\": \"Page 4\"\n    },\n    {\n      \"clause_no\": \"2.4\",\n      \"clause_title\": \"Security Deposit / Performance Security\",\n      \"requirement_type\": \"Financial\",\n      \"tender_requirement\": \"Performance Security @ 10% of the gross amount of running bill shall be deducted or can be furnished as bank guarantee.\",\n      \"required_value_num\": 1.218,\n      \"required_value_unit\": \"Lakhs\",\n      \"required_value\": \"10% of work order amount\",\n      \"required_doc\": \"Bank Guarantee / FDR / NSC or Deductions from running bills\",\n      \"page_ref\": \"Page 4\"\n    },\n    {\n      \"clause_no\": \"39\",\n      \"clause_title\": \"Technical Staff Deployment\",\n      \"requirement_type\": \"Technical\",\n      \"tender_requirement\": \"For works costing between Rs. 15 Lac and Rs. 50 Lac - One qualified diploma holder.\",\n      \"required_value_num\": 1,\n      \"required_value_unit\": null,\n      \"required_value\": \"One qualified diploma holder\",\n      \"required_doc\": \"Resume and qualification certificates of deployed staff\",\n      \"page_ref\": \"Page 74\"\n    },\n    {\n      \"clause_no\": \"Annex-10\",\n      \"clause_title\": \"Declaration of Qualifications under RTPP Act\",\n      \"requirement_type\": \"Compliance\",\n      \"tender_requirement\": \"Declaration under Section 7 of Rajasthan Transparency in Public Procurement Act, 2013 regarding professional, technical, financial and managerial resources.\",\n      \"required_value_num\": null,\n      \"required_value_unit\": null,\n      \"required_value\": \"Signed Declaration Form\",\n      \"required_doc\": \"Signed Declaration Document\",\n      \"page_ref\": \"Page 17\"\n    },\n    {\n      \"clause_no\": \"Annex-11\",\n      \"clause_title\": \"Historical Contract Non-Performance\",\n      \"requirement_type\": \"Organizational\",\n      \"tender_requirement\": \"Affidavit on Rs. 500 non-judicial stamp paper certifying that the firm is not blacklisted/debarred by Govt of Rajasthan or Central Government.\",\n      \"required_value_num\": null,\n      \"required_value_unit\": null,\n      \"required_value\": \"Not blacklisted/debarred\",\n      \"required_doc\": \"Affidavit on Rs. 500 Stamp Paper duly attested by Notary Public\",\n      \"page_ref\": \"Page 18\"\n    },\n    {\n      \"clause_no\": \"11.1\",\n      \"clause_title\": \"Bid Validity Period\",\n      \"requirement_type\": \"Compliance\",\n      \"tender_requirement\": \"The bids for works shall remain open for acceptance for the period of 90 days from the date of opening of tenders.\",\n      \"required_value_num\": 90,\n      \"required_value_unit\": null,\n      \"required_value\": \"90 Days\",\n      \"required_doc\": \"Bid Submission Letter\",\n      \"page_ref\": \"Page 4\"\n    }\n  ]\n}",
+    "path_taken": "ai_success",
+    "error_if_any": null
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "is_rejected_non_tender": false,
+  "tender_title": "EPC Contract for Kankrej Pipeline Project From Existing Changa Main Pumping Station Dist: Banaskantha",
+  "project_category": "EPC",
+  "verdict": "Conditional",
+  "overall_health": "Yellow",
+  "recommendation": "Ensure compliance with AA Class registration with Gujarat State WRD / R&B, financial turnover of Rs. 69.78 Crores, single work experience of Rs. 27.91 Crores, and liquid assets of Rs. 17.45 Crores. If bidding as a JV, the lead partner must meet at least 51% share and 50% of financial criteria.",
+  "executive_summary": "The tender requires bidders to have AA Class & Above registration with Gujarat State WRD / R&B, an average annual financial turnover of at least Rs. 69.78 Crores over the last 3 financial years, single work experience of at least Rs. 27.91 Crores for similar EPC pipeline / water supply works in the last 7 years, and liquid assets/credit facilities of at least Rs. 17.45 Crores. Joint Venture conditions specify a minimum 51% share for the lead partner and 50% fulfillment of financial criteria, with all partners combined meeting 100% of financial requirements.",
+  "clauses_breakdown": [
+    {
+      "clause_no": "General",
+      "clause_title": "Estimated Value",
+      "requirement_type": "Financial",
+      "tender_requirement": "Estimated Value: Rs 69.78 Crores",
+      "required_value_num": 69.78,
+      "required_value_unit": "Cr",
+      "required_value": "Rs 69.78 Crores",
+      "required_doc": "N/A",
+      "page_ref": "NIT"
+    },
+    {
+      "clause_no": "General",
+      "clause_title": "Earnest Money Deposit (EMD)",
+      "requirement_type": "Financial",
+      "tender_requirement": "EMD: Rs 69.79 Lakhs",
+      "required_value_num": 69.79,
+      "required_value_unit": "Lakhs",
+      "required_value": "Rs 69.79 Lakhs",
+      "required_doc": "Bank Guarantee / Demand Draft",
+      "page_ref": "NIT"
+    },
+    {
+      "clause_no": "General",
+      "clause_title": "Period of Completion",
+      "requirement_type": "Technical",
+      "tender_requirement": "Period of Completion: 12 Months",
+      "required_value_num": 12.0,
+      "required_value_unit": "Years",
+      "required_value": "12 Months",
+      "required_doc": "N/A",
+      "page_ref": "NIT"
+    },
+    {
+      "clause_no": "General",
+      "clause_title": "Operation & Maintenance Period",
+      "requirement_type": "Technical",
+      "tender_requirement": "O&M Period: 3 Years",
+      "required_value_num": 3.0,
+      "required_value_unit": "Years",
+      "required_value": "3 Years",
+      "required_doc": "N/A",
+      "page_ref": "NIT"
+    },
+    {
+      "clause_no": "General",
+      "clause_title": "Class of Registration",
+      "requirement_type": "Organizational",
+      "tender_requirement": "Class of Registration: AA Class & Above with Gujarat State WRD / R&B",
+      "required_value_num": null,
+      "required_value_unit": null,
+      "required_value": "AA Class & Above",
+      "required_doc": "Valid Contractor Registration Certificate",
+      "page_ref": "NIT"
+    },
+    {
+      "clause_no": "Clause 4.1",
+      "clause_title": "Average Annual Financial Turnover",
+      "requirement_type": "Financial",
+      "tender_requirement": "Average Annual Financial Turnover of the bidder during the last 3 financial years ending 31st March of previous financial year should be at least Rs. 69.78 Crores.",
+      "required_value_num": 69.78,
+      "required_value_unit": "Cr",
+      "required_value": "Rs. 69.78 Crores",
+      "required_doc": "Audited Balance Sheets and Profit & Loss Statements",
+      "page_ref": "Clause 4.1"
+    },
+    {
+      "clause_no": "Clause 4.2",
+      "clause_title": "Single Work Experience",
+      "requirement_type": "Technical",
+      "tender_requirement": "The bidder must have successfully executed as prime contractor at least one similar EPC pipeline / water supply work of value not less than Rs. 27.91 Crores in the last 7 years.",
+      "required_value_num": 27.91,
+      "required_value_unit": "Cr",
+      "required_value": "Rs. 27.91 Crores",
+      "required_doc": "Work Completion Certificate from Employer",
+      "page_ref": "Clause 4.2"
+    },
+    {
+      "clause_no": "Clause 4.3",
+      "clause_title": "Liquid Assets and/or Credit Facilities",
+      "requirement_type": "Financial",
+      "tender_requirement": "Availability of liquid assets and/or credit facilities of not less than Rs. 17.45 Crores certified by a Chartered Accountant / Scheduled Bank.",
+      "required_value_num": 17.45,
+      "required_value_unit": "Cr",
+      "required_value": "Rs. 17.45 Crores",
+      "required_doc": "Certificate from Chartered Accountant / Scheduled Bank",
+      "page_ref": "Clause 4.3"
+    },
+    {
+      "clause_no": "Joint Venture Conditions",
+      "clause_title": "Joint Venture Share and Financial Criteria",
+      "requirement_type": "Legal",
+      "tender_requirement": "Lead partner must hold at least 51% share and meet 50% of financial criteria. All partners combined must meet 100% of financial requirements.",
+      "required_value_num": 51.0,
+      "required_value_unit": "%",
+      "required_value": "51% Lead Share",
+      "required_doc": "Joint Venture Agreement",
+      "page_ref": "JV Conditions"
+    }
+  ]
+}

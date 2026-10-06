@@ -1,0 +1,22 @@
+{
+  "is_rejected_non_tender": false,
+  "tender_title": "Banaskantha Solar Water Pipeline Project Package IV",
+  "project_category": "SOLAR",
+  "verdict": "Conditional",
+  "overall_health": "Yellow",
+  "recommendation": "The provided document consists of repetitive placeholder text for the Banaskantha Solar Water Pipeline Project Package IV and does not contain explicit numeric thresholds or specific eligibility criteria. Bidders must obtain the complete and uncorrupted official tender document containing Section/ITB qualification criteria before bidding.",
+  "executive_summary": "The document text provided is heavily repeated and contains no explicit numerical eligibility criteria, financial thresholds, technical capacity requirements, or legal compliance clauses. Review of the complete tender document is required.",
+  "clauses_breakdown": [
+    {
+      "clause_no": "General",
+      "clause_title": "Official Tender Document Verification",
+      "requirement_type": "Compliance",
+      "tender_requirement": "Banaskantha Solar Water Pipeline Project Official Tender Document",
+      "required_value_num": null,
+      "required_value_unit": null,
+      "required_value": "Not Specified",
+      "required_doc": "Complete Tender Document",
+      "page_ref": "Full Document"
+    }
+  ]
+}
