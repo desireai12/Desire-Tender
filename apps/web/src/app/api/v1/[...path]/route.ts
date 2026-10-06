@@ -508,14 +508,19 @@ Return valid JSON only:
     }
   }
 
-  // Deduplicate clauses by requirement_type & normalized clause_title
+  // Smart deduplication: preserve distinct requirements by clause_no, requirement_type, title, and threshold snippet
   const seenKeys = new Set<string>();
   const deduplicatedClauses: any[] = [];
 
   for (const c of allClauses) {
     const rType = String(c.requirement_type || 'Compliance').trim().toLowerCase();
     const cTitle = String(c.clause_title || '').trim().toLowerCase();
-    const key = `${rType}_${cTitle}`;
+    const cNo = String(c.clause_no || '').trim().toLowerCase();
+    const valSnippet = String(c.required_value || c.tender_requirement || '').slice(0, 40).trim().toLowerCase();
+
+    const key = (cNo && cNo !== 'n/a' && cNo !== 'nit' && !cNo.includes('general'))
+      ? `${cNo}_${cTitle}`
+      : `${rType}_${cTitle}_${valSnippet}`;
 
     if (cTitle && !seenKeys.has(key)) {
       seenKeys.add(key);
