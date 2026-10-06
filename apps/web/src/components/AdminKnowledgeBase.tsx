@@ -402,7 +402,9 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
               <span className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400 block">Embedding Model</span>
-              <span className="text-xs font-bold text-slate-900 dark:text-white mt-1 block">Gemini text-embedding-004</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white mt-1 block">
+                {vectorData ? vectorData.embedding_model : 'models/gemini-embedding-001 (768-dim)'}
+              </span>
             </div>
           </div>
 

@@ -1775,7 +1775,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       return NextResponse.json({
         status: 'success',
         database_engine: 'Supabase PostgreSQL (pgvector extension)',
-        embedding_model: 'Gemini Text Embeddings (768-dimensional vectors)',
+        embedding_model: 'models/gemini-embedding-001 (768-dim)',
         total_vector_chunks: totalCount,
         unique_tenders_indexed: Object.keys(tenderSummary).length,
         tender_breakdown: tenderSummary,
