@@ -357,6 +357,8 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
     errorDetail: lastErrorDetail,
     lastStatus
   };
+}
+
 // ═══ EXHAUSTIVE FULL-COVERAGE CLAUSE EXTRACTION ENGINE ═════════════════════
 async function performSequentialFullCoverageExtraction(
   fullText: string,
