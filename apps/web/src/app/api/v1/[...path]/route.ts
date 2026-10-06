@@ -2035,11 +2035,13 @@ Return valid JSON only:
       if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
 
       let aiResult: any = null;
+      let aiCallResult: GeminiCallResult = { data: null, rawText: 'Full coverage extraction' };
       let ragMetrics = { chunkCount: 0, indexedCount: 0 };
 
       if (isFullMode && extractedPdfText && extractedPdfText.length > 0) {
         // EXHAUSTIVE FULL-COVERAGE ANALYSIS
         aiResult = await performSequentialFullCoverageExtraction(extractedPdfText, filename, geminiKey);
+        aiCallResult = { data: aiResult, rawText: 'Exhaustive full coverage extraction completed' };
         ragMetrics = { chunkCount: Math.ceil(extractedPdfText.length / 1000), indexedCount: Math.ceil(extractedPdfText.length / 1000) };
       } else {
         // FAST PREVIEW ANALYSIS
