@@ -710,6 +710,34 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
     }
   });
 
+  // Re-calculate top-level eligibility_score and summary_counts to guarantee 100% mathematical consistency
+  if (report.clauses_breakdown.length > 0) {
+    let matched = 0, partial = 0, notMatching = 0, missing = 0;
+    let totalPct = 0;
+
+    report.clauses_breakdown.forEach((c: any) => {
+      const st = c.status || 'NOT MATCHING';
+      const pctVal = parseFloat(String(c.fulfilled_pct || '0').replace('%', '')) || (st === 'MATCH' ? 100 : st === 'POSSIBLE MATCH' ? 85 : st === 'PARTIAL MATCH' ? 50 : 0);
+      totalPct += pctVal;
+
+      if (st === 'MATCH') matched++;
+      else if (st === 'PARTIAL MATCH' || st === 'POSSIBLE MATCH') partial++;
+      else if (st === 'NOT MATCHING') notMatching++;
+      else missing++;
+    });
+
+    const realAvgScore = Math.round(totalPct / report.clauses_breakdown.length);
+    report.eligibility_score = realAvgScore;
+    if (report.combined_jv) report.combined_jv.score = realAvgScore;
+    report.summary_counts = {
+      total_criteria: report.clauses_breakdown.length,
+      matched,
+      partial,
+      not_matching: notMatching,
+      data_missing: missing
+    };
+  }
+
   return report;
 }
 

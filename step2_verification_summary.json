@@ -1,0 +1,67 @@
+[
+  {
+    "doc_name": "1_Banaskantha",
+    "start_time": "16:27:32.390",
+    "end_time": "16:27:55.847",
+    "elapsed": 23.46,
+    "clause_count": 24,
+    "top_score": 63,
+    "matrix_score": 62.5,
+    "consistent_math": true,
+    "verdict": "Conditional",
+    "recommendation": "Ensure all financial thresholds, machinery requirements, and key personnel experiences are met befor",
+    "error": null
+  },
+  {
+    "doc_name": "2_TD23PUSHKAR",
+    "start_time": "16:27:55.850",
+    "end_time": "16:28:10.191",
+    "elapsed": 14.34,
+    "clause_count": 12,
+    "top_score": 67,
+    "matrix_score": 66.7,
+    "consistent_math": true,
+    "verdict": "Conditional",
+    "recommendation": "Ensure possession of Class-A Special Category Registration with PHED Rajasthan or Class-AA WRD Gujar",
+    "error": null
+  },
+  {
+    "doc_name": "3_Vapi_Karvad",
+    "start_time": "16:28:10.192",
+    "end_time": "16:29:01.032",
+    "elapsed": 50.84,
+    "clause_count": 11,
+    "top_score": 64,
+    "matrix_score": 63.6,
+    "consistent_math": true,
+    "verdict": "Eligible",
+    "recommendation": "Exhaustive full-coverage document audit completed across 1 sequential text sections. 11 distinct qua",
+    "error": null
+  },
+  {
+    "doc_name": "4_IITH_STP",
+    "start_time": "16:29:01.034",
+    "end_time": "16:29:11.171",
+    "elapsed": 10.14,
+    "clause_count": 8,
+    "top_score": 75,
+    "matrix_score": 43.8,
+    "consistent_math": false,
+    "verdict": "Eligible",
+    "recommendation": "Exhaustive full-coverage document audit completed across 1 sequential text sections. 8 distinct qual",
+    "error": null
+  },
+  {
+    "doc_name": "5_PHED_Solar_Pumping",
+    "start_time": "16:29:11.173",
+    "end_time": "16:29:20.565",
+    "elapsed": 9.39,
+    "clause_count": 7,
+    "top_score": 71,
+    "matrix_score": 71.4,
+    "consistent_math": true,
+    "verdict": "Eligible",
+    "recommendation": "Exhaustive full-coverage document audit completed across 1 sequential text sections. 7 distinct qual",
+    "error": null
+  }
+]
