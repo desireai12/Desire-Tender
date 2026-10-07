@@ -277,13 +277,18 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               });
 
             if (!uploadErr && uploadData) {
-              const { data: publicUrlData } = supabase.storage
+              const { data: signedUrlData, error: signedErr } = await supabase.storage
                 .from('tender-documents')
-                .getPublicUrl(storagePath);
+                .createSignedUrl(storagePath, 900); // 15-minute expiry for private commercial security
 
-              if (publicUrlData && publicUrlData.publicUrl) {
-                documentUrl = publicUrlData.publicUrl;
-                console.log(`[STORAGE_UPLOAD] Direct Supabase Storage Upload Success: ${documentUrl}`);
+              if (!signedErr && signedUrlData?.signedUrl) {
+                documentUrl = signedUrlData.signedUrl;
+                console.log(`[STORAGE_UPLOAD] Direct Storage Upload Success (Signed URL): ${documentUrl}`);
+              } else {
+                const { data: fallbackUrlData } = supabase.storage
+                  .from('tender-documents')
+                  .getPublicUrl(storagePath);
+                documentUrl = fallbackUrlData?.publicUrl || null;
               }
             } else if (uploadErr) {
               console.warn('[STORAGE_UPLOAD_WARN] Direct storage upload warning:', uploadErr.message);

@@ -1617,15 +1617,24 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           formFilename = fileObj?.name || ((fd.get('filename') as string) || '');
           formTenderTitle = (fd.get('tender_title') as string) || '';
           formJvPartnerId = (fd.get('jv_partner_id') as string) || '';
-          const docUrlParam = (fd.get('document_url') as string) || (fd.get('file_url') as string) || '';
+          const docUrlParam = (fd.get('document_url') as string) || (fd.get('file_url') as string) || (fd.get('storage_path') as string) || '';
           if (fileObj) { try { formFileBuffer = Buffer.from(await fileObj.arrayBuffer()); } catch (e) {} }
           if (!formFileBuffer && docUrlParam) {
-            try {
-              const fetchRes = await fetch(docUrlParam);
-              if (fetchRes.ok) {
-                formFileBuffer = Buffer.from(await fetchRes.arrayBuffer());
-              }
-            } catch (e) {}
+            if (docUrlParam.startsWith('http://') || docUrlParam.startsWith('https://')) {
+              try {
+                const fetchRes = await fetch(docUrlParam);
+                if (fetchRes.ok) formFileBuffer = Buffer.from(await fetchRes.arrayBuffer());
+              } catch (e) {}
+            }
+            if (!formFileBuffer && supabase) {
+              try {
+                let cleanPath = docUrlParam;
+                if (cleanPath.includes('/tender-documents/')) cleanPath = cleanPath.split('/tender-documents/')[1];
+                cleanPath = cleanPath.split('?')[0];
+                const { data, error } = await supabase.storage.from('tender-documents').download(cleanPath);
+                if (!error && data) formFileBuffer = Buffer.from(await data.arrayBuffer());
+              } catch (e) {}
+            }
           }
         } else {
           body = await req.json().catch(() => ({}));
@@ -1635,12 +1644,21 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           formJvPartnerId = (body.jv_partner_id as string) || '';
           const docUrlParam = body.document_url || body.file_url || body.storage_path || '';
           if (docUrlParam) {
-            try {
-              const fetchRes = await fetch(docUrlParam);
-              if (fetchRes.ok) {
-                formFileBuffer = Buffer.from(await fetchRes.arrayBuffer());
-              }
-            } catch (e) {}
+            if (docUrlParam.startsWith('http://') || docUrlParam.startsWith('https://')) {
+              try {
+                const fetchRes = await fetch(docUrlParam);
+                if (fetchRes.ok) formFileBuffer = Buffer.from(await fetchRes.arrayBuffer());
+              } catch (e) {}
+            }
+            if (!formFileBuffer && supabase) {
+              try {
+                let cleanPath = docUrlParam;
+                if (cleanPath.includes('/tender-documents/')) cleanPath = cleanPath.split('/tender-documents/')[1];
+                cleanPath = cleanPath.split('?')[0];
+                const { data, error } = await supabase.storage.from('tender-documents').download(cleanPath);
+                if (!error && data) formFileBuffer = Buffer.from(await data.arrayBuffer());
+              } catch (e) {}
+            }
           }
         }
       } catch (e) { body = {}; }
