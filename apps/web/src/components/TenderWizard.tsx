@@ -25,6 +25,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { 
   ProjectCategory, 
   DepartmentRole, 

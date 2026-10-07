@@ -2136,7 +2136,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
               ragMetrics = { chunkCount: ragResult.chunkCount, indexedCount: ragResult.indexedCount };
             }
 
-            waitUntil(
+            const waitUntilFn = (globalThis as any).waitUntil || ((p: Promise<any>) => p);
+            waitUntilFn(
               ingestDocumentInBackground(currentTenderId, extractedPdfText, geminiKey).catch(bgErr => {
                 console.warn('[BACKGROUND_RAG_TRIGGER] Background ingestion task error:', bgErr);
               })

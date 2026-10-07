@@ -428,7 +428,7 @@ export const AdminKnowledgeBase: React.FC<AdminKnowledgeBaseProps> = ({ activeRo
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                    {vectorData.recent_chunks.map((chunk, i) => (
+                    {vectorData.recent_chunks.map((chunk: any, i: number) => (
                       <tr key={chunk.id || i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                         <td className="p-3 font-mono text-[11px] text-slate-600 dark:text-slate-400 font-bold truncate max-w-[140px]">
                           {chunk.id}
