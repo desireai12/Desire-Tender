@@ -40,7 +40,7 @@ const alwarClauses = [
 const comps = [
   {
     id: 'comp-desire-01', name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED', type: 'Desire Energy',
-    average_turnover: 300.93, net_worth: 95.00, solvency_amount: 72.18,
+    average_turnover: 290.27, net_worth: 52.62, solvency_amount: 72.18,
     technical_experience: 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants',
     sector_experience: ['Rural Water Supply (JJM)', 'Solar PV Water Pumps', 'Bulk Water Pipeline EPC']
   },
@@ -69,8 +69,8 @@ function evaluateDeterministicMatching(rawClauses, comps, selectedJvPartnerId) {
   const desireComp = comps.find(c => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
   const jvPartners = comps.filter(c => c.id !== desireComp.id && c.type !== 'Desire Energy');
 
-  const dT = desireComp.average_turnover || 300.93;
-  const dNW = desireComp.net_worth || 95.0;
+  const dT = desireComp.average_turnover || 290.27;
+  const dNW = desireComp.net_worth || 52.62;
   const dS = desireComp.solvency_amount || 72.18;
 
   function evalClause(c, partner) {

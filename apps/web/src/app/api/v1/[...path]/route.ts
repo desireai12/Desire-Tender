@@ -425,7 +425,7 @@ Return valid JSON only:
 }`;
 
     const singleRes = await callGeminiAI(fullPrompt, apiKey);
-    if (singleRes.data && Array.isArray(singleRes.data.clauses_breakdown) && singleRes.data.clauses_breakdown.length >= 12) {
+    if (singleRes.data && Array.isArray(singleRes.data.clauses_breakdown) && singleRes.data.clauses_breakdown.length >= 5) {
       return singleRes.data;
     }
   }
@@ -1107,15 +1107,15 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       cVal = 'Combined: Administrative term satisfied upon bid submission -> 100% MATCH';
     } else if (reqType === 'Financial') {
       if (title.includes('turnover') || reqText.includes('turnover')) {
-        let effDT = dT; // default 3-year average (290.27 Cr)
+        let effDT = dT; // Authoritative 3-year average turnover (290.27 Cr)
         let turnoverRuleLabel = '3-Yr Avg Turnover';
 
         if (reqText.includes('any one year') || reqText.includes('single year') || reqText.includes('any year') || title.includes('any one year')) {
-          effDT = 350.66; // Single max year (FY 2023-24)
-          turnoverRuleLabel = 'Max Single-Year Turnover (FY24)';
+          effDT = dT;
+          turnoverRuleLabel = '3-Yr Avg Turnover';
         } else if ((reqText.includes('five') || reqText.includes('5 year') || reqText.includes('5 financial')) && !reqText.includes('any one year')) {
-          effDT = 234.63; // 5-year average
-          turnoverRuleLabel = '5-Yr Avg Turnover';
+          effDT = dT;
+          turnoverRuleLabel = '3-Yr Avg Turnover';
         }
 
         if (reqNum && reqNum > 0) {
@@ -2080,8 +2080,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       let aiCallResult: GeminiCallResult = { data: null, rawText: 'Full coverage extraction' };
       let ragMetrics = { chunkCount: 0, indexedCount: 0 };
 
-      if (isFullMode && extractedPdfText && extractedPdfText.length > 0) {
-        // EXHAUSTIVE FULL-COVERAGE ANALYSIS
+      if (extractedPdfText && extractedPdfText.length > 0) {
+        // EXHAUSTIVE FULL-COVERAGE ANALYSIS FOR ALL TENDER UPLOADS
         aiResult = await performSequentialFullCoverageExtraction(extractedPdfText, filename, geminiKey);
         aiCallResult = { data: aiResult, rawText: 'Exhaustive full coverage extraction completed' };
         ragMetrics = { chunkCount: Math.ceil(extractedPdfText.length / 1000), indexedCount: Math.ceil(extractedPdfText.length / 1000) };
@@ -2211,7 +2211,7 @@ Return valid JSON only:
       const jvSharePct = recPartner.id === 'comp-aapl-05' ? '25%' : '49%';
       const desireSharePct = recPartner.id === 'comp-aapl-05' ? '75%' : '51%';
       const desireComp = comps.find((c: any) => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || comps[0];
-      const cT = (desireComp.average_turnover || 300.93) + (recPartner.average_turnover || 37.01);
+      const cT = (desireComp.average_turnover || 290.27) + (recPartner.average_turnover || 37.01);
 
       aiResult.jv_rules_audit = [
         { rule: 'Lead Member Equity Share', requirement: '>= 51%', actual: `${desireSharePct} (Desire Energy)`, status: 'PASSED' },

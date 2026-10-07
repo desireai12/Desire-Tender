@@ -940,7 +940,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 </span>
               </div>
             </div>
-          ) : (ingestionStatus?.total || 0) < 5 ? (
+          ) : (((evaluationReport as any)?.debug?.extracted_text_length && (evaluationReport as any).debug.extracted_text_length < 500) || (evaluationReport as any)?.is_scanned_pdf === true) ? (
             <div className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-400/80 text-amber-950 dark:text-amber-100 shadow-sm flex items-center justify-between gap-4">
               <div className="flex items-start space-x-3">
                 <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
@@ -954,7 +954,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                     </span>
                   </div>
                   <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">
-                    This document yielded a low extracted character count ({ingestionStatus?.total || 1} chunk). If this is a scanned image or scanned tables PDF, full multi-page clause extraction requires OCR processing.
+                    This document yielded a low extracted character count (under 500 chars). If this is a scanned image or scanned tables PDF, full multi-page clause extraction requires OCR processing.
                   </p>
                 </div>
               </div>

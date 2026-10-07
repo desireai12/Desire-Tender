@@ -13,8 +13,8 @@ from core.db import fetch_one
 DESIRE_PROFILE = {
     "name": "DESIRE ENERGY SOLUTIONS PRIVATE LIMITED",
     "hq": "Jaipur, Rajasthan",
-    "avg_turnover_cr": 300.93,
-    "net_worth_cr": 95.0,
+    "avg_turnover_cr": 290.27,
+    "net_worth_cr": 52.62,
     "solvency_cr": 72.18,
     "experience_years": 12,
     "certifications": ["ISO 9001:2015", "ISO 14001:2015", "ISO 45001:2018", "MSME Registered"],

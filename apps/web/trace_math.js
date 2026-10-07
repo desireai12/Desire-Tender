@@ -1,7 +1,7 @@
 console.log("=== DESIRE STANDALONE SCORE MATHEMATICAL TRACEABILITY ===");
 
-const c1 = { clause_no: "Clause 1.1", title: "Turnover (Financial)", required: "Rs 45 Cr", desire_actual: "Rs 300.93 Cr", desire_pct: 100, status: "MATCH" };
-const c2 = { clause_no: "Clause 1.2", title: "Net Worth (Financial)", required: "Rs 10 Cr", desire_actual: "Rs 95.00 Cr", desire_pct: 100, status: "MATCH" };
+const c1 = { clause_no: "Clause 1.1", title: "Turnover (Financial)", required: "Rs 45 Cr", desire_actual: "Rs 290.27 Cr", desire_pct: 100, status: "MATCH" };
+const c2 = { clause_no: "Clause 1.2", title: "Net Worth (Financial)", required: "Rs 10 Cr", desire_actual: "Rs 52.62 Cr", desire_pct: 100, status: "MATCH" };
 const c3 = { clause_no: "Clause 2.1", title: "Sewerage / STP (Technical)", required: "10 MLD STP", desire_actual: "0 Sewerage/STP Exp", desire_pct: 0, status: "NOT MATCHING" };
 const c4 = { clause_no: "Clause 3.1", title: "Registration (Compliance)", required: "Class-AA License", desire_actual: "Holds Class-A License", desire_pct: 100, status: "MATCH" };
 
