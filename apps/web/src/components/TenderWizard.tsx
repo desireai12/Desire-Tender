@@ -258,22 +258,74 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     setAnalysisError(null);
 
     try {
-      const formData = new FormData();
-      if (uploadedTenderFile) {
-        formData.append('file', uploadedTenderFile);
-      }
-      formData.append('project_category', selectedCategory);
-      formData.append('tender_title', tenderTitle);
-      formData.append('jv_partner_id', selectedJvPartnerId);
+      let documentUrl: string | null = null;
 
-      setAnalysisProgress(30);
+      if (uploadedTenderFile) {
+        setAnalysisProgress(15);
+        setAnalysisStageText('Uploading Tender Document to Secure Cloud Storage...');
+
+        if (isSupabaseConfigured && supabase) {
+          try {
+            const cleanFileName = uploadedTenderFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const storagePath = `uploads/${Date.now()}_${cleanFileName}`;
+
+            const { data: uploadData, error: uploadErr } = await supabase.storage
+              .from('tender-documents')
+              .upload(storagePath, uploadedTenderFile, {
+                cacheControl: '3600',
+                upsert: true
+              });
+
+            if (!uploadErr && uploadData) {
+              const { data: publicUrlData } = supabase.storage
+                .from('tender-documents')
+                .getPublicUrl(storagePath);
+
+              if (publicUrlData && publicUrlData.publicUrl) {
+                documentUrl = publicUrlData.publicUrl;
+                console.log(`[STORAGE_UPLOAD] Direct Supabase Storage Upload Success: ${documentUrl}`);
+              }
+            } else if (uploadErr) {
+              console.warn('[STORAGE_UPLOAD_WARN] Direct storage upload warning:', uploadErr.message);
+            }
+          } catch (sErr) {
+            console.warn('[STORAGE_UPLOAD_EXCEPTION] Direct storage upload exception:', sErr);
+          }
+        }
+      }
+
+      setAnalysisProgress(35);
       setAnalysisStageText('Parsing All Tender Clauses, Requirements & Technical Specifications...');
 
-      const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
-        method: 'POST',
-        body: formData,
-        signal: AbortSignal.timeout(120000)
-      });
+      let res: Response;
+      if (documentUrl) {
+        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            document_url: documentUrl,
+            filename: uploadedTenderFile ? uploadedTenderFile.name : 'uploaded_document.pdf',
+            tender_title: tenderTitle,
+            project_category: selectedCategory,
+            jv_partner_id: selectedJvPartnerId
+          }),
+          signal: AbortSignal.timeout(180000)
+        });
+      } else {
+        const formData = new FormData();
+        if (uploadedTenderFile) {
+          formData.append('file', uploadedTenderFile);
+        }
+        formData.append('project_category', selectedCategory);
+        formData.append('tender_title', tenderTitle);
+        formData.append('jv_partner_id', selectedJvPartnerId);
+
+        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+          method: 'POST',
+          body: formData,
+          signal: AbortSignal.timeout(180000)
+        });
+      }
 
       setAnalysisProgress(65);
       setAnalysisStageText('Evaluating Desire Energy vs. Tender Criteria (Clause by Clause)...');

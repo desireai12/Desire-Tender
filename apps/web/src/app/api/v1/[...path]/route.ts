@@ -1617,9 +1617,31 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
           formFilename = fileObj?.name || ((fd.get('filename') as string) || '');
           formTenderTitle = (fd.get('tender_title') as string) || '';
           formJvPartnerId = (fd.get('jv_partner_id') as string) || '';
+          const docUrlParam = (fd.get('document_url') as string) || (fd.get('file_url') as string) || '';
           if (fileObj) { try { formFileBuffer = Buffer.from(await fileObj.arrayBuffer()); } catch (e) {} }
+          if (!formFileBuffer && docUrlParam) {
+            try {
+              const fetchRes = await fetch(docUrlParam);
+              if (fetchRes.ok) {
+                formFileBuffer = Buffer.from(await fetchRes.arrayBuffer());
+              }
+            } catch (e) {}
+          }
         } else {
           body = await req.json().catch(() => ({}));
+          formCategory = ((body.project_category as string) || '').toUpperCase();
+          formFilename = (body.filename as string) || 'uploaded_document.pdf';
+          formTenderTitle = (body.tender_title as string) || '';
+          formJvPartnerId = (body.jv_partner_id as string) || '';
+          const docUrlParam = body.document_url || body.file_url || body.storage_path || '';
+          if (docUrlParam) {
+            try {
+              const fetchRes = await fetch(docUrlParam);
+              if (fetchRes.ok) {
+                formFileBuffer = Buffer.from(await fetchRes.arrayBuffer());
+              }
+            } catch (e) {}
+          }
         }
       } catch (e) { body = {}; }
     }
