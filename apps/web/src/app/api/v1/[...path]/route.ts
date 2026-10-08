@@ -620,24 +620,51 @@ RULES:
 }
 
 
+// ─── CLAUSE CATEGORIZATION HELPER (SCORING LOGIC B1) ───────────────────────
+function categorizeClause(c: any): { is_eligibility_criterion: boolean; clause_category: 'eligibility' | 'submission' } {
+  const title = String(c.clause_title || '').toLowerCase();
+  const reqText = String(c.tender_requirement || c.required_value || '').toLowerCase();
+
+  // (b) submission/payment items (EMD, tender fee, stamp duty, power of attorney, validity period, affidavits, statutory registrations)
+  const isSubmission = 
+    title.includes('emd') || reqText.includes('earnest money') || title.includes('earnest money') || (reqText.includes('emd') && !reqText.includes('scheme')) ||
+    title.includes('fee') || reqText.includes('tender fee') || reqText.includes('document fee') || reqText.includes('cost of tender') ||
+    title.includes('stamp') || reqText.includes('stamp duty') || reqText.includes('stamp paper') ||
+    title.includes('power of attorney') || title.includes('poa') || reqText.includes('power of attorney') || reqText.includes('poa') ||
+    title.includes('validity') || reqText.includes('validity period') || reqText.includes('bid validity') ||
+    title.includes('affidavit') || reqText.includes('affidavit') || title.includes('undertaking') || reqText.includes('undertaking') ||
+    title.includes('declaration') || reqText.includes('declaration') || reqText.includes('non-blacklisting') ||
+    title.includes('gst') || reqText.includes('gst') || title.includes('pan') || /\bpan\b/i.test(reqText);
+
+  if (isSubmission) {
+    return { is_eligibility_criterion: false, clause_category: 'submission' };
+  }
+
+  // (a) bidder eligibility criteria (turnover, net worth, solvency, registration/licence, experience, equipment, staff)
+  return { is_eligibility_criterion: true, clause_category: 'eligibility' };
+}
+
 function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
   if (!report || !report.clauses_breakdown || !Array.isArray(report.clauses_breakdown)) return report;
   
   const titleLower = (report.tender_title || '').toLowerCase();
   const catUpper = (report.project_category || '').toUpperCase();
   const isSewerTender = catUpper === 'STP' || catUpper === 'SEWERAGE' || titleLower.includes('sewer') || titleLower.includes('stp') || titleLower.includes('drainage') || titleLower.includes('effluent');
-  const isSolarTender = catUpper === 'SOLAR' || catUpper === 'KUSUM' || titleLower.includes('solar') || titleLower.includes('pv') || titleLower.includes('kusum');
 
   report.clauses_breakdown.forEach((c: any) => {
+    const { is_eligibility_criterion, clause_category } = categorizeClause(c);
+    c.is_eligibility_criterion = is_eligibility_criterion;
+    c.clause_category = clause_category;
+
+    if (!is_eligibility_criterion) {
+      c.gap_notes = 'Submission Item — Checklist requirement for bid package.';
+      return;
+    }
+
     const cTitle = (c.clause_title || '').toLowerCase();
     const reqText = (c.tender_requirement || '').toLowerCase();
-    const desireVal = (c.desire_value || '').toLowerCase();
-    const jvVal = (c.jv_value || '').toLowerCase();
 
     // ── SEWERAGE / STP TENDERS ─────────────────────────────────────────────
-    // Desire Energy has NO underground sewerage/STP network experience.
-    // Any clause that specifically requires sewer/STP/drainage experience must
-    // be marked as NOT MATCHING or PARTIAL MATCH for Desire standalone.
     const isSewerClause = isSewerTender && (
       cTitle.includes('sewer') || cTitle.includes('stp') || cTitle.includes('drain') || cTitle.includes('effluent') ||
       reqText.includes('sewer') || reqText.includes('stp') || reqText.includes('sewage') || reqText.includes('effluent') ||
@@ -645,7 +672,6 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
       reqText.includes('manhole') || reqText.includes('pumping station') || reqText.includes('sewage treatment')
     );
 
-    // For sewer-specific technical experience clauses: Desire cannot meet them standalone
     const isSewerExperienceClause = isSewerClause && (
       reqText.includes('experience') || reqText.includes('executed') || reqText.includes('completed') ||
       reqText.includes('similar work') || reqText.includes('o&m') || reqText.includes('operation') ||
@@ -653,26 +679,21 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
     );
 
     if (isSewerExperienceClause) {
-      // Desire has ZERO sewerage experience — hard NOT MATCHING
       c.desire_status = 'NOT MATCHING';
+      c.desire_pct = 0;
       c.desire_value = 'Desire Energy has zero underground sewerage / STP O&M track record. Water pipeline experience (HDPE/DI) does not qualify as sewerage experience.';
-      c.jv_status = 'MATCH'; // JV Partner (Divija) is specifically chosen for this
-      c.status = 'PARTIAL MATCH'; // Combined is partial without JV bridging the gap
+      c.jv_status = 'MATCH';
+      c.jv_pct = 100;
+      c.status = 'PARTIAL MATCH';
+      c.combined_pct = 50;
       c.fulfilled_pct = '50%';
       c.gap_notes = `CRITICAL GAP: Desire Energy has no sewerage network execution history. ${jvName} is required as the specialist sewerage contractor to satisfy this clause.`;
-    } else if (isSewerClause) {
-      // General sewer-related clause (financial / compliance) — Desire partially qualifies
-      c.desire_status = c.desire_status === 'MATCH' ? 'PARTIAL MATCH' : c.desire_status;
-      c.fulfilled_pct = c.fulfilled_pct || '50%';
-      c.status = 'PARTIAL MATCH';
-      c.gap_notes = c.gap_notes || `Desire Energy's water pipeline experience provides partial credit. ${jvName}'s sewerage specialization fills the gap.`;
     }
 
     // ── INTER-STATE REGISTRATION EQUIVALENCE CLAUSES ─────────────────────────
     const isRegEquivalenceClause = (
       cTitle.includes('registration') || cTitle.includes('enlistment') || cTitle.includes('class') || cTitle.includes('license') ||
-      reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license') ||
-      desireVal.includes('class') || desireVal.includes('license')
+      reqText.includes('registration') || reqText.includes('enlistment') || reqText.includes('class') || reqText.includes('license')
     ) && (
       reqText.includes('equivalent') || reqText.includes('equivalence') || reqText.includes('reciprocity') ||
       reqText.includes('inter-state') || reqText.includes('interstate') || reqText.includes('other state') ||
@@ -682,62 +703,106 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner') {
     if (isRegEquivalenceClause) {
       const quoteText = c.tender_requirement || c.required_value || c.clause_title || 'Inter-state registration equivalence clause';
       c.desire_status = 'POSSIBLE MATCH';
-      c.desire_value = `Possible Match — Requires Manual Verification: Tender clause relies on inter-state registration equivalence. Quoted Clause: "${quoteText}". Desire Energy holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.`;
       c.desire_pct = 85;
+      c.desire_value = `Possible Match — Requires Manual Verification: Tender clause relies on inter-state registration equivalence. Quoted Clause: "${quoteText}". Desire Energy holds Class-A PHED Rajasthan & AA Class Gujarat WRD/R&B registrations.`;
       if (c.status === 'MATCH' && c.jv_status !== 'MATCH') {
         c.status = 'POSSIBLE MATCH';
+        c.combined_pct = 85;
         c.fulfilled_pct = '85%';
         c.combined_value = `Possible Match — Requires Manual Verification (Quoted clause: "${quoteText}")`;
       }
       c.gap_notes = `POSSIBLE MATCH — REQUIRES MANUAL VERIFICATION: Inter-state contractor registration equivalence relies on department reciprocity rules. Quoted clause: "${quoteText}". A real person must verify genuine equivalence before relying on it for a bid decision.`;
     }
-
-    // ── NON-SEWER TENDERS: normalize combined status ───────────────────────
-    if (!isSewerTender && !isRegEquivalenceClause) {
-      if (c.status === 'MATCH') {
-        c.fulfilled_pct = '100%';
-      } else if (c.fulfilled_pct) {
-        const match = String(c.fulfilled_pct).match(/(\d+(\.\d+)?)/);
-        if (match) {
-          const val = parseFloat(match[1]);
-          c.fulfilled_pct = val >= 100 ? '100%' : `${val}%`;
-        } else {
-          c.fulfilled_pct = '100%';
-        }
-      } else {
-        c.fulfilled_pct = c.status === 'MATCH' ? '100%' : c.status === 'POSSIBLE MATCH' ? '85%' : c.status === 'PARTIAL MATCH' ? '50%' : '0%';
-      }
-    }
   });
 
-  // Re-calculate top-level eligibility_score and summary_counts to guarantee 100% mathematical consistency
-  if (report.clauses_breakdown.length > 0) {
-    let matched = 0, partial = 0, notMatching = 0, missing = 0;
-    let totalPct = 0;
+  // Re-calculate scores for Eligibility Criteria ONLY (excluding DATA MISSING)
+  const eligibilityClauses = report.clauses_breakdown.filter((c: any) => c.is_eligibility_criterion);
+  const submissionClauses = report.clauses_breakdown.filter((c: any) => !c.is_eligibility_criterion);
 
-    report.clauses_breakdown.forEach((c: any) => {
-      const st = c.status || 'NOT MATCHING';
-      const parsedPct = parseFloat(String(c.fulfilled_pct || '').replace('%', '').trim());
-      const pctVal = !isNaN(parsedPct) ? parsedPct : (st === 'MATCH' ? 100 : st === 'POSSIBLE MATCH' ? 85 : st === 'PARTIAL MATCH' ? 50 : 0);
-      totalPct += pctVal;
+  const desireEvaluable = eligibilityClauses.filter((c: any) => c.desire_status !== 'DATA MISSING');
+  const combinedEvaluable = eligibilityClauses.filter((c: any) => c.status !== 'DATA MISSING');
+  const missingCount = eligibilityClauses.length - desireEvaluable.length;
 
-      if (st === 'MATCH') matched++;
-      else if (st === 'PARTIAL MATCH' || st === 'POSSIBLE MATCH') partial++;
-      else if (st === 'NOT MATCHING') notMatching++;
-      else missing++;
-    });
-
-    const realAvgScore = Math.round(totalPct / report.clauses_breakdown.length);
-    report.eligibility_score = realAvgScore;
-    if (report.combined_jv) report.combined_jv.score = realAvgScore;
-    report.summary_counts = {
-      total_criteria: report.clauses_breakdown.length,
-      matched,
-      partial,
-      not_matching: notMatching,
-      data_missing: missing
-    };
+  let dScore = 100;
+  let dNum: string[] = [];
+  let dDen: string[] = [];
+  if (desireEvaluable.length > 0) {
+    const sum = desireEvaluable.reduce((acc: number, c: any) => acc + (typeof c.desire_pct === 'number' ? c.desire_pct : (c.desire_status === 'MATCH' ? 100 : c.desire_status === 'POSSIBLE MATCH' ? 85 : c.desire_status === 'PARTIAL MATCH' ? 50 : 0)), 0);
+    dScore = Math.min(100, Math.round(sum / desireEvaluable.length));
+    dNum = desireEvaluable.map((c: any) => `${c.clause_title} (${c.desire_pct ?? (c.desire_status === 'MATCH' ? 100 : 0)}%)`);
+    dDen = desireEvaluable.map((c: any) => c.clause_title);
   }
+
+  let cScore = 100;
+  let cNum: string[] = [];
+  let cDen: string[] = [];
+  if (combinedEvaluable.length > 0) {
+    const sum = combinedEvaluable.reduce((acc: number, c: any) => acc + (typeof c.combined_pct === 'number' ? c.combined_pct : (c.status === 'MATCH' ? 100 : c.status === 'POSSIBLE MATCH' ? 85 : c.status === 'PARTIAL MATCH' ? 50 : 0)), 0);
+    cScore = Math.min(100, Math.round(sum / combinedEvaluable.length));
+    cNum = combinedEvaluable.map((c: any) => `${c.clause_title} (${c.combined_pct ?? (c.status === 'MATCH' ? 100 : 0)}%)`);
+    cDen = combinedEvaluable.map((c: any) => c.clause_title);
+  }
+
+  report.eligibility_score = cScore;
+  if (report.desire_alone) {
+    report.desire_alone.score = dScore;
+    report.desire_alone.fulfilled_pct = `${dScore}%`;
+  }
+  if (report.combined_jv) {
+    report.combined_jv.score = cScore;
+    report.combined_jv.fulfilled_pct = `${cScore}%`;
+  }
+
+  const realDataFailures = desireEvaluable.filter((c: any) => (c.desire_pct !== undefined ? c.desire_pct < 100 : c.desire_status !== 'MATCH'));
+
+  if (realDataFailures.length === 0) {
+    report.summary_line = `Desire Energy satisfies all evaluated eligibility criteria standalone (${dScore}% score across ${desireEvaluable.length} criteria). A JV is optional.`;
+  } else {
+    report.summary_line = `Desire Energy has ${realDataFailures.length} eligibility criteria failing real-data evaluation (Score: ${dScore}%). Recommended: JV with ${jvName} to reach ${cScore}% combined.`;
+  }
+
+  report.score_formula = {
+    desire_standalone: {
+      score: dScore,
+      evaluated_count: desireEvaluable.length,
+      numerator_criteria: dNum,
+      denominator_criteria: dDen,
+      formula_str: desireEvaluable.length > 0
+        ? `Score ${dScore}% = [${dNum.join(' + ')}] / ${dDen.length} evaluated criteria`
+        : 'No evaluable criteria = 100%'
+    },
+    combined_jv: {
+      score: cScore,
+      evaluated_count: combinedEvaluable.length,
+      numerator_criteria: cNum,
+      denominator_criteria: cDen,
+      formula_str: combinedEvaluable.length > 0
+        ? `Score ${cScore}% = [${cNum.join(' + ')}] / ${cDen.length} evaluated criteria`
+        : 'No evaluable criteria = 100%'
+    },
+    missing_criteria_count: missingCount,
+    missing_criteria_names: eligibilityClauses.filter((c: any) => c.desire_status === 'DATA MISSING').map((c: any) => c.clause_title),
+    eligibility_clause_count: eligibilityClauses.length,
+    submission_clause_count: submissionClauses.length
+  };
+
+  let matched = 0, partial = 0, notMatching = 0, missing = 0;
+  eligibilityClauses.forEach((c: any) => {
+    const st = c.status || 'NOT MATCHING';
+    if (st === 'MATCH') matched++;
+    else if (st === 'PARTIAL MATCH' || st === 'POSSIBLE MATCH') partial++;
+    else if (st === 'NOT MATCHING') notMatching++;
+    else missing++;
+  });
+
+  report.summary_counts = {
+    total_criteria: eligibilityClauses.length,
+    matched,
+    partial,
+    not_matching: notMatching,
+    data_missing: missing,
+    submission_items_count: submissionClauses.length
+  };
 
   return report;
 }
@@ -1267,8 +1332,16 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       ? 'DATA MISSING'
       : (cPct >= 100 ? 'MATCH' : (cPct >= 50 ? 'PARTIAL MATCH' : 'NOT ELIGIBLE'));
 
-    let gapNotes = dPct < 100 ? `Desire gap bridged by JV Partner ${partner.name}` : 'Desire satisfies standalone';
-    if (dPct === 85 || dVal.includes('Possible Match')) {
+    let gapNotes = 'Desire satisfies standalone';
+    const { is_eligibility_criterion, clause_category } = categorizeClause(c);
+
+    if (!is_eligibility_criterion) {
+      gapNotes = 'Submission Item — Checklist requirement for bid package.';
+    } else if (dStatus === 'DATA MISSING') {
+      gapNotes = 'DATA MISSING — Metric missing from company record for standalone evaluation.';
+    } else if (dPct < 100 && cPct > dPct) {
+      gapNotes = `Desire eligibility gap bridged by JV Partner ${partner.name}`;
+    } else if (dPct === 85 || dVal.includes('Possible Match')) {
       const quoteText = c.tender_requirement || c.required_value || c.clause_title || '';
       gapNotes = `POSSIBLE MATCH — REQUIRES MANUAL VERIFICATION: Inter-state registration equivalence relies on department reciprocity rules. Quoted clause: "${quoteText}". A real person must verify genuine equivalence before relying on it for a bid decision.`;
     }
@@ -1277,6 +1350,8 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       clause_no: c.clause_no || 'Clause 1',
       clause_title: c.clause_title || 'Requirement',
       requirement_type: reqType,
+      is_eligibility_criterion,
+      clause_category,
       tender_requirement: c.tender_requirement || '',
       required_value: c.required_value || (reqNum ? `Rs ${reqNum} Cr` : 'Specified in tender specs'),
       desire_value: dVal,
@@ -1299,17 +1374,35 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
   const partnerEvaluations: Record<string, any> = {};
   for (const partner of jvPartners) {
     const clauseEvals = cleanClauses.map(c => evalClause(c, partner));
-    const totalCount = clauseEvals.length || 1;
-    const dScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.desire_pct, 0) / totalCount));
-    const jScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.jv_pct, 0) / totalCount));
-    const cScore = Math.min(100, Math.round(clauseEvals.reduce((acc, c) => acc + c.combined_pct, 0) / totalCount));
+    const eligibilityClauses = clauseEvals.filter(c => c.is_eligibility_criterion);
+    const submissionClauses = clauseEvals.filter(c => !c.is_eligibility_criterion);
+
+    const desireEvaluable = eligibilityClauses.filter(c => c.desire_status !== 'DATA MISSING');
+    const jvEvaluable = eligibilityClauses.filter(c => c.jv_status !== 'DATA MISSING');
+    const combinedEvaluable = eligibilityClauses.filter(c => c.status !== 'DATA MISSING');
+
+    const dScore = desireEvaluable.length > 0
+      ? Math.min(100, Math.round(desireEvaluable.reduce((acc, c) => acc + c.desire_pct, 0) / desireEvaluable.length))
+      : 100;
+
+    const jScore = jvEvaluable.length > 0
+      ? Math.min(100, Math.round(jvEvaluable.reduce((acc, c) => acc + c.jv_pct, 0) / jvEvaluable.length))
+      : 100;
+
+    const cScore = combinedEvaluable.length > 0
+      ? Math.min(100, Math.round(combinedEvaluable.reduce((acc, c) => acc + c.combined_pct, 0) / combinedEvaluable.length))
+      : 100;
 
     partnerEvaluations[partner.id] = {
       partner,
       dScore,
       jScore,
       cScore,
-      clauses: clauseEvals
+      clauses: clauseEvals,
+      eligibilityClauses,
+      submissionClauses,
+      desireEvaluable,
+      combinedEvaluable
     };
   }
 
@@ -1330,18 +1423,53 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
   const selectedEval = partnerEvaluations[recommendedPartnerId] || firstEval;
   const recPartner = selectedEval ? selectedEval.partner : (jvPartners[0] || { name: 'VHP Infratech' });
 
+  const desireEvaluableList: any[] = selectedEval ? selectedEval.desireEvaluable : [];
+  const combinedEvaluableList: any[] = selectedEval ? selectedEval.combinedEvaluable : [];
+  const realDataFailures = desireEvaluableList.filter((c: any) => c.desire_pct < 100);
+
   let summaryLine = '';
-  if (desireStandaloneScore >= 100) {
-    summaryLine = `Desire Energy qualifies standalone (100%). A JV is optional.`;
+  if (realDataFailures.length === 0) {
+    summaryLine = `Desire Energy satisfies all evaluated eligibility criteria standalone (${desireStandaloneScore}% score across ${desireEvaluableList.length} criteria). A JV is optional.`;
   } else {
-    summaryLine = `Desire Energy does not qualify standalone (Score: ${desireStandaloneScore}%). Recommended: JV with ${recPartner.name} to reach ${selectedEval ? selectedEval.cScore : 100}% combined.`;
+    summaryLine = `Desire Energy has ${realDataFailures.length} eligibility criteria failing real-data evaluation (Score: ${desireStandaloneScore}%). Recommended: JV with ${recPartner.name} to reach ${selectedEval ? selectedEval.cScore : 100}% combined.`;
   }
+
+  const dNum = desireEvaluableList.map((c: any) => `${c.clause_title} (${c.desire_pct}%)`);
+  const dDen = desireEvaluableList.map((c: any) => c.clause_title);
+  const cNum = combinedEvaluableList.map((c: any) => `${c.clause_title} (${c.combined_pct}%)`);
+  const cDen = combinedEvaluableList.map((c: any) => c.clause_title);
+
+  const scoreFormula = {
+    desire_standalone: {
+      score: desireStandaloneScore,
+      evaluated_count: desireEvaluableList.length,
+      numerator_criteria: dNum,
+      denominator_criteria: dDen,
+      formula_str: desireEvaluableList.length > 0
+        ? `Score ${desireStandaloneScore}% = [${dNum.join(' + ')}] / ${dDen.length} evaluated criteria`
+        : 'No evaluable criteria = 100%'
+    },
+    combined_jv: {
+      score: selectedEval ? selectedEval.cScore : 100,
+      evaluated_count: combinedEvaluableList.length,
+      numerator_criteria: cNum,
+      denominator_criteria: cDen,
+      formula_str: combinedEvaluableList.length > 0
+        ? `Score ${selectedEval ? selectedEval.cScore : 100}% = [${cNum.join(' + ')}] / ${cDen.length} evaluated criteria`
+        : 'No evaluable criteria = 100%'
+    },
+    missing_criteria_count: (selectedEval ? selectedEval.eligibilityClauses.length : 0) - desireEvaluableList.length,
+    missing_criteria_names: (selectedEval ? selectedEval.eligibilityClauses : []).filter((c: any) => c.desire_status === 'DATA MISSING').map((c: any) => c.clause_title),
+    eligibility_clause_count: selectedEval ? selectedEval.eligibilityClauses.length : 0,
+    submission_clause_count: selectedEval ? selectedEval.submissionClauses.length : 0
+  };
 
   return {
     desireStandaloneScore,
     recommendedPartner: recPartner,
     recommendedPartnerId,
     summaryLine,
+    score_formula: scoreFormula,
     desire_alone: {
       score: desireStandaloneScore,
       fulfilled_pct: `${desireStandaloneScore}%`,
@@ -2061,6 +2189,54 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       });
     }
 
+    // ═══ TENDER UPLOAD URL (AUTHENTICATED SIGNED URL CREATOR) ═════════════════
+    if (subPath === 'tender/upload-url' && method === 'POST') {
+      if (!session) {
+        return NextResponse.json(
+          { status: 'error', error_type: 'UNAUTHORIZED', message: 'Authentication required to obtain upload URL.' },
+          { status: 401 }
+        );
+      }
+
+      const filename = (body?.filename || 'uploaded_document.pdf').trim();
+      const cleanFileName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `uploads/${Date.now()}_${cleanFileName}`;
+
+      if (!supabase) {
+        return NextResponse.json(
+          { status: 'error', error_type: 'UPLOAD_FAILED', message: 'Supabase storage service is not configured on server.' },
+          { status: 500 }
+        );
+      }
+
+      try {
+        const { data, error } = await supabase.storage
+          .from('tender-documents')
+          .createSignedUploadUrl(storagePath);
+
+        if (error || !data?.signedUrl) {
+          console.error('[UPLOAD_URL_ERROR]', error);
+          return NextResponse.json(
+            { status: 'error', error_type: 'UPLOAD_FAILED', message: `Failed to create signed upload URL: ${error?.message || 'Unknown storage error'}` },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({
+          status: 'success',
+          signed_url: data.signedUrl,
+          storage_path: storagePath,
+          token: data.token
+        });
+      } catch (err: any) {
+        console.error('[UPLOAD_URL_EXCEPTION]', err);
+        return NextResponse.json(
+          { status: 'error', error_type: 'UPLOAD_FAILED', message: `Server error creating signed upload URL: ${err?.message || err}` },
+          { status: 500 }
+        );
+      }
+    }
+
     // ═══ TENDER ANALYZE ═══════════════════════════════════════════════════════
     if ((subPath === 'tender/analyze' || subPath === 'tender/analyze-full') && method === 'POST') {
       const filename = formFilename || body.filename || 'uploaded_document.pdf';
@@ -2070,8 +2246,30 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       const currentTenderId = inputTenderId || `tender-${Date.now()}`;
       const isFullMode = subPath === 'tender/analyze-full' || body.mode === 'full' || formCategory === 'full';
 
+      // Storage Download Fallback if File Buffer is empty (Direct-to-Storage Flow)
+      const docPathOrUrl = body.storage_path || body.document_url || body.file_url || '';
+      if ((!formFileBuffer || formFileBuffer.length === 0) && docPathOrUrl) {
+        let cleanPath = docPathOrUrl;
+        if (cleanPath.includes('/tender-documents/')) cleanPath = cleanPath.split('/tender-documents/')[1];
+        cleanPath = cleanPath.split('?')[0];
+
+        if (supabase) {
+          try {
+            const { data, error } = await supabase.storage.from('tender-documents').download(cleanPath);
+            if (!error && data) {
+              formFileBuffer = Buffer.from(await data.arrayBuffer());
+              console.log(`[STORAGE_DOWNLOAD] Successfully downloaded ${formFileBuffer.length} bytes from path: ${cleanPath}`);
+            } else if (error) {
+              console.error(`[STORAGE_DOWNLOAD_ERROR] Download failed for ${cleanPath}:`, error.message);
+            }
+          } catch (dErr: any) {
+            console.error(`[STORAGE_DOWNLOAD_EXCEPTION] Download exception for ${cleanPath}:`, dErr?.message || dErr);
+          }
+        }
+      }
+
       if (!formFileBuffer || formFileBuffer.length === 0) {
-        return buildErrorResponse('FILE_UPLOAD_FAILED', 'Uploaded file buffer is empty or 0 bytes.');
+        return buildErrorResponse('FILE_UPLOAD_FAILED', 'Uploaded file buffer is empty or could not be downloaded from cloud storage.');
       }
 
       let extractedPdfText = '';

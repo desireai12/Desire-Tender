@@ -259,79 +259,76 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     setAnalysisError(null);
 
     try {
-      let documentUrl: string | null = null;
+      let storagePath: string | null = null;
 
       if (uploadedTenderFile) {
         setAnalysisProgress(15);
-        setAnalysisStageText('Uploading Tender Document to Secure Cloud Storage...');
+        setAnalysisStageText('Obtaining Secure Signed Upload URL from Server...');
 
-        if (isSupabaseConfigured && supabase) {
-          try {
-            const cleanFileName = uploadedTenderFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-            const storagePath = `uploads/${Date.now()}_${cleanFileName}`;
+        const sessionToken = typeof localStorage !== 'undefined'
+          ? (localStorage.getItem('desire_session_token') || localStorage.getItem('token') || '')
+          : '';
 
-            const { data: uploadData, error: uploadErr } = await supabase.storage
-              .from('tender-documents')
-              .upload(storagePath, uploadedTenderFile, {
-                cacheControl: '3600',
-                upsert: true
-              });
+        const urlRes = await fetch(`${API_BASE_URL}/tender/upload-url`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
+          },
+          body: JSON.stringify({ filename: uploadedTenderFile.name })
+        });
 
-            if (!uploadErr && uploadData) {
-              const { data: signedUrlData, error: signedErr } = await supabase.storage
-                .from('tender-documents')
-                .createSignedUrl(storagePath, 900); // 15-minute expiry for private commercial security
-
-              if (!signedErr && signedUrlData?.signedUrl) {
-                documentUrl = signedUrlData.signedUrl;
-                console.log(`[STORAGE_UPLOAD] Direct Storage Upload Success (Signed URL): ${documentUrl}`);
-              } else {
-                const { data: fallbackUrlData } = supabase.storage
-                  .from('tender-documents')
-                  .getPublicUrl(storagePath);
-                documentUrl = fallbackUrlData?.publicUrl || null;
-              }
-            } else if (uploadErr) {
-              console.warn('[STORAGE_UPLOAD_WARN] Direct storage upload warning:', uploadErr.message);
-            }
-          } catch (sErr) {
-            console.warn('[STORAGE_UPLOAD_EXCEPTION] Direct storage upload exception:', sErr);
-          }
+        const urlData = await urlRes.json().catch(() => null);
+        if (!urlRes.ok || !urlData?.signed_url || !urlData?.storage_path) {
+          const errMsg = urlData?.message || urlData?.detail || `Server returned HTTP ${urlRes.status} creating upload URL.`;
+          setAnalysisError(`[UPLOAD_FAILED] ${errMsg}`);
+          setAnalysisProgress(0);
+          return;
         }
+
+        setAnalysisProgress(25);
+        setAnalysisStageText('Uploading Document Directly to Private Storage Bucket...');
+
+        const putRes = await fetch(urlData.signed_url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': uploadedTenderFile.type || 'application/pdf'
+          },
+          body: uploadedTenderFile
+        });
+
+        if (!putRes.ok) {
+          setAnalysisError(`[UPLOAD_FAILED] Direct cloud storage upload failed with HTTP ${putRes.status}.`);
+          setAnalysisProgress(0);
+          return;
+        }
+
+        storagePath = urlData.storage_path;
+        console.log(`[STORAGE_UPLOAD] Signed Upload URL Success. Storage Path: ${storagePath}`);
       }
 
       setAnalysisProgress(35);
       setAnalysisStageText('Parsing All Tender Clauses, Requirements & Technical Specifications...');
 
-      let res: Response;
-      if (documentUrl) {
-        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            document_url: documentUrl,
-            filename: uploadedTenderFile ? uploadedTenderFile.name : 'uploaded_document.pdf',
-            tender_title: tenderTitle,
-            project_category: selectedCategory,
-            jv_partner_id: selectedJvPartnerId
-          }),
-          signal: AbortSignal.timeout(180000)
-        });
-      } else {
-        const formData = new FormData();
-        if (uploadedTenderFile) {
-          formData.append('file', uploadedTenderFile);
-        }
-        formData.append('project_category', selectedCategory);
-        formData.append('tender_title', tenderTitle);
-        formData.append('jv_partner_id', selectedJvPartnerId);
+      const sessionToken = typeof localStorage !== 'undefined'
+        ? (localStorage.getItem('desire_session_token') || localStorage.getItem('token') || '')
+        : '';
 
-        res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
-          method: 'POST',
-          body: formData,
-          signal: AbortSignal.timeout(180000)
-        });
-      }
+      const res = await fetch(`${API_BASE_URL}/tender/analyze?provider=${currentProvider}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
+        },
+        body: JSON.stringify({
+          storage_path: storagePath,
+          filename: uploadedTenderFile ? uploadedTenderFile.name : 'uploaded_document.pdf',
+          tender_title: tenderTitle,
+          project_category: selectedCategory,
+          jv_partner_id: selectedJvPartnerId
+        }),
+        signal: AbortSignal.timeout(180000)
+      });
 
       setAnalysisProgress(65);
       setAnalysisStageText('Evaluating Desire Energy vs. Tender Criteria (Clause by Clause)...');

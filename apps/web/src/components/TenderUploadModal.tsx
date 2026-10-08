@@ -30,16 +30,53 @@ export const TenderUploadModal: React.FC<TenderUploadModalProps> = ({
     setIsAnalyzing(true);
     setErrorMsg(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('project_category', projectCategory);
-
     try {
+      const sessionToken = typeof localStorage !== 'undefined'
+        ? (localStorage.getItem('desire_session_token') || localStorage.getItem('token') || '')
+        : '';
+
+      const urlRes = await fetch(`${API_BASE_URL}/tender/upload-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
+        },
+        body: JSON.stringify({ filename: file.name })
+      });
+
+      const urlData = await urlRes.json().catch(() => null);
+      if (!urlRes.ok || !urlData?.signed_url || !urlData?.storage_path) {
+        const errMsg = urlData?.message || urlData?.detail || `Server returned HTTP ${urlRes.status} creating upload URL.`;
+        setErrorMsg(`[UPLOAD_FAILED] ${errMsg}`);
+        return;
+      }
+
+      const putRes = await fetch(urlData.signed_url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/pdf'
+        },
+        body: file
+      });
+
+      if (!putRes.ok) {
+        setErrorMsg(`[UPLOAD_FAILED] Direct cloud storage upload failed with HTTP ${putRes.status}.`);
+        return;
+      }
+
       const res = await fetch(
         `${API_BASE_URL}/tender/analyze?provider=${currentProvider}`,
         {
           method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
+          },
+          body: JSON.stringify({
+            storage_path: urlData.storage_path,
+            filename: file.name,
+            project_category: projectCategory
+          }),
           signal: AbortSignal.timeout(120000)
         }
       );
