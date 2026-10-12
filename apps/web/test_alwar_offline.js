@@ -118,7 +118,7 @@ function evaluateDeterministicMatching(rawClauses, comps, selectedJvPartnerId) {
                       reqText.includes('sewer') || reqText.includes('sewage') || reqText.includes('stp') || reqText.includes('etp') || reqText.includes('drainage');
       if (isSewer) {
         dPct = 0;
-        dVal = 'Desire actual: Zero sewerage/STP track record -> 0% NOT MATCHING (Desire Sector Gap)';
+        dVal = 'Desire actual: Missing sewerage/STP project in company project register -> 0% NOT MATCHING';
 
         const partnerHasSTP = jTech.toLowerCase().includes('stp') || jTech.toLowerCase().includes('sewage') || jTech.toLowerCase().includes('sewer') || jTech.toLowerCase().includes('sbr');
         if (partnerHasSTP) {

@@ -133,27 +133,9 @@ async def calculate_costing_estimate(payload: CostingCalculationPayload) -> Dict
 
 @router.get("/vapi-costing-data")
 async def get_vapi_costing_data() -> Dict[str, Any]:
-    """
-    Returns the real Vapi Karvad Water Supply EPC Tender dataset including 260+ items,
-    Schedules B1-B6 & C, Vendor Quotes, O&M Staffing, Machinery Amortization, and Bid Strategy.
-    """
-    import os, json
-    json_path = os.path.join(os.path.dirname(__file__), "..", "..", "web", "src", "data", "vapi_karvad_real_tender.json")
-    if os.path.exists(json_path):
-        with open(json_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    raise HTTPException(status_code=404, detail="Vapi Karvad data file not found")
+    raise HTTPException(status_code=404, detail="Legacy fixture disabled in production")
 
 
 @router.get("/banaskantha-costing-data")
 async def get_banaskantha_costing_data() -> Dict[str, Any]:
-    """
-    Returns the real Banaskantha Kankrej Pipeline Project EPC Tender dataset (Rs 69.78 Cr)
-    including 58+ items, MS & HDPE Pipelines, Valve Chambers, Crossings, O&M, and Manifest.
-    """
-    import os, json
-    json_path = os.path.join(os.path.dirname(__file__), "..", "..", "web", "src", "data", "banaskantha_kankrej_real_tender.json")
-    if os.path.exists(json_path):
-        with open(json_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    raise HTTPException(status_code=404, detail="Banaskantha Kankrej data file not found")
+    raise HTTPException(status_code=404, detail="Legacy fixture disabled in production")

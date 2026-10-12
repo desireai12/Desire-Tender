@@ -86,129 +86,7 @@ export const EligibilityChecker: React.FC = () => {
   const [tenderTitleInput, setTenderTitleInput] = useState<string>('');
   const [analyzing, setAnalyzing] = useState<boolean>(false);
   const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
-  const [report, setReport] = useState<DynamicTenderEvaluationReport | null>({
-    tender_id: 'BANAS-2026-NIT-004',
-    tender_title: 'EPC Contract for Tapping Branch Pipeline from Changa MPS to fill 27 Ponds in Kankrej Taluka',
-    project_category: 'RHDS',
-    filename: 'Banaskantha_Kankrej_Water_Supply_Scheme.pdf',
-    verdict: 'Eligible',
-    eligibility_score: 100,
-    overall_health: 'Green',
-    recommendation: 'Desire Energy qualifies standalone (100%). A JV is optional.',
-    executive_summary: 'Desire Energy satisfies 100% of financial, technical, and regulatory requirements for standalone bidding.',
-    desire_alone: { score: 100, status: 'Eligible Standalone', fulfilled_pct: '100%' },
-    jv_alone: { score: 100, status: 'Partner Standalone Qualified', fulfilled_pct: '100%' },
-    combined_jv: { score: 100, status: 'Fully Qualified Consortium', fulfilled_pct: '100%' },
-    summary_counts: { total_criteria: 5, matched: 5, partial: 0, not_matching: 0, data_missing: 0 },
-    jv_rules_audit: [],
-    clauses_breakdown: [
-      {
-        clause_no: 'Clause 1.1',
-        clause_title: 'Average Annual Financial Turnover',
-        requirement_type: 'Financial',
-        tender_requirement: 'Minimum Average Annual Financial Turnover of Rs 87.45 Cr in last 3 financial years.',
-        required_value: 'Rs 87.45 Cr',
-        desire_value: 'Required: Rs 87.45 Cr | Desire actual: Rs 290.27 Cr -> 331.9% raw (100% capped)',
-        desire_status: 'MATCH',
-        desire_pct: 100,
-        jv_value: 'Required: Rs 87.45 Cr | VINOD H PATEL actual: Rs 191.39 Cr -> 218.9% raw (100% capped)',
-        jv_status: 'MATCH',
-        jv_pct: 100,
-        combined_value: 'Pooled: Rs 481.66 Cr -> 550.8% raw (100% capped)',
-        combined_pct: 100,
-        applicable_jv_rule: 'Lead Member / JV Pooling',
-        status: 'MATCH',
-        fulfilled_pct: '100%',
-        gap_notes: 'Desire satisfies standalone',
-        required_doc: 'Audited Financial Statements / CA Certificate',
-        page_ref: 'Section III - Qualification Criteria, Page 14'
-      },
-      {
-        clause_no: 'Clause 1.2',
-        clause_title: 'Net Worth Requirement',
-        requirement_type: 'Financial',
-        tender_requirement: 'Minimum Net Worth of Rs 15.00 Cr as on last financial year.',
-        required_value: 'Rs 15.00 Cr',
-        desire_value: 'Required: Rs 15 Cr | Desire actual: Rs 52.62 Cr -> 350.8% raw (100% capped)',
-        desire_status: 'MATCH',
-        desire_pct: 100,
-        jv_value: 'Required: Rs 15 Cr | VINOD H PATEL actual: Rs 33.37 Cr -> 222.5% raw (100% capped)',
-        jv_status: 'MATCH',
-        jv_pct: 100,
-        combined_value: 'Pooled: Rs 128.37 Cr -> 855.8% raw (100% capped)',
-        combined_pct: 100,
-        applicable_jv_rule: 'Lead Member / JV Pooling',
-        status: 'MATCH',
-        fulfilled_pct: '100%',
-        gap_notes: 'Desire satisfies standalone',
-        required_doc: 'CA Net Worth Certificate',
-        page_ref: 'Section III, Page 15'
-      },
-      {
-        clause_no: 'Clause 1.3',
-        clause_title: 'Bank Solvency Certificate',
-        requirement_type: 'Financial',
-        tender_requirement: 'Solvency Certificate of minimum Rs 20.00 Cr from any Scheduled Bank.',
-        required_value: 'Rs 20.00 Cr',
-        desire_value: 'Required: Rs 20 Cr | Desire actual: Rs 72.18 Cr -> 360.9% raw (100% capped)',
-        desire_status: 'MATCH',
-        desire_pct: 100,
-        jv_value: 'Required: Rs 20 Cr | VINOD H PATEL actual: Rs 25 Cr -> 125% raw (100% capped)',
-        jv_status: 'MATCH',
-        jv_pct: 100,
-        combined_value: 'Pooled: Rs 97.18 Cr -> 485.9% raw (100% capped)',
-        combined_pct: 100,
-        applicable_jv_rule: 'Lead Member / JV Pooling',
-        status: 'MATCH',
-        fulfilled_pct: '100%',
-        gap_notes: 'Desire satisfies standalone',
-        required_doc: 'Bank Solvency Certificate',
-        page_ref: 'Section III, Page 16'
-      },
-      {
-        clause_no: 'Clause 2.1',
-        clause_title: 'Technical Execution Experience',
-        requirement_type: 'Technical',
-        tender_requirement: 'Execution of bulk water pipeline schemes including DI/HDPE pipes and pumping machineries.',
-        required_value: 'Similar Water Pipeline Works',
-        desire_value: 'Desire actual: Executed 120+ km HDPE/DI Water Pipelines -> 100% MATCH',
-        desire_status: 'MATCH',
-        desire_pct: 100,
-        jv_value: 'VINOD H PATEL actual: Executed Palanpur Group Water Supply Package 2 -> 100% MATCH',
-        jv_status: 'MATCH',
-        jv_pct: 100,
-        combined_value: 'Combined: Meets technical experience criteria -> 100% MATCH',
-        combined_pct: 100,
-        applicable_jv_rule: 'Lead Member Experience',
-        status: 'MATCH',
-        fulfilled_pct: '100%',
-        gap_notes: 'Desire satisfies standalone',
-        required_doc: 'Work Completion Certificates',
-        page_ref: 'Section IV - Technical Specs, Page 22'
-      },
-      {
-        clause_no: 'Clause 3.1',
-        clause_title: 'General Business Registration',
-        requirement_type: 'Compliance',
-        tender_requirement: 'Class-A Civil/PHED Contractor License / Registration with Government authority.',
-        required_value: 'Class-A License',
-        desire_value: 'Desire actual: Holds Class-A PHED & AA Class Gujarat License -> 100% MATCH',
-        desire_status: 'MATCH',
-        desire_pct: 100,
-        jv_value: 'VINOD H PATEL actual: Holds AA Class Civil Contractor Registration -> 100% MATCH',
-        jv_status: 'MATCH',
-        jv_pct: 100,
-        combined_value: 'Combined: Meets registration criteria -> 100% MATCH',
-        combined_pct: 100,
-        applicable_jv_rule: 'Lead Member Registration',
-        status: 'MATCH',
-        fulfilled_pct: '100%',
-        gap_notes: 'Desire satisfies standalone',
-        required_doc: 'Valid Registration Certificate',
-        page_ref: 'Section II - ITB, Page 8'
-      }
-    ]
-  });
+  const [report, setReport] = useState<DynamicTenderEvaluationReport | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // Fetch Companies on Mount
@@ -362,15 +240,15 @@ export const EligibilityChecker: React.FC = () => {
     const missingCount = eligibilityClauses.length - desireEvaluable.length;
 
     const calcDesireScore = desireEvaluable.length > 0
-      ? Math.min(100, Math.round(desireEvaluable.reduce((acc: number, c: any) => acc + (typeof c.desire_pct === 'number' ? c.desire_pct : (c.desire_status === 'MATCH' ? 100 : c.desire_status === 'POSSIBLE MATCH' ? 85 : c.desire_status === 'PARTIAL MATCH' ? 50 : 0)), 0) / desireEvaluable.length))
+      ? Math.min(100, Math.round(desireEvaluable.reduce((acc: number, c: any) => acc + (typeof c.desire_pct === 'number' ? c.desire_pct : (c.desire_status === 'MATCH' ? 100 : c.desire_status === 'PARTIAL MATCH' ? 50 : 0)), 0) / desireEvaluable.length))
       : 100;
 
     const calcJvScore = jvEvaluable.length > 0
-      ? Math.min(100, Math.round(jvEvaluable.reduce((acc: number, c: any) => acc + (typeof c.jv_pct === 'number' ? c.jv_pct : (c.jv_status === 'MATCH' ? 100 : c.jv_status === 'POSSIBLE MATCH' ? 85 : c.jv_status === 'PARTIAL MATCH' ? 50 : 0)), 0) / jvEvaluable.length))
+      ? Math.min(100, Math.round(jvEvaluable.reduce((acc: number, c: any) => acc + (typeof c.jv_pct === 'number' ? c.jv_pct : (c.jv_status === 'MATCH' ? 100 : c.jv_status === 'PARTIAL MATCH' ? 50 : 0)), 0) / jvEvaluable.length))
       : 100;
 
     const calcCombinedScore = combinedEvaluable.length > 0
-      ? Math.min(100, Math.round(combinedEvaluable.reduce((acc: number, c: any) => acc + (typeof c.combined_pct === 'number' ? c.combined_pct : (c.status === 'MATCH' ? 100 : c.status === 'POSSIBLE MATCH' ? 85 : c.status === 'PARTIAL MATCH' ? 50 : 0)), 0) / combinedEvaluable.length))
+      ? Math.min(100, Math.round(combinedEvaluable.reduce((acc: number, c: any) => acc + (typeof c.combined_pct === 'number' ? c.combined_pct : (c.status === 'MATCH' ? 100 : c.status === 'PARTIAL MATCH' ? 50 : 0)), 0) / combinedEvaluable.length))
       : 100;
 
     const desireTargetScore = report.desire_alone?.score ?? calcDesireScore;
@@ -385,20 +263,16 @@ export const EligibilityChecker: React.FC = () => {
 
         let dStatus: string = (c.desire_status as any) || 'MATCH';
         const dVal = (c.desire_value || '').toLowerCase();
-        if (c.desire_status === 'POSSIBLE MATCH' || dVal.includes('possible match') || dVal.includes('manual verification')) {
-          dStatus = 'POSSIBLE MATCH';
-        } else if (c.desire_status === 'DATA MISSING' || c.desire_status === 'DATA NOT AVAILABLE' || dVal.includes('data not available')) {
-          dStatus = 'DATA MISSING';
+        if (c.desire_status === 'CANNOT BE CHECKED' || c.desire_status === 'DATA MISSING' || c.desire_status === 'DATA NOT AVAILABLE' || dVal.includes('data not available') || dVal.includes('cannot be checked')) {
+          dStatus = 'CANNOT BE CHECKED';
         } else if (c.desire_status === 'NOT ELIGIBLE' || c.desire_status === 'NOT MATCHING' || dVal.includes('lacks') || dVal.includes('0%')) {
           dStatus = 'NOT ELIGIBLE';
         }
 
         let jStatus: string = (c.jv_status as any) || 'MATCH';
         const jVal = (c.jv_value || '').toLowerCase();
-        if (c.jv_status === 'POSSIBLE MATCH' || jVal.includes('possible match') || jVal.includes('manual verification')) {
-          jStatus = 'POSSIBLE MATCH';
-        } else if (c.jv_status === 'DATA MISSING' || c.jv_status === 'DATA NOT AVAILABLE' || jVal.includes('data not available')) {
-          jStatus = 'DATA MISSING';
+        if (c.jv_status === 'CANNOT BE CHECKED' || c.jv_status === 'DATA MISSING' || c.jv_status === 'DATA NOT AVAILABLE' || jVal.includes('data not available') || jVal.includes('cannot be checked')) {
+          jStatus = 'CANNOT BE CHECKED';
         } else if (c.jv_status === 'NOT ELIGIBLE' || c.jv_status === 'NOT MATCHING' || jVal.includes('lacks') || jVal.includes('0%')) {
           jStatus = 'NOT ELIGIBLE';
         }
@@ -406,25 +280,22 @@ export const EligibilityChecker: React.FC = () => {
         if (mode === 'desire') {
           val = c.desire_value || '';
           status = dStatus;
-          pct = status === 'MATCH' ? 100 : status === 'POSSIBLE MATCH' ? 85 : status === 'PARTIAL MATCH' ? 50 : 0;
+          pct = typeof c.desire_pct === 'number' ? c.desire_pct : (status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0);
         } else if (mode === 'jv') {
           val = c.jv_value || '';
           status = jStatus;
-          pct = status === 'MATCH' ? 100 : status === 'POSSIBLE MATCH' ? 85 : status === 'PARTIAL MATCH' ? 50 : 0;
+          pct = typeof c.jv_pct === 'number' ? c.jv_pct : (status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0);
         } else {
           val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
           if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
             status = 'MATCH';
-            pct = 100;
-          } else if (dStatus === 'POSSIBLE MATCH' || jStatus === 'POSSIBLE MATCH' || c.status === 'POSSIBLE MATCH') {
-            status = 'POSSIBLE MATCH';
-            pct = 85;
-          } else if (dStatus === 'DATA MISSING' && jStatus === 'DATA MISSING') {
-            status = 'DATA MISSING';
+            pct = typeof c.combined_pct === 'number' ? c.combined_pct : 100;
+          } else if (dStatus === 'CANNOT BE CHECKED' && jStatus === 'CANNOT BE CHECKED') {
+            status = 'CANNOT BE CHECKED';
             pct = 0;
           } else {
             status = 'NOT ELIGIBLE';
-            pct = 0;
+            pct = typeof c.combined_pct === 'number' ? c.combined_pct : 0;
           }
         }
 

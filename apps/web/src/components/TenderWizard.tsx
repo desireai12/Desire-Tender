@@ -194,19 +194,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       setEvaluationReport(null);
       setAnalysisError(null);
       setAnalysisProgress(0);
-      const fileLower = file.name.toLowerCase();
-      if (fileLower.includes('banaskantha') || fileLower.includes('kankrej') || fileLower.includes('69.78')) {
-        setTenderTitle('Banaskantha Bulk Water Transmission Package (GWSSB / WRD Gujarat - ₹69.78 Cr)');
-        setSelectedCategory('EPC');
-      } else if (fileLower.includes('vapi') || fileLower.includes('karvad')) {
-        setTenderTitle('Karvad Water Supply Scheme Phase-2 (Vapi Municipal Corporation - ₹31.80 Cr)');
-        setSelectedCategory('EPC');
-      } else if (fileLower.includes('alwar') || fileLower.includes('sewer') || fileLower.includes('rudsico')) {
-        setTenderTitle('Alwar Package 44 Sewerage & STP Project (AMRUT 2.0)');
-        setSelectedCategory('STP');
-      } else {
-        setTenderTitle(file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' '));
-      }
+      setTenderTitle(file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' '));
     } else if (type === 'boq') {
       setUploadedBOQFile(file);
     }
@@ -826,9 +814,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                 onChange={(e) => setSelectedCategory(e.target.value as ProjectCategory)}
                 className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-teal-600"
               >
-                <option value="EPC">Turnkey Civil & Pipeline EPC (Banaskantha / GWSSB / WRD)</option>
-                <option value="ESCO">ESCO & Water Pumping Project (Vapi / Junagadh Scheme)</option>
-                <option value="STP">STP & Sewerage Package (AMRUT 2.0 / Alwar PKG 44)</option>
+                <option value="EPC">Turnkey Civil & Pipeline EPC</option>
+                <option value="ESCO">ESCO & Water Pumping Project</option>
+                <option value="STP">STP & Sewerage Package</option>
                 <option value="RHDS">RHDS Jal Jeevan Mission Rural Water Scheme</option>
                 <option value="SOLAR">Solar PV EPC Project</option>
                 <option value="KUSUM">PM-Kusum Component-B Solar Pumps</option>
@@ -844,7 +832,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               <span className="text-xs font-bold text-slate-900">
                 {uploadedTenderFile ? uploadedTenderFile.name : 'Drag & drop tender PDF here, or click to browse'}
               </span>
-              <span className="text-[11px] text-slate-600 font-medium mt-1">Supports official tender NIT, RFP, PQ guidelines PDF (e.g. Banaskantha, Vapi, Alwar, Junagadh)</span>
+              <span className="text-[11px] text-slate-600 font-medium mt-1">Supports official tender NIT, RFP, PQ guidelines PDF documents</span>
               <input
                 type="file"
                 accept=".pdf,.doc,.docx"
