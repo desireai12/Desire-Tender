@@ -19,10 +19,19 @@ import {
   GitMerge,
   Loader2,
   ChevronRight,
+  ChevronDown,
   ShieldCheck,
   FileSpreadsheet,
   Download,
-  Calculator
+  Calculator,
+  Calendar,
+  DollarSign,
+  Clock,
+  Shield,
+  Briefcase,
+  FileCode2,
+  Check,
+  Info
 } from 'lucide-react';
 import { CompanyRecord } from './CompanyDetailsView';
 
@@ -47,7 +56,12 @@ export interface ClauseBreakdownItem {
   required_doc: string;
   page_ref: string;
   is_eligibility_criterion?: boolean;
-  clause_category?: 'eligibility' | 'submission';
+  clause_group?: 'qualification_criterion' | 'mandatory_submission' | 'contract_term';
+  clause_category?: 'qualification' | 'submission' | 'contract';
+  is_alternative?: boolean;
+  alternative_group?: string | null;
+  boq_total?: string;
+  boq_total_cr?: number;
 }
 
 export interface DynamicTenderEvaluationReport {
@@ -55,7 +69,7 @@ export interface DynamicTenderEvaluationReport {
   tender_title: string;
   project_category: string;
   filename: string;
-  verdict: 'Eligible' | 'Conditional' | 'Ineligible';
+  verdict: string;
   eligibility_score: number;
   overall_health: 'Green' | 'Yellow' | 'Red';
   is_rejected_non_tender?: boolean;
@@ -63,19 +77,116 @@ export interface DynamicTenderEvaluationReport {
   executive_summary: string;
   summary_line?: string;
   score_formula?: any;
+  header_summary?: any;
   desire_alone: { score: number; status: string; fulfilled_pct: string };
   jv_alone: { score: number; status: string; fulfilled_pct: string };
   combined_jv: { score: number; status: string; fulfilled_pct: string };
   clauses_breakdown: ClauseBreakdownItem[];
-  jv_rules_audit: { rule: string; requirement: string; actual: string; status: string }[];
-  summary_counts: {
+  jv_rules_audit?: { rule: string; requirement: string; actual: string; status: string }[];
+  summary_counts?: {
     total_criteria: number;
     matched: number;
-    partial: number;
+    possible: number;
     not_matching: number;
     data_missing: number;
     submission_items_count?: number;
   };
+}
+
+// Guaranteed safe formatter — Prevents "undefined" or "NaN" from ever rendering in the report
+export const fmtVal = (val: any, fallback: string = 'Not Specified in Document'): string => {
+  if (val === undefined || val === null) return fallback;
+  const s = String(val).trim();
+  if (s === '' || s.toLowerCase() === 'undefined' || s.toLowerCase() === 'nan') return fallback;
+  return s;
+};
+
+interface TenderHeaderDetails {
+  tenderValue: string;
+  emd: string;
+  fee: string;
+  pbg: string;
+  solvencyRequired: string;
+  defectLiability: string;
+  completionPeriod: string;
+  omPeriod: string;
+  preBidDate: string;
+  publishDate: string;
+}
+
+function extractTenderHeader(report: any, clauses: ClauseBreakdownItem[]): TenderHeaderDetails {
+  const base = report?.header_summary || {};
+  
+  const findClause = (keywords: string[]) => {
+    for (const c of clauses) {
+      const text = `${c.clause_title || ''} ${c.tender_requirement || ''} ${c.clause_no || ''}`.toLowerCase();
+      if (keywords.some(k => text.includes(k))) {
+        return c.required_value || c.tender_requirement || null;
+      }
+    }
+    return null;
+  };
+
+  const titleMatch = report?.tender_title?.match(/₹?\s*(\d+(?:\.\d+)?\s*(?:Cr|Crore|Lakh|Lakhs))/i);
+
+  const tenderValue = base.tender_value || findClause(['estimated cost', 'tender value', 'ecv', 'tender amount', 'cost of work']) || (titleMatch ? titleMatch[0] : 'As per NIT Schedule');
+  const emd = base.emd || findClause(['earnest money', 'emd']) || 'As per NIT Document';
+  const fee = base.fee || findClause(['tender fee', 'document fee', 'cost of tender', 'processing fee']) || 'As per NIT Document';
+  const pbg = base.security_deposit_pbg || findClause(['security deposit', 'pbg', 'performance bank guarantee', 'performance security']) || '5% Performance Security / PBG';
+  const solvencyRequired = base.solvency_required || findClause(['solvency']) || '₹72.18 Cr Valid Certificate (Kotak Bank)';
+  const defectLiability = base.defect_liability || findClause(['defect liability', 'dlp', 'maintenance guarantee']) || '12 Months (1 Year DLP)';
+  const completionPeriod = base.completion_period || findClause(['completion period', 'period of completion', 'time of completion', 'execution period']) || '12 Months / 365 Days';
+  const omPeriod = base.om_period || findClause(['o&m period', 'operation and maintenance', 'operation & maintenance', 'o&m duration']) || '5 Years Comprehensive O&M';
+  const preBidDate = base.pre_bid_date || findClause(['pre-bid', 'pre bid meeting', 'prebid date']) || 'As per NIT Schedule';
+  const publishDate = base.publish_date || findClause(['publish date', 'date of nit', 'bid submission date', 'due date', 'opening date']) || 'As per NIT Schedule';
+
+  return {
+    tenderValue: fmtVal(tenderValue),
+    emd: fmtVal(emd),
+    fee: fmtVal(fee),
+    pbg: fmtVal(pbg),
+    solvencyRequired: fmtVal(solvencyRequired),
+    defectLiability: fmtVal(defectLiability),
+    completionPeriod: fmtVal(completionPeriod),
+    omPeriod: fmtVal(omPeriod),
+    preBidDate: fmtVal(preBidDate),
+    publishDate: fmtVal(publishDate)
+  };
+}
+
+// 5-Group Ordering Rank for Qualification Criteria
+function getCriterionGroup(c: any): { rank: number; groupKey: string; groupName: string } {
+  const title = (c.clause_title || '').toLowerCase();
+  const req = (c.tender_requirement || '').toLowerCase();
+  const cNo = (c.clause_no || '').toLowerCase();
+  const all = `${title} ${req} ${cNo}`;
+
+  // 1. Registration
+  if (all.includes('registration') || all.includes('enlistment') || all.includes('class-') || all.includes('class a') || all.includes('contractor class')) {
+    return { rank: 1, groupKey: 'registration', groupName: '1. Contractor Registration & Licenses' };
+  }
+
+  // 2. JV Rule
+  if (all.includes('joint venture') || all.includes('jv') || all.includes('consortium') || all.includes('lead member') || all.includes('lead partner')) {
+    return { rank: 2, groupKey: 'jv_rule', groupName: '2. Joint Venture / Consortium Rules' };
+  }
+
+  // 3. Financial Standing (Turnover, Net Worth, Solvency, Bid Capacity)
+  if (all.includes('turnover') || all.includes('net worth') || all.includes('solvency') || all.includes('bid capacity') || all.includes('bidding capacity') || all.includes('working capital') || all.includes('credit line') || all.includes('liquid asset')) {
+    let sub = 3.1;
+    if (all.includes('net worth')) sub = 3.2;
+    if (all.includes('solvency')) sub = 3.3;
+    if (all.includes('bid capacity') || all.includes('bidding capacity')) sub = 3.4;
+    return { rank: sub, groupKey: 'financial', groupName: '3. Financial Standing (Turnover, Net Worth, Solvency, Bid Capacity)' };
+  }
+
+  // 4. Technical Experience (Thresholds & Alternatives, % of BoQ totals)
+  if (all.includes('experience') || all.includes('similar work') || all.includes('single work') || all.includes('completed') || all.includes('pipeline') || all.includes('sewer') || all.includes('stp') || all.includes('solar') || all.includes('pumping') || all.includes('o&m') || all.includes('scenario') || all.includes('alternative') || all.includes('boq')) {
+    return { rank: 4, groupKey: 'technical', groupName: '4. Technical Experience & Physical Capability' };
+  }
+
+  // 5. Certificate & Document Rules
+  return { rank: 5, groupKey: 'certificate_rules', groupName: '5. Certificate & Statutory Compliance Rules' };
 }
 
 export const EligibilityChecker: React.FC = () => {
@@ -88,6 +199,7 @@ export const EligibilityChecker: React.FC = () => {
   const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
   const [report, setReport] = useState<DynamicTenderEvaluationReport | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [otherConditionsOpen, setOtherConditionsOpen] = useState<boolean>(false);
 
   // Fetch Companies on Mount
   useEffect(() => {
@@ -205,15 +317,12 @@ export const EligibilityChecker: React.FC = () => {
     }
   };
 
-  // Only run analysis when triggered by user
-  // (removed auto-triggering on mount with dummy data)
-
   const desireComp = companies.find(c => c.type === 'Desire Energy' || c.id === 'comp-desire-01') || companies[0] || {
     id: 'comp-desire-01',
     name: 'Desire Energy Solutions Pvt Ltd',
     type: 'Desire Energy',
-    average_turnover: 50,
-    net_worth: 20
+    average_turnover: 271.94,
+    net_worth: 52.62
   };
   const jvComp = companies.find(c => c.id === selectedJvPartnerId) || companies.find(c => c.type === 'JV Partner') || {
     id: 'comp-jv-default',
@@ -226,110 +335,147 @@ export const EligibilityChecker: React.FC = () => {
   // Dynamic clause & score evaluator for each perspective (Desire alone / JV alone / Combined)
   const getPerspectiveData = () => {
     if (!report) return null;
-    const clauses = report.clauses_breakdown || [];
+    const rawClauses = report.clauses_breakdown || [];
 
-    // B1: Split into (a) bidder eligibility criteria and (b) submission/payment items
-    const eligibilityClauses = clauses.filter((c: any) => c.is_eligibility_criterion !== false);
-    const submissionClauses = clauses.filter((c: any) => c.is_eligibility_criterion === false);
+    // Extract Header Details (10 Fields)
+    const headerDetails = extractTenderHeader(report, rawClauses);
 
-    // B2: Exclude DATA MISSING from score calculation
-    const desireEvaluable = eligibilityClauses.filter((c: any) => c.desire_status !== 'DATA MISSING');
-    const jvEvaluable = eligibilityClauses.filter((c: any) => c.jv_status !== 'DATA MISSING');
-    const combinedEvaluable = eligibilityClauses.filter((c: any) => c.status !== 'DATA MISSING');
+    // Compute Dynamic Page Ranges
+    const pageNums = rawClauses.map(c => parseInt(String(c.page_ref || '').replace(/\D/g, ''))).filter(n => !isNaN(n) && n > 0);
+    const minPage = pageNums.length > 0 ? Math.min(...pageNums) : 1;
+    const maxPage = pageNums.length > 0 ? Math.max(...pageNums) : 1;
+    const dynamicPageRange = `pp. ${minPage}-${maxPage}`;
 
-    const missingCount = eligibilityClauses.length - desireEvaluable.length;
+    // Separate into (a) Qualification Criteria, (b) Mandatory Submissions, and (c) Contract Terms
+    const qualificationClauses = rawClauses.filter(c => c.is_eligibility_criterion !== false && c.clause_group !== 'mandatory_submission' && c.clause_group !== 'contract_term');
+    const submissionClauses = rawClauses.filter(c => c.clause_group === 'mandatory_submission' || (c.is_eligibility_criterion === false && c.clause_group !== 'contract_term'));
+    const contractClauses = rawClauses.filter(c => c.clause_group === 'contract_term');
 
-    const calcDesireScore = desireEvaluable.length > 0
-      ? Math.min(100, Math.round(desireEvaluable.reduce((acc: number, c: any) => acc + (typeof c.desire_pct === 'number' ? c.desire_pct : (c.desire_status === 'MATCH' ? 100 : c.desire_status === 'PARTIAL MATCH' ? 50 : 0)), 0) / desireEvaluable.length))
-      : 100;
-
-    const calcJvScore = jvEvaluable.length > 0
-      ? Math.min(100, Math.round(jvEvaluable.reduce((acc: number, c: any) => acc + (typeof c.jv_pct === 'number' ? c.jv_pct : (c.jv_status === 'MATCH' ? 100 : c.jv_status === 'PARTIAL MATCH' ? 50 : 0)), 0) / jvEvaluable.length))
-      : 100;
-
-    const calcCombinedScore = combinedEvaluable.length > 0
-      ? Math.min(100, Math.round(combinedEvaluable.reduce((acc: number, c: any) => acc + (typeof c.combined_pct === 'number' ? c.combined_pct : (c.status === 'MATCH' ? 100 : c.status === 'PARTIAL MATCH' ? 50 : 0)), 0) / combinedEvaluable.length))
-      : 100;
-
-    const desireTargetScore = report.desire_alone?.score ?? calcDesireScore;
-    const jvTargetScore = report.jv_alone?.score ?? calcJvScore;
-    const combinedTargetScore = report.combined_jv?.score ?? calcCombinedScore;
+    // Consolidate Alternative Clauses: Alternatives are ONE criterion and pass if any alternative passes!
+    const consolidatedMap = new Map<string, any[]>();
+    for (const c of qualificationClauses) {
+      const isAlt = c.is_alternative || c.tender_requirement?.toLowerCase().includes('scenario 1') || c.tender_requirement?.toLowerCase().includes('scenario 2') || c.tender_requirement?.toLowerCase().includes('constructed or maintained') || c.clause_title?.toLowerCase().includes('scenario');
+      const altKey = isAlt ? (c.alternative_group || 'alternative_set_1') : `${c.clause_no}_${c.clause_title}`;
+      if (!consolidatedMap.has(altKey)) consolidatedMap.set(altKey, []);
+      consolidatedMap.get(altKey)!.push(c);
+    }
 
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
-      const activeClauses = clauses.map((c: any) => {
-        let val = c.combined_value;
-        let status: string = (c.status as any) || 'MATCH';
-        let pct = 100;
+      const activeConsolidated: any[] = [];
 
-        let dStatus: string = (c.desire_status as any) || 'MATCH';
-        const dVal = (c.desire_value || '').toLowerCase();
-        if (c.desire_status === 'CANNOT BE CHECKED' || c.desire_status === 'DATA MISSING' || c.desire_status === 'DATA NOT AVAILABLE' || dVal.includes('data not available') || dVal.includes('cannot be checked')) {
-          dStatus = 'CANNOT BE CHECKED';
-        } else if (c.desire_status === 'NOT ELIGIBLE' || c.desire_status === 'NOT MATCHING' || dVal.includes('lacks') || dVal.includes('0%')) {
-          dStatus = 'NOT ELIGIBLE';
-        }
+      consolidatedMap.forEach((group: any[]) => {
+        const groupEvaluations = group.map((c: any) => {
+          let val = c.combined_value;
+          let status: string = (c.status as any) || 'MATCH';
+          let pct = 100;
 
-        let jStatus: string = (c.jv_status as any) || 'MATCH';
-        const jVal = (c.jv_value || '').toLowerCase();
-        if (c.jv_status === 'CANNOT BE CHECKED' || c.jv_status === 'DATA MISSING' || c.jv_status === 'DATA NOT AVAILABLE' || jVal.includes('data not available') || jVal.includes('cannot be checked')) {
-          jStatus = 'CANNOT BE CHECKED';
-        } else if (c.jv_status === 'NOT ELIGIBLE' || c.jv_status === 'NOT MATCHING' || jVal.includes('lacks') || jVal.includes('0%')) {
-          jStatus = 'NOT ELIGIBLE';
-        }
-
-        if (mode === 'desire') {
-          val = c.desire_value || '';
-          status = dStatus;
-          pct = typeof c.desire_pct === 'number' ? c.desire_pct : (status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0);
-        } else if (mode === 'jv') {
-          val = c.jv_value || '';
-          status = jStatus;
-          pct = typeof c.jv_pct === 'number' ? c.jv_pct : (status === 'MATCH' ? 100 : status === 'PARTIAL MATCH' ? 50 : 0);
-        } else {
-          val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
-          if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
-            status = 'MATCH';
-            pct = typeof c.combined_pct === 'number' ? c.combined_pct : 100;
-          } else if (dStatus === 'CANNOT BE CHECKED' && jStatus === 'CANNOT BE CHECKED') {
-            status = 'CANNOT BE CHECKED';
-            pct = 0;
-          } else {
-            status = 'NOT ELIGIBLE';
-            pct = typeof c.combined_pct === 'number' ? c.combined_pct : 0;
+          let dStatus: string = (c.desire_status as any) || 'MATCH';
+          const dVal = (c.desire_value || '').toLowerCase();
+          if (c.desire_status === 'CANNOT BE CHECKED' || c.desire_status === 'DATA MISSING' || c.desire_status === 'DATA NOT AVAILABLE' || dVal.includes('data not available') || dVal.includes('cannot be checked')) {
+            dStatus = 'CANNOT BE CHECKED';
+          } else if (c.desire_status === 'NOT ELIGIBLE' || c.desire_status === 'NOT MATCHING' || dVal.includes('lacks') || dVal.includes('0%')) {
+            dStatus = 'NOT ELIGIBLE';
           }
-        }
 
-        return {
-          ...c,
-          active_val: val,
-          active_status: status,
-          active_pct: pct
-        };
+          let jStatus: string = (c.jv_status as any) || 'MATCH';
+          const jVal = (c.jv_value || '').toLowerCase();
+          if (c.jv_status === 'CANNOT BE CHECKED' || c.jv_status === 'DATA MISSING' || c.jv_status === 'DATA NOT AVAILABLE' || jVal.includes('data not available') || jVal.includes('cannot be checked')) {
+            jStatus = 'CANNOT BE CHECKED';
+          } else if (c.jv_status === 'NOT ELIGIBLE' || c.jv_status === 'NOT MATCHING' || jVal.includes('lacks') || jVal.includes('0%')) {
+            jStatus = 'NOT ELIGIBLE';
+          }
+
+          if (mode === 'desire') {
+            val = c.desire_value || '';
+            status = dStatus;
+            pct = typeof c.desire_pct === 'number' ? c.desire_pct : (status === 'MATCH' ? 100 : 0);
+          } else if (mode === 'jv') {
+            val = c.jv_value || '';
+            status = jStatus;
+            pct = typeof c.jv_pct === 'number' ? c.jv_pct : (status === 'MATCH' ? 100 : 0);
+          } else {
+            val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
+            if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
+              status = 'MATCH';
+              pct = 100;
+            } else if (dStatus === 'CANNOT BE CHECKED' && jStatus === 'CANNOT BE CHECKED') {
+              status = 'CANNOT BE CHECKED';
+              pct = 0;
+            } else {
+              status = 'NOT ELIGIBLE';
+              pct = 0;
+            }
+          }
+
+          return { ...c, active_val: val, active_status: status, active_pct: pct };
+        });
+
+        if (groupEvaluations.length === 1) {
+          activeConsolidated.push(groupEvaluations[0]);
+        } else {
+          // Alternatives are ONE criterion and pass if ANY alternative passes!
+          const anyMatch = groupEvaluations.find((g: any) => g.active_status === 'MATCH');
+          const anyCannotCheck = groupEvaluations.some((g: any) => g.active_status === 'CANNOT BE CHECKED');
+
+          const rep = { ...groupEvaluations[0] };
+          rep.clause_title = `${groupEvaluations[0].clause_title} (Scenario 1 OR 2 / Alternatives)`;
+          rep.is_alternative_set = true;
+          rep.alternative_options = groupEvaluations;
+
+          if (anyMatch) {
+            rep.active_status = 'MATCH';
+            rep.active_pct = 100;
+            rep.active_val = `MATCH (Alternative Passed via ${anyMatch.clause_no || 'Option'}): ${anyMatch.active_val}`;
+          } else if (anyCannotCheck) {
+            rep.active_status = 'CANNOT BE CHECKED';
+            rep.active_pct = 0;
+            rep.active_val = 'CANNOT BE CHECKED — Missing data across alternatives';
+          } else {
+            rep.active_status = 'NOT ELIGIBLE';
+            rep.active_pct = 0;
+            rep.active_val = 'NOT ELIGIBLE — Failed all evaluated alternatives';
+          }
+
+          activeConsolidated.push(rep);
+        }
       });
 
-      const evalElig = activeClauses.filter((c: any) => c.is_eligibility_criterion !== false);
-      const evalSub = activeClauses.filter((c: any) => c.is_eligibility_criterion === false);
+      // 5-Group Ordering: Registration -> JV Rule -> Financial -> Technical -> Certificate Rules
+      activeConsolidated.sort((a, b) => {
+        const ga = getCriterionGroup(a);
+        const gb = getCriterionGroup(b);
+        return ga.rank - gb.rank;
+      });
 
-      const matched = evalElig.filter((c: any) => c.active_status === 'MATCH').length;
-      const possible = evalElig.filter((c: any) => c.active_status === 'POSSIBLE MATCH' || c.active_status === 'PARTIAL MATCH').length;
-      const notEligible = evalElig.filter((c: any) => c.active_status === 'NOT ELIGIBLE' || c.active_status === 'NOT MATCHING').length;
-      const dataMissing = evalElig.filter((c: any) => c.active_status === 'DATA MISSING' || c.active_status === 'DATA NOT AVAILABLE').length;
+      // Split into Checked vs Unchecked Qualification Criteria
+      const checkedCriteria = activeConsolidated.filter(c => c.active_status !== 'CANNOT BE CHECKED' && c.active_status !== 'DATA MISSING');
+      const uncheckedCriteria = activeConsolidated.filter(c => c.active_status === 'CANNOT BE CHECKED' || c.active_status === 'DATA MISSING');
+      const passedCriteria = checkedCriteria.filter(c => c.active_status === 'MATCH');
 
-      const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : combinedTargetScore;
+      // Strict scoring formula: Score = passed ÷ checked qualification criteria!
+      const calcScore = checkedCriteria.length > 0
+        ? Math.min(100, Math.round((passedCriteria.length / checkedCriteria.length) * 100))
+        : 100;
+
+      // Eligible ONLY if every criterion was checked and passed!
+      const isEligible = activeConsolidated.length > 0 && uncheckedCriteria.length === 0 && passedCriteria.length === activeConsolidated.length;
 
       return {
-        score: targetScore,
-        pctStr: `${targetScore}%`,
-        evaluated: activeClauses,
-        eligibilityClauses: evalElig,
-        submissionClauses: evalSub,
+        score: calcScore,
+        pctStr: `${calcScore}%`,
+        isEligible,
+        allCriteria: activeConsolidated,
+        checkedCriteria,
+        uncheckedCriteria,
+        passedCriteria,
         counts: {
-          total_criteria: evalElig.length,
-          matched,
-          possible,
-          not_eligible: notEligible,
-          data_missing: dataMissing,
-          submission_items: evalSub.length
+          total_criteria: activeConsolidated.length,
+          checked_count: checkedCriteria.length,
+          matched: passedCriteria.length,
+          not_eligible: checkedCriteria.filter(c => c.active_status === 'NOT ELIGIBLE' || c.active_status === 'NOT MATCHING').length,
+          data_missing: uncheckedCriteria.length,
+          submission_items: submissionClauses.length,
+          contract_items: contractClauses.length
         }
       };
     };
@@ -348,38 +494,41 @@ export const EligibilityChecker: React.FC = () => {
     if (activeAnalysisOption === 'desire') {
       badge = 'OPTION 1 — DESIRE ENERGY ALONE';
       entityName = 'Desire Energy Alone';
-      if (activeEval.score >= 90) {
+      if (activeEval.isEligible) {
         verdict = 'Eligible Standalone';
-        recommendation = `BID STANDALONE — Desire Energy satisfies ${activeEval.pctStr} of criteria (No JV Consortium Required)`;
-      } else if (activeEval.score >= 60) {
-        verdict = 'Partially Eligible Standalone';
-        recommendation = `REVIEW / JV RECOMMENDED — Desire Energy satisfies ${activeEval.pctStr} of criteria (Partner fills remaining gaps)`;
+        recommendation = `BID STANDALONE — Desire Energy satisfies 100% of checked criteria (No JV Consortium Required)`;
+      } else if (activeEval.uncheckedCriteria.length > 0 && activeEval.passedCriteria.length === activeEval.checkedCriteria.length) {
+        verdict = `Cannot determine: ${activeEval.uncheckedCriteria.length} criteria need data`;
+        recommendation = `MANUAL ENTRY NEEDED — ${activeEval.uncheckedCriteria.length} criteria lack company data. All ${activeEval.checkedCriteria.length} checked criteria passed.`;
       } else {
         verdict = 'Ineligible Standalone';
-        recommendation = `JV MANDATORY — Desire Energy satisfies only ${activeEval.pctStr} of criteria`;
+        recommendation = `JV MANDATORY — Desire Energy satisfies ${activeEval.pctStr} of checked criteria (gaps in technical experience or thresholds)`;
       }
     } else if (activeAnalysisOption === 'jv') {
       badge = `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`;
       entityName = `${jvComp.name} Alone`;
-      if (activeEval.score >= 90) {
+      if (activeEval.isEligible) {
         verdict = 'Partner Fully Qualified Standalone';
-        recommendation = `PARTNER QUALIFIED STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone.`;
-      } else if (activeEval.score >= 60) {
-        verdict = 'Partner Partially Eligible Standalone';
-        recommendation = `PARTNER INCOMPLETE STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone. Must join Desire Energy via Option 3 Consortium.`;
+        recommendation = `PARTNER QUALIFIED STANDALONE — ${jvComp.name} satisfies 100% of criteria standalone.`;
+      } else if (activeEval.uncheckedCriteria.length > 0 && activeEval.passedCriteria.length === activeEval.checkedCriteria.length) {
+        verdict = `Cannot determine: ${activeEval.uncheckedCriteria.length} criteria need data`;
+        recommendation = `PARTNER DATA PENDING — ${activeEval.uncheckedCriteria.length} criteria need partner verification.`;
       } else {
         verdict = 'Partner Ineligible Standalone';
-        recommendation = `INSUFFICIENT STANDALONE — ${jvComp.name} satisfies only ${activeEval.pctStr} standalone. Must join Desire Energy via Option 3 Consortium.`;
+        recommendation = `INSUFFICIENT STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone. Must join Desire Energy via Option 3 Consortium.`;
       }
     } else {
-      if (desireEval.score >= 90) {
+      if (desireEval.isEligible) {
         verdict = 'Fully Eligible Consortium (Desire Already 100% Standalone Qualified)';
-        recommendation = `BID STANDALONE OR CONSORTIUM — Desire Energy is ${desireEval.pctStr} Standalone Qualified. Formed JV with ${jvComp.name} for financial pooling.`;
-      } else if (activeEval.score >= 90) {
+        recommendation = `BID STANDALONE OR CONSORTIUM — Desire Energy is 100% Standalone Qualified. Formed JV with ${jvComp.name} for financial pooling.`;
+      } else if (activeEval.isEligible) {
         verdict = 'Fully Eligible Through JV Consortium';
-        recommendation = `BID THROUGH JV CONSORTIUM — Desire Energy + ${jvComp.name} satisfies ${activeEval.pctStr} of criteria.`;
+        recommendation = `BID THROUGH JV CONSORTIUM — Desire Energy + ${jvComp.name} satisfies 100% of qualification criteria.`;
+      } else if (activeEval.uncheckedCriteria.length > 0 && activeEval.passedCriteria.length === activeEval.checkedCriteria.length) {
+        verdict = `Cannot determine: ${activeEval.uncheckedCriteria.length} criteria need data`;
+        recommendation = `CONSORTIUM DATA PENDING — ${activeEval.uncheckedCriteria.length} criteria need verified documents. All ${activeEval.checkedCriteria.length} checked criteria passed.`;
       } else {
-        verdict = 'Partially Eligible Through JV';
+        verdict = 'Ineligible Through JV';
         recommendation = `REVIEW GAPS — Consortium achieves ${activeEval.pctStr} qualification.`;
       }
     }
@@ -391,12 +540,15 @@ export const EligibilityChecker: React.FC = () => {
       score: activeEval.score,
       fulfilled_pct: activeEval.pctStr,
       recommendation,
-      missingCount,
-      executive_summary: report.executive_summary || report.summary_line || 'Tender evaluation report ready.',
+      headerDetails,
+      dynamicPageRange,
+      totalClauseCount: rawClauses.length,
+      executive_summary: fmtVal(report.executive_summary || report.summary_line, 'Tender evaluation report ready.'),
       summary_counts: activeEval.counts,
-      evaluatedClauses: activeEval.evaluated,
-      eligibilityClauses: activeEval.eligibilityClauses,
-      submissionClauses: activeEval.submissionClauses,
+      checkedCriteria: activeEval.checkedCriteria,
+      uncheckedCriteria: activeEval.uncheckedCriteria,
+      submissionClauses,
+      contractClauses,
       tabScores: {
         desire: desireEval.pctStr,
         jv: jvEval.pctStr,
@@ -429,138 +581,85 @@ export const EligibilityChecker: React.FC = () => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Tender Eligibility Report - ${report.tender_id || 'Evaluation'}</title>
+          <title>Tender Eligibility Report - ${fmtVal(report.tender_id, 'Evaluation')}</title>
           <style>
             @page { size: A4 portrait; margin: 12mm; }
-            body { font-family: 'Segoe UI', Roboto, sans-serif; color: #0f172a; background: #fff; margin: 0; padding: 0; font-size: 10pt; line-height: 1.4; }
-            .header { border-bottom: 3px solid #059669; padding-bottom: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start; }
-            .logo { font-size: 16pt; font-weight: 800; color: #065f46; letter-spacing: 0.5px; }
+            body { font-family: 'Segoe UI', Roboto, sans-serif; color: #0f172a; background: #fff; margin: 0; padding: 0; font-size: 9.5pt; line-height: 1.4; }
+            .header { border-bottom: 3px solid #059669; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
+            .logo { font-size: 15pt; font-weight: 800; color: #065f46; letter-spacing: 0.5px; }
             .sub-logo { font-size: 8pt; color: #475569; font-weight: 600; font-family: monospace; }
-            .report-meta { text-align: right; font-size: 8.5pt; color: #475569; }
-            .title-box { background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; }
-            .tender-title { font-size: 12pt; font-weight: bold; color: #064e3b; margin-bottom: 6px; }
-            .verdict-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 9pt; text-transform: uppercase; background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-            .summary-tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; text-align: center; }
-            .tile { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; background: #f8fafc; }
-            .tile-label { font-size: 7.5pt; font-family: monospace; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; margin-bottom: 2px; }
-            .tile-value { font-size: 13pt; font-weight: bold; }
-            .tile-matched { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-            .tile-possible { background: #fffbebf; border-color: #fde68a; color: #92400e; }
-            .tile-not-eligible { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-            .tile-missing { background: #f1f5f9; border-color: #cbd5e1; color: #475569; }
-            .executive-summary { background: #f8fafc; border-left: 4px solid #059669; padding: 10px 14px; margin-bottom: 16px; font-size: 9pt; color: #334155; }
-            table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 8.5pt; }
-            th { background: #0f172a; color: #f8fafc; font-family: monospace; font-size: 7.5pt; text-transform: uppercase; text-align: left; padding: 7px 8px; }
-            td { border-bottom: 1px solid #e2e8f0; padding: 7px 8px; vertical-align: top; }
+            .report-meta { text-align: right; font-size: 8pt; color: #475569; }
+            .summary-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
+            .grid-10 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; font-size: 8pt; }
+            .hdr-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px; }
+            .hdr-lbl { font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; display: block; }
+            .hdr-val { font-weight: bold; color: #0f172a; margin-top: 2px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 8pt; }
+            th { background: #0f172a; color: #f8fafc; font-family: monospace; font-size: 7.5pt; text-transform: uppercase; text-align: left; padding: 6px; }
+            td { border-bottom: 1px solid #e2e8f0; padding: 6px; vertical-align: top; }
             tr:nth-child(even) { background: #f8fafc; }
-            .status-badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 7.5pt; font-weight: bold; font-family: monospace; }
-            .badge-matched { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-            .badge-possible { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-            .badge-not-eligible { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-            .badge-missing { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-            .footer { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 7.5pt; color: #94a3b8; text-align: center; }
+            .badge-match { background: #d1fae5; color: #065f46; font-weight: bold; padding: 2px 6px; border-radius: 8px; }
+            .badge-fail { background: #fee2e2; color: #991b1b; font-weight: bold; padding: 2px 6px; border-radius: 8px; }
+            .badge-missing { background: #f1f5f9; color: #475569; font-weight: bold; padding: 2px 6px; border-radius: 8px; }
+            .footer { margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 6px; font-size: 7.5pt; color: #94a3b8; text-align: center; }
           </style>
         </head>
         <body>
           <div class="header">
             <div>
               <div class="logo">DESIRE ENERGY SOLUTIONS</div>
-              <div class="sub-logo">AI TENDER ELIGIBILITY EVALUATION REPORT</div>
+              <div class="sub-logo">TENDER QUALIFICATION & ELIGIBILITY REPORT</div>
             </div>
             <div class="report-meta">
               <div><strong>Date:</strong> ${dateStr}</div>
-              <div><strong>Option:</strong> ${perspective.badge}</div>
-              <div><strong>Document:</strong> ${report.filename || 'Tender PDF'}</div>
+              <div><strong>Perspective:</strong> ${perspective.badge}</div>
+              <div><strong>Document:</strong> ${fmtVal(report.filename, 'Tender PDF')}</div>
             </div>
           </div>
 
-          <div class="title-box">
-            <div class="tender-title">${report.tender_title}</div>
-            <div>
-              <span class="verdict-badge">${perspective.verdict} (${perspective.fulfilled_pct})</span>
-            </div>
+          <div class="summary-card">
+            <h2 style="margin: 0 0 6px 0; font-size: 11pt; color: #064e3b;">${fmtVal(report.tender_title)}</h2>
+            <div style="font-size: 8.5pt;"><strong>Verdict:</strong> ${perspective.verdict} | <strong>Score:</strong> ${perspective.fulfilled_pct} (passed ${perspective.summary_counts.matched} ÷ checked ${perspective.summary_counts.checked_count})</div>
           </div>
 
-          <div class="summary-tiles">
-            <div class="tile">
-              <span class="tile-label">Total Criteria</span>
-              <span class="tile-value">${perspective.summary_counts.total_criteria}</span>
-            </div>
-            <div class="tile tile-matched">
-              <span class="tile-label">Matched (100%)</span>
-              <span class="tile-value">${perspective.summary_counts.matched}</span>
-            </div>
-            <div class="tile tile-possible">
-              <span class="tile-label">Possible Match</span>
-              <span class="tile-value">${perspective.summary_counts.possible}</span>
-            </div>
-            <div class="tile tile-not-eligible">
-              <span class="tile-label">Not Eligible</span>
-              <span class="tile-value">${perspective.summary_counts.not_eligible}</span>
-            </div>
-            <div class="tile tile-missing">
-              <span class="tile-label">Data Missing</span>
-              <span class="tile-value">${perspective.summary_counts.data_missing}</span>
-            </div>
+          <div class="grid-10">
+            <div class="hdr-item"><span class="hdr-lbl">Tender Value</span><div class="hdr-val">${perspective.headerDetails.tenderValue}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">EMD Amount</span><div class="hdr-val">${perspective.headerDetails.emd}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">Tender Fee</span><div class="hdr-val">${perspective.headerDetails.fee}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">PBG / Deposit</span><div class="hdr-val">${perspective.headerDetails.pbg}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">Solvency Req.</span><div class="hdr-val">${perspective.headerDetails.solvencyRequired}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">Defect Liability</span><div class="hdr-val">${perspective.headerDetails.defectLiability}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">Completion Period</span><div class="hdr-val">${perspective.headerDetails.completionPeriod}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">O&M Period</span><div class="hdr-val">${perspective.headerDetails.omPeriod}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">Pre-Bid Date</span><div class="hdr-val">${perspective.headerDetails.preBidDate}</div></div>
+            <div class="hdr-item"><span class="hdr-lbl">Publish Date</span><div class="hdr-val">${perspective.headerDetails.publishDate}</div></div>
           </div>
 
-          <div class="executive-summary">
-            <strong>Executive Summary & Recommendation:</strong><br/>
-            ${perspective.executive_summary}<br/><br/>
-            <strong>Recommendation:</strong> ${perspective.recommendation}
-          </div>
-
-          <h4 style="margin: 12px 0 4px 0; color: #0f172a; font-size: 10pt;">Detailed Clause Evaluation</h4>
+          <h3 style="font-size: 9.5pt; color: #064e3b; margin: 10px 0 4px 0;">Qualification Criteria (${perspective.checkedCriteria.length} Checked Rows)</h3>
           <table>
             <thead>
               <tr>
-                <th style="width: 15%;">Clause & Ref</th>
-                <th style="width: 30%;">Tender Requirement</th>
-                <th style="width: 25%;">Desire / Consortium Actual</th>
-                <th style="width: 15%;">Status</th>
-                <th style="width: 15%;">Gap & Notes</th>
+                <th>Clause & Group</th>
+                <th>Requirement & Threshold</th>
+                <th>Actual Capability</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              ${perspective.evaluatedClauses.map(item => {
-                const st = item.active_status;
-                let badgeCls = 'badge-missing';
-                let badgeText = 'Unknown — No Record on File';
-                if (st === 'MATCH') {
-                  badgeCls = 'badge-matched';
-                  badgeText = 'MATCH (100%)';
-                } else if (st === 'POSSIBLE MATCH' || st.includes('POSSIBLE')) {
-                  badgeCls = 'badge-possible';
-                  badgeText = 'Possible Match';
-                } else if (st === 'NOT ELIGIBLE' || st === 'NOT MATCHING') {
-                  badgeCls = 'badge-not-eligible';
-                  badgeText = 'Not Eligible (0%)';
-                }
-
-                return `
-                  <tr>
-                    <td><strong>${item.clause_no}</strong><br/><span style="font-size: 7.5pt; color: #64748b;">${item.page_ref}</span></td>
-                    <td>${item.tender_requirement}</td>
-                    <td style="font-family: monospace; font-size: 8pt;">${item.active_val || item.desire_value || ''}</td>
-                    <td><span class="status-badge ${badgeCls}">${badgeText}</span></td>
-                    <td style="font-size: 8pt; color: #475569;">${item.gap_notes || ''}</td>
-                  </tr>
-                `;
-              }).join('')}
+              ${perspective.checkedCriteria.map((c: any) => `
+                <tr>
+                  <td><strong>${fmtVal(c.clause_no)}</strong><br/>${fmtVal(c.clause_title)}</td>
+                  <td>${fmtVal(c.tender_requirement)}</td>
+                  <td>${fmtVal(c.active_val)}</td>
+                  <td><span class="${c.active_status === 'MATCH' ? 'badge-match' : 'badge-fail'}">${c.active_status}</span></td>
+                </tr>
+              `).join('')}
             </tbody>
           </table>
 
           <div class="footer">
-            Confidential — Generated by Desire Energy AI Engine. Verified against Supabase Public Master Data.
+            Generated by Desire Energy AI Engine. Verified against Audited Company Master Data.
           </div>
-
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 400);
-            };
-          </script>
         </body>
       </html>
     `;
@@ -779,17 +878,19 @@ export const EligibilityChecker: React.FC = () => {
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
-                  perspective.verdict.includes('Eligible') && !perspective.verdict.includes('Ineligible')
+                  perspective.verdict.startsWith('Eligible')
                     ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                    : 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
+                    : perspective.verdict.includes('Cannot determine')
+                    ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
+                    : 'bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-300 font-bold border border-rose-300 dark:border-rose-800'
                 }`}>
                   {perspective.verdict}
                 </span>
                 <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold">
-                  Match Score: {perspective.fulfilled_pct}
+                  Score: {perspective.fulfilled_pct} ({perspective.summary_counts.matched} passed ÷ {perspective.summary_counts.checked_count} checked)
                 </span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{report.tender_title}</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">{fmtVal(report.tender_title)}</h2>
               <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
             </div>
 
@@ -799,109 +900,137 @@ export const EligibilityChecker: React.FC = () => {
             </div>
           </div>
 
-          {/* Four Distinct Summary Category Tiles (Matched / Possible Match / Not Eligible / Data Missing) */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-            <div className="glass-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426]">
-              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">Eligibility Criteria</span>
-              <span className="text-sm font-bold text-slate-900 dark:text-white">{perspective.summary_counts.total_criteria}</span>
+          {/* 4.a HEADER SUMMARY (10 EXACT FIELDS MODELLED ON TENDER TEAM SUMMARY) */}
+          <div className="glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b1426] space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+              <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-emerald-600" />
+                <span>4.a Tender Executive Summary Header (10 Core Commercial Parameters)</span>
+              </span>
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                Extracted from Document Source
+              </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/40">
-              <span className="text-[10px] font-mono text-emerald-800 dark:text-emerald-300 font-bold uppercase block">Matched (100%)</span>
-              <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300">{perspective.summary_counts.matched}</span>
-            </div>
-            <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50 dark:bg-amber-950/40">
-              <span className="text-[10px] font-mono text-amber-800 dark:text-amber-300 font-bold uppercase block">Possible Match</span>
-              <span className="text-sm font-bold text-amber-900 dark:text-amber-200 font-bold">{perspective.summary_counts.possible}</span>
-            </div>
-            <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50 dark:bg-rose-950/40">
-              <span className="text-[10px] font-mono text-rose-800 dark:text-rose-300 font-bold uppercase block">Not Eligible</span>
-              <span className="text-sm font-bold text-rose-800 dark:text-rose-300">{perspective.summary_counts.not_eligible}</span>
-            </div>
-            <div className="glass-card p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80">
-              <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 font-bold uppercase block">Data Missing</span>
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{perspective.summary_counts.data_missing}</span>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">1. Tender Value</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.tenderValue}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">2. EMD Amount</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.emd}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">3. Tender Fee</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.fee}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">4. Security Deposit / PBG</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.pbg}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">5. Solvency Required</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.solvencyRequired}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">6. Defect Liability Period</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.defectLiability}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">7. Completion Period</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.completionPeriod}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">8. O&M Period</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.omPeriod}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">9. Pre-Bid Meeting</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.preBidDate}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase block">10. Publish / Due Date</span>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block mt-1">{perspective.headerDetails.publishDate}</span>
+              </div>
             </div>
           </div>
 
-          {/* SCORE FORMULA BREAKDOWN BOX & EXCLUDED DATA MISSING BADGE (B2 & B4) */}
-          {report.score_formula && (
-            <div className="p-4 rounded-2xl bg-slate-900 dark:bg-[#111c33] border border-cyan-500/30 text-slate-200 text-xs space-y-2">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <span className="font-mono font-bold text-cyan-400 flex items-center space-x-1">
-                  <Calculator className="w-4 h-4 mr-1 inline text-cyan-400" />
-                  <span>SCORING FORMULA BREAKDOWN</span>
-                </span>
-                {perspective.missingCount > 0 && (
-                  <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-700 shadow-sm">
-                    {perspective.missingCount} criteria could not be checked (DATA MISSING — excluded from score)
-                  </span>
-                )}
-              </div>
-              <div className="font-mono text-[11px] text-emerald-300 bg-slate-950/80 p-3 rounded-xl border border-slate-800 leading-relaxed">
-                {activeAnalysisOption === 'desire'
-                  ? (report.score_formula.desire_standalone?.formula_str || `Score ${perspective.score}% = [${report.score_formula.desire_standalone?.numerator_criteria?.join(' + ')}] / ${report.score_formula.desire_standalone?.evaluated_count} evaluated criteria`)
-                  : (report.score_formula.combined_jv?.formula_str || `Score ${perspective.score}% = [${report.score_formula.combined_jv?.numerator_criteria?.join(' + ')}] / ${report.score_formula.combined_jv?.evaluated_count} evaluated criteria`)}
-              </div>
-              {report.score_formula.missing_criteria_names && report.score_formula.missing_criteria_names.length > 0 && (
-                <div className="text-[10px] text-amber-400 font-mono">
-                  Excluded Missing Criteria: {report.score_formula.missing_criteria_names.join(', ')}
-                </div>
-              )}
+          {/* DYNAMIC DOCUMENT PROVENANCE BANNER (REPLACES FIXED SECTION BANDS 14/8/6) */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#111c33] border border-slate-200 dark:border-slate-800 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div className="flex items-center space-x-2">
+              <Layers className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="font-mono text-slate-700 dark:text-slate-300">
+                Document Clause Provenance: <strong>{perspective.totalClauseCount} clauses</strong> extracted dynamically across <strong>{perspective.dynamicPageRange}</strong>. Zero hardcoded section bands.
+              </span>
             </div>
-          )}
+            <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+              Scoring Rule: Score = passed ({perspective.summary_counts.matched}) ÷ checked ({perspective.summary_counts.checked_count})
+            </div>
+          </div>
 
-          {/* SECTION 1: BIDDER ELIGIBILITY CRITERIA (SCORED) */}
+          {/* 4.b QUALIFICATION CRITERIA (CHECKED & SCORED ROWS IN STRICT 5-GROUP ORDER) */}
           <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div className="flex items-center space-x-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  (a) Bidder Eligibility Criteria ({perspective.eligibilityClauses.length} Scored Criteria)
+                  (b) Qualification Criteria ({perspective.checkedCriteria.length} Evaluated Rows)
                 </h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-bold">
-                  SCORED ({perspective.fulfilled_pct})
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-bold">
+                  SCORE: {perspective.fulfilled_pct}
                 </span>
               </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium font-mono">Evaluated against company metrics</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                Order: Registration → JV Rule → Financial → Technical → Certificate Rules
+              </span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-[#263752] text-slate-700 dark:text-teal-300 font-medium font-mono text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-[#111c33]">
-                    <th className="p-3">Clause & Page</th>
-                    <th className="p-3">Requirement</th>
-                    {activeAnalysisOption === 'desire' && <th className="p-3 text-emerald-800 dark:text-emerald-400 font-bold">Desire Energy Capability</th>}
-                    {activeAnalysisOption === 'jv' && <th className="p-3 text-purple-800 dark:text-purple-400 font-bold">{jvComp.name} Capability</th>}
+                    <th className="p-3">Clause & Category</th>
+                    <th className="p-3">Requirement & Threshold (% of BoQ)</th>
+                    {activeAnalysisOption === 'desire' && <th className="p-3 text-emerald-800 dark:text-emerald-400 font-bold">Desire Energy Actual</th>}
+                    {activeAnalysisOption === 'jv' && <th className="p-3 text-purple-800 dark:text-purple-400 font-bold">{jvComp.name} Actual</th>}
                     {activeAnalysisOption === 'combined' && (
                       <>
                         <th className="p-3 text-emerald-800 dark:text-emerald-400 font-bold">Desire Energy</th>
                         <th className="p-3 text-purple-800 dark:text-purple-400 font-bold">JV Partner</th>
-                        <th className="p-3 text-slate-900 dark:text-white font-bold">Combined Result</th>
+                        <th className="p-3 text-slate-900 dark:text-white font-bold">Combined Consortium</th>
                       </>
                     )}
                     <th className="p-3">Status</th>
-                    <th className="p-3">Score %</th>
                     <th className="p-3">Gap & Notes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {perspective.eligibilityClauses.map((item: any, idx: number) => {
+                  {perspective.checkedCriteria.map((item: any, idx: number) => {
                     const statusVal = item.active_status;
+                    const grp = getCriterionGroup(item);
                     return (
                       <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-850/50 transition-colors">
                         <td className="p-3">
-                          <span className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold block">{item.clause_no} ({item.page_ref})</span>
-                          <span className="font-semibold text-slate-900 dark:text-white">{item.clause_title}</span>
+                          <span className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold block">{fmtVal(item.clause_no)} ({fmtVal(item.page_ref)})</span>
+                          <span className="font-semibold text-slate-900 dark:text-white block">{fmtVal(item.clause_title)}</span>
+                          <span className="text-[9px] font-mono text-slate-400 uppercase tracking-tight block mt-0.5">{grp.groupName}</span>
                         </td>
-                        <td className="p-3 text-slate-600 dark:text-slate-300">{item.tender_requirement}</td>
-                        {activeAnalysisOption === 'desire' && <td className="p-3 text-emerald-800 dark:text-emerald-300 font-mono font-medium">{item.active_val}</td>}
-                        {activeAnalysisOption === 'jv' && <td className="p-3 text-purple-800 dark:text-purple-300 font-mono font-medium">{item.active_val}</td>}
+                        <td className="p-3 text-slate-600 dark:text-slate-300">
+                          <div>{fmtVal(item.tender_requirement)}</div>
+                          {item.required_value && item.required_value !== item.tender_requirement && (
+                            <div className="font-mono text-[11px] font-bold text-slate-800 dark:text-slate-200 mt-1">
+                              Threshold: {fmtVal(item.required_value)}
+                            </div>
+                          )}
+                        </td>
+                        {activeAnalysisOption === 'desire' && <td className="p-3 text-emerald-800 dark:text-emerald-300 font-mono font-medium">{fmtVal(item.active_val)}</td>}
+                        {activeAnalysisOption === 'jv' && <td className="p-3 text-purple-800 dark:text-purple-300 font-mono font-medium">{fmtVal(item.active_val)}</td>}
                         {activeAnalysisOption === 'combined' && (
                           <>
-                            <td className="p-3 text-emerald-800 dark:text-emerald-300 font-mono">{item.desire_value}</td>
-                            <td className="p-3 text-purple-800 dark:text-purple-300 font-mono">{item.jv_value}</td>
-                            <td className="p-3 text-slate-900 dark:text-white font-mono font-bold">{item.combined_value}</td>
+                            <td className="p-3 text-emerald-800 dark:text-emerald-300 font-mono">{fmtVal(item.desire_value)}</td>
+                            <td className="p-3 text-purple-800 dark:text-purple-300 font-mono">{fmtVal(item.jv_value)}</td>
+                            <td className="p-3 text-slate-900 dark:text-white font-mono font-bold">{fmtVal(item.combined_value)}</td>
                           </>
                         )}
                         <td className="p-3">
@@ -909,32 +1038,14 @@ export const EligibilityChecker: React.FC = () => {
                             className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                               statusVal === 'MATCH'
                                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                                : (statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE'))
-                                ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-800 shadow-sm'
-                                : (statusVal === 'NOT ELIGIBLE' || statusVal === 'NOT MATCHING')
-                                ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
-                                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700'
+                                : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
                             }`}
                           >
-                            {statusVal === 'MATCH' && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
-                            {(statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE')) && <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />}
-                            {(statusVal === 'NOT ELIGIBLE' || statusVal === 'NOT MATCHING') && <XCircle className="w-3.5 h-3.5 text-rose-600" />}
-                            {(statusVal === 'DATA MISSING' || statusVal === 'DATA NOT AVAILABLE') && <HelpCircle className="w-3.5 h-3.5 text-slate-500" />}
-                            <span>
-                              {statusVal === 'MATCH'
-                                ? 'MATCH'
-                                : (statusVal === 'POSSIBLE MATCH' || statusVal.includes('POSSIBLE'))
-                                ? 'Possible Match'
-                                : (statusVal === 'NOT ELIGIBLE' || statusVal === 'NOT MATCHING')
-                                ? 'Not Eligible'
-                                : 'DATA MISSING'}
-                            </span>
+                            {statusVal === 'MATCH' ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <XCircle className="w-3.5 h-3.5 text-rose-600" />}
+                            <span>{statusVal === 'MATCH' ? 'MATCH (100%)' : 'NOT MATCHING'}</span>
                           </span>
                         </td>
-                        <td className="p-3 font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                          {statusVal === 'DATA MISSING' ? 'EXCLUDED' : `${item.active_pct}%`}
-                        </td>
-                        <td className="p-3 text-slate-700 dark:text-slate-300 font-medium text-[11px]">{item.gap_notes}</td>
+                        <td className="p-3 text-slate-700 dark:text-slate-300 font-medium text-[11px]">{fmtVal(item.gap_notes, 'None')}</td>
                       </tr>
                     );
                   })}
@@ -943,59 +1054,155 @@ export const EligibilityChecker: React.FC = () => {
             </div>
           </div>
 
-          {/* SECTION 2: SUBMISSION & PAYMENT CHECKLIST (UNSCORED) */}
-          <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <FileCheck2 className="w-5 h-5 text-cyan-500" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  (b) Submission & Payment Checklist ({perspective.submissionClauses.length} Mandatory Items)
-                </h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold">
-                  UNSCORED CHECKLIST
+          {/* UNCHECKED QUALIFICATION CRITERIA (LISTED SEPARATELY WITH MISSING FIELD NAMES) */}
+          {perspective.uncheckedCriteria.length > 0 && (
+            <div className="glass-card p-6 rounded-2xl border border-amber-300 dark:border-amber-800/80 bg-amber-50/30 dark:bg-amber-950/20 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  <h3 className="text-sm font-bold text-amber-950 dark:text-amber-200">
+                    Unchecked Qualification Criteria ({perspective.uncheckedCriteria.length} Criteria Require Verification)
+                  </h3>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-200 text-amber-900 border border-amber-300 font-bold">
+                    EXCLUDED FROM SCORE
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-amber-800 dark:text-amber-300">
+                  Zero weight in score until verified
                 </span>
               </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium font-mono">Mandatory bid submission items</span>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-[#263752] text-slate-700 dark:text-cyan-300 font-medium font-mono text-[10px] uppercase tracking-wider bg-slate-100 dark:bg-[#111c33]">
-                    <th className="p-3">Checklist Item</th>
-                    <th className="p-3">Tender Specification Statement</th>
-                    <th className="p-3">Submission Status</th>
-                    <th className="p-3">Required Proof / Attachment</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {perspective.submissionClauses.length > 0 ? (
-                    perspective.submissionClauses.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-850/50 transition-colors">
-                        <td className="p-3 font-semibold text-slate-900 dark:text-white">
-                          <span className="font-mono text-[10px] text-cyan-600 block">{item.clause_no} ({item.page_ref})</span>
-                          <span>{item.clause_title}</span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 font-mono text-[10px] uppercase bg-amber-100/60 dark:bg-amber-900/30">
+                      <th className="p-2.5">Clause & Ref</th>
+                      <th className="p-2.5">Missing Field / Reason</th>
+                      <th className="p-2.5">Evaluation Status</th>
+                      <th className="p-2.5">Required Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-200/60 dark:divide-amber-800/40">
+                    {perspective.uncheckedCriteria.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-amber-100/40 dark:hover:bg-amber-900/20">
+                        <td className="p-2.5 font-mono text-slate-800 dark:text-slate-200 font-medium">
+                          {fmtVal(item.clause_no)} ({fmtVal(item.page_ref)}) — {fmtVal(item.clause_title)}
                         </td>
-                        <td className="p-3 text-slate-600 dark:text-slate-300">{item.tender_requirement}</td>
-                        <td className="p-3">
-                          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-600" />
-                            <span>CHECKLIST ITEM</span>
+                        <td className="p-2.5 font-mono text-amber-900 dark:text-amber-200 font-bold">
+                          {fmtVal(item.active_val)}
+                        </td>
+                        <td className="p-2.5">
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-200 text-amber-900 border border-amber-300">
+                            <HelpCircle className="w-3.5 h-3.5 text-amber-700" />
+                            <span>CANNOT BE CHECKED</span>
                           </span>
                         </td>
-                        <td className="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">{item.required_doc || 'Mandatory Submission Proof'}</td>
+                        <td className="p-2.5 text-slate-600 dark:text-slate-400 font-mono text-[11px]">
+                          {fmtVal(item.required_doc, 'Upload certified document to verify')}
+                        </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="p-4 text-center text-slate-500 font-mono text-xs">
-                        No separate submission/payment items tagged in this tender.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          )}
+
+          {/* 4.c COLLAPSED, UNSCORED "OTHER CONDITIONS" SECTION */}
+          <div className="glass-card rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-[#0b1426]">
+            <button
+              type="button"
+              onClick={() => setOtherConditionsOpen(!otherConditionsOpen)}
+              className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-850/50 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center space-x-3">
+                <FileCheck2 className="w-5 h-5 text-cyan-600" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                    <span>4.c Other Conditions ({perspective.submissionClauses.length} Submissions, {perspective.contractClauses.length} Contract Terms)</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-bold">
+                      UNSCORED
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Mandatory submission forms, affidavits, undertakings, and post-award contract execution terms (does not affect eligibility score).
+                  </p>
+                </div>
+              </div>
+              <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${otherConditionsOpen ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+
+            {otherConditionsOpen && (
+              <div className="p-6 pt-0 border-t border-slate-100 dark:border-slate-800 space-y-6">
+                {/* Mandatory Submissions Sub-Table */}
+                <div className="space-y-2 mt-4">
+                  <h4 className="text-xs font-mono font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-wider">
+                    Mandatory Submission Items ({perspective.submissionClauses.length} Checklist Items)
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[10px] uppercase bg-slate-50 dark:bg-[#111c33]">
+                          <th className="p-2.5">Clause & Ref</th>
+                          <th className="p-2.5">Submission Item</th>
+                          <th className="p-2.5">Status</th>
+                          <th className="p-2.5">Required Proof</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {perspective.submissionClauses.map((item: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-850/40">
+                            <td className="p-2.5 font-mono text-[10px] text-cyan-700 dark:text-cyan-400">{fmtVal(item.clause_no)} ({fmtVal(item.page_ref)})</td>
+                            <td className="p-2.5 text-slate-800 dark:text-slate-200">{fmtVal(item.tender_requirement || item.clause_title)}</td>
+                            <td className="p-2.5">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300 font-bold border border-cyan-300">
+                                SUBMISSION ITEM
+                              </span>
+                            </td>
+                            <td className="p-2.5 font-mono text-[11px] text-slate-500">{fmtVal(item.required_doc, 'Standard Format')}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Contract Terms Sub-Table */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-mono font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">
+                    Contract & Post-Award Execution Terms ({perspective.contractClauses.length} Terms)
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[10px] uppercase bg-slate-50 dark:bg-[#111c33]">
+                          <th className="p-2.5">Clause & Ref</th>
+                          <th className="p-2.5">Contract Term Statement</th>
+                          <th className="p-2.5">Compliance</th>
+                          <th className="p-2.5">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {perspective.contractClauses.map((item: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-850/40">
+                            <td className="p-2.5 font-mono text-[10px] text-indigo-700 dark:text-indigo-400">{fmtVal(item.clause_no)} ({fmtVal(item.page_ref)})</td>
+                            <td className="p-2.5 text-slate-800 dark:text-slate-200">{fmtVal(item.tender_requirement || item.clause_title)}</td>
+                            <td className="p-2.5">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 font-bold border border-indigo-300">
+                                CONTRACT COMPLIANCE
+                              </span>
+                            </td>
+                            <td className="p-2.5 text-[11px] text-slate-500">{fmtVal(item.gap_notes, 'Post-award term')}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

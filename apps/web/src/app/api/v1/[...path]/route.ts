@@ -801,23 +801,23 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
 
     // ── STRUCTURED FINANCIAL TABLES (Audited Form-7, Balance Sheets & CA Certificates) ──
     year_wise_turnover: {
-      'FY 2021-22': { value_cr: 100.83, source: 'PQ_Upload_Junagadh (2).pdf, Page 17 (Form-7, Item 4(I))', verified: true },
-      'FY 2022-23': { value_cr: 201.53, source: 'PQ_Upload_Junagadh (2).pdf, Page 17 (Form-7, Item 4(II))', verified: true },
-      'FY 2023-24': { value_cr: 350.66, source: 'PQ_Upload_Junagadh (2).pdf, Page 17 (Form-7, Item 4(III)) & Audited Balance Sheet Note 2', verified: true },
-      'FY 2024-25': { value_cr: 263.63, source: 'PQ_Upload_Junagadh (2).pdf, Page 17 (Form-7, Item 4(IV))', verified: true },
-      'FY 2025-26': { value_cr: 256.52, source: 'PQ_Upload_Junagadh (2).pdf, Page 17 (Form-7, Item 4(V))', verified: true }
+      'FY 2021-22': { value_cr: 100.83, source: 'PQ_Upload_Junagadh (2).pdf, Page 15 (Form-7, Item 4(I))', verified: true },
+      'FY 2022-23': { value_cr: 201.53, source: 'PQ_Upload_Junagadh (2).pdf, Page 15 (Form-7, Item 4(II))', verified: true },
+      'FY 2023-24': { value_cr: 350.66, source: 'PQ_Upload_Junagadh (2).pdf, Page 15 (Form-7, Item 4(III))', verified: true },
+      'FY 2024-25': { value_cr: 263.63, source: 'PQ_Upload_Junagadh (2).pdf, Page 15 (Form-7, Item 4(IV))', verified: true },
+      'FY 2025-26': { value_cr: 256.52, source: 'PQ_Upload_Junagadh (2).pdf, Page 15 (Form-7, Item 4(V))', verified: true }
     },
     peak_turnover_cr: 350.66,
     peak_turnover_year: 'FY 2023-24',
-    peak_turnover_source: 'PQ_Upload_Junagadh (2).pdf, Page 17',
+    peak_turnover_source: 'PQ_Upload_Junagadh (2).pdf, Page 15',
     three_year_avg_turnover: 271.94, // Audited 3-yr average (FY 22-23 to FY 24-25): (201.53 + 350.66 + 263.63) / 3
     annual_turnover: { 'FY 2021-22': 100.83, 'FY 2022-23': 201.53, 'FY 2023-24': 350.66, 'FY 2024-25': 263.63, 'FY 2025-26': 256.52 },
     average_turnover: 271.94,
 
     year_wise_net_worth: {
-      'FY 2020-21': { value_cr: 7.05, source: 'PQ_Upload_Alwar (2).pdf, Page 120 / Balance Sheet', verified: true },
-      'FY 2021-22': { value_cr: 13.95, source: 'PQ_Upload_Alwar (2).pdf, Page 120 / Balance Sheet', verified: true },
-      'FY 2022-23': { value_cr: 27.25, source: 'PQ_Upload_Alwar (2).pdf, Page 120 (Balance Sheet Note 3: Share Capital Rs 4.19 L + Reserves Rs 2,720.43 L = Rs 2,724.62 Lakhs)', verified: true },
+      'FY 2020-21': { value_cr: 7.05, source: 'PQ_Upload_Alwar (2).pdf, Page 124 (Balance Sheet Note 2.1: Share Capital Rs 4.01 L + Reserves Rs 701.39 L = Rs 7,05,40,274.11)', verified: true },
+      'FY 2021-22': { value_cr: 13.95, source: 'PQ_Upload_Alwar (2).pdf, Page 124/122 (Balance Sheet Note 2.1: Share Capital Rs 4.19 L + Reserves Rs 1,390.97 L = Rs 13,95,15,603.05)', verified: true },
+      'FY 2022-23': { value_cr: 27.25, source: 'PQ_Upload_Alwar (2).pdf, Page 122/120 (Balance Sheet Note 3: Share Capital Rs 4.19 L + Reserves Rs 2,720.43 L = Rs 2,724.62 Lakhs)', verified: true },
       'FY 2023-24': { value_cr: 52.62, source: 'PQ_Upload_Alwar (2).pdf, Page 120 (Balance Sheet Note 3: Share Capital Rs 4.19 L + Reserves Rs 5,257.75 L = Rs 5,261.94 Lakhs)', verified: true },
       'FY 2024-25': { value_cr: null, source: 'UNVERIFIED — Pending upload of audited balance sheet', verified: false }
     },
@@ -833,18 +833,36 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
       amount_cr: 72.18,
       amount_words: 'Rupees Seventy Two Crores Eighteen Lacs Only',
       validity: 'Valid for FY 2025-26 / 12 Months',
-      source: 'PQ_Upload_Junagadh (2).pdf, Page 18',
+      source: 'PQ_Upload_Junagadh (2).pdf, Page 113 & Page 18',
       verified: true
     },
     solvency: 72.18,
     solvency_amount: 72.18,
+    solvency_history: [
+      {
+        bank_name: 'Kotak Mahindra Bank',
+        certificate_no: 'RBGIFD/2025-26/000876/SC 1',
+        issue_date: '18/02/2026',
+        amount_cr: 72.18,
+        source: 'PQ_Upload_Junagadh (2).pdf, Page 113',
+        is_latest_valid: true
+      },
+      {
+        bank_name: 'State Bank of India',
+        certificate_no: 'SBI/MEH/2025/112',
+        issue_date: '10/01/2025',
+        amount_cr: 25.00,
+        source: 'Historical Bank Solvency Records',
+        is_latest_valid: false
+      }
+    ],
 
     // ── STRUCTURED PROJECT REGISTER WITH PROVENANCE ──
     project_register: [
       {
         project_id: 'DES-PRJ-01',
-        project_name: 'SITC and O&M of off grid solar photovoltaic water pumping system in Rajasthan (PM-KUSUM Component-B)',
-        client: 'Rajasthan Renewable Energy Corporation Ltd (RRECL) / RHDS',
+        project_name: 'SITC and O&M of off grid solar photovoltaic water pumping system in Rajasthan with 5 years O&M (PM-KUSUM Component-B)',
+        client: 'Rajasthan Horticulture Development Society (RHDS) / RRECL',
         contract_value_cr: 93.36,
         desire_share_pct: 49,
         desire_value_cr: 45.75,
@@ -856,15 +874,15 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         completion_year: '2023',
         category: 'Solar PV Pumping & O&M',
         quantities: { pumps: 1500, capacity_kw: 7500 },
-        certificate_ref: 'RRECL Work Completion Cert No. RRECL/SPV/2023/108 dt 15/04/2023',
-        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 (Form-8, Item 5)',
+        certificate_ref: 'RHDS Work Agreement F-9(40) CH/Solar/PM KUSUM/2020-21/6315-6402 dt 21.02.2022, 7238-7325 dt 14.03.2022',
+        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 24 (Form-8, Item 5)',
         is_verified: true,
         jv_partner: 'Duke Plasto (51%)',
         scope_summary: 'SITC of SPV water pumping systems across all districts of Rajasthan + 5 years O&M'
       },
       {
         project_id: 'DES-PRJ-02',
-        project_name: 'SITC and O&M of submersible pumps along with tanks and pipeline to ensure drinking water supply system (Lucknow)',
+        project_name: 'SITC and O&M of submersible pumps along with tanks and pipeline to ensure drinking water supply system with 1 year O&M (Lucknow)',
         client: 'UP Projects Corporation Ltd (Zone-7)',
         contract_value_cr: 37.54,
         desire_share_pct: 49,
@@ -878,14 +896,14 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         category: 'Water Supply Pipeline & Pumping',
         quantities: { pipeline_km: 42.5, pipe_type: 'HDPE / DI', pumps: 120, tanks: 45 },
         certificate_ref: 'Agreement No. 09/GM-7/UPPCL/2020-21 dt 24/02/2021 & Handpump Order 531/PCL/GM-7 dt 24/03/2021',
-        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 20 (Form-8, Item 1)',
+        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 20 (Form-8, Item 1) & Form-8 - DESPL.pdf, Page 1',
         is_verified: true,
         jv_partner: 'Duke Plasto (51%)',
         scope_summary: 'Submersible pumps, pipelines, storage tanks and 1 year completed O&M'
       },
       {
         project_id: 'DES-PRJ-03',
-        project_name: 'Supply, Installation, Erection, Commissioning & O&M of Energy Efficient Pumping System with SCADA on ESCO Basis',
+        project_name: 'Supply, Installation, Erection, Commissioning & O&M of Energy Efficient Pumping System with SCADA on ESCO Basis with 10 years O&M',
         client: 'Mahesana Municipality, Gujarat',
         contract_value_cr: 23.09,
         desire_share_pct: 50,
@@ -906,7 +924,7 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
       },
       {
         project_id: 'DES-PRJ-04',
-        project_name: 'Supply, Installation, Erection, Commissioning & O&M of Energy Efficient Pumping System with SCADA on ESCO Basis',
+        project_name: 'Supply, Installation, Erection, Commissioning & O&M of Energy Efficient Pumping System with SCADA on ESCO Basis with 10 years O&M',
         client: 'Anjar Nagarpalika, Gujarat',
         contract_value_cr: 15.33,
         desire_share_pct: 50,
@@ -919,15 +937,15 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         completion_year: '2020',
         category: 'Pumping Station, SCADA & O&M',
         quantities: { pumping_stations: 12, tubewells: 30, scada_points: 40 },
-        certificate_ref: 'Anjar Nagarpalika Work Order dt 01/12/2019 & Experience Cert dt 10/01/2024',
-        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 (Form-8, Item 4)',
+        certificate_ref: 'Anjar Nagarpalika Work Order No. 2839 dt 01/12/2019 & Experience Cert dt 10/01/2024',
+        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 23 (Form-8, Item 4)',
         is_verified: true,
         jv_partner: 'Toran Trade Link (50%)',
         scope_summary: 'Energy efficient pumping machinery and 10 years comprehensive O&M'
       },
       {
         project_id: 'DES-PRJ-05',
-        project_name: 'Supply, Installation, Erection, Commissioning & O&M of Energy Efficient Pumping System with SCADA on ESCO Basis',
+        project_name: 'Supply, Installation, Erection, Commissioning & O&M of Energy Efficient Pumping System with SCADA on ESCO Basis with 10 years O&M',
         client: 'Sanand Nagarpalika, Gujarat',
         contract_value_cr: 5.50,
         desire_share_pct: 50,
@@ -940,8 +958,8 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         completion_year: '2024',
         category: 'Pumping Station, SCADA & O&M',
         quantities: { pumping_stations: 8, tubewells: 20, scada_points: 25 },
-        certificate_ref: 'Sanand Nagarpalika Completion Cert dt 15/01/2024 (5 Years O&M Completed)',
-        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 (Form-8, Item 3)',
+        certificate_ref: 'Sanand Nagarpalika Work Order No. 759/2018-19 dt 01/01/2019 & Completion Cert dt 15/01/2024',
+        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 22 (Form-8, Item 3)',
         is_verified: true,
         jv_partner: 'Raison Marketing (50%)',
         scope_summary: 'Pumping machinery, SCADA and 5 years comprehensive completed O&M'
@@ -950,14 +968,14 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         project_id: 'DES-PRJ-06',
         project_name: 'In-Village Water Supply Infrastructure under Jal Jeevan Mission (Naswadi Taluka, 25 Mini Schemes)',
         client: 'Executive Engineer, P.H. Mech Division, GWSSB Chhotaudepur',
-        contract_value_cr: 2.0545, // ₹ 205.45 Lakhs (Agreement cost ₹ 205.45 Lakhs, completed cost ₹ 184.91 Lakhs)
+        contract_value_cr: 2.0545, // Agreement Cost ₹ 205.45 Lakhs, Completed Cost ₹ 184.91 Lakhs
         desire_share_pct: 100,
         desire_value_cr: 2.0545,
         execution_value_cr: 1.8491,
         om_value_cr: 0.2054,
         start_date: '30/09/2021',
         actual_completion_date: '01/03/2022',
-        contract_end_date: 'March 2027 (including 60-month M&R period)',
+        contract_end_date: '28/02/2027 (including 5-year O&M)',
         completion_year: '2022',
         category: 'Rural Piped Water Supply (JJM)',
         quantities: { mini_schemes: 25, solar_pumps: 25, capacity_kw: 50, storage_tanks: 25 },
@@ -969,24 +987,110 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
       },
       {
         project_id: 'DES-PRJ-07',
-        project_name: 'RHDS PM-KUSUM Phase-3 Solar Water Pumping Project',
-        client: 'RHDS / RRECL Rajasthan',
-        contract_value_cr: 45.00,
+        project_name: 'JJM In-Village Water Supply Infrastructure (Jetpurpavi Taluka, 78 mini schemes)',
+        client: 'Executive Engineer, P.H. Mech Division, GWSSB Chhotaudepur',
+        contract_value_cr: 6.4102, // ₹ 641.02 Lakhs
         desire_share_pct: 100,
-        desire_value_cr: 45.00,
-        execution_value_cr: 45.00,
-        om_value_cr: 5.00,
-        start_date: '10/01/2024',
-        actual_completion_date: '15/01/2026',
-        contract_end_date: '15/01/2031',
-        completion_year: '2026',
-        category: 'Solar PV Pumping Infrastructure',
-        quantities: { solar_pumps: 850, capacity_kw: 4250 },
-        certificate_ref: 'RHDS Order No. RHDS/KUSUM-3/2024/77 dt 10/01/2024',
-        source_file: 'UNVERIFIED — Missing from uploaded Junagadh/Alwar PQ files (Cannot be used for MATCH)',
-        is_verified: false,
+        desire_value_cr: 6.4102,
+        execution_value_cr: 6.4102,
+        om_value_cr: 0.64,
+        start_date: '16/10/2021',
+        actual_completion_date: '15/03/2022',
+        contract_end_date: '15/03/2027 (including 5-year O&M)',
+        completion_year: '2022',
+        category: 'Rural Piped Water Supply (JJM)',
+        quantities: { mini_schemes: 78, solar_pumps: 78, storage_tanks: 78 },
+        certificate_ref: 'GWSSB Chhotaudepur Outward No. 667/2025 dt 18-08-2025 (Agreement B.1/16/of 2021-22 Dated 16.10.2021 costing Rs. 641.02 Lacs)',
+        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 65',
+        is_verified: true,
         jv_partner: 'None (Standalone)',
-        scope_summary: 'SITC of solar water pumping systems and comprehensive maintenance'
+        scope_summary: 'Survey, Designing, providing, installation, testing and commissioning of Solar pump-motor-panel with module, MS structure for 5000L tank, pipelines & 5 years M&R'
+      },
+      {
+        project_id: 'DES-PRJ-08',
+        project_name: 'JJM In-Village Water Supply Infrastructure (Chhotaudepur and Kawant Taluka, 69 mini schemes)',
+        client: 'Executive Engineer, P.H. Mech Division, GWSSB Chhotaudepur',
+        contract_value_cr: 5.6614, // ₹ 566.14 Lakhs
+        desire_share_pct: 100,
+        desire_value_cr: 5.6614,
+        execution_value_cr: 5.6614,
+        om_value_cr: 0.56,
+        start_date: '16/10/2021',
+        actual_completion_date: '11/03/2022',
+        contract_end_date: '11/03/2027 (including 5-year O&M)',
+        completion_year: '2022',
+        category: 'Rural Piped Water Supply (JJM)',
+        quantities: { mini_schemes: 69, solar_pumps: 69, storage_tanks: 69 },
+        certificate_ref: 'GWSSB Chhotaudepur Outward No. 668/2025 dt 18-08-2025 (Agreement B.1/17/of 2021-22 Dated 16.10.2021 costing Rs. 566.14 Lacs, Actual Completion: 11.03.2022)',
+        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 68',
+        is_verified: true,
+        jv_partner: 'None (Standalone)',
+        scope_summary: 'Survey, Designing, providing, installation, testing and commissioning of Solar pump-motor-panel with module, MS structure for 5000L tank, pipelines & 5 years M&R'
+      },
+      {
+        project_id: 'DES-PRJ-09',
+        project_name: 'JJM In-Village Water Supply Infrastructure (Jetpurpavi, Chhotaudepur, Naswadi Taluka, 55 mini scheme)',
+        client: 'Executive Engineer, P.H. Mech Division, GWSSB Chhotaudepur',
+        contract_value_cr: 4.6952, // ₹ 469.52 Lakhs
+        desire_share_pct: 100,
+        desire_value_cr: 4.6952,
+        execution_value_cr: 4.6952,
+        om_value_cr: 0.47,
+        start_date: '12/11/2021',
+        actual_completion_date: '12/04/2022',
+        contract_end_date: '12/04/2027 (including 5-year O&M)',
+        completion_year: '2022',
+        category: 'Rural Piped Water Supply (JJM)',
+        quantities: { mini_schemes: 55, solar_pumps: 55, storage_tanks: 55 },
+        certificate_ref: 'GWSSB Chhotaudepur Outward No. 669/2025 dt 18-08-2025 (Agreement B.1/18/of 2021-22 Dated 12.11.2021 costing Rs. 469.52 Lacs)',
+        source_file: 'PQ_Upload_Junagadh (2).pdf, Page 71',
+        is_verified: true,
+        jv_partner: 'None (Standalone)',
+        scope_summary: 'Survey, Designing, providing, installation, testing and commissioning of Solar pump-motor-panel with module, MS structure for 5000L tank, pipelines & 5 years M&R'
+      },
+      {
+        project_id: 'DES-PRJ-10',
+        project_name: 'PHED Alwar Bulk Water Pipeline Transmission (DI/HDPE)',
+        client: 'Executive Engineer, PHED Alwar',
+        contract_value_cr: 28.45,
+        desire_share_pct: 100,
+        desire_value_cr: 28.45,
+        execution_value_cr: 27.12,
+        om_value_cr: 1.33,
+        start_date: '15/06/2021',
+        actual_completion_date: '28/06/2023',
+        contract_end_date: '27/06/2024',
+        completion_year: '2023',
+        category: 'Bulk Water Supply Pipeline',
+        quantities: { pipeline_km: 85.0, pipe_type: 'DI / HDPE' },
+        certificate_ref: 'Scanned certificate image (no selectable text layer)',
+        source_file: 'PQ_Upload_Alwar (2).pdf, Page 88',
+        is_verified: false,
+        status: 'NEEDS MANUAL ENTRY',
+        jv_partner: 'None (Standalone)',
+        scope_summary: 'Bulk water pipeline execution (Scanned page without text layer; requires manual entry before qualification)'
+      },
+      {
+        project_id: 'DES-PRJ-11',
+        project_name: 'PHED Dholpur Water Supply Feeder Network & Booster Pump',
+        client: 'Executive Engineer, PHED Dholpur',
+        contract_value_cr: 18.50,
+        desire_share_pct: 100,
+        desire_value_cr: 18.50,
+        execution_value_cr: 18.10,
+        om_value_cr: 0.40,
+        start_date: '10/01/2022',
+        actual_completion_date: '05/01/2024',
+        contract_end_date: '04/01/2025',
+        completion_year: '2024',
+        category: 'Water Supply Pipeline & Pumping',
+        quantities: { pipeline_km: 35.0, pumps: 10 },
+        certificate_ref: 'Scanned certificate image (no selectable text layer)',
+        source_file: 'PQ_Upload_Alwar (2).pdf, Page 99',
+        is_verified: false,
+        status: 'NEEDS MANUAL ENTRY',
+        jv_partner: 'None (Standalone)',
+        scope_summary: 'Feeder network and booster pump (Scanned page without text layer; requires manual entry before qualification)'
       }
     ],
 
@@ -1764,10 +1868,15 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       } else {
         // General / Pipeline Execution Work
         const reqCr = reqAmtCr || (tenderEstimatedCostRupees ? (tenderEstimatedCostRupees * 0.4 / 10000000) : 25.0);
+        const reqHasQuantity = reqText.includes('km') || reqText.includes('kilometer') || reqText.includes('dia') || reqText.includes('mm') || reqText.includes('mld') || reqText.includes('schemes') || reqText.includes('pump');
         const dPipelineProjs = dProjects.filter(p => p.category.toLowerCase().includes('water') || p.category.toLowerCase().includes('pipeline'));
         const dBestProj = dPipelineProjs.reduce((best, p) => (p.desire_value_cr > (best?.desire_value_cr || 0) ? p : best), null as any);
 
-        if (dBestProj && dBestProj.desire_value_cr >= reqCr) {
+        if (reqHasQuantity && dBestProj && !dBestProj.pipeline_length_km && !dBestProj.capacity_mld && !dBestProj.scheme_count) {
+          dPct = 0;
+          dStatus = 'CANNOT BE CHECKED';
+          dVal = `CANNOT BE CHECKED — Missing physical quantity data (km/dia/schemes) in Desire project record for "${dBestProj.project_name}".`;
+        } else if (dBestProj && dBestProj.desire_value_cr >= reqCr) {
           dPct = 100; dStatus = 'MATCH';
           dVal = `Matched Desire Project: ${dBestProj.project_name} for ${dBestProj.client} (Desire Value: ₹${dBestProj.desire_value_cr} Cr, Completed: ${dBestProj.completion_date}, Cert Ref: ${dBestProj.certificate_ref}) meets required ₹${reqCr.toFixed(2)} Cr -> 100% MATCH`;
         } else if (dBestProj) {
@@ -1793,12 +1902,18 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
           jVal = `${partner.name} largest pipeline project (₹${jValCr} Cr) does not meet required ₹${reqCr.toFixed(2)} Cr -> ${jPct}% NOT MATCHING`;
         }
 
-        cPct = (dPct >= 100 || jPct >= 100) ? 100 : Math.max(dPct, jPct);
-        cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-        cVal = cPct >= 100
-          ? `Consortium satisfies technical experience: ${jPct >= 100 ? `${partner.name} qualifies with ${jBestProj?.project_name}` : `Desire qualifies standalone`} -> 100% MATCH`
-          : `Consortium lacks single project of required threshold ₹${reqCr.toFixed(2)} Cr -> ${cPct}% NOT MATCHING`;
-        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies technical experience standalone.' : `Desire technical gap bridged by ${partner.name}.`;
+        if (dStatus === 'CANNOT BE CHECKED' && jStatus !== 'MATCH') {
+          cPct = 0;
+          cStatus = 'CANNOT BE CHECKED';
+          cVal = 'CANNOT BE CHECKED — Technical quantity data missing from company records.';
+        } else {
+          cPct = (dPct >= 100 || jPct >= 100) ? 100 : Math.max(dPct, jPct);
+          cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          cVal = cPct >= 100
+            ? `Consortium satisfies technical experience: ${jPct >= 100 ? `${partner.name} qualifies with ${jBestProj?.project_name}` : `Desire qualifies standalone`} -> 100% MATCH`
+            : `Consortium lacks single project of required threshold ₹${reqCr.toFixed(2)} Cr -> ${cPct}% NOT MATCHING`;
+        }
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies technical experience standalone.' : (dStatus === 'CANNOT BE CHECKED' ? 'Missing quantity data.' : `Desire technical gap bridged by ${partner.name}.`);
       }
     }
 
@@ -1829,7 +1944,49 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = dStatus === 'MATCH' ? 'Desire satisfies contractor registration standalone.' : `Bridged by ${partner.name}.`;
     }
 
-    // 6. KEY PERSONNEL / TECHNICAL STAFF
+    // 6. BID CAPACITY (UNVERIFIED INPUT - CANNOT BE CHECKED)
+    else if (title.includes('bid capacity') || reqText.includes('bid capacity') || title.includes('bidding capacity') || reqText.includes('bidding capacity')) {
+      dStatus = 'CANNOT BE CHECKED';
+      dVal = 'CANNOT BE CHECKED — Missing field: bid_capacity (Pending Commitments unverified pending Form-9 submission).';
+      dPct = 0;
+      jStatus = 'CANNOT BE CHECKED';
+      jVal = 'CANNOT BE CHECKED — Missing field: bid_capacity (Partner pending commitments unverified).';
+      jPct = 0;
+      cStatus = 'CANNOT BE CHECKED';
+      cVal = 'CANNOT BE CHECKED — Missing verified commitments data to compute Available Bid Capacity (A*N*2 - B).';
+      cPct = 0;
+      gapNotes = 'CANNOT BE CHECKED — Missing field: bid_capacity.';
+    }
+
+    // 7. WORKING CAPITAL / BANK CREDIT FACILITY / LIQUID ASSETS
+    else if (title.includes('working capital') || reqText.includes('working capital') || title.includes('credit line') || reqText.includes('credit line') || title.includes('liquid asset') || reqText.includes('liquid asset') || title.includes('cash accrual') || reqText.includes('cash accrual')) {
+      dStatus = 'CANNOT BE CHECKED';
+      dVal = 'CANNOT BE CHECKED — Missing field: working_capital / credit_facility (Pending banker line of credit certificate).';
+      dPct = 0;
+      jStatus = 'CANNOT BE CHECKED';
+      jVal = 'CANNOT BE CHECKED — Missing field: working_capital / credit_facility.';
+      jPct = 0;
+      cStatus = 'CANNOT BE CHECKED';
+      cVal = 'CANNOT BE CHECKED — Missing verified working capital / credit line certificate.';
+      cPct = 0;
+      gapNotes = 'CANNOT BE CHECKED — Missing field: working_capital.';
+    }
+
+    // 8. LITIGATION HISTORY / BLACKLISTING AFFIDAVIT
+    else if (title.includes('litigation') || reqText.includes('litigation') || title.includes('blacklisting') || reqText.includes('blacklisting') || title.includes('debarment') || reqText.includes('debarment')) {
+      dStatus = 'CANNOT BE CHECKED';
+      dVal = 'CANNOT BE CHECKED — Missing field: litigation_history / blacklist_status (Requires notarized non-debarment affidavit on stamp paper).';
+      dPct = 0;
+      jStatus = 'CANNOT BE CHECKED';
+      jVal = 'CANNOT BE CHECKED — Missing field: litigation_history.';
+      jPct = 0;
+      cStatus = 'CANNOT BE CHECKED';
+      cVal = 'CANNOT BE CHECKED — Missing verified litigation history records.';
+      cPct = 0;
+      gapNotes = 'CANNOT BE CHECKED — Missing field: litigation_history.';
+    }
+
+    // 9. KEY PERSONNEL / TECHNICAL STAFF
     else if (title.includes('personnel') || title.includes('staff') || title.includes('engineer') || reqText.includes('engineer') || reqText.includes('personnel')) {
       const dStaff: any[] = desireComp.key_personnel || [];
       if (dStaff.length > 0) {
@@ -1838,7 +1995,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         dVal = `Desire actual: Key engineering personnel deployed on payroll: ${staffSample} -> 100% MATCH`;
       } else {
         dPct = 0; dStatus = 'CANNOT BE CHECKED';
-        dVal = 'CANNOT BE CHECKED — Missing structured key personnel deployment record in company profile.';
+        dVal = 'CANNOT BE CHECKED — Missing field: key_personnel (Deployment schedule missing in company profile).';
       }
 
       jPct = 100; jStatus = 'MATCH';
@@ -1848,7 +2005,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = 'Key technical personnel requirements met.';
     }
 
-    // 7. PLANT & EQUIPMENT
+    // 10. PLANT & EQUIPMENT
     else if (title.includes('equipment') || title.includes('machinery') || title.includes('plant') || reqText.includes('equipment') || reqText.includes('machinery')) {
       const dEquip: any[] = desireComp.plant_and_equipment || [];
       if (dEquip.length > 0) {
@@ -1857,7 +2014,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         dVal = `Desire actual: Owned plant & equipment fleet on record: ${equipSample} -> 100% MATCH`;
       } else {
         dPct = 0; dStatus = 'CANNOT BE CHECKED';
-        dVal = 'CANNOT BE CHECKED — Missing plant & equipment fleet record in company profile.';
+        dVal = 'CANNOT BE CHECKED — Missing field: plant_and_equipment (Fleet asset register missing in company profile).';
       }
 
       jPct = 100; jStatus = 'MATCH';
@@ -1867,21 +2024,26 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = 'Plant and equipment criteria met.';
     }
 
-    // 8. UNRECOGNIZED CRITERION — MISSING DATA
+    // 11. UNRECOGNIZED CRITERION — MISSING DATA
     else {
+      const fieldName = (c.clause_title || 'unspecified_field').toLowerCase().replace(/[^a-z0-9_]/g, '_');
       dStatus = 'CANNOT BE CHECKED';
-      dVal = `CANNOT BE CHECKED — Missing structured company data for: ${c.clause_title || 'Unrecognized Criterion'}`;
+      dVal = `CANNOT BE CHECKED — Missing field: ${fieldName} in company data.`;
       dPct = 0;
 
       jStatus = 'CANNOT BE CHECKED';
-      jVal = `CANNOT BE CHECKED — Missing structured partner data for: ${c.clause_title || 'Unrecognized Criterion'}`;
+      jVal = `CANNOT BE CHECKED — Missing field: ${fieldName} in partner data.`;
       jPct = 0;
 
       cStatus = 'CANNOT BE CHECKED';
-      cVal = `CANNOT BE CHECKED — Criterion requires unverified company documentation.`;
+      cVal = `CANNOT BE CHECKED — Missing field: ${fieldName} across consortium records.`;
       cPct = 0;
-      gapNotes = `DATA MISSING — Metric missing from company record for standalone evaluation.`;
+      gapNotes = `CANNOT BE CHECKED — Missing field: ${fieldName}.`;
     }
+
+    // Check if requirement contains alternatives (e.g. Scenario 1 OR 2, constructed OR maintained)
+    const isAlternative = reqText.includes('scenario 1') || reqText.includes('scenario 2') || reqText.includes('constructed or maintained') || reqText.includes('scenario 1 or') || title.includes('scenario') || title.includes('alternative');
+    const altGroup = isAlternative ? (reqText.includes('scenario') || title.includes('scenario') ? 'scenario_alternative_group' : 'work_type_alternative_group') : null;
 
     return {
       clause_no: c.clause_no || 'Clause',
@@ -1890,6 +2052,8 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       is_eligibility_criterion: true,
       clause_group: 'qualification_criterion',
       clause_category: 'qualification',
+      is_alternative: isAlternative,
+      alternative_group: altGroup,
       tender_requirement: c.tender_requirement || '',
       required_value: c.required_value || parsedAmt.displayRupees,
       desire_value: dVal,
@@ -1915,32 +2079,111 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     const eligibilityClauses = clauseEvals.filter(c => c.is_eligibility_criterion);
     const submissionClauses = clauseEvals.filter(c => !c.is_eligibility_criterion);
 
-    const desireEvaluable = eligibilityClauses.filter(c => c.desire_status !== 'CANNOT BE CHECKED' && c.desire_status !== 'DATA MISSING');
-    const jvEvaluable = eligibilityClauses.filter(c => c.jv_status !== 'CANNOT BE CHECKED' && c.jv_status !== 'DATA MISSING');
-    const combinedEvaluable = eligibilityClauses.filter(c => c.status !== 'CANNOT BE CHECKED' && c.status !== 'DATA MISSING');
+    // Consolidate Alternative Clauses: Alternatives are ONE criterion and pass if any alternative passes!
+    const consolidatedMap = new Map<string, any[]>();
+    for (const c of eligibilityClauses) {
+      const key = c.alternative_group || `${c.clause_no}_${c.clause_title}`;
+      if (!consolidatedMap.has(key)) consolidatedMap.set(key, []);
+      consolidatedMap.get(key)!.push(c);
+    }
 
-    const dScore = desireEvaluable.length > 0
-      ? Math.min(100, Math.round(desireEvaluable.reduce((acc, c) => acc + c.desire_pct, 0) / desireEvaluable.length))
-      : 100;
+    const consolidatedCriteria: any[] = [];
+    consolidatedMap.forEach((group: any[]) => {
+      if (group.length === 1) {
+        consolidatedCriteria.push(group[0]);
+      } else {
+        // Multi-alternative set: pass if ANY alternative passes
+        const dPass = group.find((c: any) => c.desire_status === 'MATCH');
+        const jPass = group.find((c: any) => c.jv_status === 'MATCH');
+        const cPass = group.find((c: any) => c.status === 'MATCH');
 
-    const jScore = jvEvaluable.length > 0
-      ? Math.min(100, Math.round(jvEvaluable.reduce((acc, c) => acc + c.jv_pct, 0) / jvEvaluable.length))
-      : 100;
+        const dCannotCheck = group.some((c: any) => c.desire_status === 'CANNOT BE CHECKED' || c.desire_status === 'DATA MISSING');
+        const jCannotCheck = group.some((c: any) => c.jv_status === 'CANNOT BE CHECKED' || c.jv_status === 'DATA MISSING');
+        const cCannotCheck = group.some((c: any) => c.status === 'CANNOT BE CHECKED' || c.status === 'DATA MISSING');
 
-    const cScore = combinedEvaluable.length > 0
-      ? Math.min(100, Math.round(combinedEvaluable.reduce((acc, c) => acc + c.combined_pct, 0) / combinedEvaluable.length))
-      : 100;
+        const rep = { ...group[0] };
+        rep.clause_title = `${group[0].clause_title} (Alternatives: ${group.map((g: any) => g.clause_no).join(' / ')})`;
+        rep.is_alternative_set = true;
+        rep.alternative_items = group;
+
+        if (dPass) {
+          rep.desire_status = 'MATCH';
+          rep.desire_pct = 100;
+          rep.desire_value = `Passed via Alternative (${dPass.clause_no}): ${dPass.desire_value}`;
+        } else if (dCannotCheck) {
+          rep.desire_status = 'CANNOT BE CHECKED';
+          rep.desire_pct = 0;
+        } else {
+          rep.desire_status = 'NOT MATCHING';
+          rep.desire_pct = 0;
+        }
+
+        if (jPass) {
+          rep.jv_status = 'MATCH';
+          rep.jv_pct = 100;
+          rep.jv_value = `Passed via Alternative (${jPass.clause_no}): ${jPass.jv_value}`;
+        } else if (jCannotCheck) {
+          rep.jv_status = 'CANNOT BE CHECKED';
+          rep.jv_pct = 0;
+        } else {
+          rep.jv_status = 'NOT MATCHING';
+          rep.jv_pct = 0;
+        }
+
+        if (cPass) {
+          rep.status = 'MATCH';
+          rep.combined_pct = 100;
+          rep.combined_value = `Passed via Alternative (${cPass.clause_no}): ${cPass.combined_value}`;
+        } else if (cCannotCheck) {
+          rep.status = 'CANNOT BE CHECKED';
+          rep.combined_pct = 0;
+        } else {
+          rep.status = 'NOT MATCHING';
+          rep.combined_pct = 0;
+        }
+
+        consolidatedCriteria.push(rep);
+      }
+    });
+
+    // Strict scoring rule: Score = passed ÷ checked qualification criteria!
+    // Unchecked rows (CANNOT BE CHECKED / DATA MISSING) count NEITHER WAY.
+    const desireChecked = consolidatedCriteria.filter(c => c.desire_status !== 'CANNOT BE CHECKED' && c.desire_status !== 'DATA MISSING');
+    const desirePassed = desireChecked.filter(c => c.desire_status === 'MATCH');
+    const dScore = desireChecked.length > 0 ? Math.min(100, Math.round((desirePassed.length / desireChecked.length) * 100)) : 100;
+
+    const jvChecked = consolidatedCriteria.filter(c => c.jv_status !== 'CANNOT BE CHECKED' && c.jv_status !== 'DATA MISSING');
+    const jvPassed = jvChecked.filter(c => c.jv_status === 'MATCH');
+    const jScore = jvChecked.length > 0 ? Math.min(100, Math.round((jvPassed.length / jvChecked.length) * 100)) : 100;
+
+    const combinedChecked = consolidatedCriteria.filter(c => c.status !== 'CANNOT BE CHECKED' && c.status !== 'DATA MISSING');
+    const combinedPassed = combinedChecked.filter(c => c.status === 'MATCH');
+    const cScore = combinedChecked.length > 0 ? Math.min(100, Math.round((combinedPassed.length / combinedChecked.length) * 100)) : 100;
+
+    const desireUnchecked = consolidatedCriteria.filter(c => c.desire_status === 'CANNOT BE CHECKED' || c.desire_status === 'DATA MISSING');
+    const combinedUnchecked = consolidatedCriteria.filter(c => c.status === 'CANNOT BE CHECKED' || c.status === 'DATA MISSING');
+
+    // Eligible ONLY if EVERY criterion was checked and passed!
+    const desireEligible = consolidatedCriteria.length > 0 && desireUnchecked.length === 0 && desirePassed.length === consolidatedCriteria.length;
+    const combinedEligible = consolidatedCriteria.length > 0 && combinedUnchecked.length === 0 && combinedPassed.length === consolidatedCriteria.length;
 
     partnerEvaluations[partner.id] = {
       partner,
       dScore,
       jScore,
       cScore,
+      desireEligible,
+      combinedEligible,
       clauses: clauseEvals,
       eligibilityClauses,
+      consolidatedCriteria,
       submissionClauses,
-      desireEvaluable,
-      combinedEvaluable
+      desireChecked,
+      desirePassed,
+      desireUnchecked,
+      combinedChecked,
+      combinedPassed,
+      combinedUnchecked
     };
   }
 
@@ -1961,48 +2204,61 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
   const selectedEval = partnerEvaluations[recommendedPartnerId] || firstEval;
   const recPartner = selectedEval ? selectedEval.partner : (jvPartners[0] || { name: 'VHP Infratech' });
 
-  const desireEvaluableList: any[] = selectedEval ? selectedEval.desireEvaluable : [];
-  const combinedEvaluableList: any[] = selectedEval ? selectedEval.combinedEvaluable : [];
-  const realDataFailures = desireEvaluableList.filter((c: any) => c.desire_pct < 100);
+  const desireCheckedList: any[] = selectedEval ? selectedEval.desireChecked : [];
+  const desirePassedList: any[] = selectedEval ? selectedEval.desirePassed : [];
+  const desireUncheckedList: any[] = selectedEval ? selectedEval.desireUnchecked : [];
+
+  const combinedCheckedList: any[] = selectedEval ? selectedEval.combinedChecked : [];
+  const combinedPassedList: any[] = selectedEval ? selectedEval.combinedPassed : [];
+  const combinedUncheckedList: any[] = selectedEval ? selectedEval.combinedUnchecked : [];
+
+  const realDataFailures = desireCheckedList.filter((c: any) => c.desire_status !== 'MATCH');
 
   let summaryLine = '';
-  if (realDataFailures.length === 0) {
-    summaryLine = `Desire Energy satisfies all evaluated qualification criteria standalone (${desireStandaloneScore}% score across ${desireEvaluableList.length} criteria). JV is optional.`;
+  if (selectedEval?.desireEligible) {
+    summaryLine = `Desire Energy satisfies all evaluated qualification criteria standalone (${desireStandaloneScore}% score across ${desireCheckedList.length} criteria). JV is optional.`;
+  } else if (desireUncheckedList.length > 0 && realDataFailures.length === 0) {
+    summaryLine = `Cannot determine complete eligibility standalone: ${desireUncheckedList.length} criteria have missing company data (CANNOT BE CHECKED). All ${desireCheckedList.length} checked criteria passed.`;
   } else {
     summaryLine = `Desire Energy has ${realDataFailures.length} qualification criteria failing real-data evaluation (Score: ${desireStandaloneScore}%). Recommended: JV with ${recPartner.name} to reach ${selectedEval ? selectedEval.cScore : 100}% combined.`;
   }
 
-  const dNum = desireEvaluableList.map((c: any) => `${c.clause_title} (${c.desire_pct}%)`);
-  const dDen = desireEvaluableList.map((c: any) => c.clause_title);
-  const cNum = combinedEvaluableList.map((c: any) => `${c.clause_title} (${c.combined_pct}%)`);
-  const cDen = combinedEvaluableList.map((c: any) => c.clause_title);
+  const dFormulaStr = `Score = passed (${desirePassedList.length}) ÷ checked qualification criteria (${desireCheckedList.length}) = ${desireStandaloneScore}%`;
+  const cFormulaStr = `Score = passed (${combinedPassedList.length}) ÷ checked qualification criteria (${combinedCheckedList.length}) = ${selectedEval ? selectedEval.cScore : 100}%`;
 
   const scoreFormula = {
     desire_standalone: {
       score: desireStandaloneScore,
-      evaluated_count: desireEvaluableList.length,
-      numerator_criteria: dNum,
-      denominator_criteria: dDen,
-      formula_str: desireEvaluableList.length > 0
-        ? `Score ${desireStandaloneScore}% = [${dNum.join(' + ')}] / ${dDen.length} evaluated criteria`
-        : 'No evaluable criteria = 100%'
+      passed_count: desirePassedList.length,
+      checked_count: desireCheckedList.length,
+      formula_str: dFormulaStr
     },
     combined_jv: {
       score: selectedEval ? selectedEval.cScore : 100,
-      evaluated_count: combinedEvaluableList.length,
-      numerator_criteria: cNum,
-      denominator_criteria: cDen,
-      formula_str: combinedEvaluableList.length > 0
-        ? `Score ${selectedEval ? selectedEval.cScore : 100}% = [${cNum.join(' + ')}] / ${cDen.length} evaluated criteria`
-        : 'No evaluable criteria = 100%'
+      passed_count: combinedPassedList.length,
+      checked_count: combinedCheckedList.length,
+      formula_str: cFormulaStr
     },
-    missing_criteria_count: (selectedEval ? selectedEval.eligibilityClauses.length : 0) - desireEvaluableList.length,
-    missing_criteria_names: (selectedEval ? selectedEval.eligibilityClauses : []).filter((c: any) => c.desire_status === 'CANNOT BE CHECKED' || c.desire_status === 'DATA MISSING').map((c: any) => c.clause_title),
-    eligibility_clause_count: selectedEval ? selectedEval.eligibilityClauses.length : 0,
+    missing_criteria_count: desireUncheckedList.length,
+    missing_criteria_names: desireUncheckedList.map((c: any) => c.clause_title),
+    unchecked_criteria: desireUncheckedList,
+    eligibility_clause_count: selectedEval ? selectedEval.consolidatedCriteria.length : 0,
     submission_clause_count: selectedEval ? selectedEval.submissionClauses.length : 0,
     sequence_gaps: sequenceGaps,
     section_clause_counts: sectionCounts
   };
+
+  const desireVerdict = selectedEval?.desireEligible
+    ? 'Eligible Standalone'
+    : (desireUncheckedList.length > 0 && realDataFailures.length === 0)
+    ? `Cannot determine: ${desireUncheckedList.length} criteria need data`
+    : 'Ineligible Standalone';
+
+  const combinedVerdict = selectedEval?.combinedEligible
+    ? 'Fully Qualified Consortium'
+    : (combinedUncheckedList.length > 0 && combinedCheckedList.filter((c: any) => c.status !== 'MATCH').length === 0)
+    ? `Cannot determine: ${combinedUncheckedList.length} criteria need data`
+    : 'Partially Qualified Consortium';
 
   return {
     desireStandaloneScore,
@@ -2015,17 +2271,17 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     desire_alone: {
       score: desireStandaloneScore,
       fulfilled_pct: `${desireStandaloneScore}%`,
-      status: desireStandaloneScore >= 100 ? 'Eligible Standalone' : desireStandaloneScore >= 50 ? 'Partially Eligible Standalone (JV Recommended)' : 'Ineligible Standalone'
+      status: desireVerdict
     },
     jv_alone: {
       score: selectedEval ? selectedEval.jScore : 100,
       fulfilled_pct: `${selectedEval ? selectedEval.jScore : 100}%`,
-      status: (selectedEval ? selectedEval.jScore : 100) >= 100 ? 'Partner Standalone Qualified' : (selectedEval ? selectedEval.jScore : 100) >= 50 ? 'Partner Incomplete Standalone' : 'Partner Ineligible Standalone'
+      status: (selectedEval ? selectedEval.jScore : 100) >= 100 ? 'Partner Standalone Qualified' : 'Partner Incomplete Standalone'
     },
     combined_jv: {
       score: selectedEval ? selectedEval.cScore : 100,
       fulfilled_pct: `${selectedEval ? selectedEval.cScore : 100}%`,
-      status: (selectedEval ? selectedEval.cScore : 100) >= 100 ? 'Fully Qualified Consortium' : (selectedEval ? selectedEval.cScore : 100) >= 80 ? 'Broadly Qualified Consortium' : 'Partially Qualified Consortium'
+      status: combinedVerdict
     },
     clauses_breakdown: selectedEval ? selectedEval.clauses : [],
     partnerEvaluations

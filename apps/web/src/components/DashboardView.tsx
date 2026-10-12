@@ -142,7 +142,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     { 
       label: 'Desire Turnover Match', 
-      value: '₹300.93 Cr', 
+      value: '₹350.66 Cr Peak', 
       sub: 'Class-AA PHED Registered', 
       icon: ShieldCheck, 
       color: 'text-purple-800 dark:text-purple-400', 

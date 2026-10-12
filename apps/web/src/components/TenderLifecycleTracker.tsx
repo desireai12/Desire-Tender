@@ -62,7 +62,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
     activeTender?.eligibility_result?.status_verdict || (activeTender?.eligibility_result?.is_eligible ? 'Eligible' : 'Not Eligible')
   );
   const [stage1Remarks, setStage1Remarks] = useState<string>(
-    activeTender?.eligibility_result?.reasoning || 'Verified against company financial records (₹300.93 Cr turnover) and active Class-A PHED license.'
+    activeTender?.eligibility_result?.reasoning || 'Verified against company financial records (₹350.66 Cr peak turnover, ₹271.94 Cr avg) and active Class-A PHED license.'
   );
 
   // Stage 2 State
@@ -510,7 +510,7 @@ export const TenderLifecycleTracker: React.FC<TenderLifecycleTrackerProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">
               <span className="text-[11px] font-mono uppercase text-slate-700 font-medium">Financial Turnover</span>
-              <div className="text-sm font-bold text-slate-900">₹300.93 Cr Verified</div>
+              <div className="text-sm font-bold text-slate-900">₹350.66 Cr Peak (₹271.94 Cr Avg)</div>
               <p className="text-[11px] text-emerald-800 font-bold">Exceeds ₹150 Cr requirement</p>
             </div>
             <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-1">

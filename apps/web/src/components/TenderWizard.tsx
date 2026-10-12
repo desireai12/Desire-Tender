@@ -1360,7 +1360,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   <span className="text-xs font-bold text-teal-400 font-mono">{perspective.option1_pct}</span>
                 </div>
                 <p className="text-slate-300 text-[11px] leading-relaxed font-medium">
-                  Fulfills {perspective.summary_counts.matched} of {perspective.summary_counts.total_criteria} criteria alone. Brings ₹300.93 Cr avg turnover, ₹95 Cr net worth, ESCO/Pumping credentials, and Lead Share ({desireEquityRatio}%).
+                  Fulfills {perspective.summary_counts.matched} of {perspective.summary_counts.total_criteria} criteria alone. Brings ₹271.94 Cr avg turnover (₹350.66 Cr peak), ₹52.62 Cr audited net worth, ESCO/Pumping credentials, and Lead Share ({desireEquityRatio}%).
                 </p>
               </div>
 

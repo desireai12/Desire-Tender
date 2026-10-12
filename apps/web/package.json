@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "prebuild": "node src/test/verify_no_undefined_nan.js",
     "build": "next build",
+    "test": "node src/test/verify_no_undefined_nan.js",
     "start": "next start",
     "lint": "next lint"
   },

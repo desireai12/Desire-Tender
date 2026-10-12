@@ -1160,7 +1160,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                   <span className="text-[10px] font-mono text-slate-500 block">Minimum 3-Year Avg Turnover</span>
                   <span className="font-bold text-slate-900 dark:text-white">₹{selectedTenderModal.key_criteria.min_turnover_cr} Cr</span>
                   <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block mt-0.5 font-bold">
-                    Desire ₹300.93 Cr (✓ Exceeds requirement)
+                    Desire ₹350.66 Cr Peak / ₹271.94 Cr Avg (✓ Exceeds requirement)
                   </span>
                 </div>
 

@@ -194,7 +194,7 @@ export const CombineAnalysisView: React.FC = () => {
             {companies.filter(c => c.type === 'Desire Energy' || c.name.includes('DESIRE')).map(c => (
               <option key={c.id} value={c.id}>{c.name} (Avg ₹{c.average_turnover} Cr)</option>
             ))}
-            {companies.length === 0 && <option value="comp-desire-01">DESIRE ENERGY SOLUTIONS PVT LTD (₹300.93 Cr)</option>}
+            {companies.length === 0 && <option value="comp-desire-01">DESIRE ENERGY SOLUTIONS PVT LTD (₹350.66 Cr Peak / ₹271.94 Cr Avg)</option>}
           </select>
         </div>
 

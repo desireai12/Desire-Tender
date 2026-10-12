@@ -38,8 +38,8 @@ const DEFAULT_SEED_TENDER: TenderProcess = {
   updated_at: '2026-08-06 10:15:00',
   eligibility_result: {
     is_eligible: true,
-    score: 95,
-    reasoning: 'Verified ₹300.93 Cr turnover & 1,00,000+ village operations.'
+    score: 100,
+    reasoning: 'Verified against audited financial statements (₹350.66 Cr peak turnover, ₹271.94 Cr avg, ₹52.62 Cr net worth).'
   },
   audit_trail: [
     {
