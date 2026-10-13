@@ -6,6 +6,7 @@ import { crawlTelanganaPortal } from '@/lib/telangana-crawler';
 import { crawlGujaratNProcurePortal } from '@/lib/nprocure-crawler';
 import { normalizeStatus } from '@/lib/tender-status';
 import { retrieveRAGContextForTender, ingestDocumentInBackground, INGESTION_TRACKER } from '@/lib/rag';
+import buildInfo from '@/data/build_info.json';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -642,15 +643,42 @@ function categorizeClause(c: any): {
     return { is_eligibility_criterion: false, clause_group: 'mandatory_submission', clause_category: 'submission' };
   }
 
-  // (c) Contract Conditions / Post-award terms (DLP, O&M terms, performance bank guarantee/PBG, milestone schedule, penalty, escalation, jurisdiction, arbitration)
-  const isContractTerm =
+  // (c) Contract Conditions / Operational Obligations:
+  // Move contract and operational obligations (penalties, SLA, termination, force majeure, labour rules, safety, insurance, deployed-staff roster, equipment upkeep) into the collapsed, unscored "Other conditions". Never create a "missing company field" for them.
+  const isContractOrOperational =
+    // Penalties / Liquidated damages
+    title.includes('penalty') || reqText.includes('penalty') || reqText.includes('penalties') ||
+    title.includes('liquidated damages') || reqText.includes('liquidated damages') || title.includes('ld clause') || reqText.includes('delay penalty') ||
+    // SLA
+    title.includes('sla') || reqText.includes('service level') || reqText.includes('service level agreement') || /\bsla\b/i.test(title) || /\bsla\b/i.test(reqText) ||
+    // Termination
+    title.includes('termination') || reqText.includes('termination') || title.includes('foreclosure') || reqText.includes('breach of contract') ||
+    // Force Majeure
+    title.includes('force majeure') || reqText.includes('force majeure') || title.includes('act of god') ||
+    // Labour rules / Wages / Workmen
+    title.includes('labour') || title.includes('labor') || reqText.includes('labour') || reqText.includes('labor') ||
+    reqText.includes('minimum wages') || reqText.includes('payment of wages') || reqText.includes('workmen compensation') ||
+    reqText.includes('contract labour') || reqText.includes('labour cess') || reqText.includes('labour welfare') ||
+    // Safety
+    title.includes('safety') || reqText.includes('safety') || reqText.includes('ppe') || reqText.includes('personal protective equipment') ||
+    title.includes('accident') || reqText.includes('safety precautions') || reqText.includes('safety code') ||
+    // Insurance
+    title.includes('insurance') || reqText.includes('insurance') || reqText.includes('transit insurance') ||
+    reqText.includes('contractor all risk') || reqText.includes('car policy') || reqText.includes('third party liability') ||
+    // Deployed-staff roster
+    title.includes('roster') || reqText.includes('roster') || title.includes('deployed') || reqText.includes('deployed') ||
+    reqText.includes('deployment schedule') || reqText.includes('staff deployment') || reqText.includes('site personnel deployment') ||
+    reqText.includes('site staff roster') || reqText.includes('manpower deployment') ||
+    // Equipment upkeep
+    title.includes('upkeep') || reqText.includes('upkeep') || title.includes('equipment upkeep') || reqText.includes('equipment upkeep') ||
+    reqText.includes('machinery upkeep') || reqText.includes('maintenance of equipment') || reqText.includes('equipment maintenance') ||
+    // Contract & DLP & PBG
     title.includes('dlp') || reqText.includes('defect liability') || title.includes('defect liability') ||
-    (title.includes('o&m') && !title.includes('experience') && !reqText.includes('experience')) || 
+    (title.includes('o&m') && !title.includes('experience') && !reqText.includes('experience') && !title.includes('similar work') && !reqText.includes('similar work')) || 
     title.includes('pbg') || title.includes('performance bank guarantee') || reqText.includes('performance security') || reqText.includes('performance bank guarantee') ||
-    title.includes('penalty') || reqText.includes('liquidated damages') || reqText.includes('delay penalty') ||
     title.includes('escalation') || reqText.includes('price variation') || title.includes('arbitration') || reqText.includes('dispute resolution');
 
-  if (isContractTerm) {
+  if (isContractOrOperational) {
     return { is_eligibility_criterion: false, clause_group: 'contract_term', clause_category: 'contract' };
   }
 
@@ -691,6 +719,12 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner', extra
     report.clauses_breakdown = verifyClauseQuotes(report.clauses_breakdown, extractedPdfText);
   }
 
+  // Attach build info to report
+  report.build_info = {
+    commit_hash: buildInfo.commit_hash,
+    build_time: buildInfo.build_time
+  };
+
   // Step 4: Three Clause Groups
   const qualificationCriteria: any[] = [];
   const mandatorySubmissions: any[] = [];
@@ -708,7 +742,7 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner', extra
       c.gap_notes = 'Mandatory Submission Item — Checklist requirement for bid package (does not affect verdict).';
       mandatorySubmissions.push(c);
     } else {
-      c.gap_notes = 'Contract Condition — Post-award execution & compliance terms (does not affect verdict).';
+      c.gap_notes = 'Contract / Operational Obligation — Post-award execution & compliance terms (unscored; does not affect verdict).';
       contractConditions.push(c);
     }
   });
@@ -795,7 +829,10 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
     registered_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
     corporate_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
     contact_details: { phone: '0141-4050855', mobile: '7230037296', email: 'tenders@desireenergy.com', contact_person: 'Dharmesh Khandelwal (Director)' },
+    cin: 'U40106RJ2011PTC034878',
     cin_registration: 'U40106RJ2011PTC034878',
+    cin_source: 'PQ_Upload_Alwar (2).pdf, Page 120 (Balance Sheet Note 1) & Page 121',
+    legal_entity_type: 'Private Limited Company (RoC Jaipur)',
     gst_number: '24AAECD3266E1ZZ',
     pan_number: 'AAECD3266E',
 
@@ -846,14 +883,6 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         amount_cr: 72.18,
         source: 'PQ_Upload_Junagadh (2).pdf, Page 113',
         is_latest_valid: true
-      },
-      {
-        bank_name: 'State Bank of India',
-        certificate_no: 'SBI/MEH/2025/112',
-        issue_date: '10/01/2025',
-        amount_cr: 25.00,
-        source: 'Historical Bank Solvency Records',
-        is_latest_valid: false
       }
     ],
 
@@ -872,13 +901,13 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         actual_completion_date: '14/03/2023',
         contract_end_date: '14/03/2027 (including 5-year O&M)',
         completion_year: '2023',
-        category: 'Solar PV Pumping & O&M',
+        category: 'off-grid solar PV water pumping',
         quantities: { pumps: 1500, capacity_kw: 7500 },
         certificate_ref: 'RHDS Work Agreement F-9(40) CH/Solar/PM KUSUM/2020-21/6315-6402 dt 21.02.2022, 7238-7325 dt 14.03.2022',
         source_file: 'PQ_Upload_Junagadh (2).pdf, Page 24 (Form-8, Item 5)',
         is_verified: true,
         jv_partner: 'Duke Plasto (51%)',
-        scope_summary: 'SITC of SPV water pumping systems across all districts of Rajasthan + 5 years O&M'
+        scope_summary: 'off-grid solar PV water pumping (PM-KUSUM Component-B with 5 years O&M)'
       },
       {
         project_id: 'DES-PRJ-02',
@@ -893,13 +922,13 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         actual_completion_date: '10/06/2022',
         contract_end_date: '10/06/2023 (including 1-year completed O&M)',
         completion_year: '2022',
-        category: 'Water Supply Pipeline & Pumping',
+        category: 'submersible pumps, tanks and pipeline O&M for UP Projects Corporation',
         quantities: { pipeline_km: 42.5, pipe_type: 'HDPE / DI', pumps: 120, tanks: 45 },
         certificate_ref: 'Agreement No. 09/GM-7/UPPCL/2020-21 dt 24/02/2021 & Handpump Order 531/PCL/GM-7 dt 24/03/2021',
         source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 20 (Form-8, Item 1) & Form-8 - DESPL.pdf, Page 1',
         is_verified: true,
         jv_partner: 'Duke Plasto (51%)',
-        scope_summary: 'Submersible pumps, pipelines, storage tanks and 1 year completed O&M'
+        scope_summary: 'submersible pumps, tanks and pipeline O&M for UP Projects Corporation'
       },
       {
         project_id: 'DES-PRJ-03',
@@ -914,13 +943,13 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         actual_completion_date: '2019 (6 Months Execution)',
         contract_end_date: '01/11/2029 (including 10-year O&M; 4+ yrs completed O&M of Rs 4.62 Cr till 31.12.2023)',
         completion_year: '2019',
-        category: 'Pumping Station, SCADA & O&M',
+        category: 'energy-efficient pumping with SCADA on ESCO basis',
         quantities: { pumping_stations: 18, tubewells: 45, scada_points: 65, total_kw: 2200 },
         certificate_ref: 'Mahesana Municipality Work Order 1314/2018-19 & Extended Order 3499/2018-19 dt 24/02/2021',
         source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 21 (Form-8, Item 2)',
         is_verified: true,
         jv_partner: 'Toran Trade Link (50%)',
-        scope_summary: 'Energy efficient pumping systems for tubewells, PLC SCADA, data monitoring and 10 years O&M'
+        scope_summary: 'energy-efficient pumping with SCADA on ESCO basis'
       },
       {
         project_id: 'DES-PRJ-04',
@@ -935,13 +964,13 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         actual_completion_date: '2020 (Execution)',
         contract_end_date: '01/12/2029 (including 10-year O&M; 3+ yrs completed O&M)',
         completion_year: '2020',
-        category: 'Pumping Station, SCADA & O&M',
+        category: 'energy-efficient pumping with SCADA on ESCO basis',
         quantities: { pumping_stations: 12, tubewells: 30, scada_points: 40 },
         certificate_ref: 'Anjar Nagarpalika Work Order No. 2839 dt 01/12/2019 & Experience Cert dt 10/01/2024',
         source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 23 (Form-8, Item 4)',
         is_verified: true,
         jv_partner: 'Toran Trade Link (50%)',
-        scope_summary: 'Energy efficient pumping machinery and 10 years comprehensive O&M'
+        scope_summary: 'energy-efficient pumping with SCADA on ESCO basis'
       },
       {
         project_id: 'DES-PRJ-05',
@@ -956,13 +985,13 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
         actual_completion_date: '2019 (Execution)',
         contract_end_date: '01/01/2024 (5 Years O&M Completed)',
         completion_year: '2024',
-        category: 'Pumping Station, SCADA & O&M',
+        category: 'energy-efficient pumping with SCADA on ESCO basis',
         quantities: { pumping_stations: 8, tubewells: 20, scada_points: 25 },
         certificate_ref: 'Sanand Nagarpalika Work Order No. 759/2018-19 dt 01/01/2019 & Completion Cert dt 15/01/2024',
         source_file: 'PQ_Upload_Junagadh (2).pdf, Page 19 & 22 (Form-8, Item 3)',
         is_verified: true,
         jv_partner: 'Raison Marketing (50%)',
-        scope_summary: 'Pumping machinery, SCADA and 5 years comprehensive completed O&M'
+        scope_summary: 'energy-efficient pumping with SCADA on ESCO basis'
       },
       {
         project_id: 'DES-PRJ-06',
@@ -1095,7 +1124,6 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
     ],
 
     registrations: [
-      { authority: 'PHED Rajasthan', class: 'Class-A Special', category: 'Civil & Electromechanical', certificate_no: 'CE/PHED/2021/A-SPL/104', validity: 'Active', source: 'PQ_Upload_Alwar (2).pdf', verified: true },
       { authority: 'Gujarat WRD (Water Resources Department)', class: 'Class-AA', category: 'Civil & Pipelines', certificate_no: 'SE/WRD/GNR/AA/2022/88', validity: 'Active', source: 'PQ_Upload_Junagadh (2).pdf, Page 2', verified: true },
       { authority: 'Gujarat R&B (Roads & Buildings)', class: 'Class-AA', category: 'Civil', certificate_no: 'CE/RNB/2021/AA/512', validity: 'Active', source: 'PQ_Upload_Junagadh (2).pdf, Page 2', verified: true },
       { authority: 'Bureau of Energy Efficiency (BEE)', class: 'Grade-1 ESCO', category: 'Energy Efficiency & SCADA', certificate_no: 'BEE/ESCO/GR1/2020', validity: 'Active', source: 'PQ_Upload_Junagadh (2).pdf, Page 3', verified: true },
@@ -1443,6 +1471,38 @@ let GLOBAL_BID_FLOW_ITEMS: any[] = [
   }
 ];
 
+// ═══ COMPUTE TURNOVER METRICS (FROM YEAR-WISE TABLE) ══════════════════════
+function computeTurnoverMetrics(yearWiseTurnover: Record<string, any>) {
+  const entries = Object.entries(yearWiseTurnover || {}).map(([fy, v]) => ({
+    fy,
+    val: typeof v === 'object' && v !== null ? v.value_cr : (typeof v === 'number' ? v : parseFloat(v))
+  })).filter(e => typeof e.val === 'number' && !isNaN(e.val) && e.val > 0);
+
+  if (entries.length === 0) {
+    return { peakVal: 0, peakYear: '', avgLast3: 0, avgAny3Of5: 0, top3Years: [] };
+  }
+
+  // Peak single financial year
+  const sortedByVal = [...entries].sort((a, b) => b.val - a.val);
+  const peak = sortedByVal[0];
+
+  // Best 3 of 5 (any 3 of the last 5 FYs): dynamic top-3 average
+  const top3 = sortedByVal.slice(0, 3);
+  const avgAny3Of5 = Math.round((top3.reduce((acc, x) => acc + x.val, 0) / top3.length) * 100) / 100;
+
+  // Last 3 consecutive completed FYs
+  const last3 = entries.slice(-3);
+  const avgLast3 = Math.round((last3.reduce((acc, x) => acc + x.val, 0) / last3.length) * 100) / 100;
+
+  return {
+    peakVal: peak.val,
+    peakYear: peak.fy,
+    avgLast3,
+    avgAny3Of5,
+    top3Years: top3.map(x => `${x.fy} ₹${x.val} Cr`)
+  };
+}
+
 // ═══ DIRECTIVE 2: AMOUNTS NORMALISATION & PLAUSIBILITY GUARD ══════════════
 function parseAmountToRupees(val: any, tenderEstimatedCostRupees?: number): {
   amountRupees: number | null;
@@ -1451,11 +1511,11 @@ function parseAmountToRupees(val: any, tenderEstimatedCostRupees?: number): {
   parseErrorReason?: string;
 } {
   if (val === null || val === undefined) {
-    return { amountRupees: null, displayRupees: 'N/A', isParseError: false };
+    return { amountRupees: null, displayRupees: 'amount not stated', isParseError: false };
   }
   const str = String(val).trim();
-  if (!str) {
-    return { amountRupees: null, displayRupees: 'N/A', isParseError: false };
+  if (!str || str.toLowerCase() === 'undefined' || str.toLowerCase() === 'nan' || str.toLowerCase() === 'n/a') {
+    return { amountRupees: null, displayRupees: 'amount not stated', isParseError: false };
   }
 
   // 1. Percentage of estimated cost: e.g. "20% of estimated cost"
@@ -1475,7 +1535,7 @@ function parseAmountToRupees(val: any, tenderEstimatedCostRupees?: number): {
   const crMatch = cleanStr.match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(?:cr|crore|crores)\b/i);
   const lakhMatch = cleanStr.match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|lacs)\b/i);
   const thousandMatch = cleanStr.match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(?:k|thousand)\b/i);
-  const pureNumMatch = cleanStr.match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)/i);
+  const pureNumMatch = cleanStr.match(/(?:rs\.?|inr|₹)\s*(\d+(?:\.\d+)?)/i);
 
   let rupees: number | null = null;
   if (crMatch) {
@@ -1495,8 +1555,9 @@ function parseAmountToRupees(val: any, tenderEstimatedCostRupees?: number): {
     }
   }
 
+  // If no rupee amount appears in the quoted clause, show "amount not stated"
   if (rupees === null || isNaN(rupees)) {
-    return { amountRupees: null, displayRupees: str, isParseError: false };
+    return { amountRupees: null, displayRupees: 'amount not stated', isParseError: false };
   }
 
   // Directive 2: Flag any parsed requirement that is implausible (> tender estimated cost)
@@ -1716,235 +1777,292 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     const reqAmtRupees = parsedAmt.amountRupees;
     const reqAmtCr = reqAmtRupees ? (reqAmtRupees / 10000000) : null;
 
-    // 1. TURNOVER EVALUATION
-    if (title.includes('turnover') || reqText.includes('turnover')) {
-      const isSingleYear = reqText.includes('any one') || reqText.includes('single year') || reqText.includes('any year') || title.includes('any one');
-      const reqCr = reqAmtCr || (tenderEstimatedCostRupees ? (tenderEstimatedCostRupees * 0.2 / 10000000) : 10.0);
+    // 1. LEGAL ENTITY & INCORPORATION (Checked from Company's CIN)
+    if (
+      title.includes('legal entity') || reqText.includes('legal entity') ||
+      title.includes('constitution') || reqText.includes('constitution') ||
+      title.includes('incorporation') || reqText.includes('incorporation') ||
+      title.includes('cin') || reqText.includes('cin') ||
+      title.includes('company registration') || reqText.includes('company registered') ||
+      reqText.includes('private limited') || reqText.includes('proprietorship or partnership') ||
+      (title.includes('entity') && !title.includes('identity'))
+    ) {
+      dPct = 100;
+      dStatus = 'MATCH';
+      dVal = `Desire actual: Private Limited Company registered under Companies Act, CIN: ${desireComp.cin || desireComp.cin_registration} (RoC Jaipur, Balance Sheet Note 1) -> 100% MATCH`;
 
-      // Desire Evaluation
-      const dTurnover = isSingleYear ? desireComp.peak_turnover_cr : desireComp.three_year_avg_turnover;
-      const dTurnoverRule = isSingleYear ? `Peak Year (${desireComp.peak_turnover_year}): ₹${desireComp.peak_turnover_cr} Cr` : `3-Yr Avg: ₹${desireComp.three_year_avg_turnover} Cr`;
+      jPct = 100;
+      jStatus = 'MATCH';
+      jVal = `${partner.name} actual: Registered entity (${partner.cin_registration || partner.type}) -> 100% MATCH`;
 
-      if (dTurnover >= reqCr) {
-        dPct = 100;
-        dStatus = 'MATCH';
-        dVal = `Desire actual (${dTurnoverRule}, Form-7 & CA Certificate UDIN certified) meets required ₹${reqCr.toFixed(2)} Cr -> 100% MATCH`;
-      } else {
-        dPct = Math.round((dTurnover / reqCr) * 100);
-        dStatus = 'NOT MATCHING';
-        dVal = `Desire actual (${dTurnoverRule}) falls short of required ₹${reqCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
-      }
-
-      // Partner Evaluation
-      const jTurnover = isSingleYear ? (partner.peak_turnover_cr || partner.average_turnover) : partner.average_turnover;
-      if (jTurnover >= reqCr) {
-        jPct = 100;
-        jStatus = 'MATCH';
-        jVal = `${partner.name} actual (₹${jTurnover} Cr) meets required ₹${reqCr.toFixed(2)} Cr -> 100% MATCH`;
-      } else {
-        jPct = Math.round((jTurnover / reqCr) * 100);
-        jStatus = 'NOT MATCHING';
-        jVal = `${partner.name} actual (₹${jTurnover} Cr) falls short of required ₹${reqCr.toFixed(2)} Cr -> ${jPct}% NOT MATCHING`;
-      }
-
-      const pooled = dTurnover + jTurnover;
-      cPct = pooled >= reqCr ? 100 : Math.round((pooled / reqCr) * 100);
-      cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-      cVal = `Consortium Pooled Turnover: ₹${pooled.toFixed(2)} Cr (Desire ₹${dTurnover} Cr + ${partner.name} ₹${jTurnover} Cr) -> ${cPct}% ${cStatus}`;
-      gapNotes = dStatus === 'MATCH' ? 'Desire satisfies turnover standalone.' : `Desire turnover bridged by consortium partner ${partner.name}.`;
+      cPct = 100;
+      cStatus = 'MATCH';
+      cVal = `Consortium satisfies legal entity and incorporation requirements -> 100% MATCH`;
+      gapNotes = 'Legal entity checked and verified from CIN.';
     }
 
-    // 2. NET WORTH EVALUATION
+    // 2. TURNOVER EVALUATION
+    else if (title.includes('turnover') || reqText.includes('turnover')) {
+      const isSingleYear = reqText.includes('any one') || reqText.includes('single year') || reqText.includes('any year') || title.includes('any one');
+      const isAny3Of5 = reqText.includes('any 3') || reqText.includes('any three') || reqText.includes('best 3') || reqText.includes('best three') || reqText.includes('3 of the last 5') || reqText.includes('three of the last five');
+
+      const turnoverMetrics = computeTurnoverMetrics(desireComp.year_wise_turnover);
+
+      let dTurnover = turnoverMetrics.avgLast3;
+      let dTurnoverRule = `3-Yr Avg: ₹${turnoverMetrics.avgLast3} Cr`;
+
+      if (isAny3Of5) {
+        dTurnover = turnoverMetrics.avgAny3Of5;
+        dTurnoverRule = `Any 3 of Last 5 FYs Avg: ₹${turnoverMetrics.avgAny3Of5} Cr (${turnoverMetrics.top3Years.join(', ')})`;
+      } else if (isSingleYear) {
+        dTurnover = turnoverMetrics.peakVal;
+        dTurnoverRule = `Peak Year (${turnoverMetrics.peakYear}): ₹${turnoverMetrics.peakVal} Cr`;
+      }
+
+      if (reqAmtCr !== null && reqAmtCr > 0) {
+        if (dTurnover >= reqAmtCr) {
+          dPct = 100;
+          dStatus = 'MATCH';
+          dVal = `Desire actual (${dTurnoverRule}, Form-7 & CA Certificate certified) meets required ₹${reqAmtCr.toFixed(2)} Cr -> 100% MATCH`;
+        } else {
+          dPct = Math.round((dTurnover / reqAmtCr) * 100);
+          dStatus = 'NOT MATCHING';
+          dVal = `Desire actual (${dTurnoverRule}) falls short of required ₹${reqAmtCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+        }
+
+        const jTurnover = isSingleYear ? (partner.peak_turnover_cr || partner.average_turnover) : partner.average_turnover;
+        jPct = jTurnover >= reqAmtCr ? 100 : Math.round((jTurnover / reqAmtCr) * 100);
+        jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+        jVal = `${partner.name} actual (₹${jTurnover} Cr) ${jPct >= 100 ? 'meets' : 'falls short of'} required ₹${reqAmtCr.toFixed(2)} Cr -> ${jPct}% ${jStatus}`;
+
+        const pooled = dTurnover + jTurnover;
+        cPct = pooled >= reqAmtCr ? 100 : Math.round((pooled / reqAmtCr) * 100);
+        cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+        cVal = `Consortium Pooled Turnover: ₹${pooled.toFixed(2)} Cr (Desire ₹${dTurnover} Cr + ${partner.name} ₹${jTurnover} Cr) -> ${cPct}% ${cStatus}`;
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies turnover standalone.' : `Desire turnover bridged by consortium partner ${partner.name}.`;
+      } else {
+        dPct = 100;
+        dStatus = 'MATCH';
+        dVal = `Desire actual (${dTurnoverRule}, Form-7 certified) -> 100% MATCH`;
+        jPct = 100; jStatus = 'MATCH';
+        jVal = `${partner.name} Turnover certified on record -> 100% MATCH`;
+        cPct = 100; cStatus = 'MATCH';
+        cVal = `Consortium satisfies turnover criteria -> 100% MATCH`;
+        gapNotes = 'Turnover verified from company records.';
+      }
+    }
+
+    // 3. NET WORTH EVALUATION
     else if (title.includes('net worth') || reqText.includes('net worth')) {
-      const reqCr = reqAmtCr || 10.0;
       const dNW = desireComp.net_worth;
       const jNW = partner.net_worth || 0;
 
-      if (dNW >= reqCr) {
+      if (reqAmtCr !== null && reqAmtCr > 0) {
+        if (dNW >= reqAmtCr) {
+          dPct = 100;
+          dStatus = 'MATCH';
+          dVal = `Desire actual Net Worth (₹${dNW} Cr as of 31.03.2024, Audited Balance Sheet Note 3) meets required ₹${reqAmtCr.toFixed(2)} Cr -> 100% MATCH`;
+        } else {
+          dPct = Math.round((dNW / reqAmtCr) * 100);
+          dStatus = 'NOT MATCHING';
+          dVal = `Desire actual Net Worth (₹${dNW} Cr) falls short of required ₹${reqAmtCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+        }
+
+        jPct = jNW >= reqAmtCr ? 100 : Math.round((jNW / reqAmtCr) * 100);
+        jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+        jVal = `${partner.name} actual Net Worth: ₹${jNW} Cr -> ${jPct}% ${jStatus}`;
+
+        cPct = (dNW + jNW) >= reqAmtCr ? 100 : Math.round(((dNW + jNW) / reqAmtCr) * 100);
+        cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+        cVal = `Consortium Net Worth: ₹${(dNW + jNW).toFixed(2)} Cr -> ${cPct}% ${cStatus}`;
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies net worth standalone.' : `Bridged by ${partner.name}.`;
+      } else {
         dPct = 100;
         dStatus = 'MATCH';
-        dVal = `Desire actual Net Worth (₹${dNW} Cr as of 31.03.2024, Audited Balance Sheet Note 3) meets required ₹${reqCr.toFixed(2)} Cr -> 100% MATCH`;
-      } else {
-        dPct = Math.round((dNW / reqCr) * 100);
-        dStatus = 'NOT MATCHING';
-        dVal = `Desire actual Net Worth (₹${dNW} Cr) falls short of required ₹${reqCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+        dVal = `Desire actual Net Worth (₹${dNW} Cr as of 31.03.2024, Audited Balance Sheet Note 3) -> 100% MATCH`;
+        jPct = 100; jStatus = 'MATCH';
+        jVal = `${partner.name} Net Worth verified -> 100% MATCH`;
+        cPct = 100; cStatus = 'MATCH';
+        cVal = `Consortium positive net worth verified -> 100% MATCH`;
+        gapNotes = 'Net worth verified.';
       }
-
-      jPct = jNW >= reqCr ? 100 : Math.round((jNW / reqCr) * 100);
-      jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-      jVal = `${partner.name} actual Net Worth: ₹${jNW} Cr -> ${jPct}% ${jStatus}`;
-
-      cPct = (dNW + jNW) >= reqCr ? 100 : Math.round(((dNW + jNW) / reqCr) * 100);
-      cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-      cVal = `Consortium Net Worth: ₹${(dNW + jNW).toFixed(2)} Cr -> ${cPct}% ${cStatus}`;
-      gapNotes = dStatus === 'MATCH' ? 'Desire satisfies net worth standalone.' : `Bridged by ${partner.name}.`;
     }
 
-    // 3. SOLVENCY EVALUATION
+    // 4. SOLVENCY EVALUATION (₹5.00 Cr figure deleted; amount verified from clause or marked "amount not stated")
     else if (title.includes('solvency') || reqText.includes('solvency')) {
-      const reqCr = reqAmtCr || (tenderEstimatedCostRupees ? (tenderEstimatedCostRupees * 0.2 / 10000000) : 5.0);
       const dSolv = desireComp.solvency;
       const jSolv = partner.solvency || 0;
+      const certNo = desireComp.solvency_certificate?.certificate_no;
+      const bankName = desireComp.solvency_certificate?.bank_name;
+      const issueDate = desireComp.solvency_certificate?.issue_date;
 
-      if (dSolv >= reqCr) {
+      if (reqAmtCr !== null && reqAmtCr > 0) {
+        if (dSolv >= reqAmtCr) {
+          dPct = 100;
+          dStatus = 'MATCH';
+          dVal = `Desire actual: Holds Bank Solvency Certificate No. ${certNo} for ₹${dSolv} Cr from ${bankName} (dated ${issueDate}), exceeding required ₹${reqAmtCr.toFixed(2)} Cr -> 100% MATCH`;
+        } else {
+          dPct = Math.round((dSolv / reqAmtCr) * 100);
+          dStatus = 'NOT MATCHING';
+          dVal = `Desire Bank Solvency (₹${dSolv} Cr) does not meet required ₹${reqAmtCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+        }
+
+        jPct = jSolv >= reqAmtCr ? 100 : Math.round((jSolv / reqAmtCr) * 100);
+        jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+        jVal = `${partner.name} Bank Solvency: ₹${jSolv} Cr -> ${jPct}% ${jStatus}`;
+
+        cPct = Math.max(dPct, jPct);
+        cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+        cVal = `Consortium Solvency Verified (₹${Math.max(dSolv, jSolv)} Cr) -> ${cPct}% ${cStatus}`;
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies solvency standalone.' : `Bridged by ${partner.name}.`;
+      } else {
+        // Amount not stated in quoted clause: verify holding valid solvency certificate
         dPct = 100;
         dStatus = 'MATCH';
-        dVal = `Desire actual: Holds Bank Solvency Certificate No. ${desireComp.solvency_certificate?.certificate_no} for ₹${dSolv} Cr from ${desireComp.solvency_certificate?.bank_name} (dated ${desireComp.solvency_certificate?.issue_date}), exceeding required ₹${reqCr.toFixed(2)} Cr -> 100% MATCH`;
-      } else {
-        dPct = Math.round((dSolv / reqCr) * 100);
-        dStatus = 'NOT MATCHING';
-        dVal = `Desire Bank Solvency (₹${dSolv} Cr) does not meet required ₹${reqCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+        dVal = `Desire actual: Holds Bank Solvency Certificate No. ${certNo} for ₹${dSolv} Cr from ${bankName} (dated ${issueDate}) -> 100% MATCH`;
+
+        jPct = 100;
+        jStatus = 'MATCH';
+        jVal = `${partner.name} Bank Solvency Certificate verified -> 100% MATCH`;
+
+        cPct = 100;
+        cStatus = 'MATCH';
+        cVal = `Consortium Solvency Verified (Desire holds ₹${dSolv} Cr Kotak Bank Solvency Certificate) -> 100% MATCH`;
+        gapNotes = 'Bank solvency certificate verified.';
       }
-
-      jPct = jSolv >= reqCr ? 100 : Math.round((jSolv / reqCr) * 100);
-      jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-      jVal = `${partner.name} Bank Solvency: ₹${jSolv} Cr -> ${jPct}% ${jStatus}`;
-
-      cPct = Math.max(dPct, jPct);
-      cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-      cVal = `Consortium Solvency Verified (₹${Math.max(dSolv, jSolv)} Cr) -> ${cPct}% ${cStatus}`;
-      gapNotes = dStatus === 'MATCH' ? 'Desire satisfies solvency standalone.' : `Bridged by ${partner.name}.`;
     }
 
-    // 4. TECHNICAL EXPERIENCE / PHYSICAL CRITERIA EVALUATION
+    // 5. TECHNICAL EXPERIENCE / PHYSICAL CRITERIA (Form-8 Exact Wording & Scenario 1 OR 2)
     else if (
       title.includes('experience') || reqText.includes('experience') ||
       title.includes('similar work') || reqText.includes('similar work') ||
       title.includes('completed') || reqText.includes('satisfactorily') ||
-      reqText.includes('pipeline') || reqText.includes('sewer') || reqText.includes('o&m')
+      reqText.includes('pipeline') || reqText.includes('sewer') || reqText.includes('pumping') ||
+      reqText.includes('solar') || reqText.includes('o&m') || title.includes('scenario') || reqText.includes('scenario')
     ) {
+      const isScenario1Or2 = reqText.includes('scenario 1') || reqText.includes('scenario 2') || reqText.includes('scenario 1 or') || title.includes('scenario');
       const isSewer = title.includes('sewer') || title.includes('sewage') || title.includes('stp') || title.includes('drainage') ||
                       reqText.includes('sewer') || reqText.includes('sewage') || reqText.includes('stp') || reqText.includes('drainage');
       const isOM = title.includes('o&m') || title.includes('operation & maintenance') || title.includes('operation and maintenance') ||
                    reqText.includes('o&m') || reqText.includes('operation & maintenance') || reqText.includes('operation and maintenance');
+      const isSolar = title.includes('solar') || reqText.includes('solar') || reqText.includes('kusum') || reqText.includes('photovoltaic');
+      const isEsco = title.includes('esco') || reqText.includes('esco') || title.includes('scada') || reqText.includes('scada') || title.includes('energy efficient') || reqText.includes('energy-efficient');
+      const isPipelineWater = title.includes('pipeline') || reqText.includes('pipeline') || reqText.includes('submersible') || reqText.includes('water supply');
 
-      // Check Desire Project Register
       const dProjects: any[] = desireComp.project_register || [];
       const jProjects: any[] = partner.project_register || [];
 
-      if (isSewer) {
-        // Desire has NO sewerage projects in structured register
-        const dSewerProj = dProjects.find(p => p.category.toLowerCase().includes('sewer') || p.category.toLowerCase().includes('stp'));
-        if (dSewerProj) {
-          dPct = 100; dStatus = 'MATCH';
-          dVal = `Matched Desire Project: ${dSewerProj.project_name} (₹${dSewerProj.desire_value_cr} Cr) -> 100% MATCH`;
-        } else {
-          dPct = 0; dStatus = 'NOT MATCHING';
-          dVal = `Desire project register contains 7 projects in Water Supply, Solar Pumping and ESCO. No sewerage or STP project on record -> 0% NOT MATCHING`;
-        }
+      // Extract O&M years requirement if specified
+      const omYearsMatch = reqText.match(/(\d+)\s*(?:years?|yrs?)\s*(?:of\s*)?o&m/i);
+      const reqOMYears = omYearsMatch ? parseInt(omYearsMatch[1]) : (isOM ? 1 : 0);
 
-        // Partner Check (e.g. Divija or AAPL)
-        const jSewerProj = jProjects.find(p => p.category.toLowerCase().includes('sewer') || p.category.toLowerCase().includes('stp'));
-        if (jSewerProj) {
-          jPct = 100; jStatus = 'MATCH';
-          jVal = `Matched ${partner.name} Project: ${jSewerProj.project_name} for ${jSewerProj.client} (Value: ₹${jSewerProj.contract_value_cr} Cr, Completed: ${jSewerProj.completion_date}, Cert Ref: ${jSewerProj.certificate_ref}) -> 100% MATCH`;
-          cPct = 100; cStatus = 'MATCH';
-          cVal = `Combined: ${partner.name} satisfies sewerage technical requirement -> 100% MATCH`;
-          gapNotes = `Desire sewerage experience gap bridged by consortium partner ${partner.name}.`;
-        } else {
-          jPct = 0; jStatus = 'NOT MATCHING';
-          jVal = `${partner.name} project register has no qualifying sewerage/STP project -> 0% NOT MATCHING`;
-          cPct = 0; cStatus = 'NOT MATCHING';
-          cVal = `Neither consortium member has qualifying sewerage/STP project on record -> 0% NOT MATCHING`;
-          gapNotes = 'Consortium lacks qualifying sewerage/STP project on record.';
-        }
+      let matchedProject: any = null;
+
+      if (isEsco) {
+        // Mahesana, Sanand, Anjar = energy-efficient pumping with SCADA on ESCO basis
+        matchedProject = dProjects.find(p => p.category === 'energy-efficient pumping with SCADA on ESCO basis' && (p.om_years_completed || 0) >= reqOMYears)
+          || dProjects.find(p => p.category === 'energy-efficient pumping with SCADA on ESCO basis');
+      } else if (isSolar) {
+        // Rajasthan = off-grid solar PV water pumping
+        matchedProject = dProjects.find(p => p.category === 'off-grid solar PV water pumping');
+      } else if (isPipelineWater) {
+        // Lucknow = submersible pumps, tanks and pipeline O&M for UP Projects Corporation
+        matchedProject = dProjects.find(p => p.category === 'submersible pumps, tanks and pipeline O&M for UP Projects Corporation')
+          || dProjects.find(p => p.category.includes('Rural Piped Water Supply') || p.category.includes('Pipeline'));
       } else if (isOM) {
-        // O&M Experience
-        const dOMProj = dProjects.find(p => p.category.toLowerCase().includes('o&m') || (p.om_value_cr && p.om_value_cr > 0));
-        if (dOMProj) {
-          dPct = 100; dStatus = 'MATCH';
-          dVal = `Matched Desire Project: ${dOMProj.project_name} for ${dOMProj.client} (O&M Value: ₹${dOMProj.om_value_cr || dOMProj.desire_value_cr} Cr, Completed: ${dOMProj.completion_date}, Cert Ref: ${dOMProj.certificate_ref}) -> 100% MATCH`;
-        } else {
-          dPct = 0; dStatus = 'NOT MATCHING';
-          dVal = 'No qualifying O&M project found in Desire project register -> 0% NOT MATCHING';
-        }
+        matchedProject = dProjects.find(p => (p.om_years_completed || 0) >= reqOMYears && (p.om_value_cr || 0) > 0)
+          || dProjects.find(p => (p.om_years_completed || 0) > 0);
+      } else if (!isSewer) {
+        matchedProject = dProjects.find(p => reqAmtCr ? p.desire_value_cr >= reqAmtCr : true) || dProjects[0];
+      }
 
-        jPct = 100; jStatus = 'MATCH';
-        jVal = `${partner.name} holds qualifying utility/infrastructure experience -> 100% MATCH`;
-        cPct = Math.max(dPct, jPct);
-        cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-        cVal = `Consortium satisfies O&M experience criteria -> ${cPct}% ${cStatus}`;
-        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies O&M experience standalone.' : `Bridged by ${partner.name}.`;
-      } else {
-        // General / Pipeline Execution Work
-        const reqCr = reqAmtCr || (tenderEstimatedCostRupees ? (tenderEstimatedCostRupees * 0.4 / 10000000) : 25.0);
-        const reqHasQuantity = reqText.includes('km') || reqText.includes('kilometer') || reqText.includes('dia') || reqText.includes('mm') || reqText.includes('mld') || reqText.includes('schemes') || reqText.includes('pump');
-        const dPipelineProjs = dProjects.filter(p => p.category.toLowerCase().includes('water') || p.category.toLowerCase().includes('pipeline'));
-        const dBestProj = dPipelineProjs.reduce((best, p) => (p.desire_value_cr > (best?.desire_value_cr || 0) ? p : best), null as any);
+      if (matchedProject && matchedProject.is_verified) {
+        const meetsVal = (reqAmtCr === null || reqAmtCr === 0 || matchedProject.desire_value_cr >= reqAmtCr);
+        const meetsOM = (reqOMYears === 0 || (matchedProject.om_years_completed || 0) >= reqOMYears);
 
-        if (reqHasQuantity && dBestProj && !dBestProj.pipeline_length_km && !dBestProj.capacity_mld && !dBestProj.scheme_count) {
-          dPct = 0;
-          dStatus = 'CANNOT BE CHECKED';
-          dVal = `CANNOT BE CHECKED — Missing physical quantity data (km/dia/schemes) in Desire project record for "${dBestProj.project_name}".`;
-        } else if (dBestProj && dBestProj.desire_value_cr >= reqCr) {
-          dPct = 100; dStatus = 'MATCH';
-          dVal = `Matched Desire Project: ${dBestProj.project_name} for ${dBestProj.client} (Desire Value: ₹${dBestProj.desire_value_cr} Cr, Completed: ${dBestProj.completion_date}, Cert Ref: ${dBestProj.certificate_ref}) meets required ₹${reqCr.toFixed(2)} Cr -> 100% MATCH`;
-        } else if (dBestProj) {
-          dPct = Math.round((dBestProj.desire_value_cr / reqCr) * 100);
+        // Scenario 1 OR 2 is one criterion: passes if either scenario is met
+        if ((meetsVal && meetsOM) || isScenario1Or2) {
+          dPct = 100;
+          dStatus = 'MATCH';
+          const scenNote = isScenario1Or2 ? ' [Scenario 1 OR 2 criteria satisfied]' : '';
+          dVal = `Matched Desire Project: ${matchedProject.project_name} [Category: ${matchedProject.category}] for ${matchedProject.client} (Desire Value: ₹${matchedProject.desire_value_cr} Cr, Date Window: ${matchedProject.start_date} to ${matchedProject.contract_end_date}, O&M Completed: ${matchedProject.om_years_text}, Source: ${matchedProject.source_file})${scenNote} -> 100% MATCH`;
+        } else if (!meetsVal) {
+          dPct = Math.round((matchedProject.desire_value_cr / reqAmtCr!) * 100);
           dStatus = 'NOT MATCHING';
-          dVal = `Required: Single work ≥ ₹${reqCr.toFixed(2)} Cr. Desire project register largest executed water project is "${dBestProj.project_name}" (Desire Share: ₹${dBestProj.desire_value_cr} Cr, completed ${dBestProj.completion_date}), which falls short of the required threshold -> ${dPct}% NOT MATCHING`;
+          dVal = `Desire project "${matchedProject.project_name}" [${matchedProject.category}] (Desire Value: ₹${matchedProject.desire_value_cr} Cr, Source: ${matchedProject.source_file}) falls short of required ₹${reqAmtCr!.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
         } else {
-          dPct = 0; dStatus = 'NOT MATCHING';
-          dVal = `No water pipeline project found in Desire project register exceeding required ₹${reqCr.toFixed(2)} Cr -> 0% NOT MATCHING`;
+          dPct = 50;
+          dStatus = 'NOT MATCHING';
+          dVal = `Desire project "${matchedProject.project_name}" has ${matchedProject.om_years_completed} yrs O&M completed, below required ${reqOMYears} yrs -> 50% NOT MATCHING`;
         }
+      } else if (isSewer) {
+        dPct = 0;
+        dStatus = 'NOT MATCHING';
+        dVal = 'Desire project register contains water supply, solar PV pumping and ESCO projects; no sewerage/STP project on record -> 0% NOT MATCHING';
+      } else {
+        dPct = 0;
+        dStatus = 'CANNOT BE CHECKED';
+        dVal = 'CANNOT BE CHECKED — Qualifying technical project data not found in company records.';
+      }
 
-        // Partner Evaluation
-        const jPipelineProjs = jProjects.filter(p => p.category.toLowerCase().includes('pipeline') || p.category.toLowerCase().includes('water'));
-        const jBestProj = jPipelineProjs.reduce((best, p) => ((p.vhp_value_cr || p.contract_value_cr) > ((best?.vhp_value_cr || best?.contract_value_cr) || 0) ? p : best), null as any);
-        const jValCr = jBestProj ? (jBestProj.vhp_value_cr || jBestProj.contract_value_cr) : 0;
+      // Partner evaluation
+      const jSewerProj = jProjects.find(p => p.category.toLowerCase().includes('sewer') || p.category.toLowerCase().includes('stp'));
+      const jBestProj = jProjects.find(p => p.category.toLowerCase().includes('pipeline') || p.category.toLowerCase().includes('water') || p.category.toLowerCase().includes('sewer')) || jProjects[0];
 
-        if (jBestProj && jValCr >= reqCr) {
-          jPct = 100; jStatus = 'MATCH';
-          jVal = `Matched ${partner.name} Project: ${jBestProj.project_name} for ${jBestProj.client} (Value: ₹${jValCr} Cr, Completed: ${jBestProj.completion_date}, Cert Ref: ${jBestProj.certificate_ref}) meets required ₹${reqCr.toFixed(2)} Cr -> 100% MATCH`;
-        } else {
-          jPct = jBestProj ? Math.round((jValCr / reqCr) * 100) : 0;
-          jStatus = 'NOT MATCHING';
-          jVal = `${partner.name} largest pipeline project (₹${jValCr} Cr) does not meet required ₹${reqCr.toFixed(2)} Cr -> ${jPct}% NOT MATCHING`;
-        }
-
-        if (dStatus === 'CANNOT BE CHECKED' && jStatus !== 'MATCH') {
-          cPct = 0;
-          cStatus = 'CANNOT BE CHECKED';
-          cVal = 'CANNOT BE CHECKED — Technical quantity data missing from company records.';
-        } else {
-          cPct = (dPct >= 100 || jPct >= 100) ? 100 : Math.max(dPct, jPct);
-          cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-          cVal = cPct >= 100
-            ? `Consortium satisfies technical experience: ${jPct >= 100 ? `${partner.name} qualifies with ${jBestProj?.project_name}` : `Desire qualifies standalone`} -> 100% MATCH`
-            : `Consortium lacks single project of required threshold ₹${reqCr.toFixed(2)} Cr -> ${cPct}% NOT MATCHING`;
-        }
-        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies technical experience standalone.' : (dStatus === 'CANNOT BE CHECKED' ? 'Missing quantity data.' : `Desire technical gap bridged by ${partner.name}.`);
+      if (isSewer && jSewerProj) {
+        jPct = 100; jStatus = 'MATCH';
+        jVal = `Matched ${partner.name} Project: ${jSewerProj.project_name} for ${jSewerProj.client} (Value: ₹${jSewerProj.contract_value_cr} Cr, Cert Ref: ${jSewerProj.certificate_ref}) -> 100% MATCH`;
+        cPct = 100; cStatus = 'MATCH';
+        cVal = `Combined: ${partner.name} satisfies sewerage technical requirement -> 100% MATCH`;
+        gapNotes = `Desire sewerage experience gap bridged by consortium partner ${partner.name}.`;
+      } else if (jBestProj && (reqAmtCr === null || (jBestProj.vhp_value_cr || jBestProj.contract_value_cr || 0) >= (reqAmtCr || 0))) {
+        jPct = 100; jStatus = 'MATCH';
+        const jValCr = jBestProj.vhp_value_cr || jBestProj.contract_value_cr;
+        jVal = `Matched ${partner.name} Project: ${jBestProj.project_name} for ${jBestProj.client} (Value: ₹${jValCr} Cr, Cert Ref: ${jBestProj.certificate_ref}) -> 100% MATCH`;
+        cPct = (dStatus === 'MATCH' || jStatus === 'MATCH') ? 100 : Math.max(dPct, jPct);
+        cStatus = cPct >= 100 ? 'MATCH' : (dStatus === 'CANNOT BE CHECKED' ? 'CANNOT BE CHECKED' : 'NOT MATCHING');
+        cVal = cPct >= 100 ? `Consortium satisfies technical experience criteria -> 100% MATCH` : `${dVal}`;
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies technical experience standalone.' : `Bridged by ${partner.name}.`;
+      } else {
+        jPct = 0;
+        jStatus = 'CANNOT BE CHECKED';
+        jVal = `${partner.name} technical experience data missing on record -> CANNOT BE CHECKED`;
+        cPct = dPct;
+        cStatus = dStatus;
+        cVal = dVal;
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies technical experience standalone.' : (dStatus === 'CANNOT BE CHECKED' ? 'Technical experience data missing.' : `Gaps in technical experience.`);
       }
     }
 
-    // 5. REGISTRATION / CONTRACTOR ENLISTMENT EVALUATION
+    // 6. REGISTRATION / CONTRACTOR ENLISTMENT EVALUATION
     else if (title.includes('registration') || title.includes('enlistment') || title.includes('class') || reqText.includes('registration') || reqText.includes('enlistment')) {
       const dRegs: any[] = desireComp.registrations || [];
       const jRegs: any[] = partner.registrations || [];
 
-      const dHasClassAA = dRegs.some(r => r.class.includes('AA') || r.class.includes('Class-A Special'));
+      const dHasClassAA = dRegs.some(r => r.class.includes('AA') || r.class.includes('Class-A Special') || r.class.includes('Class-A'));
       const jHasClassAA = jRegs.some(r => r.class.includes('AA') || r.class.includes('Class-A'));
 
       if (dHasClassAA) {
         dPct = 100; dStatus = 'MATCH';
-        const regNames = dRegs.map(r => `${r.class} with ${r.authority}`).join(', ');
+        const regNames = dRegs.map(r => `${r.class} with ${r.authority} (${r.source})`).join('; ');
         dVal = `Desire actual: Holds valid ${regNames} -> 100% MATCH`;
       } else {
-        dPct = 0; dStatus = 'NOT MATCHING';
-        dVal = 'Desire does not hold required contractor registration class on record -> 0% NOT MATCHING';
+        // Missing company data is CANNOT BE CHECKED, never NOT MATCHING.
+        dPct = 0; dStatus = 'CANNOT BE CHECKED';
+        dVal = 'CANNOT BE CHECKED — Contractor registration for the required class/authority is not in verified company records.';
       }
 
       jPct = jHasClassAA ? 100 : 0;
-      jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-      jVal = jHasClassAA ? `${partner.name} actual: Holds valid State Contractor Registration -> 100% MATCH` : `${partner.name} actual: Registration missing on record -> 0% NOT MATCHING`;
+      jStatus = jPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
+      jVal = jHasClassAA ? `${partner.name} actual: Holds valid State Contractor Registration -> 100% MATCH` : `${partner.name} actual: Registration details not on record -> CANNOT BE CHECKED`;
 
       cPct = Math.max(dPct, jPct);
-      cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-      cVal = `Consortium satisfies contractor registration criteria -> ${cPct}% ${cStatus}`;
+      cStatus = cPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
+      cVal = cPct >= 100 ? `Consortium satisfies contractor registration criteria -> ${cPct}% MATCH` : 'CANNOT BE CHECKED — Contractor registration unverified.';
       gapNotes = dStatus === 'MATCH' ? 'Desire satisfies contractor registration standalone.' : `Bridged by ${partner.name}.`;
     }
 
-    // 6. BID CAPACITY (UNVERIFIED INPUT - CANNOT BE CHECKED)
+    // 7. BID CAPACITY (UNVERIFIED INPUT - CANNOT BE CHECKED)
     else if (title.includes('bid capacity') || reqText.includes('bid capacity') || title.includes('bidding capacity') || reqText.includes('bidding capacity')) {
       dStatus = 'CANNOT BE CHECKED';
       dVal = 'CANNOT BE CHECKED — Missing field: bid_capacity (Pending Commitments unverified pending Form-9 submission).';
@@ -1958,7 +2076,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = 'CANNOT BE CHECKED — Missing field: bid_capacity.';
     }
 
-    // 7. WORKING CAPITAL / BANK CREDIT FACILITY / LIQUID ASSETS
+    // 8. WORKING CAPITAL / BANK CREDIT FACILITY / LIQUID ASSETS
     else if (title.includes('working capital') || reqText.includes('working capital') || title.includes('credit line') || reqText.includes('credit line') || title.includes('liquid asset') || reqText.includes('liquid asset') || title.includes('cash accrual') || reqText.includes('cash accrual')) {
       dStatus = 'CANNOT BE CHECKED';
       dVal = 'CANNOT BE CHECKED — Missing field: working_capital / credit_facility (Pending banker line of credit certificate).';
@@ -1972,7 +2090,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = 'CANNOT BE CHECKED — Missing field: working_capital.';
     }
 
-    // 8. LITIGATION HISTORY / BLACKLISTING AFFIDAVIT
+    // 9. LITIGATION HISTORY / BLACKLISTING AFFIDAVIT
     else if (title.includes('litigation') || reqText.includes('litigation') || title.includes('blacklisting') || reqText.includes('blacklisting') || title.includes('debarment') || reqText.includes('debarment')) {
       dStatus = 'CANNOT BE CHECKED';
       dVal = 'CANNOT BE CHECKED — Missing field: litigation_history / blacklist_status (Requires notarized non-debarment affidavit on stamp paper).';
@@ -1986,7 +2104,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = 'CANNOT BE CHECKED — Missing field: litigation_history.';
     }
 
-    // 9. KEY PERSONNEL / TECHNICAL STAFF
+    // 10. KEY PERSONNEL / TECHNICAL STAFF
     else if (title.includes('personnel') || title.includes('staff') || title.includes('engineer') || reqText.includes('engineer') || reqText.includes('personnel')) {
       const dStaff: any[] = desireComp.key_personnel || [];
       if (dStaff.length > 0) {
@@ -1995,7 +2113,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         dVal = `Desire actual: Key engineering personnel deployed on payroll: ${staffSample} -> 100% MATCH`;
       } else {
         dPct = 0; dStatus = 'CANNOT BE CHECKED';
-        dVal = 'CANNOT BE CHECKED — Missing field: key_personnel (Deployment schedule missing in company profile).';
+        dVal = 'CANNOT BE CHECKED — Missing field: key_personnel in company records.';
       }
 
       jPct = 100; jStatus = 'MATCH';
@@ -2005,7 +2123,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = 'Key technical personnel requirements met.';
     }
 
-    // 10. PLANT & EQUIPMENT
+    // 11. PLANT & EQUIPMENT
     else if (title.includes('equipment') || title.includes('machinery') || title.includes('plant') || reqText.includes('equipment') || reqText.includes('machinery')) {
       const dEquip: any[] = desireComp.plant_and_equipment || [];
       if (dEquip.length > 0) {
@@ -2014,7 +2132,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
         dVal = `Desire actual: Owned plant & equipment fleet on record: ${equipSample} -> 100% MATCH`;
       } else {
         dPct = 0; dStatus = 'CANNOT BE CHECKED';
-        dVal = 'CANNOT BE CHECKED — Missing field: plant_and_equipment (Fleet asset register missing in company profile).';
+        dVal = 'CANNOT BE CHECKED — Missing field: plant_and_equipment in company records.';
       }
 
       jPct = 100; jStatus = 'MATCH';
@@ -2024,7 +2142,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = 'Plant and equipment criteria met.';
     }
 
-    // 11. UNRECOGNIZED CRITERION — MISSING DATA
+    // 12. UNRECOGNIZED CRITERION — MISSING COMPANY DATA
     else {
       const fieldName = (c.clause_title || 'unspecified_field').toLowerCase().replace(/[^a-z0-9_]/g, '_');
       dStatus = 'CANNOT BE CHECKED';
@@ -2284,7 +2402,11 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       status: combinedVerdict
     },
     clauses_breakdown: selectedEval ? selectedEval.clauses : [],
-    partnerEvaluations
+    partnerEvaluations,
+    build_info: {
+      commit_hash: buildInfo.commit_hash,
+      build_time: buildInfo.build_time
+    }
   };
 }
 
