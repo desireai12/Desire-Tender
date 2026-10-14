@@ -516,7 +516,7 @@ export default function Home() {
           )}
 
           {activeTab === 'eligibility' && (
-            <EligibilityChecker />
+            <EligibilityChecker initialTender={selectedTenderToAnalyze} />
           )}
 
           {activeTab === 'wizard' && (

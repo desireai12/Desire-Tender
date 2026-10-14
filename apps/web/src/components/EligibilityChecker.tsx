@@ -34,7 +34,7 @@ import {
   Info
 } from 'lucide-react';
 import { CompanyRecord } from './CompanyDetailsView';
-import buildInfo from '@/data/build_info.json';
+import { getBuildStamp, BuildStamp } from '@/lib/buildStamp';
 
 export interface ClauseBreakdownItem {
   clause_no: string;
@@ -93,8 +93,10 @@ export interface DynamicTenderEvaluationReport {
     submission_items_count?: number;
   };
   build_info?: {
-    commit_hash: string;
-    build_time: string;
+    commit_sha?: string;
+    commit_hash?: string;
+    vercel_env?: string;
+    build_time?: string;
     branch?: string;
   };
 }
@@ -195,7 +197,135 @@ function getCriterionGroup(c: any): { rank: number; groupKey: string; groupName:
   return { rank: 5, groupKey: 'certificate_rules', groupName: '5. Certificate & Statutory Compliance Rules' };
 }
 
-export const EligibilityChecker: React.FC = () => {
+// ═══ DIRECTIVE 5: TOP SUMMARY CARD EVALUATION (STRICT ORDER) ══════════════
+export interface TopSummaryLine {
+  id: 'financial' | 'technical' | 'registration' | 'jv' | 'documents';
+  label: string;
+  status: 'PASS' | 'FAIL' | 'CANNOT CHECK';
+  reason: string;
+  pages: string;
+}
+
+function getTopSummaryItems(allCriteria: any[], submissionClauses: any[]): TopSummaryLine[] {
+  // 1. FINANCIAL
+  const finClauses = allCriteria.filter(c => {
+    const t = ((c.clause_title || '') + ' ' + (c.tender_requirement || '') + ' ' + (c.requirement_type || '')).toLowerCase();
+    return t.includes('turnover') || t.includes('net worth') || t.includes('solvency') || t.includes('financial') || t.includes('liquid asset') || t.includes('credit line') || t.includes('cash accrual') || t.includes('bid capacity');
+  });
+
+  // 2. TECHNICAL
+  const techClauses = allCriteria.filter(c => {
+    const t = ((c.clause_title || '') + ' ' + (c.tender_requirement || '') + ' ' + (c.requirement_type || '')).toLowerCase();
+    return t.includes('experience') || t.includes('technical') || t.includes('similar work') || t.includes('work order') || t.includes('execution') || t.includes('pipeline') || t.includes('o&m') || t.includes('stp') || t.includes('solar');
+  });
+
+  // 3. REGISTRATION AND LICENCES
+  const regClauses = allCriteria.filter(c => {
+    const t = ((c.clause_title || '') + ' ' + (c.tender_requirement || '') + ' ' + (c.requirement_type || '')).toLowerCase();
+    return t.includes('registration') || t.includes('licence') || t.includes('license') || t.includes('enlistment') || t.includes('class-a') || t.includes('class aa') || t.includes('bee') || t.includes('esco');
+  });
+
+  // 4. JV RULE
+  const jvClauses = allCriteria.filter(c => {
+    const t = ((c.clause_title || '') + ' ' + (c.tender_requirement || '') + ' ' + (c.requirement_type || '')).toLowerCase();
+    return t.includes('joint venture') || t.includes('jv') || t.includes('consortium') || t.includes('lead partner') || t.includes('equity');
+  });
+
+  // 5. DOCUMENTS
+  const docClauses = submissionClauses.length > 0 ? submissionClauses : allCriteria.filter(c => {
+    const t = ((c.clause_title || '') + ' ' + (c.tender_requirement || '') + ' ' + (c.requirement_type || '')).toLowerCase();
+    return t.includes('document') || t.includes('submission') || t.includes('statutory') || t.includes('emd') || t.includes('tender fee') || t.includes('declaration');
+  });
+
+  const extractPages = (clauses: any[]): string => {
+    const pgs = clauses.map(c => c.page_ref).filter(Boolean);
+    if (pgs.length === 0) return 'Document Source';
+    const unique = Array.from(new Set(pgs));
+    return unique.join(', ');
+  };
+
+  const getGroupStatusAndReason = (clauses: any[], defaultPassReason: string, defaultCannotReason: string, defaultFailReason: string) => {
+    if (clauses.length === 0) {
+      return { status: 'CANNOT CHECK' as const, reason: defaultCannotReason };
+    }
+    const hasFail = clauses.some(c => c.active_status === 'NOT MATCHING' || c.active_status === 'NOT ELIGIBLE' || c.status === 'NOT MATCHING');
+    const hasCannot = clauses.some(c => c.active_status === 'CANNOT BE CHECKED' || c.active_status === 'DATA MISSING');
+    const allPass = clauses.every(c => c.active_status === 'MATCH' || c.status === 'MATCH');
+
+    if (hasFail) {
+      const failingClause = clauses.find(c => c.active_status === 'NOT MATCHING' || c.active_status === 'NOT ELIGIBLE');
+      return {
+        status: 'FAIL' as const,
+        reason: failingClause ? (failingClause.active_val || failingClause.desire_value || defaultFailReason) : defaultFailReason
+      };
+    }
+    if (hasCannot) {
+      const cannotClause = clauses.find(c => c.active_status === 'CANNOT BE CHECKED' || c.active_status === 'DATA MISSING');
+      return {
+        status: 'CANNOT CHECK' as const,
+        reason: cannotClause ? (cannotClause.active_val || defaultCannotReason) : defaultCannotReason
+      };
+    }
+    if (allPass) {
+      const firstClause = clauses[0];
+      return {
+        status: 'PASS' as const,
+        reason: firstClause.active_val ? firstClause.active_val.replace(/->\s*100%\s*MATCH/i, '').trim() : defaultPassReason
+      };
+    }
+    return { status: 'PASS' as const, reason: defaultPassReason };
+  };
+
+  const fin = getGroupStatusAndReason(finClauses, 'Meets turnover, net worth and solvency requirements standalone', 'Financial criteria pending verification of balance sheet/solvency', 'Falls short of financial criteria threshold');
+  const tech = getGroupStatusAndReason(techClauses, 'Executed water pipeline and infrastructure projects meet technical criteria (Form-8 certified)', 'Technical experience details require certificate check', 'Does not meet technical experience criteria');
+  const reg = getGroupStatusAndReason(regClauses, 'Holds verified contractor registration and licences', 'No verified contractor registration or licence certificate on record; upload required in Master DB', 'Registration class or validity not matching');
+  const jv = getGroupStatusAndReason(jvClauses, 'Joint venture consortium structure complies with lead partner equity and bidding rules', 'JV rules not specified in tender or unverified', 'Consortium structure does not meet JV clauses');
+  const docs = getGroupStatusAndReason(docClauses, 'Statutory documents (GST, PAN, EPF, CIN) verified; bid submission documents prepared', 'Mandatory submission checklist pending tender-specific upload', 'Mandatory submission documents missing');
+
+  return [
+    {
+      id: 'financial',
+      label: 'Financial',
+      status: fin.status,
+      reason: fin.reason,
+      pages: extractPages(finClauses)
+    },
+    {
+      id: 'technical',
+      label: 'Technical',
+      status: tech.status,
+      reason: tech.reason,
+      pages: extractPages(techClauses)
+    },
+    {
+      id: 'registration',
+      label: 'Registration and licences',
+      status: reg.status,
+      reason: reg.reason,
+      pages: extractPages(regClauses)
+    },
+    {
+      id: 'jv',
+      label: 'JV rule',
+      status: jv.status,
+      reason: jv.reason,
+      pages: extractPages(jvClauses)
+    },
+    {
+      id: 'documents',
+      label: 'Documents',
+      status: docs.status,
+      reason: docs.reason,
+      pages: extractPages(docClauses)
+    }
+  ];
+}
+
+export interface EligibilityCheckerProps {
+  initialTender?: any;
+}
+
+export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ initialTender }) => {
   const [companies, setCompanies] = useState<CompanyRecord[]>([]);
   const [selectedJvPartnerId, setSelectedJvPartnerId] = useState<string>('comp-divija-02');
   const [selectedCategory, setSelectedCategory] = useState<string>('RHDS');
@@ -204,8 +334,20 @@ export const EligibilityChecker: React.FC = () => {
   const [analyzing, setAnalyzing] = useState<boolean>(false);
   const [activeAnalysisOption, setActiveAnalysisOption] = useState<'desire' | 'jv' | 'combined'>('combined');
   const [report, setReport] = useState<DynamicTenderEvaluationReport | null>(null);
+  const [isStoredReport, setIsStoredReport] = useState<boolean>(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [otherConditionsOpen, setOtherConditionsOpen] = useState<boolean>(false);
+
+  // Consume initialTender if passed from Tracker / Dashboard
+  useEffect(() => {
+    if (initialTender) {
+      if (initialTender.title) setTenderTitleInput(initialTender.title);
+      if (initialTender.evaluation_report) {
+        setReport(initialTender.evaluation_report);
+        setIsStoredReport(true);
+      }
+    }
+  }, [initialTender]);
 
   // Fetch Companies on Mount
   useEffect(() => {
@@ -229,6 +371,7 @@ export const EligibilityChecker: React.FC = () => {
     setReport(null);
     setAnalyzing(true);
     setAnalysisError(null);
+    setIsStoredReport(false);
 
     try {
       let storagePath: string | null = null;
@@ -301,6 +444,7 @@ export const EligibilityChecker: React.FC = () => {
         const rep = data.evaluation_report || data.report;
         if (rep) {
           setReport(rep);
+          setIsStoredReport(false);
         } else {
           setAnalysisError('[AI_RESPONSE_INVALID] Tender analysis service returned an empty report.');
         }
@@ -566,6 +710,7 @@ export const EligibilityChecker: React.FC = () => {
       uncheckedCriteria: activeEval.uncheckedCriteria,
       submissionClauses,
       contractClauses,
+      topSummaryItems: getTopSummaryItems(activeEval.allCriteria, submissionClauses),
       tabScores: {
         desire: desireEval.pctStr,
         jv: jvEval.pctStr,
@@ -652,7 +797,33 @@ export const EligibilityChecker: React.FC = () => {
             <div class="hdr-item"><span class="hdr-lbl">Publish Date</span><div class="hdr-val">${perspective.headerDetails.publishDate}</div></div>
           </div>
 
-          <h3 style="font-size: 9.5pt; color: #064e3b; margin: 10px 0 4px 0;">Qualification Criteria (${perspective.checkedCriteria.length} Checked Rows)</h3>
+          <h3 style="font-size: 9.5pt; color: #064e3b; margin: 10px 0 4px 0;">Top Summary Evaluation Card</h3>
+          <table style="margin-top: 0; width: 100%;">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Category</th>
+                <th style="width: 50%;">One-Line Reason</th>
+                <th style="width: 15%;">Clause Page</th>
+                <th style="width: 10%;">Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(perspective.topSummaryItems || []).map((item: any) => `
+                <tr>
+                  <td><strong>${item.label}</strong></td>
+                  <td>${item.reason}</td>
+                  <td><span style="font-family: monospace; font-size: 7.5pt;">${item.pages}</span></td>
+                  <td>
+                    <span class="${item.status === 'PASS' ? 'badge-match' : (item.status === 'FAIL' ? 'badge-fail' : 'badge-missing')}">
+                      ${item.status}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <h3 style="font-size: 9.5pt; color: #064e3b; margin: 14px 0 4px 0;">Qualification Criteria (${perspective.checkedCriteria.length} Checked Rows)</h3>
           <table>
             <thead>
               <tr>
@@ -676,7 +847,7 @@ export const EligibilityChecker: React.FC = () => {
 
           <div class="footer" style="margin-top: 24px; border-top: 1px solid #cbd5e1; padding-top: 8px; font-size: 8pt; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
             <span>Generated by Desire Energy AI Engine. Verified against Audited Company Master Data (CIN: <strong>U40106RJ2011PTC034878</strong>).</span>
-            <span>Report Build: <strong style="font-family: monospace; color: #0f172a;">${report?.build_info?.commit_hash || buildInfo.commit_hash}</strong> | Built: <strong style="font-family: monospace; color: #0f172a;">${report?.build_info?.build_time || buildInfo.build_time}</strong></span>
+            <span>Report Build: <strong style="font-family: monospace; color: #0f172a;">${report?.build_info?.commit_sha || report?.build_info?.commit_hash || getBuildStamp().commit_sha}</strong> | Env: <strong style="font-family: monospace; color: #0f172a;">${report?.build_info?.vercel_env || getBuildStamp().vercel_env}</strong> | Built: <strong style="font-family: monospace; color: #0f172a;">${report?.build_info?.build_time || getBuildStamp().build_time}</strong></span>
           </div>
         </body>
       </html>
@@ -819,6 +990,36 @@ export const EligibilityChecker: React.FC = () => {
       {/* AI Summary Dashboard Cards */}
       {report && !report.is_rejected_non_tender && perspective && (
         <div key={`${report.tender_id || tenderFile?.name || 'report'}-${report.tender_title || ''}`} className="space-y-6">
+          {/* Directive 6: Stored Report Banner & Re-analyse Button */}
+          {isStoredReport && (
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-600 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-950 dark:text-amber-100 shadow-sm animate-fadeIn">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-xl bg-amber-200/80 dark:bg-amber-900/80 text-amber-800 dark:text-amber-300 shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold font-mono tracking-wide">
+                    Previously Analysed Tender Report
+                  </div>
+                  <p className="text-xs text-amber-900 dark:text-amber-200 font-medium">
+                    Analysed with build <strong className="font-mono bg-amber-200/60 dark:bg-amber-900 px-1.5 py-0.5 rounded text-amber-950 dark:text-amber-100">{report.build_info?.commit_sha || report.build_info?.commit_hash || 'earlier-build'}</strong> on <strong className="font-mono">{report.build_info?.build_time || 'earlier date'}</strong>.
+                  </p>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                    Rules or audited company records may have changed since this report was generated. Click Re-analyse to run fresh evaluation.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRunAnalysis()}
+                disabled={analyzing}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md shadow-amber-900/20 flex items-center justify-center space-x-2 shrink-0 transition-all cursor-pointer"
+              >
+                <RefreshCw className={`w-4 h-4 ${analyzing ? 'animate-spin' : ''}`} />
+                <span>Re-analyse</span>
+              </button>
+            </div>
+          )}
           {/* 3 Dynamic Analysis Options Selection Tabs & Download Report Button */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-3">
             <div className="flex items-center space-x-2 overflow-x-auto w-full sm:w-auto">
@@ -984,6 +1185,71 @@ export const EligibilityChecker: React.FC = () => {
             </div>
             <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
               Scoring Rule: Score = passed ({perspective.summary_counts.matched}) ÷ checked ({perspective.summary_counts.checked_count})
+            </div>
+          </div>
+
+          {/* Directive 5: TOP SUMMARY CARD (financial, technical, registration and licences, JV rule, documents) */}
+          <div className="glass-card p-6 rounded-2xl border-2 border-emerald-500/30 bg-white dark:bg-[#0b1426] shadow-md space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
+                    Top Summary Evaluation Card
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Executive clause-by-clause verdict by core criteria category
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold uppercase">
+                {perspective.badge}
+              </span>
+            </div>
+
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+              {(perspective.topSummaryItems || []).map((item, idx) => {
+                const isPass = item.status === 'PASS';
+                const isFail = item.status === 'FAIL';
+                const isCannot = item.status === 'CANNOT CHECK';
+
+                return (
+                  <div key={item.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-slate-50/50 dark:hover:bg-slate-900/30 px-2 rounded-xl transition-all">
+                    <div className="flex items-start sm:items-center space-x-3 flex-1 min-w-0">
+                      <span className="font-mono text-xs font-bold text-slate-400 w-5 shrink-0">
+                        0{idx + 1}.
+                      </span>
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                            {item.label}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-semibold">
+                            {item.pages}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium truncate sm:whitespace-normal">
+                          {item.reason}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 self-start sm:self-center">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider ${
+                        isPass
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                          : isFail
+                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
+                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -1230,9 +1496,11 @@ export const EligibilityChecker: React.FC = () => {
               <span>Desire Energy Solutions Pvt Ltd (CIN: <strong className="text-slate-700 dark:text-slate-300">U40106RJ2011PTC034878</strong>)</span>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-[11px]">
-              <span>Commit: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{report.build_info?.commit_hash || buildInfo.commit_hash}</strong></span>
+              <span>Commit: <strong className="text-emerald-600 dark:text-emerald-400 font-bold">{report.build_info?.commit_sha || report.build_info?.commit_hash || getBuildStamp().commit_sha}</strong></span>
               <span>•</span>
-              <span>Build Time: <strong className="text-slate-700 dark:text-slate-300 font-medium">{report.build_info?.build_time || buildInfo.build_time}</strong></span>
+              <span>Env: <strong className="text-slate-700 dark:text-slate-300 font-medium">{report.build_info?.vercel_env || getBuildStamp().vercel_env}</strong></span>
+              <span>•</span>
+              <span>Build Time: <strong className="text-slate-700 dark:text-slate-300 font-medium">{report.build_info?.build_time || getBuildStamp().build_time}</strong></span>
             </div>
           </div>
         </div>

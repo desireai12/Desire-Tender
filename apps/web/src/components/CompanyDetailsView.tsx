@@ -22,10 +22,23 @@ import {
   Wrench, 
   X, 
   Loader2,
-  ExternalLink
+  ExternalLink,
+  Upload
 } from 'lucide-react';
 import { API_BASE_URL } from '@/lib/api';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+
+export interface CompanyRegistration {
+  id?: string;
+  department: string;
+  class: string;
+  number: string;
+  validity: string;
+  file_name: string;
+  file_url?: string;
+  uploaded_at?: string;
+  verified?: boolean;
+}
 
 export interface CompanyRecord {
   id: string;
@@ -57,6 +70,7 @@ export interface CompanyRecord {
   manpower_technical_staff: string[];
   certifications: string[];
   statutory_docs: string[];
+  registrations?: CompanyRegistration[];
   uploaded_documents: string[];
 }
 
@@ -68,6 +82,16 @@ export const CompanyDetailsView: React.FC = () => {
   const [selectedCompany, setSelectedCompany] = useState<CompanyRecord | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+
+  // Registration Modal State (Cannot be saved without uploaded file)
+  const [isRegModalOpen, setIsRegModalOpen] = useState<boolean>(false);
+  const [regTargetCompany, setRegTargetCompany] = useState<CompanyRecord | null>(null);
+  const [regDepartment, setRegDepartment] = useState<string>('');
+  const [regClass, setRegClass] = useState<string>('');
+  const [regNumber, setRegNumber] = useState<string>('');
+  const [regValidity, setRegValidity] = useState<string>('');
+  const [regFile, setRegFile] = useState<File | null>(null);
+  const [regFileError, setRegFileError] = useState<string | null>(null);
 
   // Form State for Add / Edit
   const [formData, setFormData] = useState<Partial<CompanyRecord>>({
@@ -122,7 +146,7 @@ export const CompanyDetailsView: React.FC = () => {
           id: 'comp-desire-01',
           name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED',
           type: 'Desire Energy',
-          profile: 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks. Registered AA Class Contractor with Gujarat WRD & R&B.',
+          profile: 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks.',
           registered_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
           corporate_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
           contact_details: { phone: '0141-4050855', mobile: '7230037296', email: 'tenders@desireenergy.com', contact_person: 'Dharmesh Khandelwal (Director)' },
@@ -134,15 +158,16 @@ export const CompanyDetailsView: React.FC = () => {
           net_worth: 52.62,
           solvency: 72.18,
           solvency_amount: 72.18,
-          technical_experience: 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants, AA Class Gujarat WRD/R&B Registration & Grade-1 BEE ESCO',
+          technical_experience: 'Executed 120+ km HDPE/DI Water Pipelines, 5 OHSRs, 50+ MW Solar PV Plants.',
           past_projects: ['Jal Jeevan Mission Balotra Package', 'PM-Kusum Component-B Rajasthan (Rs 94 Cr)', 'RHDS Water Supply Network'],
           work_orders: [],
-          client_details: ['RUDSICO', 'SWSM UP', 'Gujarat WRD'],
+          client_details: ['RUDSICO', 'SWSM UP'],
           sector_experience: ['Rural Water Supply (JJM)', 'Solar PV Water Pumps', 'Bulk Water Pipeline EPC', 'Lift Irrigation Schemes'],
           equipment_machinery: ['10 Heavy Excavators', '3 Vermeer HDD Machines', '15 Mobile Generator Sets', '4 Transit Mixers', '2 Concrete Batching Units'],
           manpower_technical_staff: ['45 Degree Civil & Electrical Engineers', '120 Certified Pipeline Technicians', '8 Quality Control Managers'],
-          certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'ISO 45001:2018', 'CMMI Level-5', 'BEE Grade-1 ESCO', 'AA Class Gujarat WRD/R&B License', 'Electrical Contractor License'],
+          certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'ISO 45001:2018', 'CMMI Level-5'],
           statutory_docs: ['GST Registration Certificate (Gujarat & Rajasthan)', 'PAN Card', 'EPF Registration', 'ESI Registration', 'Udyam Registration UDYAM-RJ-17-0025258'],
+          registrations: [],
           uploaded_documents: []
         },
         {
@@ -389,6 +414,71 @@ export const CompanyDetailsView: React.FC = () => {
     setCompanies(prev => prev.filter(c => c.id !== id));
   };
 
+  const handleOpenAddReg = (comp: CompanyRecord) => {
+    setRegTargetCompany(comp);
+    setRegDepartment('');
+    setRegClass('');
+    setRegNumber('');
+    setRegValidity('');
+    setRegFile(null);
+    setRegFileError(null);
+    setIsRegModalOpen(true);
+  };
+
+  const handleSaveRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regFile) {
+      setRegFileError('Cannot save registration without an uploaded certificate file.');
+      return;
+    }
+    if (!regDepartment || !regClass || !regNumber || !regValidity || !regTargetCompany) {
+      setRegFileError('All registration fields are required.');
+      return;
+    }
+
+    const newReg: CompanyRegistration = {
+      id: `reg-${Date.now()}`,
+      department: regDepartment.trim(),
+      class: regClass.trim(),
+      number: regNumber.trim(),
+      validity: regValidity.trim(),
+      file_name: regFile.name,
+      uploaded_at: new Date().toISOString(),
+      verified: true
+    };
+
+    const updatedCompany: CompanyRecord = {
+      ...regTargetCompany,
+      registrations: [...(regTargetCompany.registrations || []), newReg]
+    };
+
+    setCompanies(prev => prev.map(c => c.id === updatedCompany.id ? updatedCompany : c));
+    if (selectedCompany && selectedCompany.id === updatedCompany.id) {
+      setSelectedCompany(updatedCompany);
+    }
+
+    try {
+      await fetch(`${API_BASE_URL}/companies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCompany)
+      });
+    } catch (e) {}
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('companies').upsert(updatedCompany, { onConflict: 'id' });
+      } catch (e) {}
+    }
+
+    setIsRegModalOpen(false);
+    setRegFile(null);
+    setRegDepartment('');
+    setRegClass('');
+    setRegNumber('');
+    setRegValidity('');
+  };
+
   const filteredCompanies = companies.filter(c => {
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           c.profile.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -556,13 +646,23 @@ export const CompanyDetailsView: React.FC = () => {
               </div>
 
               {/* Bottom Actions */}
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+              <div className="pt-3 border-t border-slate-200 flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => setSelectedCompany(comp)}
-                  className="w-full py-2 rounded-xl bg-white/5 hover:bg-teal-50 text-teal-800 hover:text-cyan-200 border border-slate-200 hover:border-teal-200 text-xs font-semibold flex items-center justify-center space-x-2 transition-all"
+                  className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-teal-50 text-teal-800 border border-slate-200 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
                 >
                   <Briefcase className="w-3.5 h-3.5" />
-                  <span>View Full Profile & Experience</span>
+                  <span>View Profile</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddReg(comp)}
+                  className="px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-xs font-semibold flex items-center space-x-1 hover:bg-emerald-100 transition-all cursor-pointer"
+                  title="Upload Registration Certificate"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>+ Reg</span>
                 </button>
               </div>
             </div>
@@ -645,6 +745,55 @@ export const CompanyDetailsView: React.FC = () => {
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Contractor Registrations & Licences Section */}
+            <div className="space-y-3 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Award className="w-4 h-4 text-emerald-600" />
+                  <h4 className="font-semibold text-slate-800 uppercase tracking-wider text-[11px] font-mono">
+                    Contractor Registrations & Licences ({selectedCompany.registrations?.length || 0})
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddReg(selectedCompany)}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Upload Certificate (File Required)</span>
+                </button>
+              </div>
+
+              {(!selectedCompany.registrations || selectedCompany.registrations.length === 0) ? (
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center space-x-3">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    No verified contractor registrations or licences uploaded. All registration criteria will show <strong>CANNOT BE CHECKED</strong> until valid certificate files are uploaded.
+                  </span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedCompany.registrations.map((reg, idx) => (
+                    <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                      <div className="flex items-center justify-between font-bold text-slate-900">
+                        <span>{reg.department}</span>
+                        <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold">
+                          {reg.class}
+                        </span>
+                      </div>
+                      <div className="text-slate-600 text-[11px]">
+                        No: <strong className="font-mono">{reg.number}</strong> | Validity: <strong>{reg.validity}</strong>
+                      </div>
+                      <div className="pt-1 flex items-center space-x-1 text-emerald-700 font-medium text-[11px]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="truncate">File: {reg.file_name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="pt-4 border-t border-slate-200 flex justify-end">
@@ -800,6 +949,145 @@ export const CompanyDetailsView: React.FC = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Registration & Licence Form Modal - CANNOT BE SAVED WITHOUT UPLOADED FILE */}
+      {isRegModalOpen && regTargetCompany && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-card w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 space-y-5">
+            <div className="flex items-start justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Upload Contractor Registration / Licence
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Target: <strong>{regTargetCompany.name}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setIsRegModalOpen(false); setRegFile(null); setRegFileError(null); }}
+                className="text-slate-500 hover:text-slate-800 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {regFileError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{regFileError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveRegistration} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-slate-700 font-medium font-mono">1. Department / Authority *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Gujarat WRD, Public Works Department, PHED"
+                  value={regDepartment}
+                  onChange={(e) => setRegDepartment(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-slate-700 font-medium font-mono">2. Class / Category *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Class-AA, Class-A"
+                    value={regClass}
+                    onChange={(e) => setRegClass(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-slate-700 font-medium font-mono">3. Validity *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 31/12/2027 or Active"
+                    value={regValidity}
+                    onChange={(e) => setRegValidity(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-slate-700 font-medium font-mono">4. Certificate / Licence Number *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. SE/WRD/GNR/AA/2024/110"
+                  value={regNumber}
+                  onChange={(e) => setRegNumber(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                />
+              </div>
+
+              {/* Mandatory File Upload */}
+              <div className="space-y-1">
+                <label className="text-slate-700 font-medium font-mono flex items-center justify-between">
+                  <span>5. Certificate Document File (MANDATORY) *</span>
+                  <span className="text-rose-600 font-bold text-[10px]">Cannot be saved without file</span>
+                </label>
+                <label className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                  regFile ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-300 hover:border-emerald-500 bg-slate-50'
+                }`}>
+                  <Upload className={`w-6 h-6 mb-1 ${regFile ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <span className="text-xs font-medium text-slate-700 text-center">
+                    {regFile ? (
+                      <strong className="text-emerald-700 font-mono">{regFile.name} ({(regFile.size / 1024).toFixed(1)} KB)</strong>
+                    ) : (
+                      'Select PDF or Certificate Image to Upload'
+                    )}
+                  </span>
+                  <input
+                    type="file"
+                    required
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        setRegFile(f);
+                        setRegFileError(null);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => { setIsRegModalOpen(false); setRegFile(null); setRegFileError(null); }}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!regFile || !regDepartment || !regClass || !regNumber || !regValidity}
+                  className={`px-5 py-2 rounded-xl text-white font-bold text-xs flex items-center space-x-2 transition-all cursor-pointer ${
+                    !regFile || !regDepartment || !regClass || !regNumber || !regValidity
+                      ? 'bg-slate-400 opacity-60 cursor-not-allowed'
+                      : 'bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-900/20'
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Save Registration with Document</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

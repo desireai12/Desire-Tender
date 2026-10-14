@@ -6,7 +6,7 @@ import { crawlTelanganaPortal } from '@/lib/telangana-crawler';
 import { crawlGujaratNProcurePortal } from '@/lib/nprocure-crawler';
 import { normalizeStatus } from '@/lib/tender-status';
 import { retrieveRAGContextForTender, ingestDocumentInBackground, INGESTION_TRACKER } from '@/lib/rag';
-import buildInfo from '@/data/build_info.json';
+import { getBuildStamp } from '@/lib/buildStamp';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -720,10 +720,7 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner', extra
   }
 
   // Attach build info to report
-  report.build_info = {
-    commit_hash: buildInfo.commit_hash,
-    build_time: buildInfo.build_time
-  };
+  report.build_info = getBuildStamp();
 
   // Step 4: Three Clause Groups
   const qualificationCriteria: any[] = [];
@@ -825,7 +822,7 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
     id: 'comp-desire-01',
     name: 'DESIRE ENERGY SOLUTIONS PRIVATE LIMITED',
     type: 'Desire Energy',
-    profile: 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks. Registered AA Class Contractor with Gujarat WRD & R&B.',
+    profile: 'Leading Indian Water & Solar Infrastructure Company managing 1,00,000+ villages under Jal Jeevan Mission, PM-Kusum, and RHDS pipe networks.',
     registered_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
     corporate_address: '401, Manupasana Tower, C-Scheme, Jaipur - 302001, Rajasthan',
     contact_details: { phone: '0141-4050855', mobile: '7230037296', email: 'tenders@desireenergy.com', contact_person: 'Dharmesh Khandelwal (Director)' },
@@ -1123,12 +1120,7 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
       }
     ],
 
-    registrations: [
-      { authority: 'Gujarat WRD (Water Resources Department)', class: 'Class-AA', category: 'Civil & Pipelines', certificate_no: 'SE/WRD/GNR/AA/2022/88', validity: 'Active', source: 'PQ_Upload_Junagadh (2).pdf, Page 2', verified: true },
-      { authority: 'Gujarat R&B (Roads & Buildings)', class: 'Class-AA', category: 'Civil', certificate_no: 'CE/RNB/2021/AA/512', validity: 'Active', source: 'PQ_Upload_Junagadh (2).pdf, Page 2', verified: true },
-      { authority: 'Bureau of Energy Efficiency (BEE)', class: 'Grade-1 ESCO', category: 'Energy Efficiency & SCADA', certificate_no: 'BEE/ESCO/GR1/2020', validity: 'Active', source: 'PQ_Upload_Junagadh (2).pdf, Page 3', verified: true },
-      { authority: 'Energy & Petrochemicals Dept Gujarat / Rajasthan', class: 'Class-A', category: 'Electrical Contractor License', certificate_no: 'ECL/RAJ-GUJ/2019/331', validity: 'Active', source: 'PQ_Upload_Junagadh (2).pdf, Page 5', verified: true }
-    ],
+    registrations: [],
 
     key_personnel: [
       { name: 'Gaurav Kumar Gupta', designation: 'Director / Technical Lead', qualification: 'B.Tech Civil', experience_years: 16, source: 'PQ_Upload_Junagadh (2).pdf, Page 12', verified: true },
@@ -1150,7 +1142,7 @@ let GLOBAL_SERVER_COMPANIES: any[] = [
       { name: 'Dewatering Submersible Pump Sets', quantity: 12, capacity: '10 - 25 HP', ownership: 'Owned', source: 'PQ_Upload_Alwar (2).pdf, Form-3', verified: true }
     ],
 
-    certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'ISO 45001:2018', 'CMMI Level-5', 'BEE Grade-1 ESCO', 'AA Class Gujarat WRD/R&B License', 'Electrical Contractor License'],
+    certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'ISO 45001:2018', 'CMMI Level-5'],
     statutory_docs: ['GST Registration Certificate (Gujarat & Rajasthan)', 'PAN Card', 'EPF Registration', 'ESI Registration', 'Udyam Registration UDYAM-RJ-17-0025258'],
     uploaded_documents: []
   },
@@ -1803,47 +1795,146 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 
     // 2. TURNOVER EVALUATION
     else if (title.includes('turnover') || reqText.includes('turnover')) {
-      const isSingleYear = reqText.includes('any one') || reqText.includes('single year') || reqText.includes('any year') || title.includes('any one');
-      const isAny3Of5 = reqText.includes('any 3') || reqText.includes('any three') || reqText.includes('best 3') || reqText.includes('best three') || reqText.includes('3 of the last 5') || reqText.includes('three of the last five');
+      const fullTurnoverText = (title + ' ' + reqText).toLowerCase();
+      const mentionsAverage = fullTurnoverText.includes('average');
+
+      const wordToNum = (w?: string): number => {
+        if (!w) return 0;
+        const map: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7 };
+        return map[w.toLowerCase()] || parseInt(w, 10) || 0;
+      };
+
+      // Directive 4: "In any N of the last M years" = the count of years meeting the threshold is at least N.
+      const anyNofMMatch = fullTurnoverText.match(/any\s+(\d+|one|two|three|four|five)\s+(?:out\s+of|of)(?:\s+the\s+last)?\s+(\d+|one|two|three|four|five)?/i);
+      const isAnyNofM = !!anyNofMMatch;
+      const targetN = isAnyNofM ? wordToNum(anyNofMMatch[1]) : 0;
+      const targetM = isAnyNofM ? (wordToNum(anyNofMMatch[2]) || 5) : 5;
+
+      // "In any one year" = the maximum year.
+      const isSingleYear = fullTurnoverText.includes('any one') || fullTurnoverText.includes('single year') || fullTurnoverText.includes('in any year') || fullTurnoverText.includes('any financial year');
 
       const turnoverMetrics = computeTurnoverMetrics(desireComp.year_wise_turnover);
+      const partnerMetrics = computeTurnoverMetrics(partner.year_wise_turnover || {});
 
-      let dTurnover = turnoverMetrics.avgLast3;
-      let dTurnoverRule = `3-Yr Avg: ₹${turnoverMetrics.avgLast3} Cr`;
+      const dEntries = Object.entries(desireComp.year_wise_turnover || {}).map(([fy, v]: [string, any]) => ({
+        fy,
+        val: typeof v === 'object' && v !== null ? v.value_cr : (typeof v === 'number' ? v : parseFloat(v))
+      })).filter(e => typeof e.val === 'number' && !isNaN(e.val) && e.val > 0);
 
-      if (isAny3Of5) {
-        dTurnover = turnoverMetrics.avgAny3Of5;
-        dTurnoverRule = `Any 3 of Last 5 FYs Avg: ₹${turnoverMetrics.avgAny3Of5} Cr (${turnoverMetrics.top3Years.join(', ')})`;
-      } else if (isSingleYear) {
-        dTurnover = turnoverMetrics.peakVal;
-        dTurnoverRule = `Peak Year (${turnoverMetrics.peakYear}): ₹${turnoverMetrics.peakVal} Cr`;
-      }
+      const jEntries = Object.entries(partner.year_wise_turnover || {}).map(([fy, v]: [string, any]) => ({
+        fy,
+        val: typeof v === 'object' && v !== null ? v.value_cr : (typeof v === 'number' ? v : parseFloat(v))
+      })).filter(e => typeof e.val === 'number' && !isNaN(e.val) && e.val > 0);
 
       if (reqAmtCr !== null && reqAmtCr > 0) {
-        if (dTurnover >= reqAmtCr) {
-          dPct = 100;
-          dStatus = 'MATCH';
-          dVal = `Desire actual (${dTurnoverRule}, Form-7 & CA Certificate certified) meets required ₹${reqAmtCr.toFixed(2)} Cr -> 100% MATCH`;
+        if (!mentionsAverage && isAnyNofM && targetN > 0) {
+          // Rule: "In any N of the last M years" = the count of years meeting the threshold is at least N.
+          const lastMYears = dEntries.slice(-targetM);
+          const dMatchingYears = lastMYears.filter(y => y.val >= reqAmtCr);
+          const dCount = dMatchingYears.length;
+
+          if (dCount >= targetN) {
+            dPct = 100;
+            dStatus = 'MATCH';
+            dVal = `Desire actual: ${dCount} of last ${targetM} FYs meet threshold of ₹${reqAmtCr.toFixed(2)} Cr (required: ${targetN}; qualifying: ${dMatchingYears.map(y => `${y.fy} ₹${y.val} Cr`).join(', ')}) -> 100% MATCH`;
+          } else {
+            dPct = Math.round((dCount / targetN) * 100);
+            dStatus = 'NOT MATCHING';
+            dVal = `Desire actual: ${dCount} of last ${targetM} FYs meet threshold of ₹${reqAmtCr.toFixed(2)} Cr (required: ${targetN}; only ${dMatchingYears.map(y => `${y.fy} ₹${y.val} Cr`).join(', ') || 'None'}) -> ${dPct}% NOT MATCHING`;
+          }
+
+          const lastMJYears = jEntries.slice(-targetM);
+          const jMatchingYears = lastMJYears.filter(y => y.val >= reqAmtCr);
+          const jCount = jMatchingYears.length;
+          jPct = jCount >= targetN ? 100 : Math.round((jCount / targetN) * 100);
+          jStatus = jCount >= targetN ? 'MATCH' : 'NOT MATCHING';
+          jVal = `${partner.name} actual: ${jCount} of last ${targetM} FYs meet threshold of ₹${reqAmtCr.toFixed(2)} Cr (required: ${targetN}) -> ${jPct}% ${jStatus}`;
+
+          cPct = Math.max(dPct, jPct);
+          cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          cVal = cPct >= 100
+            ? `Consortium satisfies turnover requirement (${dCount >= targetN ? 'Desire standalone' : partner.name} achieves ${targetN}+ years) -> ${cPct}% MATCH`
+            : `Consortium turnover falls short of ${targetN} qualifying years -> ${cPct}% NOT MATCHING`;
+          gapNotes = dStatus === 'MATCH' ? 'Desire satisfies turnover standalone.' : `Bridged by ${partner.name}.`;
+
+        } else if (!mentionsAverage && isSingleYear) {
+          // Rule: "In any one year" = the maximum year meets the threshold.
+          const dPeakVal = turnoverMetrics.peakVal;
+          if (dPeakVal >= reqAmtCr) {
+            dPct = 100;
+            dStatus = 'MATCH';
+            dVal = `Desire actual (Peak Year ${turnoverMetrics.peakYear}: ₹${dPeakVal.toFixed(2)} Cr) meets required ₹${reqAmtCr.toFixed(2)} Cr -> 100% MATCH`;
+          } else {
+            dPct = Math.round((dPeakVal / reqAmtCr) * 100);
+            dStatus = 'NOT MATCHING';
+            dVal = `Desire actual (Peak Year ${turnoverMetrics.peakYear}: ₹${dPeakVal.toFixed(2)} Cr) falls short of required ₹${reqAmtCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+          }
+
+          const jPeakVal = partnerMetrics.peakVal || partner.peak_turnover_cr || partner.average_turnover || 0;
+          jPct = jPeakVal >= reqAmtCr ? 100 : Math.round((jPeakVal / reqAmtCr) * 100);
+          jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          jVal = `${partner.name} actual (Peak: ₹${jPeakVal.toFixed(2)} Cr) ${jPct >= 100 ? 'meets' : 'falls short of'} required ₹${reqAmtCr.toFixed(2)} Cr -> ${jPct}% ${jStatus}`;
+
+          cPct = Math.max(dPct, jPct);
+          cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          cVal = `Consortium Peak Turnover: ₹${Math.max(dPeakVal, jPeakVal).toFixed(2)} Cr -> ${cPct}% ${cStatus}`;
+          gapNotes = dStatus === 'MATCH' ? 'Desire satisfies single year turnover standalone.' : `Bridged by ${partner.name}.`;
+
+        } else if (mentionsAverage) {
+          // Rule: Use an average ONLY if the clause says average.
+          const is5Year = fullTurnoverText.includes('5 year') || fullTurnoverText.includes('five year') || fullTurnoverText.includes('5 fy');
+          const dAvg = is5Year
+            ? (dEntries.length > 0 ? Math.round((dEntries.reduce((s, x) => s + x.val, 0) / dEntries.length) * 100) / 100 : turnoverMetrics.avgLast3)
+            : turnoverMetrics.avgLast3;
+
+          if (dAvg >= reqAmtCr) {
+            dPct = 100;
+            dStatus = 'MATCH';
+            dVal = `Desire actual (Average Annual Turnover: ₹${dAvg.toFixed(2)} Cr, Form-7 certified) meets required ₹${reqAmtCr.toFixed(2)} Cr -> 100% MATCH`;
+          } else {
+            dPct = Math.round((dAvg / reqAmtCr) * 100);
+            dStatus = 'NOT MATCHING';
+            dVal = `Desire actual (Average Annual Turnover: ₹${dAvg.toFixed(2)} Cr) falls short of required ₹${reqAmtCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+          }
+
+          const jAvg = partner.average_turnover || 0;
+          jPct = jAvg >= reqAmtCr ? 100 : Math.round((jAvg / reqAmtCr) * 100);
+          jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          jVal = `${partner.name} actual (Average: ₹${jAvg.toFixed(2)} Cr) ${jPct >= 100 ? 'meets' : 'falls short of'} required ₹${reqAmtCr.toFixed(2)} Cr -> ${jPct}% ${jStatus}`;
+
+          const pooledAvg = dAvg + jAvg;
+          cPct = pooledAvg >= reqAmtCr ? 100 : Math.round((pooledAvg / reqAmtCr) * 100);
+          cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          cVal = `Consortium Pooled Average Turnover: ₹${pooledAvg.toFixed(2)} Cr (Desire ₹${dAvg.toFixed(2)} Cr + ${partner.name} ₹${jAvg.toFixed(2)} Cr) -> ${cPct}% ${cStatus}`;
+          gapNotes = dStatus === 'MATCH' ? 'Desire satisfies average turnover standalone.' : `Desire turnover bridged by consortium partner ${partner.name}.`;
+
         } else {
-          dPct = Math.round((dTurnover / reqAmtCr) * 100);
-          dStatus = 'NOT MATCHING';
-          dVal = `Desire actual (${dTurnoverRule}) falls short of required ₹${reqAmtCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+          // Default when no average mentioned and no N of M: compare against peak year
+          const dPeakVal = turnoverMetrics.peakVal;
+          if (dPeakVal >= reqAmtCr) {
+            dPct = 100;
+            dStatus = 'MATCH';
+            dVal = `Desire actual (Peak Year ${turnoverMetrics.peakYear}: ₹${dPeakVal.toFixed(2)} Cr, Form-7 certified) meets required ₹${reqAmtCr.toFixed(2)} Cr -> 100% MATCH`;
+          } else {
+            dPct = Math.round((dPeakVal / reqAmtCr) * 100);
+            dStatus = 'NOT MATCHING';
+            dVal = `Desire actual (Peak Year ${turnoverMetrics.peakYear}: ₹${dPeakVal.toFixed(2)} Cr) falls short of required ₹${reqAmtCr.toFixed(2)} Cr -> ${dPct}% NOT MATCHING`;
+          }
+
+          const jValToCheck = partnerMetrics.peakVal || partner.average_turnover || 0;
+          jPct = jValToCheck >= reqAmtCr ? 100 : Math.round((jValToCheck / reqAmtCr) * 100);
+          jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          jVal = `${partner.name} actual (₹${jValToCheck.toFixed(2)} Cr) -> ${jPct}% ${jStatus}`;
+
+          cPct = Math.max(dPct, jPct);
+          cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
+          cVal = `Consortium satisfies turnover criteria -> ${cPct}% ${cStatus}`;
+          gapNotes = dStatus === 'MATCH' ? 'Desire satisfies turnover standalone.' : `Bridged by ${partner.name}.`;
         }
-
-        const jTurnover = isSingleYear ? (partner.peak_turnover_cr || partner.average_turnover) : partner.average_turnover;
-        jPct = jTurnover >= reqAmtCr ? 100 : Math.round((jTurnover / reqAmtCr) * 100);
-        jStatus = jPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-        jVal = `${partner.name} actual (₹${jTurnover} Cr) ${jPct >= 100 ? 'meets' : 'falls short of'} required ₹${reqAmtCr.toFixed(2)} Cr -> ${jPct}% ${jStatus}`;
-
-        const pooled = dTurnover + jTurnover;
-        cPct = pooled >= reqAmtCr ? 100 : Math.round((pooled / reqAmtCr) * 100);
-        cStatus = cPct >= 100 ? 'MATCH' : 'NOT MATCHING';
-        cVal = `Consortium Pooled Turnover: ₹${pooled.toFixed(2)} Cr (Desire ₹${dTurnover} Cr + ${partner.name} ₹${jTurnover} Cr) -> ${cPct}% ${cStatus}`;
-        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies turnover standalone.' : `Desire turnover bridged by consortium partner ${partner.name}.`;
       } else {
         dPct = 100;
         dStatus = 'MATCH';
-        dVal = `Desire actual (${dTurnoverRule}, Form-7 certified) -> 100% MATCH`;
+        dVal = `Desire actual (Turnover certified on record, Form-7 certified) -> 100% MATCH`;
         jPct = 100; jStatus = 'MATCH';
         jVal = `${partner.name} Turnover certified on record -> 100% MATCH`;
         cPct = 100; cStatus = 'MATCH';
@@ -2034,22 +2125,27 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       }
     }
 
-    // 6. REGISTRATION / CONTRACTOR ENLISTMENT EVALUATION
-    else if (title.includes('registration') || title.includes('enlistment') || title.includes('class') || reqText.includes('registration') || reqText.includes('enlistment')) {
-      const dRegs: any[] = desireComp.registrations || [];
-      const jRegs: any[] = partner.registrations || [];
+    // 6. REGISTRATION & LICENCE CRITERIA EVALUATION
+    else if (
+      title.includes('registration') || title.includes('enlistment') || title.includes('class') ||
+      title.includes('licence') || title.includes('license') ||
+      reqText.includes('registration') || reqText.includes('enlistment') ||
+      reqText.includes('licence') || reqText.includes('license')
+    ) {
+      // Directive 3: Until certificates are uploaded with files, registration & licence criteria show CANNOT BE CHECKED.
+      const dRegs: any[] = (desireComp.registrations || []).filter((r: any) => r.verified && (r.file_name || r.file_url));
+      const jRegs: any[] = (partner.registrations || []).filter((r: any) => r.verified || r.validity === 'Active');
 
-      const dHasClassAA = dRegs.some(r => r.class.includes('AA') || r.class.includes('Class-A Special') || r.class.includes('Class-A'));
-      const jHasClassAA = jRegs.some(r => r.class.includes('AA') || r.class.includes('Class-A'));
+      const dHasClassAA = dRegs.some(r => (r.class || '').includes('AA') || (r.class || '').includes('Class-A Special') || (r.class || '').includes('Class-A'));
+      const jHasClassAA = jRegs.some(r => (r.class || '').includes('AA') || (r.class || '').includes('Class-A'));
 
       if (dHasClassAA) {
         dPct = 100; dStatus = 'MATCH';
-        const regNames = dRegs.map(r => `${r.class} with ${r.authority} (${r.source})`).join('; ');
-        dVal = `Desire actual: Holds valid ${regNames} -> 100% MATCH`;
+        const regNames = dRegs.map(r => `${r.class} with ${r.department || r.authority} (${r.file_name || r.source})`).join('; ');
+        dVal = `Desire actual: Holds verified ${regNames} -> 100% MATCH`;
       } else {
-        // Missing company data is CANNOT BE CHECKED, never NOT MATCHING.
         dPct = 0; dStatus = 'CANNOT BE CHECKED';
-        dVal = 'CANNOT BE CHECKED — Contractor registration for the required class/authority is not in verified company records.';
+        dVal = 'CANNOT BE CHECKED — Registration / licence certificate has not been uploaded. Upload certificate file in Company Master DB to verify.';
       }
 
       jPct = jHasClassAA ? 100 : 0;
@@ -2058,8 +2154,8 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
 
       cPct = Math.max(dPct, jPct);
       cStatus = cPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
-      cVal = cPct >= 100 ? `Consortium satisfies contractor registration criteria -> ${cPct}% MATCH` : 'CANNOT BE CHECKED — Contractor registration unverified.';
-      gapNotes = dStatus === 'MATCH' ? 'Desire satisfies contractor registration standalone.' : `Bridged by ${partner.name}.`;
+      cVal = cPct >= 100 ? `Consortium satisfies contractor registration criteria -> ${cPct}% MATCH` : 'CANNOT BE CHECKED — Contractor registration / licence unverified.';
+      gapNotes = dStatus === 'MATCH' ? 'Desire satisfies registration standalone.' : (jStatus === 'MATCH' ? `Bridged by ${partner.name}.` : 'Pending certificate upload in Master DB.');
     }
 
     // 7. BID CAPACITY (UNVERIFIED INPUT - CANNOT BE CHECKED)
@@ -2403,10 +2499,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     },
     clauses_breakdown: selectedEval ? selectedEval.clauses : [],
     partnerEvaluations,
-    build_info: {
-      commit_hash: buildInfo.commit_hash,
-      build_time: buildInfo.build_time
-    }
+    build_info: getBuildStamp()
   };
 }
 
