@@ -3723,15 +3723,16 @@ Return valid JSON only:
       try {
         if (!supabase) {
           return NextResponse.json({
-            status: 'error',
-            message: 'Supabase client not configured',
+            status: 'unconfigured',
+            message: 'Supabase client not configured — using offline data',
             active_count: 0,
             total_market_value_cr: 0,
             top_states: [],
             top_sectors: [],
             priority_tenders: [],
+            all_tenders: [],
             last_updated: null
-          }, { status: 500 });
+          }, { status: 200 });
         }
 
         const { data: rows, error: sbErr } = await supabase
@@ -4060,31 +4061,38 @@ Return valid JSON only:
         // PROGRESSIVE SYNC: Persist newly discovered batch immediately into Supabase
         if (supabase && chunkDiscovered.length > 0) {
           try {
-            const { data, error } = await supabase.from('tenders').upsert(
-              chunkDiscovered.map(t => ({
-                id: String(t.tender_id || `tnd-${Date.now()}`).trim().slice(0, 95),
-                tender_name: String(t.title || 'Untitled Tender').trim().slice(0, 250),
-                project_category: String(t.sector || 'Infrastructure EPC').trim().slice(0, 95),
-                department_assigned: String(t.department || t.state || 'General').trim().slice(0, 95),
-                current_stage: 'DISCOVERY',
-                stage_status: String(t.status || 'Live').trim().slice(0, 95),
-                eligibility_result: {
-                  state: t.state,
-                  amount_inr: t.amount_inr,
-                  value_cr: t.value_cr,
-                  due_date: t.due_date,
-                  portal_url: t.portal_url || t.document_link,
-                  source: t.remarks || 'Live Government Portal'
-                },
-                updated_at: new Date().toISOString()
-              })),
-              { onConflict: 'id' }
-            );
+            // Deduplicate by ID to prevent Postgres "ON CONFLICT DO UPDATE command cannot affect row a second time"
+            const uniqueRecords = new Map<string, any>();
+            chunkDiscovered.forEach((t, idx) => {
+              const uniqueId = String(t.tender_id || `tnd-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`).trim().slice(0, 95);
+              if (!uniqueRecords.has(uniqueId)) {
+                uniqueRecords.set(uniqueId, {
+                  id: uniqueId,
+                  tender_name: String(t.title || 'Untitled Tender').trim().slice(0, 250),
+                  project_category: String(t.sector || 'Infrastructure EPC').trim().slice(0, 50),
+                  department_assigned: String(t.department || t.state || 'General').trim().slice(0, 95),
+                  current_stage: 'DISCOVERY',
+                  stage_status: String(t.status || 'Live').trim().slice(0, 50),
+                  eligibility_result: {
+                    state: t.state,
+                    amount_inr: t.amount_inr,
+                    value_cr: t.value_cr,
+                    due_date: t.due_date,
+                    portal_url: t.portal_url || t.document_link,
+                    source: t.remarks || 'Live Government Portal'
+                  },
+                  updated_at: new Date().toISOString()
+                });
+              }
+            });
+
+            const rowsToUpsert = Array.from(uniqueRecords.values());
+            const { data, error } = await supabase.from('tenders').upsert(rowsToUpsert, { onConflict: 'id' });
             if (error) {
               lastSbError = error.message || error;
               console.warn('[SCRAPER_SCAN] Progressive Supabase upsert error:', error);
             } else {
-              syncedCount += chunkDiscovered.length;
+              syncedCount += rowsToUpsert.length;
             }
           } catch (sbErr: any) {
             lastSbError = sbErr?.message || String(sbErr);

@@ -236,46 +236,57 @@ export const EligibilityChecker: React.FC = () => {
         ? (localStorage.getItem('desire_session_token') || localStorage.getItem('token') || '')
         : '';
 
+      let directFormData: FormData | null = null;
       if (tenderFile) {
-        const urlRes = await fetch(`${API_BASE_URL}/tender/upload-url`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
-          },
-          body: JSON.stringify({ filename: tenderFile.name })
-        });
+        let signedUploadSucceeded = false;
+        try {
+          const urlRes = await fetch(`${API_BASE_URL}/tender/upload-url`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
+            },
+            body: JSON.stringify({ filename: tenderFile.name })
+          });
 
-        const urlData = await urlRes.json().catch(() => null);
-        if (!urlRes.ok || !urlData?.signed_url || !urlData?.storage_path) {
-          const errMsg = urlData?.message || urlData?.detail || `Server returned HTTP ${urlRes.status} creating upload URL.`;
-          setAnalysisError(`[UPLOAD_FAILED] ${errMsg}`);
-          return;
+          if (urlRes.ok) {
+            const urlData = await urlRes.json().catch(() => null);
+            if (urlData?.signed_url && urlData?.storage_path) {
+              const putRes = await fetch(urlData.signed_url, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': tenderFile.type || 'application/pdf'
+                },
+                body: tenderFile
+              });
+              if (putRes.ok) {
+                storagePath = urlData.storage_path;
+                signedUploadSucceeded = true;
+              }
+            }
+          }
+        } catch (uploadUrlErr) {
+          console.warn('[UPLOAD_URL_FALLBACK]', uploadUrlErr);
         }
 
-        const putRes = await fetch(urlData.signed_url, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': tenderFile.type || 'application/pdf'
-          },
-          body: tenderFile
-        });
-
-        if (!putRes.ok) {
-          setAnalysisError(`[UPLOAD_FAILED] Direct cloud storage upload failed with HTTP ${putRes.status}.`);
-          return;
+        if (!signedUploadSucceeded) {
+          // Direct multipart fallback: sends file buffer directly to analysis endpoint
+          directFormData = new FormData();
+          directFormData.append('file', tenderFile);
+          directFormData.append('filename', tenderFile.name);
+          directFormData.append('project_category', selectedCategory);
+          directFormData.append('tender_title', tenderTitleInput);
+          directFormData.append('jv_partner_id', selectedJvPartnerId);
         }
-
-        storagePath = urlData.storage_path;
       }
 
       const res = await fetch(`${API_BASE_URL}/tender/analyze`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          ...(directFormData ? {} : { 'Content-Type': 'application/json' }),
           ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {})
         },
-        body: JSON.stringify({
+        body: directFormData || JSON.stringify({
           storage_path: storagePath,
           filename: tenderFile ? tenderFile.name : 'uploaded_document.pdf',
           project_category: selectedCategory,
