@@ -268,12 +268,12 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
   // Sort selected pages in chronological order
   finalPages.sort((a, b) => a.pageNum - b.pageNum);
 
-  // Format combined text with distinct page banners, capped at 48,000 chars
+  // Format combined text with distinct page banners, capped at 30,000 chars (~7,500 tokens)
   let charCount = 0;
   const pageChunks: string[] = [];
   for (const p of finalPages) {
     const banner = `=== [PAGE ${p.pageNum}] ===\n${p.text}`;
-    if (charCount + banner.length > 48000 && pageChunks.length >= 3) {
+    if (charCount + banner.length > 30000 && pageChunks.length >= 2) {
       break;
     }
     pageChunks.push(banner);
