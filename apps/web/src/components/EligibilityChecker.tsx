@@ -92,6 +92,10 @@ export interface DynamicTenderEvaluationReport {
     data_missing: number;
     submission_items_count?: number;
   };
+  top_card?: any;
+  sections?: any;
+  rendered_text?: string;
+  isNewEngine?: boolean;
   build_info?: {
     commit_sha?: string;
     commit_hash?: string;
@@ -206,7 +210,39 @@ export interface TopSummaryLine {
   pages: string;
 }
 
-function getTopSummaryItems(allCriteria: any[], submissionClauses: any[]): TopSummaryLine[] {
+function getTopSummaryItems(allCriteria: any[], submissionClauses: any[], topCard?: any): TopSummaryLine[] {
+  // If new eligibility engine provides a 3-section top card, render directly:
+  if (topCard?.financial && topCard?.technical && topCard?.others) {
+    const toStatus = (s: string): 'PASS' | 'FAIL' | 'CANNOT CHECK' => {
+      if (s === 'Eligible') return 'PASS';
+      if (s === 'Cannot determine') return 'CANNOT CHECK';
+      return 'FAIL';
+    };
+    return [
+      {
+        id: 'financial',
+        label: 'Financial',
+        status: toStatus(topCard.financial.status),
+        reason: topCard.financial.summary_line,
+        pages: topCard.financial.page_refs || 'Document Source'
+      },
+      {
+        id: 'technical',
+        label: 'Technical',
+        status: toStatus(topCard.technical.status),
+        reason: topCard.technical.summary_line,
+        pages: topCard.technical.page_refs || 'Document Source'
+      },
+      {
+        id: 'documents',
+        label: 'Others',
+        status: toStatus(topCard.others.status),
+        reason: topCard.others.summary_line,
+        pages: topCard.others.page_refs || 'Document Source'
+      }
+    ];
+  }
+
   // 1. FINANCIAL
   const finClauses = allCriteria.filter(c => {
     const t = ((c.clause_title || '') + ' ' + (c.tender_requirement || '') + ' ' + (c.requirement_type || '')).toLowerCase();
@@ -443,6 +479,10 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ initialT
       if (res.ok && data && data.status !== 'error') {
         const rep = data.evaluation_report || data.report;
         if (rep) {
+          if (data.top_card) rep.top_card = data.top_card;
+          if (data.sections) rep.sections = data.sections;
+          if (data.rendered_text) rep.rendered_text = data.rendered_text;
+          if (data.verdict) rep.verdict = data.verdict;
           setReport(rep);
           setIsStoredReport(false);
         } else {
@@ -679,25 +719,37 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ initialT
         recommendation = `INSUFFICIENT STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone. Must join Desire Energy via Option 3 Consortium.`;
       }
     } else {
-      if (desireEval.isEligible) {
-        verdict = 'Fully Eligible Consortium (Desire Already 100% Standalone Qualified)';
-        recommendation = `BID STANDALONE OR CONSORTIUM — Desire Energy is 100% Standalone Qualified. Formed JV with ${jvComp.name} for financial pooling.`;
-      } else if (activeEval.isEligible) {
-        verdict = 'Fully Eligible Through JV Consortium';
-        recommendation = `BID THROUGH JV CONSORTIUM — Desire Energy + ${jvComp.name} satisfies 100% of qualification criteria.`;
-      } else if (activeEval.uncheckedCriteria.length > 0 && activeEval.passedCriteria.length === activeEval.checkedCriteria.length) {
-        verdict = `Cannot determine: ${activeEval.uncheckedCriteria.length} criteria need data`;
-        recommendation = `CONSORTIUM DATA PENDING — ${activeEval.uncheckedCriteria.length} criteria need verified documents. All ${activeEval.checkedCriteria.length} checked criteria passed.`;
+      const isNewEngine = Boolean(report?.top_card || report?.rendered_text);
+      if (isNewEngine && report?.verdict) {
+        verdict = report.verdict;
       } else {
-        verdict = 'Ineligible Through JV';
-        recommendation = `REVIEW GAPS — Consortium achieves ${activeEval.pctStr} qualification.`;
+        if (desireEval.isEligible) {
+          verdict = 'Fully Eligible Consortium (Desire Already 100% Standalone Qualified)';
+          recommendation = `BID STANDALONE OR CONSORTIUM — Desire Energy is 100% Standalone Qualified. Formed JV with ${jvComp.name} for financial pooling.`;
+        } else if (activeEval.isEligible) {
+          verdict = 'Fully Eligible Through JV Consortium';
+          recommendation = `BID THROUGH JV CONSORTIUM — Desire Energy + ${jvComp.name} satisfies 100% of qualification criteria.`;
+        } else if (activeEval.uncheckedCriteria.length > 0 && activeEval.passedCriteria.length === activeEval.checkedCriteria.length) {
+          verdict = `Cannot determine: ${activeEval.uncheckedCriteria.length} criteria need data`;
+          recommendation = `CONSORTIUM DATA PENDING — ${activeEval.uncheckedCriteria.length} criteria need verified documents. All ${activeEval.checkedCriteria.length} checked criteria passed.`;
+        } else {
+          verdict = 'Ineligible Through JV';
+          recommendation = `REVIEW GAPS — Consortium achieves ${activeEval.pctStr} qualification.`;
+        }
       }
+    }
+
+    const isNewEngine = Boolean(report?.top_card || report?.rendered_text);
+    if (isNewEngine && report?.verdict) {
+      verdict = report.verdict;
     }
 
     return {
       badge,
       entityName,
       verdict,
+      isNewEngine,
+      rendered_text: report?.rendered_text,
       score: activeEval.score,
       fulfilled_pct: activeEval.pctStr,
       recommendation,
@@ -710,7 +762,7 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ initialT
       uncheckedCriteria: activeEval.uncheckedCriteria,
       submissionClauses,
       contractClauses,
-      topSummaryItems: getTopSummaryItems(activeEval.allCriteria, submissionClauses),
+      topSummaryItems: getTopSummaryItems(activeEval.allCriteria, submissionClauses, report?.top_card),
       tabScores: {
         desire: desireEval.pctStr,
         jv: jvEval.pctStr,
@@ -1097,17 +1149,19 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ initialT
                   {perspective.badge}
                 </span>
                 <span className={`px-3 py-0.5 rounded-full text-xs font-mono font-bold uppercase tracking-wider ${
-                  perspective.verdict.startsWith('Eligible')
+                  perspective.verdict === 'Eligible' || perspective.verdict.startsWith('Eligible')
                     ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                    : perspective.verdict.includes('Cannot determine')
+                    : perspective.verdict.startsWith('Cannot determine')
                     ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800'
                     : 'bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-300 font-bold border border-rose-300 dark:border-rose-800'
                 }`}>
                   {perspective.verdict}
                 </span>
-                <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold">
-                  Score: {perspective.fulfilled_pct} ({perspective.summary_counts.matched} passed ÷ {perspective.summary_counts.checked_count} checked)
-                </span>
+                {!perspective.isNewEngine && (
+                  <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold">
+                    Score: {perspective.fulfilled_pct} ({perspective.summary_counts.matched} passed ÷ {perspective.summary_counts.checked_count} checked)
+                  </span>
+                )}
               </div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">{fmtVal(report.tender_title)}</h2>
               <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
@@ -1252,6 +1306,42 @@ export const EligibilityChecker: React.FC<EligibilityCheckerProps> = ({ initialT
               })}
             </div>
           </div>
+
+          {/* THREE-SECTION EVALUATION REPORT (RENDERED TEXT VIEW) */}
+          {perspective.rendered_text && (
+            <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
+                      Full Eligibility Evaluation Report (3 Sections)
+                    </h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Verbatim quotes verified against document text • Arithmetic and Register inputs shown
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                      navigator.clipboard.writeText(perspective.rendered_text || '');
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono text-xs flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Copy Report</span>
+                </button>
+              </div>
+              <pre className="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs whitespace-pre-wrap leading-relaxed overflow-x-auto max-h-[600px] overflow-y-auto">
+                {perspective.rendered_text}
+              </pre>
+            </div>
+          )}
 
           {/* 4.b QUALIFICATION CRITERIA (CHECKED & SCORED ROWS IN STRICT 5-GROUP ORDER) */}
           <div className="glass-card p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-[#0b1426]">

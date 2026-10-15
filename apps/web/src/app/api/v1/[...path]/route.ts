@@ -7,6 +7,7 @@ import { crawlGujaratNProcurePortal } from '@/lib/nprocure-crawler';
 import { normalizeStatus } from '@/lib/tender-status';
 import { retrieveRAGContextForTender, ingestDocumentInBackground, INGESTION_TRACKER } from '@/lib/rag';
 import { getBuildStamp } from '@/lib/buildStamp';
+import { runNewEligibilityEvaluation } from '@/lib/new-eligibility';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -224,10 +225,9 @@ interface GeminiCallResult {
 
 async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallResult> {
   const models = [
-    'gemini-flash-latest',
+    'gemini-3.8-flash',
     'gemini-3.5-flash-lite',
-    'gemini-3.1-flash-lite',
-    'gemini-pro-latest'
+    'gemini-3.1-pro-preview'
   ];
 
   let lastStatus = 0;
@@ -3276,20 +3276,159 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         return buildErrorResponse('FILE_UPLOAD_FAILED', 'Uploaded file buffer is empty or could not be downloaded from cloud storage.');
       }
 
+      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+      if (!geminiKey) {
+        return buildErrorResponse('AI_AUTH_FAILED', 'GEMINI_API_KEY environment variable is not configured.');
+      }
+      const cleanGeminiKey = geminiKey.replace(/^["']|["']$/g, '').trim();
+
+      // Check if caller explicitly requested legacy engine
+      const searchParams = req.nextUrl?.searchParams || (req.url ? new URL(req.url, 'http://localhost:3000').searchParams : new URLSearchParams());
+      const isLegacyEngine = body.engine === 'legacy' || searchParams.get('engine') === 'legacy';
+
+      if (!isLegacyEngine) {
+        try {
+          const newReport = await runNewEligibilityEvaluation(formFileBuffer, cleanGeminiKey, {
+            filename,
+            projectCategory: formCategory || body.project_category || 'EPC',
+            tenderTitle: titleInput
+          });
+
+          // Compatible clauses_breakdown mapping
+          const clausesBreakdown = [
+            ...newReport.sections.financial.items.map((f, idx) => ({
+              clause_no: `FIN-${idx + 1}`,
+              clause_title: f.title,
+              requirement_type: 'Financial',
+              clause_group: 'qualification_criterion',
+              tender_requirement: f.quote,
+              required_value: f.required_amount ? `₹${f.required_amount} ${f.required_unit || 'Cr'}` : f.title,
+              desire_value: f.inputs_shown,
+              jv_value: 'Pooled per JV rule',
+              combined_value: f.inputs_shown,
+              status: f.status === 'PASS' ? 'MATCH' : (f.status === 'CANNOT CHECK' ? 'CANNOT BE CHECKED' : 'NOT ELIGIBLE'),
+              active_status: f.status === 'PASS' ? 'MATCH' : (f.status === 'CANNOT CHECK' ? 'CANNOT BE CHECKED' : 'NOT ELIGIBLE'),
+              active_val: f.inputs_shown,
+              gap_notes: f.evaluation_notes,
+              page_ref: `Page ${f.page}`
+            })),
+            ...newReport.sections.technical.items.map((t, idx) => ({
+              clause_no: `TECH-${idx + 1}`,
+              clause_title: t.title,
+              requirement_type: 'Technical',
+              clause_group: 'qualification_criterion',
+              tender_requirement: t.quote,
+              required_value: t.threshold ? `${t.threshold} ${t.unit || ''}` : t.title,
+              desire_value: t.project_used,
+              jv_value: 'Available if JV consortium formed',
+              combined_value: t.project_used,
+              status: t.status === 'PASS' ? 'MATCH' : (t.status === 'CANNOT CHECK' ? 'CANNOT BE CHECKED' : 'NOT ELIGIBLE'),
+              active_status: t.status === 'PASS' ? 'MATCH' : (t.status === 'CANNOT CHECK' ? 'CANNOT BE CHECKED' : 'NOT ELIGIBLE'),
+              active_val: t.project_used,
+              gap_notes: t.evaluation_notes,
+              page_ref: `Page ${t.page}`
+            })),
+            ...newReport.sections.others.gates.map((g, idx) => ({
+              clause_no: `GATE-${idx + 1}`,
+              clause_title: g.title,
+              requirement_type: g.category,
+              clause_group: 'qualification_criterion',
+              tender_requirement: g.quote,
+              required_value: g.title,
+              desire_value: g.evaluation_notes,
+              jv_value: 'Compliant',
+              combined_value: g.evaluation_notes,
+              status: g.status === 'PASS' ? 'MATCH' : (g.status === 'CANNOT CHECK' ? 'CANNOT BE CHECKED' : 'NOT ELIGIBLE'),
+              active_status: g.status === 'PASS' ? 'MATCH' : (g.status === 'CANNOT CHECK' ? 'CANNOT BE CHECKED' : 'NOT ELIGIBLE'),
+              active_val: g.evaluation_notes,
+              gap_notes: g.evaluation_notes,
+              page_ref: `Page ${g.page}`
+            })),
+            ...newReport.sections.others.unscored_information.map((u, idx) => ({
+              clause_no: `INFO-${idx + 1}`,
+              clause_title: u.title,
+              requirement_type: u.category,
+              clause_group: 'mandatory_submission',
+              tender_requirement: u.quote,
+              required_value: u.title,
+              desire_value: u.evaluation_notes,
+              jv_value: 'To be provided at bid submission',
+              combined_value: u.evaluation_notes,
+              status: 'INFORMATION',
+              active_status: 'INFORMATION',
+              active_val: u.evaluation_notes,
+              gap_notes: u.evaluation_notes,
+              page_ref: `Page ${u.page}`
+            }))
+          ];
+
+          const evaluationReport = {
+            tender_id: currentTenderId,
+            tender_title: newReport.tender_title || titleInput || filename,
+            tender_reference: newReport.tender_reference,
+            project_category: formCategory || body.project_category || 'EPC',
+            filename,
+            is_rejected_non_tender: false,
+            verdict: newReport.verdict,
+            eligibility_score: newReport.verdict === 'Eligible' ? 100 : (newReport.verdict.startsWith('Cannot determine') ? 50 : 0),
+            overall_health: newReport.verdict === 'Eligible' ? 'Green' : (newReport.verdict.startsWith('Cannot determine') ? 'Yellow' : 'Red'),
+            top_card: newReport.top_card,
+            sections: newReport.sections,
+            rendered_text: newReport.rendered_text,
+            recommendation: newReport.verdict === 'Eligible'
+              ? 'BID — All eligibility criteria (Financial, Technical, and Gates) are verified.'
+              : (newReport.verdict.startsWith('Cannot determine')
+                ? 'MANUAL VERIFICATION REQUIRED — Certain missing credentials must be uploaded to confirm qualification.'
+                : 'DO NOT BID / REVISE STRATEGY — Document contains unmet qualification criteria.'),
+            executive_summary: `${newReport.top_card.financial.summary_line} ${newReport.top_card.technical.summary_line} ${newReport.top_card.others.summary_line}`,
+            desire_alone: {
+              score: newReport.verdict === 'Eligible' ? 100 : 0,
+              status: newReport.verdict,
+              fulfilled_pct: newReport.verdict === 'Eligible' ? 'Eligible' : newReport.verdict
+            },
+            jv_alone: {
+              score: 100,
+              status: 'Partner Qualified',
+              fulfilled_pct: '100%'
+            },
+            combined_jv: {
+              score: newReport.verdict === 'Eligible' ? 100 : 0,
+              status: newReport.verdict,
+              fulfilled_pct: newReport.verdict === 'Eligible' ? 'Eligible' : newReport.verdict
+            },
+            clauses_breakdown: clausesBreakdown,
+            debug: newReport.debug
+          };
+
+          return NextResponse.json({
+            status: 'success',
+            filename,
+            tender_id: currentTenderId,
+            verdict: newReport.verdict,
+            top_card: newReport.top_card,
+            sections: newReport.sections,
+            rendered_text: newReport.rendered_text,
+            evaluation_report: evaluationReport,
+            report: evaluationReport,
+            debug: newReport.debug
+          });
+        } catch (newEngineErr: any) {
+          console.error('[NEW_ELIGIBILITY_ENGINE_ERROR]', newEngineErr);
+          return buildErrorResponse('UNKNOWN_ERROR', `New eligibility engine error: ${newEngineErr?.message || newEngineErr}`);
+        }
+      }
+
+      // ─── LEGACY ENGINE PATHWAY (PRESERVED UNTOUCHED) ─────────────────────────
       let extractedPdfText = '';
       try {
         extractedPdfText = await extractTextFromPdfBuffer(formFileBuffer);
       } catch (pdfErr: any) {
         return buildErrorResponse('PDF_EXTRACTION_FAILED', pdfErr?.message || String(pdfErr));
       }
-      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-      if (!geminiKey) {
-        return buildErrorResponse('AI_AUTH_FAILED', 'GEMINI_API_KEY environment variable is not configured.');
-      }
 
       let classifyResult: any = null;
       try {
-        classifyResult = await classifyDocumentWithAI(filename, extractedPdfText, geminiKey);
+        classifyResult = await classifyDocumentWithAI(filename, extractedPdfText, cleanGeminiKey);
       } catch (classErr: any) {
         return buildErrorResponse('UNKNOWN_ERROR', `Document classifier exception: ${classErr?.message || classErr}`);
       }
