@@ -102,37 +102,25 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
   let fullText = '';
   let total = 1;
 
-  // 1. Try requiring pdf-parse (both standard require and dynamic fallbacks)
-  let pdfLib: any = null;
+  // 1. Use unpdf extractor (standard serverless ESM/WASM PDF engine)
   try {
-    pdfLib = require('pdf-parse');
-  } catch (e1) {
-    try {
-      const dynamicRequire = eval('require');
-      pdfLib = dynamicRequire('pdf-parse');
-    } catch (e2) {
-      console.warn('[PDF_SELECTOR] pdf-parse module not directly accessible, falling back...');
-    }
-  }
-
-  if (pdfLib) {
-    try {
-      if (pdfLib.PDFParse) {
-        const parser = new pdfLib.PDFParse({ data: pdfBuffer });
-        const res = await parser.getText();
-        fullText = res.text || '';
-        total = res.total || 1;
-        if (Array.isArray(res.pages) && res.pages.length > 0) {
-          rawPages = res.pages;
-        }
-      } else if (typeof pdfLib === 'function') {
-        const res = await pdfLib(pdfBuffer);
-        fullText = res.text || '';
-        total = res.numpages || 1;
+    const modName = 'unpdf';
+    const unpdf = await import(/* webpackIgnore: true */ modName).catch(() => null);
+    if (unpdf && unpdf.getDocumentProxy && unpdf.extractText) {
+      const uint8Array = new Uint8Array(pdfBuffer.buffer, pdfBuffer.byteOffset, pdfBuffer.byteLength);
+      const pdf = await unpdf.getDocumentProxy(uint8Array);
+      total = pdf.numPages || 1;
+      const { text, totalPages } = await unpdf.extractText(pdf, { mergePages: false });
+      if (Array.isArray(text)) {
+        rawPages = text.map((t, idx) => ({ text: (t || '').trim(), num: idx + 1 }));
+        fullText = text.join('\n\n');
+      } else if (typeof text === 'string') {
+        fullText = text.trim();
       }
-    } catch (parseErr) {
-      console.warn('[PDF_SELECTOR] pdf-parse execution warning:', parseErr);
+      if (totalPages) total = totalPages;
     }
+  } catch (unpdfErr: any) {
+    console.warn(`[PDF_SELECTOR] unpdf extraction warning: ${unpdfErr?.message || unpdfErr}`);
   }
 
   // 2. If page-level extraction was not returned directly, synthesize page boundaries from fullText
@@ -223,32 +211,30 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
 
     if (pText.length < 20) continue;
 
-    // First 3 pages are typically NIT / BDS summary pages -> always read in full
-    const isEarlyPage = pageNum <= 3;
-    const hasNitPattern = NIT_BDS_PATTERNS.some(rx => rx.test(pText));
+    // Check for Qualification / Eligibility / Evaluation criteria
     const hasQualPattern = QUALIFICATION_PATTERNS.some(rx => rx.test(pText));
-    const isPureBoilerplate = BOILERPLATE_EXCLUSION_PATTERNS.some(rx => rx.test(pText)) && !hasQualPattern && !hasNitPattern;
+    const matchingKeywords = HIGH_VALUE_KEYWORDS.filter(kw => kw.test(pText));
+    const isPureBoilerplate = BOILERPLATE_EXCLUSION_PATTERNS.some(rx => rx.test(pText)) && !hasQualPattern;
 
     if (isPureBoilerplate) continue;
 
-    if (isEarlyPage || hasNitPattern || hasQualPattern) {
-      let score = 0;
-      if (isEarlyPage) score += 20;
-      if (hasNitPattern) score += 25;
-      if (hasQualPattern) score += 35;
-      for (const kw of HIGH_VALUE_KEYWORDS) {
-        if (kw.test(pText)) score += 5;
-      }
+    // Send only pages belonging to the qualification section
+    if (hasQualPattern || matchingKeywords.length >= 2) {
+      let score = 30;
+      if (hasQualPattern) score += 40;
+      score += matchingKeywords.length * 10;
       scoredPages.push({ pageNum, text: pText, score });
     }
   }
 
-  // Safety fallback: If fewer than 2 pages matched, include the first 5 pages
-  if (scoredPages.length < 2 && rawPages.length > 0) {
-    for (let i = 0; i < Math.min(5, rawPages.length); i++) {
+  // Fallback: If no qualification pages matched with strict filter, search for single keyword matches
+  if (scoredPages.length === 0 && rawPages.length > 0) {
+    for (let i = 0; i < rawPages.length; i++) {
       const pageNum = rawPages[i].num || (i + 1);
-      if (!scoredPages.some(p => p.pageNum === pageNum)) {
-        scoredPages.push({ pageNum, text: rawPages[i].text, score: 10 });
+      const pText = (rawPages[i].text || '').trim();
+      const hasAnyKw = HIGH_VALUE_KEYWORDS.some(kw => kw.test(pText));
+      if (hasAnyKw) {
+        scoredPages.push({ pageNum, text: pText, score: 10 });
       }
     }
   }

@@ -2,10 +2,8 @@ import { StrictExtractionResult, ExtractedFinancialItem, ExtractedTechnicalItem,
 import { verifyQuoteInExtractedText } from './pdfTextSelector';
 
 const MODELS_CHAIN = [
-  'gemini-3.8-flash',
-  'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
-  'gemini-3.1-flash-lite'
+  'gemini-3.6-flash',
+  'gemini-3.5-flash-lite'
 ];
 
 async function callGeminiJson(prompt: string, apiKey: string): Promise<any> {
@@ -13,6 +11,9 @@ async function callGeminiJson(prompt: string, apiKey: string): Promise<any> {
 
   for (const model of MODELS_CHAIN) {
     try {
+      const estimatedTokens = Math.round(prompt.length / 4);
+      console.log(`[GEMINI_REQUEST] Model: ${model}, Prompt Chars: ${prompt.length}, Estimated Tokens: ${estimatedTokens}`);
+
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const response = await fetch(url, {
         method: 'POST',
@@ -33,14 +34,19 @@ async function callGeminiJson(prompt: string, apiKey: string): Promise<any> {
         console.warn(`[GEMINI_EXTRACTION] Model ${model} returned error (${response.status}): ${errMsg}`);
         lastError = new Error(errMsg);
 
-        // If rate limited (429), back off slightly before trying the next model
         if (response.status === 429) {
-          await new Promise(r => setTimeout(r, 2500));
+          await new Promise(r => setTimeout(r, 2000));
         }
         continue;
       }
 
       const resData = await response.json();
+      if (resData.usageMetadata) {
+        console.log(`[GEMINI_TOKENS] Model: ${model}, Prompt Tokens: ${resData.usageMetadata.promptTokenCount}, Candidates Tokens: ${resData.usageMetadata.candidatesTokenCount}, Total Tokens: ${resData.usageMetadata.totalTokenCount}`);
+      } else {
+        console.log(`[GEMINI_TOKENS] Model: ${model}, Tokens: ~${estimatedTokens}`);
+      }
+
       const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!rawText) {
         lastError = new Error(`Empty response from ${model}`);
@@ -57,180 +63,6 @@ async function callGeminiJson(prompt: string, apiKey: string): Promise<any> {
   }
 
   throw lastError || new Error('All Gemini models failed during clause extraction.');
-}
-
-/**
- * Deterministic fallback extractor that scans qualification page text slices
- * for standard financial, technical, and gate clauses with verbatim page-anchored quotes.
- * Ensures the eligibility pipeline NEVER crashes even if AI models hit 60-second rate limits.
- */
-function fallbackDeterministicExtraction(combinedPagesText: string, docFilename: string): StrictExtractionResult {
-  const pageRegex = /=== \[PAGE (\d+)\] ===\n([\s\S]*?)(?=(?:=== \[PAGE \d+\] ===)|$)/g;
-  let match;
-  const pages: Array<{ pageNum: number; text: string }> = [];
-  while ((match = pageRegex.exec(combinedPagesText)) !== null) {
-    pages.push({ pageNum: parseInt(match[1], 10), text: match[2].trim() });
-  }
-  if (pages.length === 0) {
-    pages.push({ pageNum: 1, text: combinedPagesText });
-  }
-
-  const financial: ExtractedFinancialItem[] = [];
-  const technical: ExtractedTechnicalItem[] = [];
-  const others: ExtractedOtherItem[] = [];
-
-  for (const page of pages) {
-    const lines = page.text.split(/\n+/);
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      const nextLine = (lines[i + 1] || '').trim();
-      const combined = `${line} ${nextLine}`.trim();
-
-      // Turnover
-      if (/\b(?:annual|financial)?\s*turnover\b/i.test(combined) && !financial.some(f => f.type === 'turnover')) {
-        const amtMatch = combined.match(/(?:Rs\.?|INR|₹)?\s*([0-9]+(?:\.[0-9]+)?)\s*(Cr(?:ore[s]?)?|Lakh[s]?)/i);
-        let amount: number | null = null;
-        let amount_unit: 'Cr' | 'Lakhs' | null = null;
-        if (amtMatch) {
-          const val = parseFloat(amtMatch[1]);
-          const unitStr = amtMatch[2].toLowerCase();
-          if (unitStr.startsWith('cr')) {
-            amount = val;
-            amount_unit = 'Cr';
-          } else if (unitStr.startsWith('lakh')) {
-            amount = +(val / 100).toFixed(4);
-            amount_unit = 'Cr';
-          }
-        }
-        let year_rule: 'average' | 'any one year' | 'any N of the last M' | 'other' = 'average';
-        if (/\bany\s+one\s+year\b/i.test(combined)) year_rule = 'any one year';
-        else if (/\bany\s+\d+\s+of\b/i.test(combined)) year_rule = 'any N of the last M';
-
-        let year_range = 'last 3 financial years';
-        if (/last\s*(\d+)\s*(?:financial)?\s*years/i.test(combined)) {
-          const yMatch = combined.match(/last\s*(\d+)\s*(?:financial)?\s*years/i);
-          if (yMatch) year_range = `last ${yMatch[1]} financial years`;
-        }
-
-        financial.push({
-          title: 'Average Annual Financial Turnover',
-          type: 'turnover',
-          amount,
-          amount_unit,
-          amount_raw: amtMatch ? amtMatch[0] : (amount ? `Rs. ${amount} Cr` : null),
-          year_rule,
-          year_range,
-          alternative_group_id: null,
-          page: page.pageNum,
-          quote: line.length > 25 ? line : combined
-        });
-      }
-
-      // Net Worth
-      if (/\bnet\s*worth\b/i.test(combined) && !financial.some(f => f.type === 'net_worth')) {
-        const amtMatch = combined.match(/(?:Rs\.?|INR|₹)?\s*([0-9]+(?:\.[0-9]+)?)\s*(Cr(?:ore[s]?)?|Lakh[s]?)/i);
-        let amount: number | null = null;
-        let amount_unit: 'Cr' | 'Lakhs' | null = null;
-        if (amtMatch) {
-          const val = parseFloat(amtMatch[1]);
-          if (amtMatch[2].toLowerCase().startsWith('cr')) amount = val;
-          else amount = +(val / 100).toFixed(4);
-          amount_unit = 'Cr';
-        }
-        financial.push({
-          title: 'Net Worth Requirement',
-          type: 'net_worth',
-          amount,
-          amount_unit,
-          amount_raw: amtMatch ? amtMatch[0] : (amount ? `Rs. ${amount} Cr` : null),
-          year_rule: 'latest year',
-          year_range: 'latest financial year',
-          alternative_group_id: null,
-          page: page.pageNum,
-          quote: line.length > 25 ? line : combined
-        });
-      }
-
-      // Solvency
-      if (/\bsolvency\b/i.test(combined) && !financial.some(f => f.type === 'solvency')) {
-        const amtMatch = combined.match(/(?:Rs\.?|INR|₹)?\s*([0-9]+(?:\.[0-9]+)?)\s*(Cr(?:ore[s]?)?|Lakh[s]?)/i);
-        let amount: number | null = null;
-        let amount_unit: 'Cr' | 'Lakhs' | null = null;
-        if (amtMatch) {
-          const val = parseFloat(amtMatch[1]);
-          if (amtMatch[2].toLowerCase().startsWith('cr')) amount = val;
-          else amount = +(val / 100).toFixed(4);
-          amount_unit = 'Cr';
-        }
-        financial.push({
-          title: 'Bank Solvency Certificate',
-          type: 'solvency',
-          amount,
-          amount_unit,
-          amount_raw: amtMatch ? amtMatch[0] : (amount ? `Rs. ${amount} Cr` : null),
-          year_rule: 'other',
-          year_range: 'current financial year',
-          alternative_group_id: null,
-          page: page.pageNum,
-          quote: line.length > 25 ? line : combined
-        });
-      }
-
-      // Technical Similar Work
-      if (/\b(?:similar\s*(?:nature\s*of\s*)?work|similar\s*project|technical\s*experience)\b/i.test(combined) && !technical.some(t => t.type === 'similar_work')) {
-        const amtMatch = combined.match(/(?:Rs\.?|INR|₹)?\s*([0-9]+(?:\.[0-9]+)?)\s*(Cr(?:ore[s]?)?|Lakh[s]?)/i);
-        let threshold: number | null = null;
-        let unit: string | null = null;
-        if (amtMatch) {
-          const val = parseFloat(amtMatch[1]);
-          if (amtMatch[2].toLowerCase().startsWith('cr')) threshold = val;
-          else threshold = +(val / 100).toFixed(4);
-          unit = 'Cr';
-        }
-        technical.push({
-          title: 'Similar Work Experience',
-          type: 'similar_work',
-          unit,
-          threshold,
-          alternatives: null,
-          date_window: 'last 7 years',
-          page: page.pageNum,
-          quote: line.length > 25 ? line : combined
-        });
-      }
-
-      // Registration
-      if (/\b(?:registered\s*in\s*class|registration\s*class|class\s*aa|aa\s*class)\b/i.test(combined) && !others.some(o => o.category === 'registration')) {
-        others.push({
-          title: 'Contractor Registration',
-          category: 'registration',
-          details: 'Registration in Class AA & Above with WRD / R&B / Government department',
-          page: page.pageNum,
-          quote: line.length > 25 ? line : combined
-        });
-      }
-
-      // Blacklisting / Debarment
-      if (/\b(?:blacklisting|blacklisted|debarment|debarred)\b/i.test(combined) && !others.some(o => o.category === 'blacklisting')) {
-        others.push({
-          title: 'Non-Blacklisting Undertaking',
-          category: 'blacklisting',
-          details: 'Undertaking / affidavit confirming bidder is not debarred or blacklisted',
-          page: page.pageNum,
-          quote: line.length > 25 ? line : combined
-        });
-      }
-    }
-  }
-
-  return {
-    tender_title: docFilename.replace(/\.[^/.]+$/, ''),
-    tender_reference: '',
-    estimated_value_cr: null,
-    financial,
-    technical,
-    others
-  };
 }
 
 /**
@@ -317,13 +149,7 @@ RETURN VALID JSON ONLY conforming to this schema:
   ]
 }`;
 
-  let rawJson: any = null;
-  try {
-    rawJson = await callGeminiJson(prompt, apiKey);
-  } catch (err: any) {
-    console.warn(`[GEMINI_EXTRACTION] AI extraction encountered error (${err?.message || err}). Engaging deterministic text extractor fallback...`);
-    rawJson = fallbackDeterministicExtraction(combinedPagesText, docFilename);
-  }
+  const rawJson = await callGeminiJson(prompt, apiKey);
 
   const rawFinancial: ExtractedFinancialItem[] = Array.isArray(rawJson.financial) ? rawJson.financial : [];
   const rawTechnical: ExtractedTechnicalItem[] = Array.isArray(rawJson.technical) ? rawJson.technical : [];

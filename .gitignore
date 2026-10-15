@@ -15,6 +15,7 @@ __pycache__/
 *.pyd
 
 # Next.js & Node
+node_modules/
 apps/web/node_modules/
 apps/web/.next/
 apps/web/out/

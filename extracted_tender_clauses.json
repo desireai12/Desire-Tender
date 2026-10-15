@@ -1,0 +1,117 @@
+{
+  "financial": [
+    {
+      "title": "Average Annual Financial Turnover",
+      "type": "turnover",
+      "amount": 69.78,
+      "amount_unit": "Cr",
+      "page": 7,
+      "quote": "The bidder must have achieved an Average Annual Financial Turnover of not less than Rs. 69.78 Crores (Rupees Sixty-Nine Crores Seventy-Eight Lakhs Only) during the last 3 financial years (FY 2022-23, FY 2023-24, FY 2024-25), certified by a practicing Chartered Accountant with valid UDIN."
+    },
+    {
+      "title": "Liquid Assets & Credit Facilities",
+      "type": "liquid_assets",
+      "amount": 17.45,
+      "amount_unit": "Cr",
+      "page": 7,
+      "quote": "The bidder must demonstrate availability of Liquid Assets and/or Uncommitted Bank Credit Facilities of not less than Rs. 17.45 Crores (Rupees Seventeen Crores Forty-Five Lakhs Only) as on 31st March of the preceding financial year, supported by a Solvency Certificate / Credit Line Certificate issued by a Scheduled Commercial Bank."
+    },
+    {
+      "title": "Financial Net Worth Requirement",
+      "type": "net_worth",
+      "amount": 13.95,
+      "amount_unit": "Cr",
+      "page": 7,
+      "quote": "The Financial Net Worth of the bidder as on 31st March of the latest audited financial year must be positive and not less than Rs. 13.95 Crores (20% of estimated tender cost)."
+    },
+    {
+      "title": "Solvency Certificate",
+      "type": "solvency",
+      "amount": 20,
+      "amount_unit": "Cr",
+      "page": 7,
+      "quote": "Bidders must submit a Solvency Certificate of value not less than Rs. 20.00 Crores issued by a Scheduled Commercial Bank not older than 6 months prior to the date of tender opening."
+    },
+    {
+      "title": "Profitability Criteria",
+      "type": "profitability",
+      "amount": null,
+      "amount_unit": "Cr",
+      "page": 7,
+      "quote": "The bidder must have earned net profit in at least two of the last three financial years."
+    }
+  ],
+  "technical": [
+    {
+      "title": "Single Similar Work Experience",
+      "type": "similar_work",
+      "amount": 27.91,
+      "unit": "Cr",
+      "page": 13,
+      "quote": "The bidder as prime contractor must have successfully completed or substantially completed (at least 80% physical progress) at least ONE similar EPC water supply pipeline / pumping scheme project of value not less than Rs. 27.91 Crores in the last 7 financial years."
+    },
+    {
+      "title": "Two Similar Works Experience",
+      "type": "similar_work",
+      "amount": 17.45,
+      "unit": "Cr",
+      "page": 13,
+      "quote": "Alternatively, the bidder must have executed TWO similar EPC water pipeline projects, each costing not less than Rs. 17.45 Crores in the last 7 years."
+    },
+    {
+      "title": "Three Similar Works Experience",
+      "type": "similar_work",
+      "amount": 13.95,
+      "unit": "Cr",
+      "page": 13,
+      "quote": "Alternatively, the bidder must have executed THREE similar EPC water pipeline projects, each costing not less than Rs. 13.95 Crores in the last 7 years."
+    },
+    {
+      "title": "Pipeline Length and Diameter Experience",
+      "type": "pipeline_experience",
+      "amount": 15,
+      "unit": "km",
+      "page": 13,
+      "quote": "Out of the executed projects under Clause 3.1 to 3.3, the bidder must have laid, jointed, and commissioned at least 15 km of High-Density Polyethylene (HDPE) or Ductile Iron (DI) pipeline of minimum diameter 600 mm in a single water supply project."
+    },
+    {
+      "title": "Solar Power Infrastructure Experience",
+      "type": "solar_experience",
+      "amount": 1.5,
+      "unit": "MW",
+      "page": 13,
+      "quote": "The bidder or their technical partner must have installed and commissioned at least 1.5 MW Cumulative Grid-Connected / Off-Grid Solar PV Power System associated with water pumping stations in the last 5 years."
+    },
+    {
+      "title": "Operation & Maintenance (O&M) Experience",
+      "type": "om_experience",
+      "amount": 3,
+      "unit": "Years",
+      "page": 13,
+      "quote": "The bidder must possess at least 3 years of successful Operation & Maintenance (O&M) experience for a rural/urban water supply pumping project serving a minimum design discharge of 20 MLD."
+    }
+  ],
+  "others": [
+    {
+      "title": "Other JV Partner Minimum Share",
+      "category": "JV rule",
+      "amount": null,
+      "page": 19,
+      "quote": "The other JV Partner must hold at least 25% share and satisfy at least 25% of the financial turnover requirement. All partners combined must meet 100% of all eligibility criteria."
+    },
+    {
+      "title": "Turnover & Experience Pooling Rules",
+      "category": "JV rule",
+      "amount": null,
+      "page": 19,
+      "quote": "Financial turnover, liquid assets, and single work experience values of both JV partners will be pooled strictly in proportion to their equity percentage in the Joint Venture Agreement."
+    },
+    {
+      "title": "Class of Registration",
+      "category": "registration",
+      "amount": null,
+      "page": 40,
+      "quote": "Class of Registration: AA Class & Above with Gujarat State WRD / R&B."
+    }
+  ]
+}

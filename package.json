@@ -9,8 +9,5 @@
     "build": "npm --prefix apps/web run build",
     "dev": "npm --prefix apps/web run dev",
     "start": "npm --prefix apps/web run start"
-  },
-  "dependencies": {
-    "pdf-parse": "^2.4.5"
   }
 }

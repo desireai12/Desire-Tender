@@ -120,35 +120,7 @@ async function extractTextFromPdfBuffer(buffer: Buffer): Promise<string> {
       console.warn(`[PDF_EXTRACT] unpdf attempt warning: ${unpdfErr?.message || unpdfErr}`);
     }
 
-    // 2. Fallback to pdf-parse
-    try {
-      const dynamicRequire = eval('require');
-      const pdfLib = dynamicRequire('pdf-parse');
-      let fullText = '';
-      if (pdfLib && pdfLib.PDFParse) {
-        try {
-          const { pathToFileURL } = dynamicRequire('url');
-          const worker = dynamicRequire('pdf-parse/worker');
-          if (worker && worker.getPath) {
-            pdfLib.PDFParse.setWorker(pathToFileURL(worker.getPath()).href);
-          }
-        } catch (wErr) {}
-        const parser = new pdfLib.PDFParse({ data: buffer });
-        const res = await parser.getText();
-        fullText = (res?.text || '').trim();
-      } else if (typeof pdfLib === 'function') {
-        const parsed = await pdfLib(buffer);
-        fullText = (parsed?.text || '').trim();
-      }
-      if (fullText.length >= 50) {
-        console.log(`[PDF_EXTRACT] pdf-parse successfully extracted ${fullText.length} characters`);
-        return fullText;
-      }
-    } catch (pdfErr: any) {
-      console.warn(`[PDF_EXTRACT] pdf-parse attempt warning: ${pdfErr?.message || pdfErr}`);
-    }
-
-    // 3. Last resort zero-dependency stream text parser
+    // 2. Zero-dependency stream text parser fallback
     try {
       const zlib = require('zlib');
       const str = buffer.toString('latin1');
@@ -225,10 +197,8 @@ interface GeminiCallResult {
 
 async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallResult> {
   const models = [
-    'gemini-3.8-flash',
-    'gemini-3.5-flash',
-    'gemini-3.5-flash-lite',
-    'gemini-3.1-flash-lite'
+    'gemini-3.6-flash',
+    'gemini-3.5-flash-lite'
   ];
 
   let lastStatus = 0;
@@ -254,6 +224,8 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
     const timer = setTimeout(() => controller.abort(), modelTimeoutMs);
 
     try {
+      const estimatedTokens = Math.round(prompt.length / 4);
+      console.log(`[GEMINI_REQUEST] Model: ${m}, Prompt Chars: ${prompt.length}, Estimated Tokens: ${estimatedTokens}`);
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -3283,11 +3255,11 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
       const cleanGeminiKey = geminiKey.replace(/^["']|["']$/g, '').trim();
 
-      // Check if caller explicitly requested legacy engine
+      // 1. Put new engine behind USE_NEW_ENGINE flag, default false (so uploads use the previous working engine)
       const searchParams = req.nextUrl?.searchParams || (req.url ? new URL(req.url, 'http://localhost:3000').searchParams : new URLSearchParams());
-      const isLegacyEngine = body.engine === 'legacy' || searchParams.get('engine') === 'legacy';
+      const useNewEngine = process.env.USE_NEW_ENGINE === 'true' || body.engine === 'new' || searchParams.get('engine') === 'new';
 
-      if (!isLegacyEngine) {
+      if (useNewEngine) {
         try {
           const newReport = await runNewEligibilityEvaluation(formFileBuffer, cleanGeminiKey, {
             filename,
