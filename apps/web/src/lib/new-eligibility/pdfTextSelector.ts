@@ -198,7 +198,24 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
     }
   }
 
-  const selectedPages: SelectedPage[] = [];
+  const scoredPages: Array<{ pageNum: number; text: string; score: number }> = [];
+
+  const HIGH_VALUE_KEYWORDS = [
+    /\bturnover\b/i,
+    /\bnet\s*worth\b/i,
+    /\bsolvency\b/i,
+    /\bbid\s*capacity\b/i,
+    /\bsimilar\s*work\b/i,
+    /\btechnical\s*criteria\b/i,
+    /\bfinancial\s*criteria\b/i,
+    /\bqualification\s*criteria\b/i,
+    /\beligibility\s*criteria\b/i,
+    /\bcontractor\s*registration\b/i,
+    /\bclass\s*aa\b/i,
+    /\bblacklisting\b/i,
+    /\bjoint\s*venture\b/i,
+    /\bcrore[s]?\b/i
+  ];
 
   for (let i = 0; i < rawPages.length; i++) {
     const pageNum = rawPages[i].num || (i + 1);
@@ -208,42 +225,66 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
 
     // First 3 pages are typically NIT / BDS summary pages -> always read in full
     const isEarlyPage = pageNum <= 3;
-
-    // Check for NIT/BDS summary
     const hasNitPattern = NIT_BDS_PATTERNS.some(rx => rx.test(pText));
-
-    // Check for Qualification / Eligibility / Evaluation criteria
     const hasQualPattern = QUALIFICATION_PATTERNS.some(rx => rx.test(pText));
-
-    // Check for pure generic repetitive boilerplate
     const isPureBoilerplate = BOILERPLATE_EXCLUSION_PATTERNS.some(rx => rx.test(pText)) && !hasQualPattern && !hasNitPattern;
 
-    if ((isEarlyPage || hasNitPattern || hasQualPattern) && !isPureBoilerplate) {
-      selectedPages.push({ pageNum, text: pText });
+    if (isPureBoilerplate) continue;
+
+    if (isEarlyPage || hasNitPattern || hasQualPattern) {
+      let score = 0;
+      if (isEarlyPage) score += 20;
+      if (hasNitPattern) score += 25;
+      if (hasQualPattern) score += 35;
+      for (const kw of HIGH_VALUE_KEYWORDS) {
+        if (kw.test(pText)) score += 5;
+      }
+      scoredPages.push({ pageNum, text: pText, score });
     }
   }
 
   // Safety fallback: If fewer than 2 pages matched, include the first 5 pages
-  if (selectedPages.length < 2 && rawPages.length > 0) {
+  if (scoredPages.length < 2 && rawPages.length > 0) {
     for (let i = 0; i < Math.min(5, rawPages.length); i++) {
       const pageNum = rawPages[i].num || (i + 1);
-      if (!selectedPages.some(p => p.pageNum === pageNum)) {
-        selectedPages.push({ pageNum, text: rawPages[i].text });
+      if (!scoredPages.some(p => p.pageNum === pageNum)) {
+        scoredPages.push({ pageNum, text: rawPages[i].text, score: 10 });
       }
     }
   }
 
-  // Sort selected pages in chronological order
-  selectedPages.sort((a, b) => a.pageNum - b.pageNum);
+  // Budget cap: Cap to top 20 most relevant pages to avoid token / quota limits on large tender documents
+  let finalPages: Array<{ pageNum: number; text: string }> = [];
+  if (scoredPages.length > 20) {
+    const earlyPages = scoredPages.filter(p => p.pageNum <= 3);
+    const otherPages = scoredPages.filter(p => p.pageNum > 3);
+    otherPages.sort((a, b) => b.score - a.score);
+    const topOthers = otherPages.slice(0, 20 - earlyPages.length);
+    finalPages = [...earlyPages, ...topOthers];
+  } else {
+    finalPages = scoredPages;
+  }
 
-  // Format combined text with distinct page banners
-  const combinedText = selectedPages
-    .map(p => `=== [PAGE ${p.pageNum}] ===\n${p.text}`)
-    .join('\n\n');
+  // Sort selected pages in chronological order
+  finalPages.sort((a, b) => a.pageNum - b.pageNum);
+
+  // Format combined text with distinct page banners, capped at 48,000 chars
+  let charCount = 0;
+  const pageChunks: string[] = [];
+  for (const p of finalPages) {
+    const banner = `=== [PAGE ${p.pageNum}] ===\n${p.text}`;
+    if (charCount + banner.length > 48000 && pageChunks.length >= 3) {
+      break;
+    }
+    pageChunks.push(banner);
+    charCount += banner.length;
+  }
+
+  const combinedText = pageChunks.join('\n\n');
 
   return {
     combinedText,
-    selectedPages,
+    selectedPages: finalPages.map(p => ({ pageNum: p.pageNum, text: p.text })),
     totalPages: total,
     allPagesText: fullText
   };
