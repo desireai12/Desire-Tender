@@ -98,34 +98,104 @@ const BOILERPLATE_EXCLUSION_PATTERNS = [
  * Does not read every page for generic boilerplate clauses.
  */
 export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise<TextSelectionResult> {
-  const dynamicRequire = eval('require');
-  const pdfLib = dynamicRequire('pdf-parse');
-
   let rawPages: Array<{ text: string; num?: number }> = [];
   let fullText = '';
   let total = 1;
 
-  if (pdfLib && pdfLib.PDFParse) {
-    const parser = new pdfLib.PDFParse({ data: pdfBuffer });
-    const res = await parser.getText();
-    fullText = res.text || '';
-    total = res.total || 1;
-    if (Array.isArray(res.pages) && res.pages.length > 0) {
-      rawPages = res.pages;
+  // 1. Try requiring pdf-parse (both standard require and dynamic fallbacks)
+  let pdfLib: any = null;
+  try {
+    pdfLib = require('pdf-parse');
+  } catch (e1) {
+    try {
+      const dynamicRequire = eval('require');
+      pdfLib = dynamicRequire('pdf-parse');
+    } catch (e2) {
+      console.warn('[PDF_SELECTOR] pdf-parse module not directly accessible, falling back...');
     }
-  } else if (typeof pdfLib === 'function') {
-    const res = await pdfLib(pdfBuffer);
-    fullText = res.text || '';
-    total = res.numpages || 1;
   }
 
-  // If page-level extraction was not returned directly, synthesize page boundaries
-  if (rawPages.length === 0) {
+  if (pdfLib) {
+    try {
+      if (pdfLib.PDFParse) {
+        const parser = new pdfLib.PDFParse({ data: pdfBuffer });
+        const res = await parser.getText();
+        fullText = res.text || '';
+        total = res.total || 1;
+        if (Array.isArray(res.pages) && res.pages.length > 0) {
+          rawPages = res.pages;
+        }
+      } else if (typeof pdfLib === 'function') {
+        const res = await pdfLib(pdfBuffer);
+        fullText = res.text || '';
+        total = res.numpages || 1;
+      }
+    } catch (parseErr) {
+      console.warn('[PDF_SELECTOR] pdf-parse execution warning:', parseErr);
+    }
+  }
+
+  // 2. If page-level extraction was not returned directly, synthesize page boundaries from fullText
+  if (fullText && rawPages.length === 0) {
     const pageChunks = fullText.split(/\f|\n(?=Page\s+\d+|\bSECTION\s+\d+)/i);
     rawPages = pageChunks.map((chunk, idx) => ({
       text: chunk,
       num: idx + 1
     }));
+  }
+
+  // 3. If still empty, fallback to zero-dependency stream text parser
+  if (!fullText || fullText.trim().length === 0) {
+    try {
+      const zlib = require('zlib');
+      const str = pdfBuffer.toString('latin1');
+      let pureText = '';
+      const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
+      let match;
+      const chunks: string[] = [];
+      let cur = '';
+      while ((match = streamRegex.exec(str)) !== null) {
+        let decompressed = '';
+        try {
+          decompressed = zlib.inflateSync(Buffer.from(match[1], 'latin1')).toString('latin1');
+        } catch {
+          decompressed = match[1];
+        }
+        const textMatches = decompressed.match(/\(([^)]+)\)\s*Tj/g) || [];
+        for (const m of textMatches) cur += m.replace(/^\(/, '').replace(/\)\s*Tj$/, '') + ' ';
+        const arrayMatches = decompressed.match(/\[([^\]]+)\]\s*TJ/g) || [];
+        for (const m of arrayMatches) {
+          const parts = m.match(/\(([^)]+)\)/g) || [];
+          for (const p of parts) cur += p.slice(1, -1) + ' ';
+        }
+        if (cur.length > 800) {
+          chunks.push(cur.trim());
+          pureText += cur + '\n';
+          cur = '';
+        }
+      }
+      if (cur.trim()) {
+        chunks.push(cur.trim());
+        pureText += cur;
+      }
+      if (pureText.trim().length > 20) {
+        fullText = pureText.trim();
+        rawPages = chunks.map((c, idx) => ({ text: c, num: idx + 1 }));
+        total = chunks.length;
+      }
+    } catch (zlibErr) {
+      console.warn('[PDF_SELECTOR] zlib stream extraction error:', zlibErr);
+    }
+  }
+
+  // 4. Last fallback: readable ASCII/UTF-8 extraction
+  if (!fullText || fullText.trim().length === 0) {
+    const rawStr = pdfBuffer.toString('utf-8');
+    const printable = rawStr.replace(/[^\x20-\x7E\r\n\t]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (printable.length >= 50) {
+      fullText = printable;
+      rawPages = [{ text: printable, num: 1 }];
+    }
   }
 
   const selectedPages: SelectedPage[] = [];
