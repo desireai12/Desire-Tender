@@ -1778,7 +1778,7 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       };
 
       // Directive 4: "In any N of the last M years" = the count of years meeting the threshold is at least N.
-      const anyNofMMatch = fullTurnoverText.match(/any\s+(\d+|one|two|three|four|five)\s+(?:out\s+of|of)(?:\s+the\s+last)?\s+(\d+|one|two|three|four|five)?/i);
+      const anyNofMMatch = fullTurnoverText.match(/any\s+(\d+|one|two|three|four|five)(?:\s+(?:financial\s+)?years)?\s+(?:out\s+of|of)(?:\s+the\s+last)?\s+(\d+|one|two|three|four|five)?/i);
       const isAnyNofM = !!anyNofMMatch;
       const targetN = isAnyNofM ? wordToNum(anyNofMMatch[1]) : 0;
       const targetM = isAnyNofM ? (wordToNum(anyNofMMatch[2]) || 5) : 5;
@@ -3255,9 +3255,9 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
       const cleanGeminiKey = geminiKey.replace(/^["']|["']$/g, '').trim();
 
-      // 1. Put new engine behind USE_NEW_ENGINE flag, default false (so uploads use the previous working engine)
+      // Use new clean engine by default, allowing fallback to legacy only if explicitly requested
       const searchParams = req.nextUrl?.searchParams || (req.url ? new URL(req.url, 'http://localhost:3000').searchParams : new URLSearchParams());
-      const useNewEngine = process.env.USE_NEW_ENGINE === 'true' || body.engine === 'new' || searchParams.get('engine') === 'new';
+      const useNewEngine = process.env.USE_NEW_ENGINE !== 'false' && body.engine !== 'legacy' && searchParams.get('engine') !== 'legacy';
 
       if (useNewEngine) {
         try {
@@ -3428,7 +3428,20 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       }
 
       let comps = GLOBAL_SERVER_COMPANIES;
-      if (supabase) { try { const { data: d } = await supabase.from('companies').select('*'); if (d && d.length > 0) comps = d; } catch (e) {} }
+      if (supabase) {
+        try {
+          const { data: d } = await supabase.from('companies').select('*');
+          if (d && d.length > 0) {
+            comps = GLOBAL_SERVER_COMPANIES.map(g => {
+              const matched = d.find((c: any) => c.id === g.id || c.name?.toLowerCase() === g.name?.toLowerCase());
+              return matched ? { ...g, ...matched, year_wise_turnover: matched.year_wise_turnover || g.year_wise_turnover } : g;
+            });
+            for (const c of d) {
+              if (!comps.some(x => x.id === c.id)) comps.push(c);
+            }
+          }
+        } catch (e) {}
+      }
 
       let aiResult: any = null;
       let aiCallResult: GeminiCallResult = { data: null, rawText: 'Full coverage extraction' };
