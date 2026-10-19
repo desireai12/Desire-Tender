@@ -36,10 +36,10 @@ export const ELIGIBILITY_CONFIG: EligibilityConfig = {
     allowed: ['gemini-3.6-flash', 'gemini-3.5-flash-lite']
   },
   tokenBudget: {
-    maxPromptCharacters: 38000,
-    maxPromptTokens: 9500,
-    maxPagesBeforeWindowing: 25,
-    windowSizeChars: 35000,
+    maxPromptCharacters: 70000,
+    maxPromptTokens: 17500,
+    maxPagesBeforeWindowing: 45,
+    windowSizeChars: 65000,
     windowOverlapChars: 4000
   },
   pageFinder: {

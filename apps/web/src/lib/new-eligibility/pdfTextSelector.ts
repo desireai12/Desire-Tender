@@ -180,8 +180,8 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
   // Sort by score descending to find the top pages
   const scoredOnly = pageScores.filter(p => p.score > 0).sort((a, b) => b.score - a.score);
   
-  // Pick top pages (take top 6-8 distinct hot spots)
-  const topPages = scoredOnly.slice(0, 8);
+  // Pick top pages (take top 15 distinct hot spots across all chapters)
+  const topPages = scoredOnly.slice(0, 15);
 
   // Send top pages plus two pages on each side (context padding = 2)
   const selectedPageNums = new Set<number>();
@@ -217,8 +217,8 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
     pageMap.set(num, rp.text);
   }
 
-  // Within the token budget: cap combined characters to token budget (35,000 chars)
-  const MAX_CHARS = 35000;
+  // Within the token budget: cap combined characters to token budget (65,000 chars)
+  const MAX_CHARS = 65000;
   let charCount = 0;
   const finalPages: Array<{ pageNum: number; text: string }> = [];
   const pageChunks: string[] = [];

@@ -277,7 +277,55 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
 
       if (res.status === 503 || res.status === 500 || errText.includes('high demand') || errText.includes('UNAVAILABLE')) {
         lastErrorDetail = errText || `Model ${m} high demand / unavailable (HTTP ${res.status})`;
-        console.warn(`Gemini model ${m} unavailable (HTTP ${res.status}): falling back to next model`);
+        console.warn(`Gemini model ${m} temporary 503/unavailable. Retrying once after 1.5s delay...`);
+        await new Promise(r => setTimeout(r, 1500));
+        
+        try {
+          const retryController = new AbortController();
+          const retryTimer = setTimeout(() => retryController.abort(), 40000);
+          const retryRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.1,
+                topP: 0.95,
+                responseMimeType: 'application/json',
+                maxOutputTokens: 8192
+              }
+            }),
+            signal: retryController.signal
+          });
+          clearTimeout(retryTimer);
+          if (retryRes.ok) {
+            const rawText = await retryRes.text();
+            let parsedJson: any = null;
+            try {
+              parsedJson = JSON.parse(rawText);
+            } catch {
+              const cleaned = rawText.replace(/```json\n?|\n?```/gi, '').trim();
+              parsedJson = JSON.parse(cleaned);
+            }
+            if (parsedJson?.candidates?.[0]?.content?.parts?.[0]?.text) {
+              const partText = parsedJson.candidates[0].content.parts[0].text;
+              try {
+                parsedJson = JSON.parse(partText);
+              } catch {
+                parsedJson = JSON.parse(partText.replace(/```json\n?|\n?```/gi, '').trim());
+              }
+            }
+            return {
+              data: parsedJson,
+              modelUsed: m,
+              latencyMs: Date.now() - overallStartTime,
+              status: 200,
+              rawText: rawText.slice(0, 500)
+            };
+          }
+        } catch (retryErr: any) {
+          console.warn(`Gemini model ${m} retry exception:`, retryErr?.message || retryErr);
+        }
         continue;
       }
 
@@ -3197,8 +3245,14 @@ DOCUMENT TEXT (Filename: "${filename}"):
 
 INSTRUCTIONS FOR CLAUSE EXTRACTION:
 Step 1: Verify if this is a valid Tender Document. If it is an Invoice, Bill, Resume, set "is_rejected_non_tender": true.
-Step 2: Extract ALL distinct eligibility and qualification clauses present in the document text (Financial Turnover, Work Experience, Net Worth, Solvency, Certifications, Registration, EMD, Equipment, Staffing, Penalties, Contract Terms, etc.).
-Step 3: Extract EXACT clause numbers, exact titles, exact required numeric values (in ₹ Crores or Lakhs), units, and requirement descriptions. Quote the exact text from the document for tender_requirement.
+Step 2: Extract ALL distinct eligibility and qualification clauses present in the document text.
+CRITICAL ATOMIC EXTRACTION RULES:
+1. ATOMIC EXTRACTION (NO SKIPPING OR BUNDLING):
+   - Extract EVERY individual sub-clause, numbered point, or lettered criterion as a SEPARATE entry in "clauses_breakdown". NEVER combine multiple criteria or skip any!
+   - If a clause has sub-items 1), 2), 3), 4), create separate entries for each (e.g. Company Legal Entity Registration, Contractor Class Registration, Electrical Contractor License, Non-blacklisting Affidavit).
+   - If a clause has Scenario-1 and Scenario-2, create separate entries for Scenario-1 Turnover, Scenario-1 Technical Experience, and Scenario-2 Turnover!
+2. COMPLETE COVERAGE: Extract all Financial criteria (turnover, net worth, solvency, bid capacity), Technical criteria (O&M experience, similar work, contractor class registration, electrical license), and Submission/Compliance criteria (tender fee, EMD, debarment affidavit, personnel, equipment).
+3. EXACT QUOTES & PAGES: Quote the exact text from the document for "tender_requirement" and specify exact "page_ref" (e.g. "Page 25", "Page 26", "Page 6", "Page 7").
 
 Return valid JSON only:
 {
@@ -3211,15 +3265,15 @@ Return valid JSON only:
   "executive_summary": "string — summary of extracted tender clauses",
   "clauses_breakdown": [
     {
-      "clause_no": "string — e.g. Clause 4.1 or ITB 3.2",
-      "clause_title": "string — title of requirement",
+      "clause_no": "string — e.g. Clause 4.2.1 (1)",
+      "clause_title": "string — e.g. Company Registration",
       "requirement_type": "Financial" | "Technical" | "Organizational" | "Compliance" | "Equipment" | "Staffing" | "Legal",
-      "tender_requirement": "exact requirement statement from document",
-      "required_value_num": number or null (e.g. 52.47 for Rs 52.47 Cr),
+      "tender_requirement": "exact requirement statement quoted from document",
+      "required_value_num": number or null (e.g. 10 for Rs 10 Cr),
       "required_value_unit": "Cr" | "Lakhs" | "km" | "MLD" | null,
       "required_value": "string statement of requirement threshold",
       "required_doc": "documentary evidence required",
-      "page_ref": "page or section reference"
+      "page_ref": "page or section reference e.g. Page 25"
     }
   ]
 }`;
