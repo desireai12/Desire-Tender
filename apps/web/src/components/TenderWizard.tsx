@@ -479,27 +479,20 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const clauses = evaluationReport.clauses_breakdown || [];
     const totalCount = clauses.length || 1;
 
-    // Helper to parse backend audited score
-    const parseScore = (obj: any, fallback: number) => {
-      if (!obj) return fallback;
+    // Helper to extract score from report
+    const extractScore = (obj: any): number | null => {
+      if (!obj) return null;
       if (typeof obj.score === 'number' && !isNaN(obj.score)) return obj.score;
       if (obj.fulfilled_pct) {
         const m = String(obj.fulfilled_pct).match(/(\d+)/);
         if (m) return parseInt(m[1], 10);
       }
-      return fallback;
+      return null;
     };
 
-    let desireTargetScore = parseScore(evaluationReport.desire_alone, 70);
-    let jvTargetScore = parseScore(evaluationReport.jv_alone, 55);
-    const combinedTargetScore = parseScore(evaluationReport.combined_jv, 90);
-
-    // Guaranteed differentiation safeguard: only fire if scores actually collide (not as a default clamp)
-    if (desireTargetScore === jvTargetScore && desireTargetScore > 0) {
-      jvTargetScore = Math.max(0, desireTargetScore - 10);
-    }
-    // Consortium must always be >= its strongest individual member
-    const effectiveCombined = Math.max(combinedTargetScore, Math.max(desireTargetScore, jvTargetScore));
+    const desireTargetScore = extractScore(evaluationReport.desire_alone);
+    const jvTargetScore = extractScore(evaluationReport.jv_alone);
+    const combinedTargetScore = extractScore(evaluationReport.combined_jv);
 
     // Evaluate perspective with exact clause-by-clause scoring
     const evaluatePerspective = (mode: 'desire' | 'jv' | 'combined') => {
@@ -514,8 +507,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         if (c.desire_status === 'POSSIBLE MATCH' || dVal.includes('possible match') || dVal.includes('manual verification') || dVal.includes('inter-state registration equivalence')) {
           dStatus = 'POSSIBLE MATCH';
         } else if (!c.desire_status) {
-          if (dVal.includes('data not') || dVal.includes('missing')) {
-            dStatus = 'DATA NOT AVAILABLE';
+          if (dVal.includes('data not') || dVal.includes('missing') || dVal.includes('cannot be checked')) {
+            dStatus = 'CANNOT BE CHECKED';
           } else if (dVal.includes('lacks') || dVal.includes('not met') || dVal.includes('0%') || dVal.includes('no experience') || dVal.includes('ineligible') || dVal.includes('cannot bid')) {
             dStatus = 'NOT MATCHING';
           } else if (dVal.includes('partial') || dVal.includes('50%') || dVal.includes('75%') || dVal.includes('requires jv') || dVal.includes('gap')) {
@@ -529,11 +522,11 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         if (c.jv_status === 'POSSIBLE MATCH' || jVal.includes('possible match') || jVal.includes('manual verification')) {
           jStatus = 'POSSIBLE MATCH';
         } else if (!c.jv_status) {
-          if (jVal.includes('data not') || jVal.includes('missing')) {
-            jStatus = 'DATA NOT AVAILABLE';
+          if (jVal.includes('data not') || jVal.includes('missing') || jVal.includes('cannot be checked')) {
+            jStatus = 'CANNOT BE CHECKED';
           } else if (jVal.includes('lacks') || jVal.includes('not met') || jVal.includes('0%') || jVal.includes('no experience') || jVal.includes('cannot bid') || jVal.includes('ineligible') || jVal.includes('not matching') || jVal.includes('no esco') || jVal.includes('no solar')) {
             jStatus = 'NOT MATCHING';
-          } else if (jVal.includes('partial') || jVal.includes('60%') || jVal.includes('61%') || jVal.includes('63%') || jVal.includes('67%') || jVal.includes('50%') || jVal.includes('70%') || jVal.includes('75%') || jVal.includes('gap') || jVal.includes('below') || jVal.includes('insufficient') || jVal.includes('local only')) {
+          } else if (jVal.includes('partial') || dVal.includes('50%') || jVal.includes('gap') || jVal.includes('below') || jVal.includes('insufficient')) {
             jStatus = 'PARTIAL MATCH';
           }
         }
@@ -547,7 +540,6 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           status = jStatus;
           pct = status === 'MATCH' ? 100 : status === 'POSSIBLE MATCH' ? 85 : status === 'PARTIAL MATCH' ? 50 : 0;
         } else {
-          // Combined: If either party matches or pooled financials satisfy, status is MATCH
           val = c.combined_value || `${c.desire_value || ''} + ${c.jv_value || ''}`;
           if (dStatus === 'MATCH' || jStatus === 'MATCH' || c.status === 'MATCH') {
             status = 'MATCH';
@@ -576,12 +568,18 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const possible = evaluated.filter(c => c.active_status === 'POSSIBLE MATCH').length;
       const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
       const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
-      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE').length;
+      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE' || c.active_status === 'CANNOT BE CHECKED').length;
 
-      // Synchronize score with backend report to guarantee distinct realistic percentages
-      const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : effectiveCombined;
-      const calcScore = Math.min(100, Math.round(((matched * 100) + (possible * 85) + (partial * 50)) / totalCount));
-      const score = (targetScore !== undefined && targetScore !== null) ? targetScore : calcScore;
+      // Real qualification criteria score (excluding un-scored submission checklists and contract terms)
+      const qualCriteria = evaluated.filter(c => c.is_eligibility_criterion !== false && c.clause_group !== 'mandatory_submission' && c.clause_group !== 'contract_term');
+      const qualTotal = qualCriteria.length || totalCount;
+      const qualMatched = qualCriteria.filter(c => c.active_status === 'MATCH').length;
+      const qualPossible = qualCriteria.filter(c => c.active_status === 'POSSIBLE MATCH').length;
+      const qualPartial = qualCriteria.filter(c => c.active_status === 'PARTIAL MATCH').length;
+      const calcScore = Math.min(100, Math.round(((qualMatched * 100) + (qualPossible * 85) + (qualPartial * 50)) / qualTotal));
+
+      const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : combinedTargetScore;
+      const score = (targetScore !== null && targetScore !== undefined) ? targetScore : calcScore;
 
       return {
         score,
@@ -601,56 +599,23 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     const jvEval = evaluatePerspective('jv');
     const combinedEval = evaluatePerspective('combined');
 
-    // Mathematically guarantee that Combined Consortium score is >= individual members
-    if (combinedEval.score < desireEval.score || combinedEval.score < jvEval.score) {
-      combinedEval.score = Math.max(desireEval.score, jvEval.score);
-      combinedEval.pctStr = `${combinedEval.score}%`;
-    }
-
     const activeEval = activeAnalysisOption === 'desire' ? desireEval : activeAnalysisOption === 'jv' ? jvEval : combinedEval;
 
-    let badge = `OPTION 3 — DESIRE (${desireEquityRatio}%) + ${jvComp.name} (${partnerEquityRatio}%) COMBINED`;
+    let badge = `OPTION 3 — DESIRE (${desireEquityRatio}%) + ${jvComp.name.split(' ')[0]} (${partnerEquityRatio}%) COMBINED`;
     let entityName = `Combined Consortium (Desire Energy + ${jvComp.name})`;
-    let verdict = 'Eligible Through JV';
-    let recommendation = `BID (Combined Consortium achieves ${activeEval.pctStr} qualification)`;
+    let verdict = evaluationReport.combined_jv?.status || 'Consortium Evaluation';
+    let recommendation = evaluationReport.recommendation || `Consortium achieves ${activeEval.pctStr} qualification`;
 
     if (activeAnalysisOption === 'desire') {
       badge = 'OPTION 1 — DESIRE ENERGY ALONE';
       entityName = 'Desire Energy Alone';
-      if (activeEval.score >= 90) {
-        verdict = 'Eligible Standalone';
-        recommendation = `BID STANDALONE — Desire Energy satisfies ${activeEval.pctStr} of criteria (No JV Consortium Required)`;
-      } else if (activeEval.score >= 60) {
-        verdict = 'Partially Eligible Standalone';
-        recommendation = `REVIEW / JV RECOMMENDED — Desire Energy satisfies ${activeEval.pctStr} of criteria (Partner fills remaining gaps)`;
-      } else {
-        verdict = 'Ineligible Standalone';
-        recommendation = `JV MANDATORY — Desire Energy satisfies only ${activeEval.pctStr} of criteria`;
-      }
+      verdict = evaluationReport.desire_alone?.status || evaluationReport.verdict || 'Processing';
+      recommendation = evaluationReport.recommendation || `Desire Energy Standalone: ${activeEval.pctStr} score`;
     } else if (activeAnalysisOption === 'jv') {
       badge = `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`;
       entityName = `${jvComp.name} Alone`;
-      if (activeEval.score >= 90) {
-        verdict = 'Partner Fully Qualified Standalone';
-        recommendation = `PARTNER QUALIFIED STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone. (For Desire Energy to bid, form Option 3 Consortium as Lead).`;
-      } else if (activeEval.score >= 60) {
-        verdict = 'Partner Partially Eligible Standalone (Incomplete Alone)';
-        recommendation = `PARTNER INCOMPLETE STANDALONE — ${jvComp.name} satisfies ${activeEval.pctStr} standalone (cannot bid alone due to gaps). Must join Desire Energy as Lead Member via Option 3 Consortium.`;
-      } else {
-        verdict = 'Partner Ineligible Standalone';
-        recommendation = `INSUFFICIENT STANDALONE — ${jvComp.name} satisfies only ${activeEval.pctStr} standalone. Must join Desire Energy via Option 3 Consortium.`;
-      }
-    } else {
-      if (desireEval.score >= 90) {
-        verdict = 'Fully Eligible Consortium (Desire Already 100% Standalone Qualified)';
-        recommendation = `BID STANDALONE OR CONSORTIUM — Desire Energy is ${desireEval.pctStr} Standalone Qualified alone. Formed JV with ${jvComp.name} for financial pooling (₹${pooledTurnover} Cr turnover).`;
-      } else if (activeEval.score >= 90) {
-        verdict = 'Fully Eligible Through JV Consortium';
-        recommendation = `BID THROUGH JV CONSORTIUM — Desire Energy (${desireEquityRatio}%) + ${jvComp.name} (${partnerEquityRatio}%) satisfies ${activeEval.pctStr} of criteria.`;
-      } else {
-        verdict = 'Partially Eligible Through JV';
-        recommendation = `REVIEW GAPS — Consortium achieves ${activeEval.pctStr} qualification.`;
-      }
+      verdict = evaluationReport.jv_alone?.status || 'Partner Standalone Assessment';
+      recommendation = evaluationReport.jv_alone ? `Partner satisfies ${activeEval.pctStr} standalone` : 'Partner assessment for consortium bidding';
     }
 
     return {
@@ -660,14 +625,14 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       score: activeEval.score,
       fulfilled_pct: activeEval.pctStr,
       option1_pct: desireEval.pctStr,
-      option2_pct: jvEval.pctStr,
-      option3_pct: combinedEval.pctStr,
+      option2_pct: jvTargetScore !== null ? jvEval.pctStr : 'Optional',
+      option3_pct: combinedTargetScore !== null ? combinedEval.pctStr : 'Optional',
       recommendation,
       executive_summary: activeAnalysisOption === 'desire'
-        ? `Desire Energy Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy credentials (₹${desireComp.average_turnover} Cr avg turnover, ₹${desireComp.net_worth} Cr net worth). Desire Energy satisfies ${activeEval.pctStr} of requirements.`
+        ? `Desire Energy Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses for '${evaluationReport.tender_title}' against Desire Energy credentials (₹${desireComp.average_turnover} Cr avg turnover, ₹${desireComp.net_worth} Cr net worth). Standalone verdict: ${verdict}.`
         : activeAnalysisOption === 'jv'
-        ? `${jvComp.name} Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses against ${jvComp.name} credentials (₹${jvComp.average_turnover} Cr avg turnover, ₹${jvComp.net_worth} Cr net worth). Partner satisfies ${activeEval.pctStr} of requirements.`
-        : `Combined Consortium AI Analysis: Evaluated ${totalCount} extracted tender clauses against Desire Energy (${desireEquityRatio}%) + ${jvComp.name} (${partnerEquityRatio}%) with ₹${pooledTurnover} Cr pooled turnover and ₹${pooledNetWorth} Cr pooled net worth. Combined consortium achieves ${activeEval.pctStr} qualification across all criteria.`,
+        ? `${jvComp.name} Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses against ${jvComp.name} credentials (₹${jvComp.average_turnover} Cr avg turnover, ₹${jvComp.net_worth} Cr net worth). Partner status: ${verdict}.`
+        : `Combined Consortium AI Analysis: Evaluated ${totalCount} extracted tender clauses against Desire Energy (${desireEquityRatio}%) + ${jvComp.name} (${partnerEquityRatio}%) with ₹${pooledTurnover} Cr pooled turnover and ₹${pooledNetWorth} Cr pooled net worth. Consortium status: ${verdict}.`,
       summary_counts: activeEval.counts,
       total_count: activeEval.counts.total_criteria,
       matched_count: activeEval.counts.matched,
@@ -677,8 +642,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       evaluatedClauses: activeEval.evaluated,
       tabScores: {
         desire: desireEval.pctStr,
-        jv: jvEval.pctStr,
-        combined: combinedEval.pctStr
+        jv: jvTargetScore !== null ? jvEval.pctStr : 'Optional',
+        combined: combinedTargetScore !== null ? combinedEval.pctStr : 'Optional'
       }
     };
   };
@@ -1292,6 +1257,13 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   Match Score: {perspective.fulfilled_pct}
                 </span>
               </div>
+              <div className="flex items-center space-x-2 text-xs font-mono text-slate-600 mb-1">
+                <FileText className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+                <span className="font-semibold text-slate-500">Source Document:</span>
+                <span className="font-bold text-teal-900 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                  {uploadedTenderFile?.name || currentReport.filename || 'volumn 1.pdf'}
+                </span>
+              </div>
               <h2 className="text-lg font-bold text-slate-900">{currentReport.tender_title}</h2>
               <p className="text-xs text-slate-600 max-w-3xl leading-relaxed font-medium">{perspective.executive_summary}</p>
             </div>
@@ -1360,7 +1332,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   <span className="text-xs font-bold text-teal-400 font-mono">{perspective.option1_pct}</span>
                 </div>
                 <p className="text-slate-300 text-[11px] leading-relaxed font-medium">
-                  Fulfills {perspective.summary_counts.matched} of {perspective.summary_counts.total_criteria} criteria alone. Brings ₹271.94 Cr avg turnover (₹350.66 Cr peak), ₹52.62 Cr audited net worth, ESCO/Pumping credentials, and Lead Share ({desireEquityRatio}%).
+                  {perspective.summary_counts.matched} of {perspective.summary_counts.total_criteria} criteria verified on record. Average turnover ₹{desireComp.average_turnover} Cr, net worth ₹{desireComp.net_worth} Cr from audited statements.
                 </p>
               </div>
 
@@ -1370,7 +1342,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   <span className="text-xs font-bold text-amber-400 font-mono">{perspective.option2_pct}</span>
                 </div>
                 <p className="text-slate-300 text-[11px] leading-relaxed font-medium">
-                  Fulfills partner-specific criteria alone. Brings ₹{jvComp.average_turnover} Cr turnover & Gujarat civil licenses, but cannot bid alone due to financial/technical gaps.
+                  Partner credentials from database: ₹{jvComp.average_turnover} Cr turnover, ₹{jvComp.net_worth} Cr net worth.
                 </p>
               </div>
 
@@ -1380,7 +1352,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                   <span className="text-xs font-bold text-emerald-300 font-mono">{perspective.option3_pct}</span>
                 </div>
                 <p className="text-emerald-100 text-[11px] leading-relaxed font-medium">
-                  Pooling financials creates ₹{pooledTurnover} Cr total turnover & ₹{pooledNetWorth} Cr net worth. Partner's civil track record bridges Desire's gaps to achieve complete coverage.
+                  Pooled financial capacity: ₹{pooledTurnover} Cr turnover and ₹{pooledNetWorth} Cr net worth across consortium members.
                 </p>
               </div>
             </div>
