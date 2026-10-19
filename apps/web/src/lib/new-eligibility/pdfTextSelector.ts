@@ -144,21 +144,36 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
     }
   }
 
-  // ── PAGE FINDER: Score each page by specified keywords ──
-  // turnover, net worth, solvency, bid capacity, similar work, experience, O&M, eligibility, qualification, registration, joint venture, blacklist
+  // ── PAGE FINDER: Score each page by comprehensive tender keywords ──
+  // Covers Financial, Technical, Establishment/Machinery, and Contract Conditions
   const KEYWORD_WEIGHTS: Array<{ rx: RegExp; weight: number }> = [
-    { rx: /\bturnover\b/i, weight: 15 },
-    { rx: /\bnet\s*worth\b/i, weight: 15 },
-    { rx: /\bsolvency\b/i, weight: 15 },
-    { rx: /\bbid\s*capacity\b/i, weight: 15 },
-    { rx: /\bsimilar\s*work\b/i, weight: 15 },
-    { rx: /\bexperience\b/i, weight: 10 },
-    { rx: /\bo&m\b|\boperation\s*&\s*maintenance\b|\boperation\s*and\s*maintenance\b/i, weight: 10 },
-    { rx: /\beligibility\b/i, weight: 10 },
-    { rx: /\bqualification\b/i, weight: 10 },
-    { rx: /\bregistration\b/i, weight: 10 },
-    { rx: /\bjoint\s*venture\b/i, weight: 10 },
-    { rx: /\bblacklist(?:ing|ed)?\b|\bdebar(?:red|ment)?\b/i, weight: 10 }
+    // Financial Criteria
+    { rx: /\bturnover\b/i, weight: 20 },
+    { rx: /\bnet\s*worth\b/i, weight: 20 },
+    { rx: /\bsolvency\b/i, weight: 20 },
+    { rx: /\bbid\s*capacity\b/i, weight: 20 },
+    // Technical Criteria & Experience
+    { rx: /\bsimilar\s*work\b/i, weight: 20 },
+    { rx: /\bexperience\b/i, weight: 15 },
+    { rx: /\bo&m\b|\boperation\s*&\s*maintenance\b|\boperation\s*and\s*maintenance\b/i, weight: 15 },
+    { rx: /\bqualification\s*criteria\b/i, weight: 25 },
+    { rx: /\bminimum\s*qualifying\b/i, weight: 25 },
+    { rx: /\beligibility\b/i, weight: 15 },
+    { rx: /\belectrical\s*contractor(?:'s)?\s*license\b/i, weight: 20 },
+    { rx: /\bclass\s*["']?A["']?\s*(&|\band\b)\s*above\b/i, weight: 20 },
+    { rx: /\bjoint\s*venture\b/i, weight: 15 },
+    { rx: /\bblacklist(?:ing|ed)?\b|\bdebar(?:red|ment)?\b/i, weight: 15 },
+    // Establishment / Staffing / Machinery
+    { rx: /\bschedule\s*for\s*establishment\b|\bkey\s*personnel\b/i, weight: 20 },
+    { rx: /\btools\s*(&|\band\b)\s*tackles\b/i, weight: 15 },
+    { rx: /\butility\s*vehicle\b/i, weight: 15 },
+    // Contract Conditions (Others)
+    { rx: /\bsecurity\s*deposit\b/i, weight: 20 },
+    { rx: /\bretention\s*money\b/i, weight: 15 },
+    { rx: /\bliquidated\s*damages\b/i, weight: 20 },
+    { rx: /\bcontract\s*labour\s*(licence|license)\b/i, weight: 20 },
+    { rx: /\ball\s*risk\s*insurance\b|\binsurance\s*against\s*injury\b/i, weight: 15 },
+    { rx: /\bextension\s*of\s*time\b/i, weight: 15 }
   ];
 
   const pageScores: Array<{ pageNum: number; text: string; score: number }> = [];
@@ -183,16 +198,16 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
   // Pick top pages (take top 15 distinct hot spots across all chapters)
   const topPages = scoredOnly.slice(0, 15);
 
-  // Send top pages plus two pages on each side (context padding = 2)
+  // Send top pages plus context pages
   const selectedPageNums = new Set<number>();
 
-  // Include NIT/BDS summary front pages (Page 1-3)
-  for (let p = 1; p <= Math.min(3, total); p++) {
+  // Include NIT/BDS summary front pages (Pages 5-10 where NIT and Bid Data Sheet reside)
+  for (let p = 1; p <= Math.min(10, total); p++) {
     selectedPageNums.add(p);
   }
 
   for (const tp of topPages) {
-    for (let offset = -2; offset <= 2; offset++) {
+    for (let offset = -1; offset <= 1; offset++) {
       const targetPage = tp.pageNum + offset;
       if (targetPage >= 1 && targetPage <= total) {
         selectedPageNums.add(targetPage);
@@ -217,8 +232,8 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
     pageMap.set(num, rp.text);
   }
 
-  // Within the token budget: cap combined characters to token budget (65,000 chars)
-  const MAX_CHARS = 65000;
+  // Within the token budget: cap combined characters to token budget (70,000 chars)
+  const MAX_CHARS = 70000;
   let charCount = 0;
   const finalPages: Array<{ pageNum: number; text: string }> = [];
   const pageChunks: string[] = [];

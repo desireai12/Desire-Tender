@@ -318,8 +318,7 @@ async function callGeminiAI(prompt: string, apiKey: string): Promise<GeminiCallR
             return {
               data: parsedJson,
               modelUsed: m,
-              latencyMs: Date.now() - overallStartTime,
-              status: 200,
+              lastStatus: 200,
               rawText: rawText.slice(0, 500)
             };
           }
@@ -3243,16 +3242,22 @@ Your ONLY job is to read the provided tender document text and EXTRACT the raw e
 DOCUMENT TEXT (Filename: "${filename}"):
 "${qualificationSnippet}"
 
-INSTRUCTIONS FOR CLAUSE EXTRACTION:
+INSTRUCTIONS FOR COMPLETE CLAUSE EXTRACTION:
 Step 1: Verify if this is a valid Tender Document. If it is an Invoice, Bill, Resume, set "is_rejected_non_tender": true.
-Step 2: Extract ALL distinct eligibility and qualification clauses present in the document text.
+Step 2: Extract ALL distinct eligibility and qualification clauses present across the entire text.
 CRITICAL ATOMIC EXTRACTION RULES:
 1. ATOMIC EXTRACTION (NO SKIPPING OR BUNDLING):
    - Extract EVERY individual sub-clause, numbered point, or lettered criterion as a SEPARATE entry in "clauses_breakdown". NEVER combine multiple criteria or skip any!
-   - If a clause has sub-items 1), 2), 3), 4), create separate entries for each (e.g. Company Legal Entity Registration, Contractor Class Registration, Electrical Contractor License, Non-blacklisting Affidavit).
-   - If a clause has Scenario-1 and Scenario-2, create separate entries for Scenario-1 Turnover, Scenario-1 Technical Experience, and Scenario-2 Turnover!
-2. COMPLETE COVERAGE: Extract all Financial criteria (turnover, net worth, solvency, bid capacity), Technical criteria (O&M experience, similar work, contractor class registration, electrical license), and Submission/Compliance criteria (tender fee, EMD, debarment affidavit, personnel, equipment).
-3. EXACT QUOTES & PAGES: Quote the exact text from the document for "tender_requirement" and specify exact "page_ref" (e.g. "Page 25", "Page 26", "Page 6", "Page 7").
+   - If a clause has sub-items 1), 2), 3), 4), create separate entries for each (e.g. Legal Entity Registration, Contractor Class Registration, Electrical Contractor License, Non-blacklisting / Debarment Undertaking).
+   - If a tender offers alternative qualification scenarios (e.g. Scenario 1 vs Scenario 2, or Option A vs Option B), create separate entries for each scenario's individual criteria (e.g. Scenario 1 Turnover, Scenario 1 Technical Experience, Scenario 2 Turnover).
+   - Bid Fee & EMD: Extract Tender Document Fee and Earnest Money Deposit / Bid Security from Bid Data Sheet / NIT.
+   - Technical Establishment & Resources: Extract Key Technical Personnel requirements (e.g. Project Manager, Maintenance Engineer), Equipment / Utility Vehicles requirements, and Tools & Tackles from establishment schedules and annexures.
+   - Contract Conditions & Performance: Extract Security Deposit, Retention Money, Contract Labour Licence, All Risk Insurance, Subletting Prohibition, Liquidated Damages for Delay, and Extension of Time from conditions of contract.
+2. CATEGORIZATION:
+   - "Financial": Turnover, Net worth, Solvency, Bid capacity.
+   - "Technical": Experience, Similar work, Contractor class registration, Electrical license, Key personnel, Machinery/Vehicles.
+   - "Others": Tender fee, EMD, Non-blacklisting, Security deposit, Retention, Insurance, Labour licence, Subletting, Liquidated damages, Extension of time.
+3. EXACT QUOTES & PAGES: Quote the exact text from the document for "tender_requirement" and specify exact "page_ref" (e.g. "Page 25", "Page 26", "Page 59", "Page 155", "Page 175").
 
 Return valid JSON only:
 {
@@ -3265,12 +3270,12 @@ Return valid JSON only:
   "executive_summary": "string — summary of extracted tender clauses",
   "clauses_breakdown": [
     {
-      "clause_no": "string — e.g. Clause 4.2.1 (1)",
+      "clause_no": "string — e.g. Clause 4.2.1 (1) or GCC 1.1",
       "clause_title": "string — e.g. Company Registration",
-      "requirement_type": "Financial" | "Technical" | "Organizational" | "Compliance" | "Equipment" | "Staffing" | "Legal",
+      "requirement_type": "Financial" | "Technical" | "Others",
       "tender_requirement": "exact requirement statement quoted from document",
       "required_value_num": number or null (e.g. 10 for Rs 10 Cr),
-      "required_value_unit": "Cr" | "Lakhs" | "km" | "MLD" | null,
+      "required_value_unit": "Cr" | "Lakhs" | "km" | "MLD" | "%" | "Years" | null,
       "required_value": "string statement of requirement threshold",
       "required_doc": "documentary evidence required",
       "page_ref": "page or section reference e.g. Page 25"
