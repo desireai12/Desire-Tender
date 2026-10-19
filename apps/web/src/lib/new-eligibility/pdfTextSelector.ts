@@ -8,6 +8,7 @@ export interface SelectedPage {
 export interface TextSelectionResult {
   combinedText: string;
   selectedPages: SelectedPage[];
+  pagesSent?: number[];
   totalPages: number;
   allPagesText: string; // Used for verbatim quote verification
 }
@@ -107,7 +108,8 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
     const modName = 'unpdf';
     const unpdf = await import(/* webpackIgnore: true */ modName).catch(() => null);
     if (unpdf && unpdf.getDocumentProxy && unpdf.extractText) {
-      const uint8Array = new Uint8Array(pdfBuffer.buffer, pdfBuffer.byteOffset, pdfBuffer.byteLength);
+      const uint8Array = new Uint8Array(pdfBuffer.byteLength);
+      uint8Array.set(pdfBuffer);
       const pdf = await unpdf.getDocumentProxy(uint8Array);
       total = pdf.numPages || 1;
       const { text, totalPages } = await unpdf.extractText(pdf, { mergePages: false });
@@ -132,51 +134,7 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
     }));
   }
 
-  // 3. If still empty, fallback to zero-dependency stream text parser
-  if (!fullText || fullText.trim().length === 0) {
-    try {
-      const zlib = require('zlib');
-      const str = pdfBuffer.toString('latin1');
-      let pureText = '';
-      const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
-      let match;
-      const chunks: string[] = [];
-      let cur = '';
-      while ((match = streamRegex.exec(str)) !== null) {
-        let decompressed = '';
-        try {
-          decompressed = zlib.inflateSync(Buffer.from(match[1], 'latin1')).toString('latin1');
-        } catch {
-          decompressed = match[1];
-        }
-        const textMatches = decompressed.match(/\(([^)]+)\)\s*Tj/g) || [];
-        for (const m of textMatches) cur += m.replace(/^\(/, '').replace(/\)\s*Tj$/, '') + ' ';
-        const arrayMatches = decompressed.match(/\[([^\]]+)\]\s*TJ/g) || [];
-        for (const m of arrayMatches) {
-          const parts = m.match(/\(([^)]+)\)/g) || [];
-          for (const p of parts) cur += p.slice(1, -1) + ' ';
-        }
-        if (cur.length > 800) {
-          chunks.push(cur.trim());
-          pureText += cur + '\n';
-          cur = '';
-        }
-      }
-      if (cur.trim()) {
-        chunks.push(cur.trim());
-        pureText += cur;
-      }
-      if (pureText.trim().length > 20) {
-        fullText = pureText.trim();
-        rawPages = chunks.map((c, idx) => ({ text: c, num: idx + 1 }));
-        total = chunks.length;
-      }
-    } catch (zlibErr) {
-      console.warn('[PDF_SELECTOR] zlib stream extraction error:', zlibErr);
-    }
-  }
-
-  // 4. Last fallback: readable ASCII/UTF-8 extraction
+  // 3. Last fallback: readable ASCII/UTF-8 extraction
   if (!fullText || fullText.trim().length === 0) {
     const rawStr = pdfBuffer.toString('utf-8');
     const printable = rawStr.replace(/[^\x20-\x7E\r\n\t]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -186,91 +144,107 @@ export async function selectQualificationAndNitPages(pdfBuffer: Buffer): Promise
     }
   }
 
-  const scoredPages: Array<{ pageNum: number; text: string; score: number }> = [];
-
-  const HIGH_VALUE_KEYWORDS = [
-    /\bturnover\b/i,
-    /\bnet\s*worth\b/i,
-    /\bsolvency\b/i,
-    /\bbid\s*capacity\b/i,
-    /\bsimilar\s*work\b/i,
-    /\btechnical\s*criteria\b/i,
-    /\bfinancial\s*criteria\b/i,
-    /\bqualification\s*criteria\b/i,
-    /\beligibility\s*criteria\b/i,
-    /\bcontractor\s*registration\b/i,
-    /\bclass\s*aa\b/i,
-    /\bblacklisting\b/i,
-    /\bjoint\s*venture\b/i,
-    /\bcrore[s]?\b/i
+  // ── PAGE FINDER: Score each page by specified keywords ──
+  // turnover, net worth, solvency, bid capacity, similar work, experience, O&M, eligibility, qualification, registration, joint venture, blacklist
+  const KEYWORD_WEIGHTS: Array<{ rx: RegExp; weight: number }> = [
+    { rx: /\bturnover\b/i, weight: 15 },
+    { rx: /\bnet\s*worth\b/i, weight: 15 },
+    { rx: /\bsolvency\b/i, weight: 15 },
+    { rx: /\bbid\s*capacity\b/i, weight: 15 },
+    { rx: /\bsimilar\s*work\b/i, weight: 15 },
+    { rx: /\bexperience\b/i, weight: 10 },
+    { rx: /\bo&m\b|\boperation\s*&\s*maintenance\b|\boperation\s*and\s*maintenance\b/i, weight: 10 },
+    { rx: /\beligibility\b/i, weight: 10 },
+    { rx: /\bqualification\b/i, weight: 10 },
+    { rx: /\bregistration\b/i, weight: 10 },
+    { rx: /\bjoint\s*venture\b/i, weight: 10 },
+    { rx: /\bblacklist(?:ing|ed)?\b|\bdebar(?:red|ment)?\b/i, weight: 10 }
   ];
+
+  const pageScores: Array<{ pageNum: number; text: string; score: number }> = [];
 
   for (let i = 0; i < rawPages.length; i++) {
     const pageNum = rawPages[i].num || (i + 1);
     const pText = (rawPages[i].text || '').trim();
+    if (pText.length < 15) continue;
 
-    if (pText.length < 20) continue;
-
-    // Check for Qualification / Eligibility / Evaluation criteria
-    const hasQualPattern = QUALIFICATION_PATTERNS.some(rx => rx.test(pText));
-    const matchingKeywords = HIGH_VALUE_KEYWORDS.filter(kw => kw.test(pText));
-    const isPureBoilerplate = BOILERPLATE_EXCLUSION_PATTERNS.some(rx => rx.test(pText)) && !hasQualPattern;
-
-    if (isPureBoilerplate) continue;
-
-    // Send only pages belonging to the qualification section
-    if (hasQualPattern || matchingKeywords.length >= 2) {
-      let score = 30;
-      if (hasQualPattern) score += 40;
-      score += matchingKeywords.length * 10;
-      scoredPages.push({ pageNum, text: pText, score });
+    let score = 0;
+    for (const kw of KEYWORD_WEIGHTS) {
+      if (kw.rx.test(pText)) {
+        score += kw.weight;
+      }
     }
+    pageScores.push({ pageNum, text: pText, score });
   }
 
-  // Fallback: If no qualification pages matched with strict filter, search for single keyword matches
-  if (scoredPages.length === 0 && rawPages.length > 0) {
-    for (let i = 0; i < rawPages.length; i++) {
-      const pageNum = rawPages[i].num || (i + 1);
-      const pText = (rawPages[i].text || '').trim();
-      const hasAnyKw = HIGH_VALUE_KEYWORDS.some(kw => kw.test(pText));
-      if (hasAnyKw) {
-        scoredPages.push({ pageNum, text: pText, score: 10 });
+  // Sort by score descending to find the top pages
+  const scoredOnly = pageScores.filter(p => p.score > 0).sort((a, b) => b.score - a.score);
+  
+  // Pick top pages (take top 6-8 distinct hot spots)
+  const topPages = scoredOnly.slice(0, 8);
+
+  // Send top pages plus two pages on each side (context padding = 2)
+  const selectedPageNums = new Set<number>();
+
+  // Include NIT/BDS summary front pages (Page 1-3)
+  for (let p = 1; p <= Math.min(3, total); p++) {
+    selectedPageNums.add(p);
+  }
+
+  for (const tp of topPages) {
+    for (let offset = -2; offset <= 2; offset++) {
+      const targetPage = tp.pageNum + offset;
+      if (targetPage >= 1 && targetPage <= total) {
+        selectedPageNums.add(targetPage);
       }
     }
   }
 
-  // Budget cap: Cap to top 20 most relevant pages to avoid token / quota limits on large tender documents
-  let finalPages: Array<{ pageNum: number; text: string }> = [];
-  if (scoredPages.length > 20) {
-    const earlyPages = scoredPages.filter(p => p.pageNum <= 3);
-    const otherPages = scoredPages.filter(p => p.pageNum > 3);
-    otherPages.sort((a, b) => b.score - a.score);
-    const topOthers = otherPages.slice(0, 20 - earlyPages.length);
-    finalPages = [...earlyPages, ...topOthers];
-  } else {
-    finalPages = scoredPages;
+  // Fallback: If no pages scored, take first 5 pages
+  if (selectedPageNums.size === 0) {
+    for (let p = 1; p <= Math.min(5, total); p++) {
+      selectedPageNums.add(p);
+    }
   }
 
-  // Sort selected pages in chronological order
-  finalPages.sort((a, b) => a.pageNum - b.pageNum);
+  // Sort selected page numbers ascending
+  const sortedPageNums = Array.from(selectedPageNums).sort((a, b) => a - b);
 
-  // Format combined text with distinct page banners, capped at 30,000 chars (~7,500 tokens)
+  // Map page numbers to text
+  const pageMap = new Map<number, string>();
+  for (const rp of rawPages) {
+    const num = rp.num || 1;
+    pageMap.set(num, rp.text);
+  }
+
+  // Within the token budget: cap combined characters to token budget (35,000 chars)
+  const MAX_CHARS = 35000;
   let charCount = 0;
+  const finalPages: Array<{ pageNum: number; text: string }> = [];
   const pageChunks: string[] = [];
-  for (const p of finalPages) {
-    const banner = `=== [PAGE ${p.pageNum}] ===\n${p.text}`;
-    if (charCount + banner.length > 30000 && pageChunks.length >= 2) {
+
+  for (const pageNum of sortedPageNums) {
+    const pText = pageMap.get(pageNum) || '';
+    const banner = `=== [PAGE ${pageNum}] ===\n${pText}`;
+    if (charCount + banner.length > MAX_CHARS && finalPages.length >= 3) {
       break;
     }
+    finalPages.push({ pageNum, text: pText });
     pageChunks.push(banner);
     charCount += banner.length;
   }
+
+  const pagesSent = finalPages.map(p => p.pageNum);
+
+  // Log the page numbers sent
+  console.log(`[PAGE_FINDER] Selected ${pagesSent.length} pages within budget (${charCount} chars): [${pagesSent.join(', ')}]`);
 
   const combinedText = pageChunks.join('\n\n');
 
   return {
     combinedText,
-    selectedPages: finalPages.map(p => ({ pageNum: p.pageNum, text: p.text })),
+    selectedPages: finalPages,
+    pagesSent,
     totalPages: total,
     allPagesText: fullText
   };

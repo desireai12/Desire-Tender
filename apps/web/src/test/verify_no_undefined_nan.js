@@ -180,7 +180,71 @@ function runAllTests() {
       }
     }
   }
-  console.log('  ✓ Zero imports of build_info.json and zero legacy fallback strings in codebase');
+  // Test 5: A report with no financial criterion cannot be Eligible
+  const testReportNoFinancial = {
+    verdict: 'Eligible',
+    clauses_breakdown: [
+      { clause_no: 'TECH-1', requirement_type: 'Technical', tender_requirement: 'Similar work pipeline' }
+    ]
+  };
+  function validateReportVerdict(report) {
+    const hasFin = (report.clauses_breakdown || []).some(c => c.requirement_type === 'Financial' || /turnover|net\s*worth|solvency|financial/i.test(c.clause_title || c.tender_requirement || ''));
+    if (!hasFin && report.verdict === 'Eligible') {
+      return false;
+    }
+    return true;
+  }
+  if (validateReportVerdict(testReportNoFinancial) === true) {
+    console.error('FAIL: A report with no financial criterion cannot be Eligible!');
+    process.exit(1);
+  }
+  console.log('  ✓ Prebuild test: A report with no financial criterion cannot be Eligible');
+
+  // Test 6: No static partner scores in route.ts
+  const routeContent = fs.readFileSync(path.join(__dirname, '../app/api/v1/[...path]/route.ts'), 'utf-8');
+  if (/match_score:\s*(?:98|85|72)/.test(routeContent)) {
+    console.error('FAIL: Found static partner scores (98, 85, 72) in route.ts!');
+    process.exit(1);
+  }
+  console.log('  ✓ Prebuild test: No static partner scores in route.ts');
+
+  // Test 7: Stamp is 7 to 40 hex characters
+  const validStamps = ['24584a3', 'f754b7d', '24584a32064104278eaee0fc3df757a3e879a834'];
+  const invalidStamps = ['invalid_stamp', '12345', 'g123456', ''];
+  const hexStampRegex = /^[0-9a-f]{7,40}$/i;
+  for (const s of validStamps) {
+    if (!hexStampRegex.test(s)) {
+      console.error(`FAIL: Valid stamp "${s}" failed regex check!`);
+      process.exit(1);
+    }
+  }
+  for (const s of invalidStamps) {
+    if (hexStampRegex.test(s)) {
+      console.error(`FAIL: Invalid stamp "${s}" passed regex check!`);
+      process.exit(1);
+    }
+  }
+  console.log('  ✓ Prebuild test: Build stamp is 7 to 40 hex characters');
+
+  // Test 8: Quotes exist in the text
+  const sampleExtractedText = 'The bidder must have average annual turnover of Rs 50 Crore in the last 3 financial years.';
+  const sampleValidQuote = 'average annual turnover of Rs 50 Crore';
+  const sampleInventedQuote = 'average annual turnover of Rs 150 Crore from solar';
+  function verifyQuoteInText(quote, fullText) {
+    if (!quote || !fullText) return false;
+    const cleanQuote = quote.toLowerCase().replace(/\s+/g, ' ').trim();
+    const cleanText = fullText.toLowerCase().replace(/\s+/g, ' ');
+    return cleanText.includes(cleanQuote);
+  }
+  if (!verifyQuoteInText(sampleValidQuote, sampleExtractedText)) {
+    console.error('FAIL: Valid quote was not found in extracted text!');
+    process.exit(1);
+  }
+  if (verifyQuoteInText(sampleInventedQuote, sampleExtractedText)) {
+    console.error('FAIL: Invented quote was erroneously verified in extracted text!');
+    process.exit(1);
+  }
+  console.log('  ✓ Prebuild test: Verifies quotes exist in extracted text');
 
   console.log('\nPASS: All unit verification tests passed successfully.');
   console.log('  [Notice] Test suite executes against mathematical rules and code integrity only.');

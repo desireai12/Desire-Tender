@@ -1,0 +1,30 @@
+{
+  "tender_title": "Comprehensive Operation & Maintenance of Civil & Electromechanical assets for Radhanpur-Santalpur RWSS",
+  "expected_verdict": "Eligible",
+  "expected_criteria": [
+    {
+      "clause_title": "Contractor Registration Class",
+      "requirement_type": "Organizational",
+      "expected_amount_rupees": null,
+      "expected_keywords": ["registration", "class", "gujarat"]
+    },
+    {
+      "clause_title": "Bid Document Fee / Tender Fee",
+      "requirement_type": "Financial",
+      "expected_amount_rupees": 18000,
+      "expected_keywords": ["18000", "eighteen thousand", "fee"]
+    },
+    {
+      "clause_title": "Earnest Money Deposit (EMD)",
+      "requirement_type": "Financial",
+      "expected_amount_rupees": 2023000,
+      "expected_keywords": ["20,23,000", "emd", "twenty lacs"]
+    },
+    {
+      "clause_title": "Electrical Contractor License",
+      "requirement_type": "Technical",
+      "expected_amount_rupees": null,
+      "expected_keywords": ["electrical", "license"]
+    }
+  ]
+}
