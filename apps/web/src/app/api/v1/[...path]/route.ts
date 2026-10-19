@@ -819,25 +819,14 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner', extra
   report.combined_verdict = combinedVerdict;
   report.combined_verdict_reason = combinedVerdictReason;
 
-  const desireEvaluable = qualificationCriteria.filter((c: any) => c.desire_status !== 'DATA MISSING' && c.desire_status !== 'CANNOT BE CHECKED');
-  const combinedEvaluable = qualificationCriteria.filter((c: any) => c.status !== 'DATA MISSING' && c.status !== 'CANNOT BE CHECKED');
-
-  let dScore = 100;
-  if (desireEvaluable.length > 0) {
-    const sum = desireEvaluable.reduce((acc: number, c: any) => acc + (typeof c.desire_pct === 'number' ? c.desire_pct : (c.desire_status === 'MATCH' ? 100 : 0)), 0);
-    dScore = Math.min(100, Math.round(sum / desireEvaluable.length));
-  }
-
-  let cScore = 100;
-  if (combinedEvaluable.length > 0) {
-    const sum = combinedEvaluable.reduce((acc: number, c: any) => acc + (typeof c.combined_pct === 'number' ? c.combined_pct : (c.status === 'MATCH' ? 100 : 0)), 0);
-    cScore = Math.min(100, Math.round(sum / combinedEvaluable.length));
-  }
+  const totalQualCount = qualificationCriteria.length || 1;
+  const dScore = Math.min(100, Math.round((desirePassed.length / totalQualCount) * 100));
+  const cScore = Math.min(100, Math.round((combinedPassed.length / totalQualCount) * 100));
 
   report.eligibility_score = dScore;
   report.combined_eligibility_score = cScore;
   report.missing_data_criteria = desireMissing;
-  report.score_formula = `Score = (${desirePassed.length} Passed / ${desireEvaluable.length} Evaluated Criteria)`;
+  report.score_formula = `Score = (${desirePassed.length} Passed / ${totalQualCount} Qualification Criteria)`;
 
   if (desireFailed.length > 0 && combinedFailed.length === 0) {
     report.recommendation = `JV Bidding Recommended: Desire Energy has gaps in (${desireFailed.map((f: any) => f.clause_title).join(', ')}). Partner ${jvName} satisfies consortium qualifications.`;
@@ -1434,18 +1423,20 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       reqText.includes('private limited') || reqText.includes('proprietorship or partnership') ||
       (title.includes('entity') && !title.includes('identity'))
     ) {
-      dPct = 100;
-      dStatus = 'MATCH';
-      dVal = `Desire actual: Private Limited Company registered under Companies Act, CIN: ${desireComp.cin || desireComp.cin_registration} (RoC Jaipur, Balance Sheet Note 1) -> 100% MATCH`;
+      const cinVal = desireComp.cin || desireComp.cin_registration;
+      const cinText = (cinVal && cinVal !== 'null' && cinVal !== 'undefined') ? `CIN: ${cinVal} ` : '';
+      dVal = `Desire actual: Private Limited Company registered under Companies Act, ${cinText}(RoC Jaipur, Balance Sheet Note 1) -> 100% MATCH`;
 
       jPct = 100;
       jStatus = 'MATCH';
-      jVal = `${partner.name} actual: Registered entity (${partner.cin_registration || partner.type}) -> 100% MATCH`;
+      const pCinVal = partner.cin_registration || partner.cin;
+      const pCinText = (pCinVal && pCinVal !== 'null' && pCinVal !== 'undefined') ? ` (${pCinVal})` : ` (${partner.type || 'Entity'})`;
+      jVal = `${partner.name} actual: Registered entity${pCinText} -> 100% MATCH`;
 
       cPct = 100;
       cStatus = 'MATCH';
       cVal = `Consortium satisfies legal entity and incorporation requirements -> 100% MATCH`;
-      gapNotes = 'Legal entity checked and verified from CIN.';
+      gapNotes = 'Legal entity checked and verified from corporate records.';
     }
 
     // 2. TURNOVER EVALUATION
@@ -1952,9 +1943,12 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       gapNotes = `CANNOT BE CHECKED — Verification required at bid submission for ${c.clause_title || 'requirement'}.`;
     }
 
-    // Check if requirement contains alternatives (e.g. Scenario 1 OR 2, constructed OR maintained)
+    // Check if requirement contains alternatives (e.g. Scenario 1 OR 2 for turnover; Scenario 1 OR 2 for experience)
+    const isTurnoverClause = title.includes('turnover') || reqText.includes('turnover');
+    const isExperienceClause = title.includes('experience') || reqText.includes('experience') || title.includes('similar work') || reqText.includes('similar work');
     const isAlternative = reqText.includes('scenario 1') || reqText.includes('scenario 2') || reqText.includes('constructed or maintained') || reqText.includes('scenario 1 or') || title.includes('scenario') || title.includes('alternative');
-    const altGroup = isAlternative ? (reqText.includes('scenario') || title.includes('scenario') ? 'scenario_alternative_group' : 'work_type_alternative_group') : null;
+    const altDomain = isTurnoverClause ? 'turnover' : (isExperienceClause ? 'experience' : 'general');
+    const altGroup = isAlternative ? `${altDomain}_scenario_alternative_group` : null;
 
     return {
       clause_no: c.clause_no || 'Clause',
@@ -2057,19 +2051,26 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       }
     });
 
-    // Strict scoring rule: Score = passed ÷ checked qualification criteria!
-    // Unchecked rows (CANNOT BE CHECKED / DATA MISSING) count NEITHER WAY.
+    // Qualification score = (passed + possible + partial) ÷ total qualification criteria
+    // Unchecked criteria (CANNOT BE CHECKED / DATA MISSING) count as pending (0%)
+    const totalQualCriteria = consolidatedCriteria.length || 1;
     const desireChecked = consolidatedCriteria.filter(c => c.desire_status !== 'CANNOT BE CHECKED' && c.desire_status !== 'DATA MISSING');
-    const desirePassed = desireChecked.filter(c => c.desire_status === 'MATCH');
-    const dScore = desireChecked.length > 0 ? Math.min(100, Math.round((desirePassed.length / desireChecked.length) * 100)) : 100;
+    const desirePassed = consolidatedCriteria.filter(c => c.desire_status === 'MATCH');
+    const desirePossible = consolidatedCriteria.filter(c => c.desire_status === 'POSSIBLE MATCH');
+    const desirePartial = consolidatedCriteria.filter(c => c.desire_status === 'PARTIAL MATCH');
+    const dScore = Math.min(100, Math.round(((desirePassed.length * 100) + (desirePossible.length * 85) + (desirePartial.length * 50)) / totalQualCriteria));
 
     const jvChecked = consolidatedCriteria.filter(c => c.jv_status !== 'CANNOT BE CHECKED' && c.jv_status !== 'DATA MISSING');
-    const jvPassed = jvChecked.filter(c => c.jv_status === 'MATCH');
-    const jScore = jvChecked.length > 0 ? Math.min(100, Math.round((jvPassed.length / jvChecked.length) * 100)) : 100;
+    const jvPassed = consolidatedCriteria.filter(c => c.jv_status === 'MATCH');
+    const jvPossible = consolidatedCriteria.filter(c => c.jv_status === 'POSSIBLE MATCH');
+    const jvPartial = consolidatedCriteria.filter(c => c.jv_status === 'PARTIAL MATCH');
+    const jScore = Math.min(100, Math.round(((jvPassed.length * 100) + (jvPossible.length * 85) + (jvPartial.length * 50)) / totalQualCriteria));
 
     const combinedChecked = consolidatedCriteria.filter(c => c.status !== 'CANNOT BE CHECKED' && c.status !== 'DATA MISSING');
-    const combinedPassed = combinedChecked.filter(c => c.status === 'MATCH');
-    const cScore = combinedChecked.length > 0 ? Math.min(100, Math.round((combinedPassed.length / combinedChecked.length) * 100)) : 100;
+    const combinedPassed = consolidatedCriteria.filter(c => c.status === 'MATCH');
+    const combinedPossible = consolidatedCriteria.filter(c => c.status === 'POSSIBLE MATCH');
+    const combinedPartial = consolidatedCriteria.filter(c => c.status === 'PARTIAL MATCH');
+    const cScore = Math.min(100, Math.round(((combinedPassed.length * 100) + (combinedPossible.length * 85) + (combinedPartial.length * 50)) / totalQualCriteria));
 
     const desireUnchecked = consolidatedCriteria.filter(c => c.desire_status === 'CANNOT BE CHECKED' || c.desire_status === 'DATA MISSING');
     const combinedUnchecked = consolidatedCriteria.filter(c => c.status === 'CANNOT BE CHECKED' || c.status === 'DATA MISSING');
@@ -2134,20 +2135,21 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     summaryLine = `Desire Energy has ${realDataFailures.length} qualification criteria failing real-data evaluation (Score: ${desireStandaloneScore}%). Recommended: JV with ${recPartner.name} to reach ${selectedEval ? selectedEval.cScore : 100}% combined.`;
   }
 
-  const dFormulaStr = `Score = passed (${desirePassedList.length}) ÷ checked qualification criteria (${desireCheckedList.length}) = ${desireStandaloneScore}%`;
-  const cFormulaStr = `Score = passed (${combinedPassedList.length}) ÷ checked qualification criteria (${combinedCheckedList.length}) = ${selectedEval ? selectedEval.cScore : 100}%`;
+  const totalCriteriaNum = selectedEval ? selectedEval.consolidatedCriteria.length : 1;
+  const dFormulaStr = `Score = passed (${desirePassedList.length}) ÷ total qualification criteria (${totalCriteriaNum}) = ${desireStandaloneScore}%`;
+  const cFormulaStr = `Score = passed (${combinedPassedList.length}) ÷ total qualification criteria (${totalCriteriaNum}) = ${selectedEval ? selectedEval.cScore : 100}%`;
 
   const scoreFormula = {
     desire_standalone: {
       score: desireStandaloneScore,
       passed_count: desirePassedList.length,
-      checked_count: desireCheckedList.length,
+      checked_count: totalCriteriaNum,
       formula_str: dFormulaStr
     },
     combined_jv: {
       score: selectedEval ? selectedEval.cScore : 100,
       passed_count: combinedPassedList.length,
-      checked_count: combinedCheckedList.length,
+      checked_count: totalCriteriaNum,
       formula_str: cFormulaStr
     },
     missing_criteria_count: desireUncheckedList.length,

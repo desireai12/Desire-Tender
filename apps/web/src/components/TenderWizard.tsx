@@ -550,6 +550,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           } else if (dStatus === 'PARTIAL MATCH' || jStatus === 'PARTIAL MATCH' || c.status === 'PARTIAL MATCH') {
             status = 'PARTIAL MATCH';
             pct = 50;
+          } else if (c.status === 'SUBMISSION_ITEM' || dStatus === 'SUBMISSION_ITEM') {
+            status = 'SUBMISSION_ITEM';
+            pct = 0;
+          } else if (c.status === 'CANNOT BE CHECKED' || dStatus === 'CANNOT BE CHECKED' || jStatus === 'CANNOT BE CHECKED' || c.status === 'DATA MISSING') {
+            status = 'CANNOT BE CHECKED';
+            pct = 0;
           } else {
             status = 'NOT MATCHING';
             pct = 0;
@@ -567,19 +573,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const matched = evaluated.filter(c => c.active_status === 'MATCH').length;
       const possible = evaluated.filter(c => c.active_status === 'POSSIBLE MATCH').length;
       const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
-      const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING').length;
-      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE' || c.active_status === 'CANNOT BE CHECKED').length;
+      const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING' || c.active_status === 'NOT ELIGIBLE').length;
+      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE' || c.active_status === 'CANNOT BE CHECKED' || c.active_status === 'DATA MISSING' || c.active_status === 'SUBMISSION_ITEM').length;
 
-      // Real qualification criteria score (excluding un-scored submission checklists and contract terms)
-      const qualCriteria = evaluated.filter(c => c.is_eligibility_criterion !== false && c.clause_group !== 'mandatory_submission' && c.clause_group !== 'contract_term');
-      const qualTotal = qualCriteria.length || totalCount;
-      const qualMatched = qualCriteria.filter(c => c.active_status === 'MATCH').length;
-      const qualPossible = qualCriteria.filter(c => c.active_status === 'POSSIBLE MATCH').length;
-      const qualPartial = qualCriteria.filter(c => c.active_status === 'PARTIAL MATCH').length;
-      const calcScore = Math.min(100, Math.round(((qualMatched * 100) + (qualPossible * 85) + (qualPartial * 50)) / qualTotal));
-
-      const targetScore = mode === 'desire' ? desireTargetScore : mode === 'jv' ? jvTargetScore : combinedTargetScore;
-      const score = (targetScore !== null && targetScore !== undefined) ? targetScore : calcScore;
+      // Score strictly calculated from the evaluated criteria on screen:
+      // (Matched * 100 + Possible * 85 + Partial * 50) / totalCount
+      const score = Math.min(100, Math.round(((matched * 100) + (possible * 85) + (partial * 50)) / totalCount));
 
       return {
         score,
@@ -603,18 +602,24 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
 
     let badge = `OPTION 3 — DESIRE (${desireEquityRatio}%) + ${jvComp.name.split(' ')[0]} (${partnerEquityRatio}%) COMBINED`;
     let entityName = `Combined Consortium (Desire Energy + ${jvComp.name})`;
-    let verdict = evaluationReport.combined_jv?.status || 'Consortium Evaluation';
+    let verdict = combinedEval.counts.data_missing > 0 
+      ? `Cannot determine: ${combinedEval.counts.data_missing} criteria need data`
+      : combinedEval.counts.not_matching > 0 ? 'Partially Qualified Consortium' : 'Fully Qualified Consortium';
     let recommendation = evaluationReport.recommendation || `Consortium achieves ${activeEval.pctStr} qualification`;
 
     if (activeAnalysisOption === 'desire') {
       badge = 'OPTION 1 — DESIRE ENERGY ALONE';
       entityName = 'Desire Energy Alone';
-      verdict = evaluationReport.desire_alone?.status || evaluationReport.verdict || 'Processing';
+      verdict = desireEval.counts.data_missing > 0
+        ? `Cannot determine: ${desireEval.counts.data_missing} criteria need data`
+        : desireEval.counts.not_matching > 0 ? 'Ineligible Standalone' : 'Eligible Standalone';
       recommendation = evaluationReport.recommendation || `Desire Energy Standalone: ${activeEval.pctStr} score`;
     } else if (activeAnalysisOption === 'jv') {
       badge = `OPTION 2 — ${jvComp.name.toUpperCase()} ALONE`;
       entityName = `${jvComp.name} Alone`;
-      verdict = evaluationReport.jv_alone?.status || 'Partner Standalone Assessment';
+      verdict = jvEval.counts.data_missing > 0
+        ? `Cannot determine: ${jvEval.counts.data_missing} criteria need data`
+        : jvEval.counts.not_matching > 0 ? 'Partner Incomplete Standalone' : 'Partner Standalone Qualified';
       recommendation = evaluationReport.jv_alone ? `Partner satisfies ${activeEval.pctStr} standalone` : 'Partner assessment for consortium bidding';
     }
 
@@ -1024,20 +1029,24 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {(() => {
             const dScore = parseInt(perspective.option1_pct || '0');
             const cScore = parseInt(perspective.option3_pct || '0');
-            const summaryText = (evaluationReport as any)?.summary_line || (
-              dScore >= 90 
-                ? `Desire Energy qualifies standalone (${perspective.option1_pct}). A JV is optional.`
-                : `Desire Energy does not qualify standalone (Score: ${perspective.option1_pct}). Recommended: JV with ${jvComp.name} to reach ${perspective.option3_pct} combined.`
-            );
+            const dMissing = desireEval.counts.data_missing;
+            const isDesireQualified = dMissing === 0 && dScore >= 90;
+            const isCannotDetermine = dMissing > 0;
+
+            const summaryText = isDesireQualified
+              ? `Desire Energy qualifies standalone (${perspective.option1_pct}). A JV is optional.`
+              : isCannotDetermine
+              ? `Cannot determine standalone eligibility: ${dMissing} criteria need verification (${desireEval.counts.matched} of ${desireEval.counts.total_criteria} verified).`
+              : `Desire Energy does not qualify standalone (Score: ${perspective.option1_pct}). Recommended: JV with ${jvComp.name} to reach ${perspective.option3_pct} combined.`;
 
             return (
               <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm ${
-                dScore >= 90 ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : dScore >= 50 ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-rose-50 border-rose-300 text-rose-900'
+                isDesireQualified ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : isCannotDetermine ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-rose-50 border-rose-300 text-rose-900'
               }`}>
                 <div className="flex items-center space-x-3">
-                  {dScore >= 90 ? (
+                  {isDesireQualified ? (
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                  ) : dScore >= 50 ? (
+                  ) : isCannotDetermine ? (
                     <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
                   ) : (
                     <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
@@ -1047,14 +1056,16 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
                       {summaryText}
                     </h3>
                     <p className="text-xs font-medium opacity-90 mt-0.5">
-                      {dScore >= 90 
+                      {isDesireQualified 
                         ? 'Desire Energy meets all eligibility requirements independently. Direct standalone bid is recommended.' 
+                        : isCannotDetermine
+                        ? `Desire Energy alone satisfies ${perspective.option1_pct} of criteria. Standalone bid cannot be confirmed until pending certificates are uploaded in Master DB.`
                         : `Desire Energy alone satisfies ${perspective.option1_pct} of criteria. Consortium pooling with ${jvComp.name} achieves ${perspective.option3_pct} total qualification.`}
                     </p>
                   </div>
                 </div>
 
-                {dScore >= 90 && (
+                {isDesireQualified && (
                   <button
                     onClick={() => setShowOptionalJv(!showOptionalJv)}
                     className="px-3.5 py-1.5 rounded-lg bg-white border border-emerald-400 text-xs font-bold text-emerald-900 hover:bg-emerald-100/60 transition-colors shrink-0 shadow-sm flex items-center space-x-1.5 self-start sm:self-auto cursor-pointer"
@@ -1070,8 +1081,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {/* AI SUGGESTED PARTNER & STATUTORY JV CONSORTIUM SPLIT (SECONDARY / COLLAPSED IF STANDALONE QUALIFIED) */}
           {(() => {
             const dScore = parseInt(perspective.option1_pct || '0');
-            // If Desire qualifies standalone (>=90%), hide JV details unless user clicks 'View Optional JV Scenario'
-            if (dScore >= 90 && !showOptionalJv) {
+            const dMissing = desireEval.counts.data_missing;
+            const isDesireQualified = dMissing === 0 && dScore >= 90;
+            // If Desire qualifies standalone, hide JV details unless user clicks 'View Optional JV Scenario'
+            if (isDesireQualified && !showOptionalJv) {
               return null;
             }
 
@@ -1301,7 +1314,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
               </span>
             </div>
             <div className="glass-card p-3 rounded-xl border border-slate-300 bg-slate-50">
-              <span className="text-[10px] font-mono text-slate-500 font-bold uppercase block">Data Missing</span>
+              <span className="text-[10px] font-mono text-slate-500 font-bold uppercase block">Data Missing / Pending</span>
               <span className="text-sm font-bold text-slate-700">
                 {perspective.summary_counts.data_missing}
               </span>
