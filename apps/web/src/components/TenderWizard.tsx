@@ -464,6 +464,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         option2_pct: '0%',
         option3_pct: '100%',
         summary_counts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
+        desireCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
+        jvCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
+        combinedCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
         total_count: 0,
         matched_count: 0,
         partial_count: 0,
@@ -639,6 +642,9 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         ? `${jvComp.name} Standalone AI Analysis: Evaluated ${totalCount} extracted tender clauses against ${jvComp.name} credentials (₹${jvComp.average_turnover} Cr avg turnover, ₹${jvComp.net_worth} Cr net worth). Partner status: ${verdict}.`
         : `Combined Consortium AI Analysis: Evaluated ${totalCount} extracted tender clauses against Desire Energy (${desireEquityRatio}%) + ${jvComp.name} (${partnerEquityRatio}%) with ₹${pooledTurnover} Cr pooled turnover and ₹${pooledNetWorth} Cr pooled net worth. Consortium status: ${verdict}.`,
       summary_counts: activeEval.counts,
+      desireCounts: desireEval.counts,
+      jvCounts: jvEval.counts,
+      combinedCounts: combinedEval.counts,
       total_count: activeEval.counts.total_criteria,
       matched_count: activeEval.counts.matched,
       partial_count: activeEval.counts.partial,
@@ -1029,14 +1035,16 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {(() => {
             const dScore = parseInt(perspective.option1_pct || '0');
             const cScore = parseInt(perspective.option3_pct || '0');
-            const dMissing = desireEval.counts.data_missing;
+            const dMissing = perspective.desireCounts?.data_missing || 0;
+            const dMatched = perspective.desireCounts?.matched || 0;
+            const dTotal = perspective.desireCounts?.total_criteria || 0;
             const isDesireQualified = dMissing === 0 && dScore >= 90;
             const isCannotDetermine = dMissing > 0;
 
             const summaryText = isDesireQualified
               ? `Desire Energy qualifies standalone (${perspective.option1_pct}). A JV is optional.`
               : isCannotDetermine
-              ? `Cannot determine standalone eligibility: ${dMissing} criteria need verification (${desireEval.counts.matched} of ${desireEval.counts.total_criteria} verified).`
+              ? `Cannot determine standalone eligibility: ${dMissing} criteria need verification (${dMatched} of ${dTotal} verified).`
               : `Desire Energy does not qualify standalone (Score: ${perspective.option1_pct}). Recommended: JV with ${jvComp.name} to reach ${perspective.option3_pct} combined.`;
 
             return (
@@ -1081,7 +1089,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           {/* AI SUGGESTED PARTNER & STATUTORY JV CONSORTIUM SPLIT (SECONDARY / COLLAPSED IF STANDALONE QUALIFIED) */}
           {(() => {
             const dScore = parseInt(perspective.option1_pct || '0');
-            const dMissing = desireEval.counts.data_missing;
+            const dMissing = perspective.desireCounts?.data_missing || 0;
             const isDesireQualified = dMissing === 0 && dScore >= 90;
             // If Desire qualifies standalone, hide JV details unless user clicks 'View Optional JV Scenario'
             if (isDesireQualified && !showOptionalJv) {

@@ -803,6 +803,7 @@ function sanitizeReportClauses(report: any, jvName: string = 'JV Partner', extra
 
   const combinedFailed = qualificationCriteria.filter((c: any) => c.status === 'NOT MATCHING' || c.status === 'NOT ELIGIBLE');
   const combinedMissing = qualificationCriteria.filter((c: any) => c.status === 'CANNOT BE CHECKED' || c.status === 'DATA MISSING');
+  const combinedPassed = qualificationCriteria.filter((c: any) => c.status === 'MATCH');
 
   let combinedVerdict = 'Eligible';
   let combinedVerdictReason = 'All qualification criteria checked and passed by Consortium.';
