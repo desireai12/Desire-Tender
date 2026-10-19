@@ -555,7 +555,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             pct = 50;
           } else if (c.status === 'SUBMISSION_ITEM' || dStatus === 'SUBMISSION_ITEM') {
             status = 'SUBMISSION_ITEM';
-            pct = 0;
+            pct = 100;
           } else if (c.status === 'CANNOT BE CHECKED' || dStatus === 'CANNOT BE CHECKED' || jStatus === 'CANNOT BE CHECKED' || c.status === 'DATA MISSING') {
             status = 'CANNOT BE CHECKED';
             pct = 0;
@@ -577,11 +577,12 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const possible = evaluated.filter(c => c.active_status === 'POSSIBLE MATCH').length;
       const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
       const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING' || c.active_status === 'NOT ELIGIBLE').length;
-      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE' || c.active_status === 'CANNOT BE CHECKED' || c.active_status === 'DATA MISSING' || c.active_status === 'SUBMISSION_ITEM').length;
+      const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE' || c.active_status === 'CANNOT BE CHECKED' || c.active_status === 'DATA MISSING').length;
 
-      // Score strictly calculated from the evaluated criteria on screen:
-      // (Matched * 100 + Possible * 85 + Partial * 50) / totalCount
-      const score = Math.min(100, Math.round(((matched * 100) + (possible * 85) + (partial * 50)) / totalCount));
+      // Score strictly calculated from the evaluated qualification criteria on screen (submission items are statutory/procedural):
+      const qualCriteria = evaluated.filter(c => c.active_status !== 'SUBMISSION_ITEM');
+      const qualTotal = qualCriteria.length > 0 ? qualCriteria.length : totalCount;
+      const score = Math.min(100, Math.round(((matched * 100) + (possible * 85) + (partial * 50)) / qualTotal));
 
       return {
         score,

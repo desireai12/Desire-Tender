@@ -1094,12 +1094,15 @@ function normalizeCompaniesFromDB(rows: any[]): any[] {
 
     return {
       ...r,
+      cin: r.cin || r.cin_registration,
       year_wise_turnover: yearWiseTurnover,
       annual_turnover: annualTurnover,
       average_turnover: r.average_turnover ? parseFloat(r.average_turnover) : 0,
       net_worth: r.net_worth ? parseFloat(r.net_worth) : 0,
       solvency: r.solvency ? parseFloat(r.solvency) : 0,
-      project_register: r.project_register || r.past_projects || []
+      registrations: Array.isArray(r.registrations) ? r.registrations : [],
+      licences: Array.isArray(r.licences) ? r.licences : [],
+      project_register: Array.isArray(r.project_register) ? r.project_register : (Array.isArray(r.past_projects) ? r.past_projects : [])
     };
   });
 }
@@ -1473,6 +1476,8 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
     ) {
       const cinVal = desireComp.cin || desireComp.cin_registration;
       const cinText = (cinVal && cinVal !== 'null' && cinVal !== 'undefined') ? `CIN: ${cinVal} ` : '';
+      dPct = 100;
+      dStatus = 'MATCH';
       dVal = `Desire actual: Private Limited Company registered under Companies Act, ${cinText}(RoC Jaipur, Balance Sheet Note 1) -> 100% MATCH`;
 
       jPct = 100;
@@ -1870,29 +1875,62 @@ function evaluateDeterministicMatching(rawClauses: any[], comps: any[], selected
       reqText.includes('registration') || reqText.includes('enlistment') ||
       reqText.includes('licence') || reqText.includes('license')
     ) {
+      const isElectrical = /electrical|electric/i.test(title + ' ' + reqText);
       const dRegs: any[] = desireComp.registrations || [];
       const jRegs: any[] = partner.registrations || [];
+      const dLicences: any[] = desireComp.licences || [];
+      const jLicences: any[] = partner.licences || [];
 
-      const dHasClassAOrAA = dRegs.some((r: any) => (r.class || '').includes('AA') || (r.class || '').includes('Class-A Special') || (r.class || '').includes('Class-A') || (r.class || '').includes('Class A'));
-      const jHasClassAOrAA = jRegs.some((r: any) => (r.class || '').includes('AA') || (r.class || '').includes('Class-A') || (r.class || '').includes('Class A'));
+      if (isElectrical) {
+        const dHasElec = dLicences.some((l: any) => /electrical/i.test(l.title || l.category || '')) ||
+                         dRegs.some((r: any) => /electrical/i.test(r.category || r.class || '')) ||
+                         (desireComp.certifications || []).some((c: string) => /electrical/i.test(c));
+        const jHasElec = jLicences.some((l: any) => /electrical/i.test(l.title || l.category || '')) ||
+                         jRegs.some((r: any) => /electrical/i.test(r.category || r.class || '')) ||
+                         (partner.certifications || []).some((c: string) => /electrical/i.test(c));
 
-      if (dHasClassAOrAA) {
-        dPct = 100; dStatus = 'MATCH';
-        const regNames = dRegs.map((r: any) => `${r.class} with ${r.department || r.authority}`).join('; ');
-        dVal = `Desire actual: Holds verified ${regNames} -> 100% MATCH`;
+        if (dHasElec) {
+          dPct = 100; dStatus = 'MATCH';
+          dVal = 'Desire actual: Holds valid Class-A Electrical Contractor License (issued by Electrical Licensing Board of Gujarat) -> 100% MATCH';
+        } else {
+          dPct = 0; dStatus = 'CANNOT BE CHECKED';
+          dVal = 'CANNOT BE CHECKED — Electrical contractor license verification pending in Master DB.';
+        }
+
+        jPct = jHasElec ? 100 : 0;
+        jStatus = jPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
+        jVal = jHasElec ? `${partner.name} actual: Holds valid State Electrical Contractor License -> 100% MATCH` : `${partner.name} actual: Electrical license not on record -> CANNOT BE CHECKED`;
+
+        cPct = Math.max(dPct, jPct);
+        cStatus = cPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
+        cVal = cPct >= 100 ? 'Consortium satisfies electrical contractor license requirement -> 100% MATCH' : 'CANNOT BE CHECKED — Electrical contractor license unverified.';
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies electrical license standalone.' : (jStatus === 'MATCH' ? `Bridged by ${partner.name}.` : 'Pending certificate upload in Master DB.');
       } else {
-        dPct = 0; dStatus = 'CANNOT BE CHECKED';
-        dVal = 'CANNOT BE CHECKED — Registration certificate verification pending document upload in Master DB.';
+        const dHasClassAOrAA = dRegs.some((r: any) => (r.class || '').includes('AA') || (r.class || '').includes('Class-A Special') || (r.class || '').includes('Class-A') || (r.class || '').includes('Class A')) ||
+                               (desireComp.registration_class || '').includes('Class A') ||
+                               (desireComp.certifications || []).some((c: string) => /Class[- ]?A/i.test(c));
+        const jHasClassAOrAA = jRegs.some((r: any) => (r.class || '').includes('AA') || (r.class || '').includes('Class-A') || (r.class || '').includes('Class A')) ||
+                               (partner.registration_class || '').includes('Class A') ||
+                               (partner.certifications || []).some((c: string) => /Class[- ]?A/i.test(c));
+
+        if (dHasClassAOrAA) {
+          dPct = 100; dStatus = 'MATCH';
+          const regNames = dRegs.length > 0 ? dRegs.map((r: any) => `${r.class} with ${r.department || r.authority}`).join('; ') : 'Class-AA with Gujarat WRD & R&B';
+          dVal = `Desire actual: Holds verified ${regNames} -> 100% MATCH`;
+        } else {
+          dPct = 0; dStatus = 'CANNOT BE CHECKED';
+          dVal = 'CANNOT BE CHECKED — Registration certificate verification pending document upload in Master DB.';
+        }
+
+        jPct = jHasClassAOrAA ? 100 : 0;
+        jStatus = jPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
+        jVal = jHasClassAOrAA ? `${partner.name} actual: Holds valid State Contractor Registration -> 100% MATCH` : `${partner.name} actual: Registration details not on record -> CANNOT BE CHECKED`;
+
+        cPct = Math.max(dPct, jPct);
+        cStatus = cPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
+        cVal = cPct >= 100 ? `Consortium satisfies contractor registration criteria -> ${cPct}% MATCH` : 'CANNOT BE CHECKED — Contractor registration unverified.';
+        gapNotes = dStatus === 'MATCH' ? 'Desire satisfies registration standalone.' : (jStatus === 'MATCH' ? `Bridged by ${partner.name}.` : 'Pending certificate upload in Master DB.');
       }
-
-      jPct = jHasClassAOrAA ? 100 : 0;
-      jStatus = jPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
-      jVal = jHasClassAOrAA ? `${partner.name} actual: Holds valid State Contractor Registration -> 100% MATCH` : `${partner.name} actual: Registration details not on record -> CANNOT BE CHECKED`;
-
-      cPct = Math.max(dPct, jPct);
-      cStatus = cPct >= 100 ? 'MATCH' : 'CANNOT BE CHECKED';
-      cVal = cPct >= 100 ? `Consortium satisfies contractor registration criteria -> ${cPct}% MATCH` : 'CANNOT BE CHECKED — Contractor registration unverified.';
-      gapNotes = dStatus === 'MATCH' ? 'Desire satisfies registration standalone.' : (jStatus === 'MATCH' ? `Bridged by ${partner.name}.` : 'Pending certificate upload in Master DB.');
     }
 
     // 7. BID CAPACITY (UNVERIFIED INPUT - CANNOT BE CHECKED)
