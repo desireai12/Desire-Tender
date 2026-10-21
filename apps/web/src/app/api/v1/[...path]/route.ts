@@ -758,7 +758,12 @@ function categorizeClause(c: any): {
     // Contract & DLP
     title.includes('dlp') || reqText.includes('defect liability') || title.includes('defect liability') ||
     (title.includes('o&m') && !title.includes('experience') && !reqText.includes('experience') && !title.includes('similar work') && !reqText.includes('similar work')) || 
-    title.includes('escalation') || reqText.includes('price variation') || title.includes('arbitration') || reqText.includes('dispute resolution');
+    title.includes('escalation') || reqText.includes('price variation') || title.includes('arbitration') || reqText.includes('dispute resolution') ||
+    // Subletting / assignment prohibitions (post-award conduct rule)
+    /\b(?:sublet|sub-let|subletting|sub-contract(?:ing)?|subcontract(?:ing)?|assignment\s*of\s*(?:the\s*)?contract)\b/i.test(title + ' ' + reqText) ||
+    // Obligations the contractor/agency must fulfil DURING execution (not something the bidder must already hold)
+    /\b(?:contractor|agency|successful\s*bidder)\s+shall\s+(?:employ|deploy|engage|provide|maintain|keep)\b/i.test(reqText) ||
+    /\bto\s+be\s+(?:maintained|provided|deployed|kept)\s+(?:for|by|at)\b/i.test(reqText);
 
   if (isContractOrOperational) {
     return { is_eligibility_criterion: false, clause_group: 'contract_term', clause_category: 'contract', group: 'Others' };
@@ -1065,10 +1070,7 @@ export function runReportAudit(
 
             const isFromDb = validFigures.has(numStrFixed) || validFigures.has(String(numVal));
             const isFromQuote = quoteText.includes(String(numVal)) || quoteText.includes(numStrFixed) || quoteText.includes(m);
-            // Derived turnover average between minimum single year and maximum escalated year
-            const isDerivedTurnover = isTurnoverClause && numVal >= 75 && numVal <= 650;
-
-            if (!isFromDb && !isFromQuote && !isReqThreshold && !isDerivedTurnover && numVal > 0 && numVal < 1000) {
+            if (!isFromDb && !isFromQuote && !isReqThreshold && numVal > 0 && numVal < 1000) {
               return {
                 passed: false,
                 errorName: 'AUDIT_FIGURE_NOT_IN_DATABASE',
