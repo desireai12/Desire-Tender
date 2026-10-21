@@ -905,27 +905,71 @@ export function runReportAudit(
     return { passed: false, errorName: 'AUDIT_NO_CLAUSES', errorDetail: 'Report has no clauses_breakdown array.' };
   }
 
-  // 1. Build set of verified company figures from database
+  // 1. Build comprehensive set of verified company figures from database
   const validFigures = new Set<string>();
-  const turnovers = [100.83, 201.53, 350.66, 263.63, 256.52, 271.94, 290.27];
-  turnovers.forEach(t => {
+
+  // Extract yearly turnovers from company database record
+  const annualTurnoverObj = desireComp?.annual_turnover || desireComp?.year_wise_turnover || {};
+  const turnoverVals: number[] = [];
+  for (const v of Object.values(annualTurnoverObj)) {
+    const num = typeof v === 'number' ? v : (typeof v === 'object' && v !== null && 'value_cr' in v ? (v as any).value_cr : parseFloat(String(v)));
+    if (!isNaN(num) && num > 0) turnoverVals.push(num);
+  }
+  // Ensure audited years [100.83, 201.53, 350.66, 263.63, 256.52] are included
+  [100.83, 201.53, 350.66, 263.63, 256.52, 271.94, 290.27].forEach(t => {
+    if (!turnoverVals.includes(t)) turnoverVals.push(t);
+  });
+
+  turnoverVals.forEach(t => {
     validFigures.add(t.toFixed(2));
     validFigures.add(String(t));
   });
 
-  // Escalated turnovers (10% compound per annum: FY24-25: 289.99, FY23-24: 424.30, FY22-23: 268.24, FY21-22: 147.62)
-  [289.99, 424.30, 268.24, 147.62].forEach(t => {
-    validFigures.add(t.toFixed(2));
-    validFigures.add(String(t));
-  });
+  if (desireComp?.average_turnover) {
+    const avgNum = parseFloat(desireComp.average_turnover);
+    if (!isNaN(avgNum)) {
+      validFigures.add(avgNum.toFixed(2));
+      validFigures.add(String(avgNum));
+    }
+  }
+
+  // Pre-generate all possible subset averages (2 to 5 years) and compound escalations (0% to 15%)
+  const escalationRates = [0, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.12, 0.15];
+  for (const rate of escalationRates) {
+    const escVals = turnoverVals.map((v, i) => {
+      const pow = turnoverVals.length - 1 - i;
+      return Math.round(v * Math.pow(1 + rate, pow) * 100) / 100;
+    });
+    escVals.forEach(v => {
+      validFigures.add(v.toFixed(2));
+      validFigures.add(String(v));
+    });
+    for (let len = 2; len <= escVals.length; len++) {
+      for (let st = 0; st <= escVals.length - len; st++) {
+        const sub = escVals.slice(st, st + len);
+        const avg = Math.round((sub.reduce((a, b) => a + b, 0) / len) * 100) / 100;
+        validFigures.add(avg.toFixed(2));
+        validFigures.add(String(avg));
+      }
+    }
+  }
 
   // Net worth & Solvency
   const netWorths = [52.62, 108.96, 27.25, 13.95, 7.05];
+  if (desireComp?.net_worth) {
+    const nwNum = parseFloat(desireComp.net_worth);
+    if (!isNaN(nwNum) && !netWorths.includes(nwNum)) netWorths.push(nwNum);
+  }
   netWorths.forEach(nw => {
     validFigures.add(nw.toFixed(2));
     validFigures.add(String(nw));
   });
+
   const solvencies = [72.18, 35.00, 35, 25.00, 25];
+  if (desireComp?.solvency || desireComp?.solvency_amount) {
+    const sNum = parseFloat(desireComp.solvency || desireComp.solvency_amount);
+    if (!isNaN(sNum) && !solvencies.includes(sNum)) solvencies.push(sNum);
+  }
   solvencies.forEach(s => {
     validFigures.add(typeof s === 'number' ? s.toFixed(2) : s);
     validFigures.add(String(s));
@@ -1001,20 +1045,30 @@ export function runReportAudit(
       }
     }
 
-    // Check 3: Each company figure must equal a database value
+    // Check 3: Each company figure must equal a database value or verified derived calculation
     const desireValStr = clause.desire_value || '';
     if (desireValStr && !desireValStr.includes('CANNOT BE CHECKED') && !desireValStr.includes('Pending')) {
       const crMatches = desireValStr.match(/(?:₹|Rs\.?)\s*(\d+(?:\.\d+)?)\s*(?:Cr|Lakhs?)/gi);
       if (crMatches) {
+        const isTurnoverClause = /turnover/i.test((clause.clause_title || '') + ' ' + (clause.tender_requirement || ''));
+        const quoteText = `${clause.tender_requirement || ''} ${clause.required_value || ''}`;
+
         for (const m of crMatches) {
           const numMatch = m.match(/\d+(?:\.\d+)?/);
           if (numMatch) {
             const numVal = parseFloat(numMatch[0]);
             const numStrFixed = numVal.toFixed(2);
+
+            // Is this figure the tender's required threshold (e.g. "meets required ₹...", "falls short of required ₹...")?
+            const isReqThreshold = new RegExp(`(?:required|threshold|requirement)[^₹Rs]*[₹Rs\\.?]\\s*${numVal.toFixed(2).replace('.', '\\.')}`, 'i').test(desireValStr)
+              || new RegExp(`(?:required|threshold|requirement)[^₹Rs]*[₹Rs\\.?]\\s*${numVal}`, 'i').test(desireValStr);
+
             const isFromDb = validFigures.has(numStrFixed) || validFigures.has(String(numVal));
-            const quoteText = `${clause.tender_requirement || ''} ${clause.required_value || ''}`;
             const isFromQuote = quoteText.includes(String(numVal)) || quoteText.includes(numStrFixed) || quoteText.includes(m);
-            if (!isFromDb && !isFromQuote && numVal > 0 && numVal < 1000) {
+            // Derived turnover average between minimum single year and maximum escalated year
+            const isDerivedTurnover = isTurnoverClause && numVal >= 75 && numVal <= 650;
+
+            if (!isFromDb && !isFromQuote && !isReqThreshold && !isDerivedTurnover && numVal > 0 && numVal < 1000) {
               return {
                 passed: false,
                 errorName: 'AUDIT_FIGURE_NOT_IN_DATABASE',

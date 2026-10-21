@@ -463,10 +463,10 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
         option1_pct: '0%',
         option2_pct: '0%',
         option3_pct: '100%',
-        summary_counts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
-        desireCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
-        jvCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
-        combinedCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 },
+        summary_counts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0, submission_items: 0 },
+        desireCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0, submission_items: 0 },
+        jvCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0, submission_items: 0 },
+        combinedCounts: { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0, submission_items: 0 },
         total_count: 0,
         matched_count: 0,
         partial_count: 0,
@@ -578,6 +578,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
       const partial = evaluated.filter(c => c.active_status === 'PARTIAL MATCH').length;
       const notMatching = evaluated.filter(c => c.active_status === 'NOT MATCHING' || c.active_status === 'NOT ELIGIBLE').length;
       const missing = evaluated.filter(c => c.active_status === 'DATA NOT AVAILABLE' || c.active_status === 'CANNOT BE CHECKED' || c.active_status === 'DATA MISSING').length;
+      const submission = evaluated.filter(c => c.active_status === 'SUBMISSION_ITEM').length;
 
       // Score strictly calculated from the evaluated qualification criteria on screen (submission items are statutory/procedural):
       const qualCriteria = evaluated.filter(c => c.active_status !== 'SUBMISSION_ITEM');
@@ -593,7 +594,8 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           matched,
           partial,
           not_matching: notMatching,
-          data_missing: missing
+          data_missing: missing,
+          submission_items: submission
         }
       };
     };
@@ -678,7 +680,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
     clauses_breakdown: evaluationReport.clauses_breakdown || [],
     jv_rules_audit: evaluationReport.jv_rules_audit || [],
     partner_recommendations: (evaluationReport as any).partner_recommendations || [],
-    summary_counts: evaluationReport.summary_counts || { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0 }
+    summary_counts: evaluationReport.summary_counts || { total_criteria: 0, matched: 0, partial: 0, not_matching: 0, data_missing: 0, submission_items: 0 }
   } : null;
 
   // Filter only registered JV Partners (STRICTLY EXCLUDE COMPETITORS)
@@ -1039,13 +1041,15 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
             const dMissing = perspective.desireCounts?.data_missing || 0;
             const dMatched = perspective.desireCounts?.matched || 0;
             const dTotal = perspective.desireCounts?.total_criteria || 0;
+            const dSubmission = perspective.desireCounts?.submission_items || 0;
+            const dQualTotal = Math.max(0, dTotal - dSubmission);
             const isDesireQualified = dMissing === 0 && dScore >= 90;
             const isCannotDetermine = dMissing > 0;
 
             const summaryText = isDesireQualified
               ? `Desire Energy qualifies standalone (${perspective.option1_pct}). A JV is optional.`
               : isCannotDetermine
-              ? `Cannot determine standalone eligibility: ${dMissing} criteria need verification (${dMatched} of ${dTotal} verified).`
+              ? `Cannot determine standalone eligibility: ${dMissing} qualification criteria need verification (${dMatched} of ${dQualTotal} qualification criteria verified, plus ${dSubmission} checklist submission items = ${dTotal} total).`
               : `Desire Energy does not qualify standalone (Score: ${perspective.option1_pct}). Recommended: JV with ${jvComp.name} to reach ${perspective.option3_pct} combined.`;
 
             return (
@@ -1297,37 +1301,53 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           </div>
 
           {/* Dynamic Criteria Summary Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
-            <div className="glass-card p-3 rounded-xl border border-slate-200 bg-white">
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-center">
+            <div className="glass-card p-3 rounded-xl border border-slate-200 bg-white shadow-sm">
               <span className="text-[10px] font-mono text-slate-500 font-bold uppercase block">Total Criteria</span>
               <span className="text-sm font-bold text-slate-900">
                 {perspective.summary_counts.total_criteria}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-50">
+            <div className="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-50 shadow-sm">
               <span className="text-[10px] font-mono text-emerald-800 font-bold uppercase block">Matched (100%)</span>
               <span className="text-sm font-bold text-emerald-800">
                 {perspective.summary_counts.matched}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50">
+            <div className="glass-card p-3 rounded-xl border border-amber-500/30 bg-amber-50 shadow-sm">
               <span className="text-[10px] font-mono text-amber-800 font-bold uppercase block">Partial Match (50%)</span>
-              <span className="text-sm font-bold text-amber-900 font-bold">
+              <span className="text-sm font-bold text-amber-900">
                 {perspective.summary_counts.partial}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50">
+            <div className="glass-card p-3 rounded-xl border border-rose-500/30 bg-rose-50 shadow-sm">
               <span className="text-[10px] font-mono text-rose-800 font-bold uppercase block">Not Matching (0%)</span>
               <span className="text-sm font-bold text-rose-800">
                 {perspective.summary_counts.not_matching}
               </span>
             </div>
-            <div className="glass-card p-3 rounded-xl border border-slate-300 bg-slate-50">
+            <div className="glass-card p-3 rounded-xl border border-blue-500/30 bg-blue-50 shadow-sm">
+              <span className="text-[10px] font-mono text-blue-800 font-bold uppercase block">Submission Items</span>
+              <span className="text-sm font-bold text-blue-800">
+                {perspective.summary_counts.submission_items || 0}
+              </span>
+            </div>
+            <div className="glass-card p-3 rounded-xl border border-slate-300 bg-slate-50 shadow-sm">
               <span className="text-[10px] font-mono text-slate-500 font-bold uppercase block">Data Missing / Pending</span>
               <span className="text-sm font-bold text-slate-700">
                 {perspective.summary_counts.data_missing}
               </span>
             </div>
+          </div>
+
+          {/* Criteria Arithmetic Accounting Breakdown */}
+          <div className="px-3.5 py-2 rounded-lg bg-slate-100/80 border border-slate-200 text-[11px] font-mono text-slate-700 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+            <span>
+              <strong>Accounting:</strong> {perspective.summary_counts.matched} Matched + {perspective.summary_counts.submission_items || 0} Submission Items + {perspective.summary_counts.data_missing} Pending Verification = <strong>{perspective.summary_counts.total_criteria} Total Clauses</strong>
+            </span>
+            <span className="text-slate-500 text-[10px]">
+              Submission checklist items (Fee, EMD, Form-H) are verified upon physical submission and do not affect qualification verdict.
+            </span>
           </div>
 
           {/* CONSORTIUM WIN STRATEGY & SYNERGY RATIONALE BOX */}
