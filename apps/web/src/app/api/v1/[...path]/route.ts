@@ -10,11 +10,13 @@ import { getBuildStamp } from '@/lib/buildStamp';
 import { runNewEligibilityEvaluation } from '@/lib/new-eligibility';
 import { selectQualificationAndNitPages } from '@/lib/new-eligibility/pdfTextSelector';
 import { ELIGIBILITY_CONFIG } from '@/lib/eligibility.config';
+import { handleCostingRun } from '@/lib/costing/api/costingRoute';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export const maxDuration = 300; // Max serverless function execution limit (300s)
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 function hashPassword(pass: string): string {
   return crypto.createHash('sha256').update(pass.trim()).digest('hex');
@@ -2648,6 +2650,15 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         { status: 403 }
       );
     }
+  }
+
+  if (subPath === 'costing/run' && method === 'POST') {
+    const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+    const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+    return await handleCostingRun(req, {
+      SUPABASE_URL: supabaseUrl,
+      SUPABASE_SERVICE_ROLE_KEY: supabaseKey,
+    });
   }
 
   try {
