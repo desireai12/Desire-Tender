@@ -14,6 +14,7 @@ import { CompetitorBattleCardsView } from '@/components/CompetitorBattleCardsVie
 import { CompanyDetailsView } from '@/components/CompanyDetailsView';
 import { CombineAnalysisView } from '@/components/CombineAnalysisView';
 import { CostingEstimatorView } from '@/components/CostingEstimatorView';
+import { BOQCostingView } from '@/components/BOQCostingView';
 import { SettingsView } from '@/components/SettingsView';
 import { LoginLanding } from '@/components/LoginLanding';
 import { AdminPortal } from '@/components/AdminPortal';
@@ -545,6 +546,10 @@ export default function Home() {
 
           {activeTab === 'costing' && (
             <CostingEstimatorView />
+          )}
+
+          {activeTab === 'boq_costing' && (
+            <BOQCostingView />
           )}
 
           {activeTab === 'competitors' && (
