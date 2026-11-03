@@ -2653,12 +2653,26 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
   }
 
   if (subPath === 'costing/run' && method === 'POST') {
+    // Same env names as apps/web/src/lib/supabase.ts.
     const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
     const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-    return await handleCostingRun(req, {
-      SUPABASE_URL: supabaseUrl,
-      SUPABASE_SERVICE_ROLE_KEY: supabaseKey,
-    });
+    if (!supabaseUrl) {
+      return NextResponse.json({ error: 'SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) environment variable is missing.' }, { status: 500 });
+    }
+    if (!supabaseKey) {
+      return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY environment variable is missing.' }, { status: 500 });
+    }
+    try {
+      return await handleCostingRun(req, {
+        SUPABASE_URL: supabaseUrl,
+        SUPABASE_SERVICE_ROLE_KEY: supabaseKey,
+      });
+    } catch (err: any) {
+      // handleCostingRun already returns sanitized JSON errors; this is a last-resort guard.
+      const raw = String(err?.message || err || 'Costing failed with an unknown error.');
+      const safe = raw.split(supabaseKey).join('[redacted]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[redacted]');
+      return NextResponse.json({ error: safe }, { status: 500 });
+    }
   }
 
   try {

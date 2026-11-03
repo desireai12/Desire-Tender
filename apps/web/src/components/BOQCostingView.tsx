@@ -93,10 +93,16 @@ export const BOQCostingView: React.FC = () => {
       if (!res.ok) {
         let errDetail = `Server responded with status ${res.status}`;
         try {
-          const errJson = await res.json();
-          errDetail = errJson.error || errJson.message || errJson.detail || errDetail;
+          const errText = await res.text();
+          try {
+            const errJson = JSON.parse(errText);
+            const msg = errJson.error || errJson.message || errJson.detail;
+            if (msg) errDetail = `Status ${res.status}: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}`;
+          } catch {
+            // not JSON (e.g. platform error page) — keep the status-only message
+          }
         } catch {
-          // not json
+          // body unreadable
         }
         throw new Error(errDetail);
       }
