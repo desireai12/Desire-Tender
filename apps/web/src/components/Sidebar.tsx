@@ -34,6 +34,7 @@ export type NavTab =
   | 'companies'
   | 'competitors' 
   | 'costing' 
+  | 'boq_costing'
   | 'admin_kb' 
   | 'admin'
   | 'admin_config'
@@ -81,6 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'eligibility', label: 'Eligibility Analysis', icon: Sparkles },
         { id: 'wizard', label: 'JV & Combine Engine', icon: GitMerge },
         { id: 'costing', label: 'BidMaster Costing', icon: Calculator },
+        { id: 'boq_costing', label: 'Costing Engine', icon: Calculator },
         { id: 'lifecycle', label: 'Tender Process Queue', icon: FileCode },
       ]
     },

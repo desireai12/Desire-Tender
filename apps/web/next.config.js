@@ -23,7 +23,10 @@ const nextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
-  }
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['exceljs'],
+  },
 };
 
 module.exports = nextConfig;

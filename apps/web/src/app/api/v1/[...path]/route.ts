@@ -10,11 +10,13 @@ import { getBuildStamp } from '@/lib/buildStamp';
 import { runNewEligibilityEvaluation } from '@/lib/new-eligibility';
 import { selectQualificationAndNitPages } from '@/lib/new-eligibility/pdfTextSelector';
 import { ELIGIBILITY_CONFIG } from '@/lib/eligibility.config';
+import { handleCostingRun } from '@/lib/costing/api/costingRoute';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 export const maxDuration = 300; // Max serverless function execution limit (300s)
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 function hashPassword(pass: string): string {
   return crypto.createHash('sha256').update(pass.trim()).digest('hex');
@@ -2647,6 +2649,29 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         { status: 'error', error_type: 'FORBIDDEN', message: 'Forbidden. Administrator privileges required for this route.' },
         { status: 403 }
       );
+    }
+  }
+
+  if (subPath === 'costing/run' && method === 'POST') {
+    // Same env names as apps/web/src/lib/supabase.ts.
+    const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+    const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+    if (!supabaseUrl) {
+      return NextResponse.json({ error: 'SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) environment variable is missing.' }, { status: 500 });
+    }
+    if (!supabaseKey) {
+      return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY environment variable is missing.' }, { status: 500 });
+    }
+    try {
+      return await handleCostingRun(req, {
+        SUPABASE_URL: supabaseUrl,
+        SUPABASE_SERVICE_ROLE_KEY: supabaseKey,
+      });
+    } catch (err: any) {
+      // handleCostingRun already returns sanitized JSON errors; this is a last-resort guard.
+      const raw = String(err?.message || err || 'Costing failed with an unknown error.');
+      const safe = raw.split(supabaseKey).join('[redacted]').replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '[redacted]');
+      return NextResponse.json({ error: safe }, { status: 500 });
     }
   }
 
