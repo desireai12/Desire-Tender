@@ -58,10 +58,21 @@ function safeErrorMessage(err: unknown, secrets: string[]): string {
   return msg || 'Costing failed with an unknown error.';
 }
 
+// Env values pasted into Vercel can carry stray whitespace/newlines or wrapping quotes.
+// Mirror apps/web/src/lib/supabase.ts: drop ALL whitespace, then peel off any wrapping quote characters.
+function cleanEnvValue(raw: string | undefined | null): string {
+  let v = String(raw ?? '').replace(/\s+/g, '');
+  const quote = /^["'`\u2018\u2019\u201C\u201D]+|["'`\u2018\u2019\u201C\u201D]+$/g;
+  v = v.replace(quote, '');
+  return v;
+}
+
 export async function handleCostingRun(req: Request, env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: string }): Promise<Response> {
   // Same env names the rest of the app uses (see apps/web/src/lib/supabase.ts).
-  const supabaseUrl = (env?.SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
-  const serviceKey = (env?.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  const rawUrl = env?.SUPABASE_URL || process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const rawKey = env?.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const supabaseUrl = cleanEnvValue(rawUrl).replace(/\/+$/, '');
+  const serviceKey = cleanEnvValue(rawKey);
 
   if (!supabaseUrl) {
     return Response.json({ error: 'SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) environment variable is missing.' }, { status: 500 });
@@ -69,12 +80,17 @@ export async function handleCostingRun(req: Request, env: { SUPABASE_URL: string
   if (!serviceKey) {
     return Response.json({ error: 'SUPABASE_SERVICE_ROLE_KEY environment variable is missing.' }, { status: 500 });
   }
+  // Only JWT / Supabase key characters are valid in an HTTP header here. Never echo the value.
+  if (!/^[A-Za-z0-9._-]+$/.test(serviceKey)) {
+    return Response.json({ error: 'SUPABASE_SERVICE_ROLE_KEY contains invalid characters' }, { status: 500 });
+  }
 
+  const secrets = [serviceKey, String(rawKey), String(rawKey).trim()];
   try {
     return await runCosting(req, supabaseUrl, serviceKey);
   } catch (err) {
-    console.error('[COSTING_RUN_ERROR]', safeErrorMessage(err, [serviceKey]));
-    return Response.json({ error: safeErrorMessage(err, [serviceKey]) }, { status: 500 });
+    console.error('[COSTING_RUN_ERROR]', safeErrorMessage(err, secrets));
+    return Response.json({ error: safeErrorMessage(err, secrets) }, { status: 500 });
   }
 }
 
