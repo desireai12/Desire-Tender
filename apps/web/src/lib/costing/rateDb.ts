@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
 import { boqSheet, loadWorkbook, parseSheet, type BoqRow } from './boq';
-import { looseKey, normUnit, strictKey } from './normalize';
+import { looseKey, normScope, normUnit, strictKey } from './normalize';
 
 export type RateRule =
   | { kind: 'FIXED' }
@@ -16,6 +16,7 @@ export interface RateRecord {
   source_sl: string | null;
   source_row: number;
   scope: string | null;
+  scope_norm?: string;
   headers: string[];
   description: string;
   unit: string | null;
@@ -62,6 +63,7 @@ export async function buildRateDb(xlsxPath: string, fileHash: string): Promise<R
       source_sl: r.sl,
       source_row: r.row,
       scope: r.scope,
+      scope_norm: normScope(r.scope),
       headers: r.headers,
       description: r.desc,
       unit: r.unit,

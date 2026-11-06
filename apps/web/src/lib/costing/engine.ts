@@ -3,13 +3,13 @@
 // Fully deterministic - no LLM involved, every filled line is traceable to a DB record.
 import ExcelJS from 'exceljs';
 import { boqSheet, cellValue, COL, FIRST_DATA_ROW, parseSheet, type BoqRow } from './boq';
-import { fullText, looseKey, normUnit, numberSig, similarity, strictKey } from './normalize';
+import { fullText, looseKey, normScope, normUnit, numberSig, resolveScope, similarity, strictKey } from './normalize';
 import type { RateDb, RateRecord } from './rateDb';
 
 export type MatchStatus =
-  | 'MATCHED'      // strict key (context + description + unit) - trusted
-  | 'REVIEW_LOOSE' // description + unit only (context differs) - needs a look
-  | 'REVIEW_FUZZY' // similar wording, same unit - needs a look
+  | 'MATCHED'      // strict key (scope + context + description + unit) - trusted
+  | 'REVIEW_LOOSE' // same scope + description + unit (context differs) - needs a look
+  | 'REVIEW_FUZZY' // same scope + similar wording, same unit & number signature - needs a look
   | 'NOT_PRICED'   // matched, but the bid left this line blank (kept blank)
   | 'UNMATCHED';   // nothing usable in the DB - left blank
 
@@ -47,33 +47,49 @@ interface Indexes {
 function index(db: RateDb): Indexes {
   const byId = new Map(), byStrict = new Map<string, RateRecord[]>(), byLoose = new Map<string, RateRecord[]>();
   for (const r of db.records) {
+    const sk = strictKey({ scope: r.scope, headers: r.headers, desc: r.description, unit: r.unit });
+    const lk = looseKey({ scope: r.scope, headers: r.headers, desc: r.description, unit: r.unit });
     byId.set(r.id, r);
-    (byStrict.get(r.strict_key) ?? byStrict.set(r.strict_key, []).get(r.strict_key)!).push(r);
-    (byLoose.get(r.loose_key) ?? byLoose.set(r.loose_key, []).get(r.loose_key)!).push(r);
+    byId.set(`${sk}-${r.occurrence}`, r);
+    (byStrict.get(sk) ?? byStrict.set(sk, []).get(sk)!).push(r);
+    (byLoose.get(lk) ?? byLoose.set(lk, []).get(lk)!).push(r);
   }
   return { byId, byStrict, byLoose };
 }
 
 function findRate(row: BoqRow, occ: number, ix: Indexes, db: RateDb, thr: number): { rec: RateRecord | null; status: MatchStatus; score: number } {
+  const rowScope = resolveScope(row);
+
+  // 1. Strict Match: Scope of Work + Header Context + Description + Unit
   const sk = strictKey(row);
   const exact = ix.byId.get(`${sk}-${occ}`) ?? ix.byStrict.get(sk)?.at(-1);
   if (exact) return { rec: exact, status: 'MATCHED', score: 1 };
 
-  const loose = ix.byLoose.get(looseKey(row));
+  // 2. Scope Loose Match: Same Scope of Work + Description + Unit
+  const lk = looseKey(row);
+  const loose = ix.byLoose.get(lk);
   if (loose?.length) {
     const rates = new Set(loose.map((r) => `${r.purchase_rate}|${r.execution_rate}`));
     if (rates.size === 1) return { rec: loose[0], status: 'REVIEW_LOOSE', score: 0.95 };
   }
+
+  // 3. Scope Fuzzy Match: Same Scope of Work + High Similarity + Identical Number Signature
   const unit = normUnit(row.unit), text = fullText(row), sig = numberSig(text);
   let best: RateRecord | null = null, bestScore = 0;
   for (const rec of db.records) {
+    const recScope = rec.scope_norm || normScope(rec.scope);
+
+    // Hard Scope Guard: A row under one Scope must never match a candidate from another Scope
+    if (rowScope && recScope && rowScope !== recScope) continue;
+
     if (rec.unit_norm !== unit) continue;
-    const recText = [...rec.headers, rec.description].join(' | ');
+    const recText = [recScope, ...rec.headers, rec.description].filter(Boolean).join(' | ');
     if (numberSig(recText) !== sig) continue; // sizes / capacities / grades must be identical
     const s = similarity(text, recText);
     if (s > bestScore) { best = rec; bestScore = s; }
   }
   if (best && bestScore >= thr) return { rec: best, status: 'REVIEW_FUZZY', score: bestScore };
+
   return { rec: null, status: 'UNMATCHED', score: bestScore };
 }
 

@@ -47,6 +47,7 @@ export function parseSheet(ws: ExcelJS.Worksheet): BoqRow[] {
   const rows: BoqRow[] = [];
   let root = ''; // long head
   let subs: string[] = [];
+  let currentScope: string | null = null;
   let lastWasPriced = true;
   for (let r = FIRST_DATA_ROW; r <= ws.rowCount; r++) {
     const row = ws.getRow(r);
@@ -63,6 +64,10 @@ export function parseSheet(ws: ExcelJS.Worksheet): BoqRow[] {
       else { subs.push(desc); }
       lastWasPriced = false;
     }
+    const cellScope = str(cellValue(row.getCell(COL.SCOPE))) || null;
+    if (cellScope) {
+      currentScope = cellScope;
+    }
     const pur = row.getCell(COL.PUR), exe = row.getCell(COL.EXE);
     // a long priced line directly after another priced line is a standalone item
     const standalone = isItem && desc.length >= LONG_HEADER && prevPriced;
@@ -71,7 +76,7 @@ export function parseSheet(ws: ExcelJS.Worksheet): BoqRow[] {
       row: r,
       sl: slRaw == null ? null : str(slRaw),
       desc,
-      scope: str(cellValue(row.getCell(COL.SCOPE))) || null,
+      scope: cellScope || (isItem ? currentScope : null),
       qty,
       unit: str(cellValue(row.getCell(COL.UNIT))) || null,
       estRate: num(cellValue(row.getCell(COL.EST))),
