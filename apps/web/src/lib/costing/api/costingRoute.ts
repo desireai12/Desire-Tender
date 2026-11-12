@@ -23,10 +23,16 @@ async function loadActiveRateDb(supabaseUrl: string, serviceKey: string): Promis
     if (!res.ok) throw new Error(`Supabase costing_rates query failed (HTTP ${res.status}): ${await supabaseErrorText(res)}`);
     const page: any[] = await res.json();
     for (const r of page) {
-      records.push({ ...r, rule: r.rule_kind === 'PCT_OF_TOTAL' ? { kind: 'PCT_OF_TOTAL', pct: Number(r.rule_pct) } : { kind: 'FIXED' },
+      records.push({
+        ...r,
+        scope_of_work: r.scope_of_work ?? r.scope ?? null,
+        scope_key: r.scope_key ?? null,
+        effective_desc: r.effective_desc ?? r.description,
+        rule: r.rule_kind === 'PCT_OF_TOTAL' ? { kind: 'PCT_OF_TOTAL', pct: Number(r.rule_pct) } : { kind: 'FIXED' },
         purchase_rate: r.purchase_rate == null ? null : Number(r.purchase_rate),
         execution_rate: r.execution_rate == null ? null : Number(r.execution_rate),
-        tender_est_rate: r.tender_est_rate == null ? null : Number(r.tender_est_rate) });
+        tender_est_rate: r.tender_est_rate == null ? null : Number(r.tender_est_rate),
+      });
     }
     if (page.length < 1000) break;
   }

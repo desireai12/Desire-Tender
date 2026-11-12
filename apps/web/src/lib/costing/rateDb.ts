@@ -2,7 +2,13 @@
 import { createHash } from 'node:crypto';
 import { basename } from 'node:path';
 import { boqSheet, loadWorkbook, parseSheet, type BoqRow } from './boq';
-import { looseKey, normScope, normUnit, strictKey } from './normalize';
+import {
+  buildEffectiveDesc,
+  looseKey,
+  normUnit,
+  resolveCanonicalScope,
+  strictKey,
+} from './normalize';
 
 export type RateRule =
   | { kind: 'FIXED' }
@@ -16,9 +22,11 @@ export interface RateRecord {
   source_sl: string | null;
   source_row: number;
   scope: string | null;
-  scope_norm?: string;
+  scope_of_work: string | null; // raw scope text from source BOQ
+  scope_key: string | null;     // canonical scope key
   headers: string[];
   description: string;
+  effective_desc: string;      // description with nearest parent item context for bare items
   unit: string | null;
   unit_norm: string;
   tender_est_rate: number | null;   // informational only (incl. GST)
@@ -43,29 +51,58 @@ const PCT_RE = /^=SUM\(L\d+:L\d+\)\*\s*([\d.]+)%$/i;
 
 export function detectRule(r: BoqRow): RateRule {
   const m = r.executionBasis?.replace(/\s+/g, '').match(PCT_RE);
-  return m ? { kind: 'PCT_OF_TOTAL', pct: parseFloat(m[1]) / 100 } : { kind: 'FIXED' };
+  // Apply percentage logic ONLY when description or formula contains explicit "%"
+  const hasPct = (r.desc && r.desc.includes('%')) || (r.executionBasis && r.executionBasis.includes('%'));
+  if (m && hasPct) {
+    return { kind: 'PCT_OF_TOTAL', pct: parseFloat(m[1]) / 100 };
+  }
+  return { kind: 'FIXED' };
 }
 
 export async function buildRateDb(xlsxPath: string, fileHash: string): Promise<RateDb> {
   const wb = await loadWorkbook(xlsxPath);
   const rows = parseSheet(boqSheet(wb)).filter((r) => r.isItem);
   const seen = new Map<string, number>();
+
   const records: RateRecord[] = rows.map((r) => {
-    const sk = strictKey(r);
+    const scopeRes = resolveCanonicalScope(r.scope, r.desc, r.headers);
+    const scopeKey = scopeRes.scopeKey || null;
+    const effDesc = buildEffectiveDesc(r.desc, r.parentItemText);
+
+    const sk = strictKey({
+      desc: r.desc,
+      effectiveDesc: effDesc,
+      headers: r.headers,
+      unit: r.unit,
+      scope: r.scope,
+      scopeKey,
+    });
+    const lk = looseKey({
+      desc: r.desc,
+      effectiveDesc: effDesc,
+      headers: r.headers,
+      unit: r.unit,
+      scope: r.scope,
+      scopeKey,
+    });
+
     const occ = (seen.get(sk) ?? 0) + 1;
     seen.set(sk, occ);
     const rule = detectRule(r);
+
     return {
       id: `${sk}-${occ}`,
       strict_key: sk,
-      loose_key: looseKey(r),
+      loose_key: lk,
       occurrence: occ,
       source_sl: r.sl,
       source_row: r.row,
       scope: r.scope,
-      scope_norm: normScope(r.scope),
+      scope_of_work: r.scope,
+      scope_key: scopeKey,
       headers: r.headers,
       description: r.desc,
+      effective_desc: effDesc,
       unit: r.unit,
       unit_norm: normUnit(r.unit),
       tender_est_rate: r.estRate,
@@ -77,6 +114,7 @@ export async function buildRateDb(xlsxPath: string, fileHash: string): Promise<R
       priced: rule.kind === 'PCT_OF_TOTAL' || r.purchaseRate != null || r.executionRate != null,
     };
   });
+
   return {
     schema: 'boq-rate-db/1',
     source_file: basename(xlsxPath),

@@ -338,7 +338,7 @@ export const BOQCostingView: React.FC = () => {
           <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                Total Bid Amount (Grand Total)
+                {counts.UNMATCHED > 0 ? 'Total of PRICED items only - INCOMPLETE' : 'Total Bid Amount (Grand Total)'}
               </span>
               <div className="flex items-baseline space-x-3 mt-1">
                 <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">
@@ -350,8 +350,10 @@ export const BOQCostingView: React.FC = () => {
               </div>
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400 text-left md:text-right font-mono">
-              <p>Includes O&M (5%) Recomputed</p>
-              <p className="text-[11px] text-slate-400">Sheet grand-total cell updated</p>
+              <p className="font-semibold text-slate-700 dark:text-slate-300">
+                Items priced: {totalLines - (counts.UNMATCHED || 0) - (counts.NOT_PRICED || 0)}/{totalLines} ({totalLines > 0 ? (((totalLines - (counts.UNMATCHED || 0) - (counts.NOT_PRICED || 0)) / totalLines) * 100).toFixed(1) : 0}%)
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Sheet grand-total cell updated</p>
             </div>
           </div>
 
