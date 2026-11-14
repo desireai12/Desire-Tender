@@ -9,6 +9,7 @@ import {
   resolveCanonicalScope,
   strictKey,
 } from './normalize';
+import { extractRuleFingerprint, type CostingItemFingerprint } from './itemFingerprint';
 
 export type RateRule =
   | { kind: 'FIXED' }
@@ -24,6 +25,8 @@ export interface RateRecord {
   scope: string | null;
   scope_of_work: string | null; // raw scope text from source BOQ
   scope_key: string | null;     // canonical scope key
+  scope_source?: string;
+  scope_confidence?: string;
   headers: string[];
   description: string;
   effective_desc: string;      // description with nearest parent item context for bare items
@@ -36,6 +39,7 @@ export interface RateRecord {
   execution_basis: string | null;
   rule: RateRule;
   priced: boolean;                  // false = bid left both J and K blank
+  fingerprint?: CostingItemFingerprint | null;
 }
 
 export interface RateDb {
@@ -90,6 +94,13 @@ export async function buildRateDb(xlsxPath: string, fileHash: string): Promise<R
     seen.set(sk, occ);
     const rule = detectRule(r);
 
+    const fingerprint = extractRuleFingerprint({
+      description: effDesc,
+      parentChain: r.headers,
+      unit: r.unit,
+      scope: r.scope,
+    });
+
     return {
       id: `${sk}-${occ}`,
       strict_key: sk,
@@ -100,6 +111,8 @@ export async function buildRateDb(xlsxPath: string, fileHash: string): Promise<R
       scope: r.scope,
       scope_of_work: r.scope,
       scope_key: scopeKey,
+      scope_source: scopeRes.source,
+      scope_confidence: scopeRes.confidence,
       headers: r.headers,
       description: r.desc,
       effective_desc: effDesc,
@@ -112,6 +125,7 @@ export async function buildRateDb(xlsxPath: string, fileHash: string): Promise<R
       execution_basis: r.executionBasis,
       rule,
       priced: rule.kind === 'PCT_OF_TOTAL' || r.purchaseRate != null || r.executionRate != null,
+      fingerprint,
     };
   });
 
