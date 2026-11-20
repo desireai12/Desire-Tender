@@ -171,9 +171,17 @@ BEGIN
     DROP COLUMN IF EXISTS content_fingerprint;
 
   -- 4.4 Drop authority registry trigger, trigger function, and empty table
-  DROP TRIGGER IF EXISTS trg_sor_authority_registry_updated_at ON public.sor_authority_registry;
+  -- Note: Check whether public.sor_authority_registry exists before attempting to drop its trigger;
+  -- otherwise PostgreSQL raises ERROR: relation "public.sor_authority_registry" does not exist.
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'sor_authority_registry'
+  ) THEN
+    DROP TRIGGER IF EXISTS trg_sor_authority_registry_updated_at ON public.sor_authority_registry;
+    DROP TABLE IF EXISTS public.sor_authority_registry;
+  END IF;
+
   DROP FUNCTION IF EXISTS public.fn_sor_authority_registry_updated_at();
-  DROP TABLE IF EXISTS public.sor_authority_registry;
 
   -- --------------------------------------------------------------------------
   -- STEP 5: POST-ROLLBACK ASSERTIONS (VERIFY COMPLETE CLEANUP & ZERO DATA LOSS)
