@@ -27,6 +27,8 @@ import { generateComparisonWorkbookBuffer } from '../excelExporter';
 import {
   saveFileRecord,
   saveExtractedItems,
+  saveFileAndItemsAtomic,
+  isPersistentDbRequired,
   saveCanonicalGroup,
   persistApprovedMapping,
   getApprovedMapping,
@@ -183,7 +185,9 @@ export async function handleSorComparisonRoute(
       const fingerprint = crypto.createHash('sha256').update(buffer).digest('hex');
 
       // 1A. Check for Exact Duplicate Content via SHA-256 Fingerprint
-      let existingFile = Array.from(memoryFiles.values()).find((f) => f.content_fingerprint === fingerprint);
+      let existingFile = Array.from(memoryFiles.values()).find(
+        (f) => f.content_fingerprint === fingerprint && f.status !== 'pending_confirmation',
+      );
       if (!existingFile) {
         existingFile = (await findFileByFingerprint(fingerprint)) || undefined;
       }
@@ -400,9 +404,17 @@ export async function handleSorComparisonRoute(
       memoryItems.set(file_id, extraction.items);
       memorySkipped.set(file_id, extraction.skippedRows);
 
-      // Persist to Supabase DB with PostgreSQL 23505 race condition protection
+      // Persist to Supabase DB with PostgreSQL atomic transaction & race condition protection
+      let dbPersisted = false;
+      const requireDb = isPersistentDbRequired();
+
       try {
-        const saved = await saveFileRecord(fileRecord);
+        const siblingIdsToDeactivate =
+          isRevision && shouldSetActive && siblingVersions.length > 0
+            ? siblingVersions.map((s) => s.id)
+            : undefined;
+
+        const saved = await saveFileAndItemsAtomic(fileRecord, extraction.items, siblingIdsToDeactivate);
         if (saved && saved.id !== fileRecord.id) {
           // A concurrent instance already stored this exact content fingerprint
           return NextResponse.json({
@@ -413,12 +425,29 @@ export async function handleSorComparisonRoute(
             file: saved,
           });
         }
-        await saveExtractedItems(extraction.items);
-        if (isRevision && shouldSetActive && siblingVersions.length > 0) {
-          await setActiveVersionInDb(fileRecord.id, confirmedDocKey);
+        dbPersisted = true;
+      } catch (dbErr: any) {
+        console.error('[SOR_DB_PERSIST_ERROR]', dbErr);
+        if (requireDb) {
+          // In deployed / strict persistence mode, a DB write failure MUST return HTTP 503
+          // Clean up in-memory cache to prevent phantom files or locked duplicate hashes
+          memoryFiles.delete(file_id);
+          memoryItems.delete(file_id);
+          memorySkipped.delete(file_id);
+          memoryFileBuffers.delete(file_id);
+
+          return NextResponse.json(
+            {
+              error: 'Database persistence failed. The file could not be permanently saved. Please check database connectivity and retry.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        } else {
+          // Local development / mock test fallback
+          console.warn('[SOR_DB_PERSIST_WARN] Development fallback to in-memory store:', dbErr);
         }
-      } catch (dbErr) {
-        console.warn('[SOR_DB_PERSIST_WARN] Falling back to memory store:', dbErr);
       }
 
       // Refresh canonical groups with active files
@@ -427,6 +456,7 @@ export async function handleSorComparisonRoute(
       return NextResponse.json({
         file: fileRecord,
         mapping,
+        persisted: dbPersisted,
         summary: {
           extracted: extraction.items.length,
           skipped: extraction.skippedRows.length,
@@ -525,8 +555,18 @@ export async function handleSorComparisonRoute(
       // Persist to PostgreSQL database
       try {
         await saveAuthorityMappingToDb(mappingToAdd);
-      } catch (dbErr) {
-        console.warn('[DB_WARN] Failed to persist authority mapping to DB:', dbErr);
+      } catch (dbErr: any) {
+        console.error('[DB_ERROR] Failed to persist authority mapping to DB:', dbErr);
+        if (isPersistentDbRequired()) {
+          return NextResponse.json(
+            {
+              error: 'Failed to persist authority mapping to database.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        }
       }
 
       return NextResponse.json({
@@ -898,8 +938,22 @@ export async function handleSorComparisonRoute(
             actor || 'reviewer',
           );
         }
-      } catch (dbErr) {
-        console.warn('[SOR_DB_PERSIST_WARN]', dbErr);
+      } catch (dbErr: any) {
+        console.error('[SOR_DB_PERSIST_ERROR] Review decision persistence failed:', dbErr);
+        if (isPersistentDbRequired()) {
+          member.review_status = oldStatus;
+          member.match_class = oldClass;
+          memoryAuditLogs.pop();
+          return NextResponse.json(
+            {
+              error: 'Failed to persist review decision to database.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        }
+        console.warn('[SOR_DB_PERSIST_WARN] Using memory fallback for review decision:', dbErr);
       }
 
       return NextResponse.json({
@@ -951,7 +1005,21 @@ export async function handleSorComparisonRoute(
       try {
         await saveCanonicalGroup(group);
         await logAuditAction(auditEntry);
-      } catch (dbErr) {
+      } catch (dbErr: any) {
+        console.error('[SOR_DB_PERSIST_ERROR] Conflict resolution persistence failed:', dbErr);
+        if (isPersistentDbRequired()) {
+          member.selected_rate_ex_gst = oldRate;
+          member.state_rate_status = 'state_rate_conflict';
+          memoryAuditLogs.pop();
+          return NextResponse.json(
+            {
+              error: 'Failed to persist conflict resolution to database.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        }
         console.warn('[SOR_DB_PERSIST_WARN]', dbErr);
       }
 
@@ -994,7 +1062,20 @@ export async function handleSorComparisonRoute(
       try {
         await saveCanonicalGroup(group);
         await logAuditAction(auditEntry);
-      } catch (dbErr) {
+      } catch (dbErr: any) {
+        console.error('[SOR_DB_PERSIST_ERROR] Override attributes persistence failed:', dbErr);
+        if (isPersistentDbRequired()) {
+          group.attributes = oldAttrs;
+          memoryAuditLogs.pop();
+          return NextResponse.json(
+            {
+              error: 'Failed to persist attribute override to database.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        }
         console.warn('[SOR_DB_PERSIST_WARN]', dbErr);
       }
 
@@ -1046,7 +1127,19 @@ export async function handleSorComparisonRoute(
         await saveCanonicalGroup(tgtGroup);
         await saveCanonicalGroup(srcGroup);
         await logAuditAction(auditEntry);
-      } catch (dbErr) {
+      } catch (dbErr: any) {
+        console.error('[SOR_DB_PERSIST_ERROR] Merge groups persistence failed:', dbErr);
+        if (isPersistentDbRequired()) {
+          memoryAuditLogs.pop();
+          return NextResponse.json(
+            {
+              error: 'Failed to persist group merge to database.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        }
         console.warn('[SOR_DB_PERSIST_WARN]', dbErr);
       }
 
@@ -1112,7 +1205,22 @@ export async function handleSorComparisonRoute(
         await saveCanonicalGroup(group);
         await saveCanonicalGroup(newGroup);
         await logAuditAction(auditEntry);
-      } catch (dbErr) {
+      } catch (dbErr: any) {
+        console.error('[SOR_DB_PERSIST_ERROR] Split member persistence failed:', dbErr);
+        if (isPersistentDbRequired()) {
+          memoryGroups.delete(newGroupId);
+          group.members.splice(memIndex, 0, member);
+          member.group_id = group_id;
+          memoryAuditLogs.pop();
+          return NextResponse.json(
+            {
+              error: 'Failed to persist split member to database.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        }
         console.warn('[SOR_DB_PERSIST_WARN]', dbErr);
       }
 
@@ -1144,7 +1252,18 @@ export async function handleSorComparisonRoute(
           Number(conversion_factor),
           reason || 'User defined unit conversion',
         );
-      } catch (dbErr) {
+      } catch (dbErr: any) {
+        console.error('[SOR_DB_PERSIST_ERROR] Unit conversion persistence failed:', dbErr);
+        if (isPersistentDbRequired()) {
+          return NextResponse.json(
+            {
+              error: 'Failed to persist unit conversion to database.',
+              code: 'DB_PERSISTENCE_FAILED',
+              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+            },
+            { status: 503 },
+          );
+        }
         console.warn('[SOR_DB_PERSIST_WARN]', dbErr);
       }
 

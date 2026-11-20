@@ -37,6 +37,25 @@ export function getDbPool(): Pool {
   return pool;
 }
 
+export function isPersistentDbRequired(): boolean {
+  if (process.env.SOR_PERSISTENCE_MODE === 'strict' || process.env.SOR_PERSISTENCE_MODE === 'db') {
+    return true;
+  }
+  if (process.env.SOR_PERSISTENCE_MODE === 'memory' || process.env.SOR_PERSISTENCE_MODE === 'mock') {
+    return false;
+  }
+  if (process.env.NODE_ENV === 'test' && !process.env.TEST_REAL_DB) {
+    return false;
+  }
+  if (process.env.VERCEL === '1' || process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV) {
+    return true;
+  }
+  if (process.env.DATABASE_URL && process.env.NODE_ENV !== 'test') {
+    return true;
+  }
+  return false;
+}
+
 export function computeMappingHash(fullDesc: string, unit: string | null, stateName: string): string {
   const norm = `${(fullDesc || '').toLowerCase().replace(/[^a-z0-9]/g, '')}|${(unit || '').toLowerCase().trim()}|${(stateName || '').toLowerCase().trim()}`;
   return crypto.createHash('sha256').update(norm).digest('hex').slice(0, 32);
@@ -228,64 +247,272 @@ export async function saveExtractedItems(items: SorItemRecord[]): Promise<void> 
   }
 }
 
-// 2. Canonical Item Groups & Members Persistence
-export async function saveCanonicalGroup(group: SorItemGroupRecord): Promise<void> {
-  const db = getDbPool();
-  await db.query(
-    `INSERT INTO public.sor_item_groups (id, canonical_name, category, canonical_unit, attributes, status, group_key)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (id) DO UPDATE SET
-       canonical_name = EXCLUDED.canonical_name,
-       category = EXCLUDED.category,
-       canonical_unit = EXCLUDED.canonical_unit,
-       attributes = EXCLUDED.attributes,
-       status = EXCLUDED.status,
-       group_key = COALESCE(EXCLUDED.group_key, sor_item_groups.group_key),
-       updated_at = NOW();`,
-    [
-      group.id,
-      group.canonical_name,
-      group.category,
-      group.canonical_unit,
-      JSON.stringify(group.attributes),
-      group.status,
-      group.group_key || null,
-    ],
-  );
+// 1B. Atomic File & Extracted Items Persistence (Phase 4.3.8.1 Transaction Protection)
+export async function saveFileAndItemsAtomic(
+  file: SorFileRecord,
+  items: SorItemRecord[],
+  siblingVersionsToDeactivate?: string[],
+): Promise<SorFileRecord> {
+  const pool = getDbPool();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  if (group.members) {
-    for (const member of group.members) {
-      await db.query(
-        `INSERT INTO public.sor_item_group_members (
-          id, group_id, item_id, file_id, state_name, match_class, confidence,
-          reasoning, warnings, review_status, reviewer_notes, reviewed_by, reviewed_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        ON CONFLICT (group_id, item_id) DO UPDATE SET
-          match_class = EXCLUDED.match_class,
-          confidence = EXCLUDED.confidence,
-          reasoning = EXCLUDED.reasoning,
-          warnings = EXCLUDED.warnings,
-          review_status = EXCLUDED.review_status,
-          reviewer_notes = EXCLUDED.reviewer_notes,
-          reviewed_by = EXCLUDED.reviewed_by,
-          reviewed_at = EXCLUDED.reviewed_at;`,
+    // 1. Insert/update the file record within transaction
+    try {
+      await client.query(
+        `INSERT INTO public.sor_files (
+          id, filename, file_size, storage_path, detected_state, detection_confidence,
+          state_confirmed, state_name, authority_code, sor_year, gst_basis,
+          selected_sheet, header_row, total_rows, extracted_items_count, skipped_rows_count, status,
+          content_fingerprint, document_key, version_number, parent_file_id, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+        ON CONFLICT (id) DO UPDATE SET
+          state_confirmed = EXCLUDED.state_confirmed,
+          state_name = EXCLUDED.state_name,
+          authority_code = EXCLUDED.authority_code,
+          sor_year = EXCLUDED.sor_year,
+          gst_basis = EXCLUDED.gst_basis,
+          selected_sheet = EXCLUDED.selected_sheet,
+          extracted_items_count = EXCLUDED.extracted_items_count,
+          skipped_rows_count = EXCLUDED.skipped_rows_count,
+          status = EXCLUDED.status,
+          content_fingerprint = COALESCE(EXCLUDED.content_fingerprint, sor_files.content_fingerprint),
+          document_key = COALESCE(EXCLUDED.document_key, sor_files.document_key),
+          version_number = COALESCE(EXCLUDED.version_number, sor_files.version_number),
+          parent_file_id = COALESCE(EXCLUDED.parent_file_id, sor_files.parent_file_id),
+          is_active = COALESCE(EXCLUDED.is_active, sor_files.is_active);`,
         [
-          member.id,
-          group.id,
-          member.item_id,
-          member.file_id,
-          member.state_name,
-          member.match_class,
-          member.confidence,
-          member.reasoning,
-          member.warnings || [],
-          member.review_status,
-          member.reviewer_notes || null,
-          member.reviewed_by || null,
-          member.reviewed_at || null,
+          file.id,
+          file.filename,
+          file.file_size || 0,
+          file.storage_path || null,
+          file.detected_state || null,
+          file.detection_confidence || 'LOW',
+          file.state_confirmed,
+          file.state_name || null,
+          file.authority_code || null,
+          file.sor_year || null,
+          file.gst_basis,
+          file.selected_sheet || null,
+          file.header_row || null,
+          file.total_rows || 0,
+          file.extracted_items_count,
+          file.skipped_rows_count,
+          file.status,
+          file.content_fingerprint || null,
+          file.document_key || null,
+          file.version_number || 1,
+          file.parent_file_id || null,
+          file.is_active !== undefined ? file.is_active : true,
         ],
       );
+    } catch (insertErr: any) {
+      if (insertErr?.code === '23505' && file.content_fingerprint) {
+        await client.query('ROLLBACK');
+        const existing = await findFileByFingerprint(file.content_fingerprint);
+        if (existing) return existing;
+        throw insertErr;
+      }
+      if (insertErr?.code === '42703') {
+        // Fallback for missing versioning columns
+        await client.query(
+          `INSERT INTO public.sor_files (
+            id, filename, file_size, storage_path, detected_state, detection_confidence,
+            state_confirmed, state_name, authority_code, sor_year, gst_basis,
+            selected_sheet, header_row, total_rows, extracted_items_count, skipped_rows_count, status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+          ON CONFLICT (id) DO UPDATE SET
+            state_confirmed = EXCLUDED.state_confirmed,
+            state_name = EXCLUDED.state_name,
+            authority_code = EXCLUDED.authority_code,
+            sor_year = EXCLUDED.sor_year,
+            gst_basis = EXCLUDED.gst_basis,
+            selected_sheet = EXCLUDED.selected_sheet,
+            extracted_items_count = EXCLUDED.extracted_items_count,
+            skipped_rows_count = EXCLUDED.skipped_rows_count,
+            status = EXCLUDED.status;`,
+          [
+            file.id,
+            file.filename,
+            file.file_size || 0,
+            file.storage_path || null,
+            file.detected_state || null,
+            file.detection_confidence || 'LOW',
+            file.state_confirmed,
+            file.state_name || null,
+            file.authority_code || null,
+            file.sor_year || null,
+            file.gst_basis,
+            file.selected_sheet || null,
+            file.header_row || null,
+            file.total_rows || 0,
+            file.extracted_items_count,
+            file.skipped_rows_count,
+            file.status,
+          ],
+        );
+      } else {
+        throw insertErr;
+      }
     }
+
+    // 2. If deactivating sibling versions (for revision uploads)
+    if (siblingVersionsToDeactivate && siblingVersionsToDeactivate.length > 0) {
+      await client.query(
+        `UPDATE public.sor_files SET is_active = false WHERE id = ANY($1::text[])`,
+        [siblingVersionsToDeactivate],
+      );
+    }
+
+    // 3. Batch insert items within the same client transaction
+    if (items.length > 0) {
+      const chunkSize = 50;
+      for (let c = 0; c < items.length; c += chunkSize) {
+        const chunk = items.slice(c, c + chunkSize);
+        const valuePlaceholders: string[] = [];
+        const values: any[] = [];
+        let pIdx = 1;
+
+        for (const item of chunk) {
+          if (!item.id) {
+            item.id = generateUUID();
+          }
+          const p: string[] = [];
+          for (let i = 0; i < 24; i++) {
+            p.push(`$${pIdx++}`);
+          }
+          valuePlaceholders.push(`(${p.join(', ')})`);
+          values.push(
+            item.id,
+            item.file_id,
+            item.state_name,
+            item.item_no || null,
+            item.raw_description,
+            item.parent_description || null,
+            item.section_heading || null,
+            item.full_description,
+            item.unit || null,
+            item.unit_norm || null,
+            item.quantity,
+            item.rate_as_stated,
+            item.rate_ex_gst,
+            item.rate_incl_gst,
+            item.gst_basis,
+            item.amount,
+            item.category || null,
+            item.is_addon,
+            item.is_percentage_based,
+            item.is_lump_sum,
+            item.rate_derived,
+            item.flag_notes || null,
+            item.sheet_name,
+            item.source_row,
+          );
+        }
+
+        const query = `INSERT INTO public.sor_items (
+          id, file_id, state_name, item_no, raw_description, parent_description,
+          section_heading, full_description, unit, unit_norm, quantity,
+          rate_as_stated, rate_ex_gst, rate_incl_gst, gst_basis, amount,
+          category, is_addon, is_percentage_based, is_lump_sum, rate_derived,
+          flag_notes, sheet_name, source_row
+        ) VALUES ${valuePlaceholders.join(', ')}
+        ON CONFLICT (id) DO UPDATE SET
+          rate_as_stated = EXCLUDED.rate_as_stated,
+          rate_ex_gst = EXCLUDED.rate_ex_gst,
+          rate_incl_gst = EXCLUDED.rate_incl_gst;`;
+
+        await client.query(query, values);
+      }
+    }
+
+    await client.query('COMMIT');
+    return file;
+  } catch (err: any) {
+    try {
+      await client.query('ROLLBACK');
+    } catch (rbErr) {
+      console.warn('[DB_WARN] ROLLBACK failed in saveFileAndItemsAtomic:', rbErr);
+    }
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// 2. Canonical Item Groups & Members Persistence
+export async function saveCanonicalGroup(group: SorItemGroupRecord): Promise<void> {
+  const pool = getDbPool();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `INSERT INTO public.sor_item_groups (id, canonical_name, category, canonical_unit, attributes, status, group_key)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (id) DO UPDATE SET
+         canonical_name = EXCLUDED.canonical_name,
+         category = EXCLUDED.category,
+         canonical_unit = EXCLUDED.canonical_unit,
+         attributes = EXCLUDED.attributes,
+         status = EXCLUDED.status,
+         group_key = COALESCE(EXCLUDED.group_key, sor_item_groups.group_key),
+         updated_at = NOW();`,
+      [
+        group.id,
+        group.canonical_name,
+        group.category,
+        group.canonical_unit,
+        JSON.stringify(group.attributes),
+        group.status,
+        group.group_key || null,
+      ],
+    );
+
+    if (group.members && group.members.length > 0) {
+      for (const member of group.members) {
+        await client.query(
+          `INSERT INTO public.sor_item_group_members (
+            id, group_id, item_id, file_id, state_name, match_class, confidence,
+            reasoning, warnings, review_status, reviewer_notes, reviewed_by, reviewed_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          ON CONFLICT (group_id, item_id) DO UPDATE SET
+            match_class = EXCLUDED.match_class,
+            confidence = EXCLUDED.confidence,
+            reasoning = EXCLUDED.reasoning,
+            warnings = EXCLUDED.warnings,
+            review_status = EXCLUDED.review_status,
+            reviewer_notes = EXCLUDED.reviewer_notes,
+            reviewed_by = EXCLUDED.reviewed_by,
+            reviewed_at = EXCLUDED.reviewed_at;`,
+          [
+            member.id,
+            group.id,
+            member.item_id,
+            member.file_id,
+            member.state_name,
+            member.match_class,
+            member.confidence,
+            member.reasoning,
+            member.warnings || [],
+            member.review_status,
+            member.reviewer_notes || null,
+            member.reviewed_by || null,
+            member.reviewed_at || null,
+          ],
+        );
+      }
+    }
+    await client.query('COMMIT');
+  } catch (err: any) {
+    try {
+      await client.query('ROLLBACK');
+    } catch (rbErr) {
+      console.warn('[DB_WARN] ROLLBACK failed in saveCanonicalGroup:', rbErr);
+    }
+    throw err;
+  } finally {
+    client.release();
   }
 }
 

@@ -72,6 +72,9 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
     fingerprint?: string;
   } | null>(null);
 
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState<boolean>(false);
+
   const [selectedFileForModal, setSelectedFileForModal] = useState<{
     file: SorFileRecord;
     sheets: SheetScoreResult[];
@@ -138,6 +141,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
 
   const handleFileProcess = async (fileObj: File) => {
     setDuplicateNotice(null);
+    setExtractError(null);
     const res = await onUploadFile(fileObj);
     if (!res) return;
 
@@ -184,22 +188,31 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
   };
 
   const handleConfirmExtraction = async () => {
-    if (!selectedFileForModal || !confirmedState.trim()) return;
-    await onConfirmFile({
-      file_id: selectedFileForModal.file.id,
-      state_name: confirmedState.trim(),
-      authority_code: confirmedAuthority.trim() || undefined,
-      sor_year: confirmedYear.trim() || undefined,
-      discipline: confirmedDiscipline,
-      document_title: confirmedDocTitle.trim() || undefined,
-      tender_reference: confirmedTenderRef.trim() || undefined,
-      upload_type: uploadType,
-      target_revision_doc_key: uploadType === 'revision' ? targetRevisionDocKey : undefined,
-      gst_basis: confirmedGst,
-      selected_sheet: selectedSheet || selectedFileForModal.file.selected_sheet || '',
-      set_active: setActiveOnConfirm,
-    });
-    setSelectedFileForModal(null);
+    if (!selectedFileForModal || !confirmedState.trim() || isConfirming) return;
+    setIsConfirming(true);
+    setExtractError(null);
+    try {
+      await onConfirmFile({
+        file_id: selectedFileForModal.file.id,
+        state_name: confirmedState.trim(),
+        authority_code: confirmedAuthority.trim() || undefined,
+        sor_year: confirmedYear.trim() || undefined,
+        discipline: confirmedDiscipline,
+        document_title: confirmedDocTitle.trim() || undefined,
+        tender_reference: confirmedTenderRef.trim() || undefined,
+        upload_type: uploadType,
+        target_revision_doc_key: uploadType === 'revision' ? targetRevisionDocKey : undefined,
+        gst_basis: confirmedGst,
+        selected_sheet: selectedSheet || selectedFileForModal.file.selected_sheet || '',
+        set_active: setActiveOnConfirm,
+      });
+      setSelectedFileForModal(null);
+      await fetchPaginatedFiles(filesPage, filesPageSize);
+    } catch (err: any) {
+      setExtractError(err.message || 'Database persistence failed. Please retry.');
+    } finally {
+      setIsConfirming(false);
+    }
   };
 
   return (
@@ -768,6 +781,7 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                   id="set-active-version-checkbox"
                   checked={setActiveOnConfirm}
                   onChange={(e) => setSetActiveOnConfirm(e.target.checked)}
+                  disabled={isConfirming}
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
                 />
                 <label
@@ -777,22 +791,46 @@ export const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                   Set as Active Version for comparison (supersedes older versions of this schedule)
                 </label>
               </div>
+
+              {/* Extraction / Persistence Error Banner */}
+              {extractError && (
+                <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-start space-x-2.5 text-rose-800 dark:text-rose-300 text-xs animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Persistence Failed</p>
+                    <p className="mt-0.5">{extractError}</p>
+                    <p className="mt-1 text-[11px] text-rose-600/80 dark:text-rose-400/80">
+                      The file was not saved. Review your configuration or click &ldquo;Retry Extraction&rdquo;.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 onClick={() => setSelectedFileForModal(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                disabled={isConfirming}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmExtraction}
-                disabled={!confirmedState.trim()}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm flex items-center space-x-1.5"
+                disabled={!confirmedState.trim() || isConfirming}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 text-white transition-all shadow-sm flex items-center space-x-1.5 cursor-pointer disabled:cursor-not-allowed"
               >
-                <Check className="w-4 h-4" />
-                <span>Confirm & Extract Items</span>
+                {isConfirming ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Persisting to Database...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>{extractError ? 'Retry Extraction' : 'Confirm & Extract Items'}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

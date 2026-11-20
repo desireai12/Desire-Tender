@@ -85,11 +85,15 @@ export const BoqSorComparisonView: React.FC = () => {
           message: data.message,
         };
       }
-      setFiles((prev) => [data.file, ...prev]);
-      return { file: data.file, sheets: data.sheets as SheetScoreResult[] };
+      return {
+        file: data.file,
+        sheets: data.sheets as SheetScoreResult[],
+        candidate_revisions: data.candidate_revisions,
+      };
     } catch (err: any) {
       console.error('[SOR_UPLOAD_ERROR]', err);
       setError(err.message || 'Failed to upload and analyze file');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -99,8 +103,15 @@ export const BoqSorComparisonView: React.FC = () => {
     file_id: string;
     state_name: string;
     authority_code?: string;
+    sor_year?: string;
+    discipline?: DocumentDiscipline;
+    document_title?: string;
+    tender_reference?: string;
+    upload_type: 'new_document' | 'revision';
+    target_revision_doc_key?: string;
     gst_basis: GstBasis;
     selected_sheet: string;
+    set_active?: boolean;
   }) => {
     setIsLoading(true);
     setError(null);
@@ -113,16 +124,23 @@ export const BoqSorComparisonView: React.FC = () => {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `Extraction failed with status ${res.status}`);
+        const errMsg = errJson.error || `Extraction and persistence failed with status ${res.status}`;
+        throw new Error(errMsg);
       }
 
       const data = await res.json();
-      setFiles((prev) =>
-        prev.map((f) => (f.id === params.file_id ? data.file : f)),
-      );
+      setFiles((prev) => {
+        const exists = prev.some((f) => f.id === params.file_id);
+        if (exists) {
+          return prev.map((f) => (f.id === params.file_id ? data.file : f));
+        } else {
+          return [data.file, ...prev];
+        }
+      });
     } catch (err: any) {
       console.error('[SOR_EXTRACT_ERROR]', err);
       setError(err.message || 'Failed to extract items from sheet');
+      throw err;
     } finally {
       setIsLoading(false);
     }
