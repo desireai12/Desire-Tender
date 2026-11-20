@@ -203,7 +203,7 @@ export const INITIAL_TRACKED_TENDERS: TrackedTender[] = [
     assigned_lead: 'Vikas Verma (Tender Head)',
     win_probability_pct: 65,
     jv_partner_needed: false,
-    remarks: 'Identified from Pan-India Open Tenders database. Eligibility analysis in progress.',
+    remarks: 'Identified from Pan-India Open Tenders database. Check Eligibility in progress.',
     portal_url: 'https://etender.up.nic.in'
   }
 ];
@@ -700,7 +700,7 @@ export const TenderTrackerDashboard: React.FC<TenderTrackerDashboardProps> = ({
         <div>
           <div className="flex items-center space-x-2 text-emerald-200 text-xs font-mono uppercase tracking-wider mb-1">
             <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
-            <span>Desire Energy Solutions • Operational Tender Tracker</span>
+            <span>Desire Energy Solutions • Operational Tender Dashboard</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Tender Bidding & Lifecycle Tracker

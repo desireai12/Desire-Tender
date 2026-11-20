@@ -812,7 +812,7 @@ export const IndiaTendersSectorView: React.FC<IndiaTendersSectorViewProps> = ({
                               onSelectForBidding(tender);
                             }}
                             className="px-2.5 py-1.5 rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-900 dark:text-blue-300 text-xs font-bold transition cursor-pointer"
-                            title="Track this real government tender for bidding in Tender Tracker & Bid Flow"
+                            title="Track this real government tender for bidding in Tender Dashboard & Bid Flow"
                           >
                             Bid Track
                           </button>

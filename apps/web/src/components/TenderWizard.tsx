@@ -486,7 +486,7 @@ export const TenderWizard: React.FC<TenderWizardProps> = ({
           user: `Officer (${activeRole})`,
           department: activeRole,
           timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-          action: `Uploaded Tender & Completed Dynamic AI Eligibility Analysis with ${jvComp.name} (${desireEquityRatio}:${partnerEquityRatio})`,
+          action: `Uploaded Tender & Completed Dynamic AI Check Eligibility with ${jvComp.name} (${desireEquityRatio}:${partnerEquityRatio})`,
           status: 'Completed',
           next_pending_action: 'Estimation Team to generate Stage 3 BOQ Costing'
         }

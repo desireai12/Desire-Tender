@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'dashboard', label: 'Home Overview', icon: LayoutDashboard },
         { id: 'india_tenders', label: 'India Tenders Directory', icon: Globe2 },
-        { id: 'tender_tracker', label: 'Live Tender Tracker', icon: Layers },
+        { id: 'tender_tracker', label: 'Tender Dashboard', icon: Layers },
         { id: 'bid_flow', label: 'Bid Flow Pipeline', icon: Workflow },
       ]
     },
@@ -81,9 +81,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       title: 'Bidding & AI Engines',
       items: [
-        { id: 'eligibility', label: 'Eligibility Analysis', icon: Sparkles },
+        { id: 'eligibility', label: 'Check Eligibility', icon: Sparkles },
         { id: 'wizard', label: 'JV & Combine Engine', icon: GitMerge },
-        { id: 'costing', label: 'BidMaster Costing', icon: Calculator },
+        { id: 'costing', label: 'Tender Knowledge Base', icon: Calculator },
         { id: 'boq_costing', label: 'Costing Engine', icon: Calculator },
         { id: 'boq_sor_comparison', label: 'BOQ SOR Comparison', icon: Scale },
         { id: 'lifecycle', label: 'Tender Process Queue', icon: FileCode },
