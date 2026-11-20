@@ -10,6 +10,7 @@ import {
   Swords, 
   Layers, 
   Calculator, 
+  Scale, 
   FileCode, 
   ShieldCheck, 
   Sliders,
@@ -35,6 +36,7 @@ export type NavTab =
   | 'competitors' 
   | 'costing' 
   | 'boq_costing'
+  | 'boq_sor_comparison'
   | 'admin_kb' 
   | 'admin'
   | 'admin_config'
@@ -83,6 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'wizard', label: 'JV & Combine Engine', icon: GitMerge },
         { id: 'costing', label: 'BidMaster Costing', icon: Calculator },
         { id: 'boq_costing', label: 'Costing Engine', icon: Calculator },
+        { id: 'boq_sor_comparison', label: 'BOQ SOR Comparison', icon: Scale },
         { id: 'lifecycle', label: 'Tender Process Queue', icon: FileCode },
       ]
     },

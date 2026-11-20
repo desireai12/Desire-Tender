@@ -11,6 +11,7 @@ import { runNewEligibilityEvaluation } from '@/lib/new-eligibility';
 import { selectQualificationAndNitPages } from '@/lib/new-eligibility/pdfTextSelector';
 import { ELIGIBILITY_CONFIG } from '@/lib/eligibility.config';
 import { handleCostingRun } from '@/lib/costing/api/costingRoute';
+import { handleSorComparisonRoute } from '@/lib/boq-sor-comparison/api/route';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -905,7 +906,7 @@ export interface AuditCheckResult {
   errorDetail?: string;
 }
 
-export function runReportAudit(
+function runReportAudit(
   report: any,
   extractedPdfText: string,
   desireComp: any
@@ -1094,7 +1095,7 @@ export function runReportAudit(
 let cachedCompanies: any[] = [];
 let lastCompanyFetch = 0;
 
-export async function getCompaniesFromDatabase(): Promise<any[]> {
+async function getCompaniesFromDatabase(): Promise<any[]> {
   const now = Date.now();
   if (cachedCompanies.length > 0 && now - lastCompanyFetch < 60000) {
     return cachedCompanies;
@@ -2537,7 +2538,7 @@ export interface SessionTokenPayload {
   exp: number;
 }
 
-export function createSessionToken(payload: { employee_id: string; role: string; full_name?: string }, expiresInSeconds = 12 * 3600): string | null {
+function createSessionToken(payload: { employee_id: string; role: string; full_name?: string }, expiresInSeconds = 12 * 3600): string | null {
   const secret = getSessionSecret();
   const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
   const fullPayload: SessionTokenPayload = { ...payload, exp };
@@ -2546,7 +2547,7 @@ export function createSessionToken(payload: { employee_id: string; role: string;
   return `${payloadBase64}.${signature}`;
 }
 
-export function verifySessionToken(token: string): SessionTokenPayload | null {
+function verifySessionToken(token: string): SessionTokenPayload | null {
   if (!token || typeof token !== 'string' || !token.includes('.')) return null;
   const [payloadBase64, signature] = token.split('.');
   if (!payloadBase64 || !signature) return null;
@@ -2650,6 +2651,13 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         { status: 403 }
       );
     }
+  }
+
+  // BOQ SOR Comparison API: delegated to isolated module
+  if (subPath === 'sor-comparison' || subPath.startsWith('sor-comparison/')) {
+    const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+    const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+    return await handleSorComparisonRoute(req, { supabaseUrl, serviceKey });
   }
 
   if (subPath === 'costing/run' && method === 'POST') {

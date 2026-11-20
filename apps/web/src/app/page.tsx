@@ -15,6 +15,7 @@ import { CompanyDetailsView } from '@/components/CompanyDetailsView';
 import { CombineAnalysisView } from '@/components/CombineAnalysisView';
 import { CostingEstimatorView } from '@/components/CostingEstimatorView';
 import { BOQCostingView } from '@/components/BOQCostingView';
+import { BoqSorComparisonView } from '@/components/boq-sor-comparison/BoqSorComparisonView';
 import { SettingsView } from '@/components/SettingsView';
 import { LoginLanding } from '@/components/LoginLanding';
 import { AdminPortal } from '@/components/AdminPortal';
@@ -112,6 +113,16 @@ export default function Home() {
   const [activeRole, setActiveRole] = useState<DepartmentRole>('Admin');
   const [tendersQueue, setTendersQueue] = useState<TenderProcess[]>([DEFAULT_SEED_TENDER]);
   const [selectedTenderToAnalyze, setSelectedTenderToAnalyze] = useState<IndiaTenderItem | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab') as NavTab;
+      if (tabParam) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
 
   // RESTORE OR AUTO-AUTHENTICATE DEFAULT ADMIN SESSION ON MOUNT
   useEffect(() => {
@@ -550,6 +561,10 @@ export default function Home() {
 
           {activeTab === 'boq_costing' && (
             <BOQCostingView />
+          )}
+
+          {activeTab === 'boq_sor_comparison' && (
+            <BoqSorComparisonView />
           )}
 
           {activeTab === 'competitors' && (
