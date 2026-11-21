@@ -231,7 +231,7 @@ export async function handleSorComparisonRoute(
       );
       const hasCandidateRevision = candidateRevisions.length > 0;
 
-      const fileId = `file-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const fileId = crypto.randomUUID();
       const fileRecord: SorFileRecord = {
         id: fileId,
         filename: file.name,
