@@ -427,7 +427,18 @@ export async function handleSorComparisonRoute(
         }
         dbPersisted = true;
       } catch (dbErr: any) {
-        console.error('[SOR_DB_PERSIST_ERROR]', dbErr);
+        const errorRef = crypto.randomUUID();
+        // Sanitize error message: scrub connection strings, passwords, or credentials before logging
+        const rawMsg = typeof dbErr?.message === 'string' ? dbErr.message : 'Database operation failed';
+        const sanitizedMsg = rawMsg
+          .replace(/postgresql:\/\/[^@\s]+@/gi, 'postgresql://***@')
+          .replace(/password=[^\s;]+/gi, 'password=***')
+          .slice(0, 300);
+
+        console.error(`[SOR_DB_PERSIST_ERROR] [Correlation: ${errorRef}]`, {
+          code: dbErr?.code || 'UNKNOWN',
+          message: sanitizedMsg,
+        });
         if (requireDb) {
           // In deployed / strict persistence mode, a DB write failure MUST return HTTP 503
           // Clean up in-memory cache to prevent phantom files or locked duplicate hashes
@@ -440,13 +451,13 @@ export async function handleSorComparisonRoute(
             {
               error: 'Database persistence failed. The file could not be permanently saved. Please check database connectivity and retry.',
               code: 'DB_PERSISTENCE_FAILED',
-              details: dbErr?.code ? `PostgreSQL error [${dbErr.code}]` : undefined,
+              correlation_id: errorRef,
             },
             { status: 503 },
           );
         } else {
           // Local development / mock test fallback
-          console.warn('[SOR_DB_PERSIST_WARN] Development fallback to in-memory store:', dbErr);
+          console.warn(`[SOR_DB_PERSIST_WARN] [Correlation: ${errorRef}] Development fallback to in-memory store:`, sanitizedMsg);
         }
       }
 

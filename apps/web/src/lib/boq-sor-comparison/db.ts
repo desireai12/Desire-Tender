@@ -214,12 +214,12 @@ export async function saveExtractedItems(items: SorItemRecord[]): Promise<void> 
         item.full_description,
         item.unit || null,
         item.unit_norm || null,
-        item.quantity,
-        item.rate_as_stated,
-        item.rate_ex_gst,
-        item.rate_incl_gst,
+        item.quantity ?? null,
+        item.rate_as_stated ?? null,
+        item.rate_ex_gst ?? null,
+        item.rate_incl_gst ?? null,
         item.gst_basis,
-        item.amount,
+        item.amount ?? null,
         item.category || null,
         item.is_addon,
         item.is_percentage_based,
@@ -363,10 +363,17 @@ export async function saveFileAndItemsAtomic(
 
     // 2. If deactivating sibling versions (for revision uploads)
     if (siblingVersionsToDeactivate && siblingVersionsToDeactivate.length > 0) {
+      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      for (const sibId of siblingVersionsToDeactivate) {
+        if (!sibId || typeof sibId !== 'string' || !UUID_REGEX.test(sibId)) {
+          throw new Error(`Invalid UUID supplied for sibling deactivation: "${sibId}"`);
+        }
+      }
+
       await client.query('SAVEPOINT sp_deactivate_siblings');
       try {
         await client.query(
-          `UPDATE public.sor_files SET is_active = false WHERE id = ANY($1::text[])`,
+          `UPDATE public.sor_files SET is_active = false WHERE id = ANY($1::uuid[])`,
           [siblingVersionsToDeactivate],
         );
         await client.query('RELEASE SAVEPOINT sp_deactivate_siblings');
@@ -407,12 +414,12 @@ export async function saveFileAndItemsAtomic(
             item.full_description,
             item.unit || null,
             item.unit_norm || null,
-            item.quantity,
-            item.rate_as_stated,
-            item.rate_ex_gst,
-            item.rate_incl_gst,
+            item.quantity ?? null,
+            item.rate_as_stated ?? null,
+            item.rate_ex_gst ?? null,
+            item.rate_incl_gst ?? null,
             item.gst_basis,
-            item.amount,
+            item.amount ?? null,
             item.category || null,
             item.is_addon,
             item.is_percentage_based,

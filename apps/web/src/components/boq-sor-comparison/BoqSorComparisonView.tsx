@@ -124,7 +124,9 @@ export const BoqSorComparisonView: React.FC = () => {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        const errMsg = errJson.error || `Extraction and persistence failed with status ${res.status}`;
+        const errMsg = errJson.correlation_id
+          ? `${errJson.error} [Ref: ${errJson.correlation_id}]`
+          : (errJson.error || `Extraction and persistence failed with status ${res.status}`);
         throw new Error(errMsg);
       }
 
