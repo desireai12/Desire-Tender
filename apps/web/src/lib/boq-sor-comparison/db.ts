@@ -259,6 +259,7 @@ export async function saveFileAndItemsAtomic(
     await client.query('BEGIN');
 
     // 1. Insert/update the file record within transaction
+    await client.query('SAVEPOINT sp_file_insert');
     try {
       await client.query(
         `INSERT INTO public.sor_files (
@@ -307,6 +308,7 @@ export async function saveFileAndItemsAtomic(
           file.is_active !== undefined ? file.is_active : true,
         ],
       );
+      await client.query('RELEASE SAVEPOINT sp_file_insert');
     } catch (insertErr: any) {
       if (insertErr?.code === '23505' && file.content_fingerprint) {
         await client.query('ROLLBACK');
@@ -315,7 +317,8 @@ export async function saveFileAndItemsAtomic(
         throw insertErr;
       }
       if (insertErr?.code === '42703') {
-        // Fallback for missing versioning columns
+        // Fallback for missing versioning columns on unmigrated database
+        await client.query('ROLLBACK TO SAVEPOINT sp_file_insert');
         await client.query(
           `INSERT INTO public.sor_files (
             id, filename, file_size, storage_path, detected_state, detection_confidence,
@@ -353,16 +356,26 @@ export async function saveFileAndItemsAtomic(
           ],
         );
       } else {
+        await client.query('ROLLBACK TO SAVEPOINT sp_file_insert');
         throw insertErr;
       }
     }
 
     // 2. If deactivating sibling versions (for revision uploads)
     if (siblingVersionsToDeactivate && siblingVersionsToDeactivate.length > 0) {
-      await client.query(
-        `UPDATE public.sor_files SET is_active = false WHERE id = ANY($1::text[])`,
-        [siblingVersionsToDeactivate],
-      );
+      await client.query('SAVEPOINT sp_deactivate_siblings');
+      try {
+        await client.query(
+          `UPDATE public.sor_files SET is_active = false WHERE id = ANY($1::text[])`,
+          [siblingVersionsToDeactivate],
+        );
+        await client.query('RELEASE SAVEPOINT sp_deactivate_siblings');
+      } catch (deactErr: any) {
+        await client.query('ROLLBACK TO SAVEPOINT sp_deactivate_siblings');
+        if (deactErr?.code !== '42703') {
+          throw deactErr;
+        }
+      }
     }
 
     // 3. Batch insert items within the same client transaction

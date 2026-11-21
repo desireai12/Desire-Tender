@@ -17,7 +17,7 @@ import { FileUploadSection } from './FileUploadSection';
 import { ItemMatchingReview } from './ItemMatchingReview';
 import { ComparisonDashboard } from './ComparisonDashboard';
 import { SkippedRowsModal } from './SkippedRowsModal';
-import type { GstBasis, SheetScoreResult, SkippedRowRecord, SorFileRecord } from '@/lib/boq-sor-comparison/types';
+import type { DocumentDiscipline, GstBasis, SheetScoreResult, SkippedRowRecord, SorFileRecord } from '@/lib/boq-sor-comparison/types';
 
 export const BoqSorComparisonView: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<
