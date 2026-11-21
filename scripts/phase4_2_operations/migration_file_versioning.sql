@@ -299,7 +299,7 @@ SET
       '::', 
       COALESCE(sor_year, 'historical'),
       '::legacy_',
-      SUBSTRING(id::text, 1, 8)
+      id::text
     ))
   )
 WHERE version_number IS NULL OR is_active IS NULL OR document_key IS NULL OR is_test IS NULL OR discipline IS NULL;
@@ -366,7 +366,7 @@ BEGIN
     END IF;
     RAISE NOTICE 'Existing compatible index uq_sor_files_content_fingerprint verified.';
   ELSE
-    CREATE UNIQUE INDEX uq_sor_files_content_fingerprint 
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_sor_files_content_fingerprint
       ON public.sor_files(content_fingerprint) 
       WHERE content_fingerprint IS NOT NULL AND is_test = false;
     RAISE NOTICE 'Created partial unique index uq_sor_files_content_fingerprint.';
@@ -421,7 +421,7 @@ BEGIN
     END IF;
     RAISE NOTICE 'Existing compatible index uq_sor_files_active_version verified.';
   ELSE
-    CREATE UNIQUE INDEX uq_sor_files_active_version
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_sor_files_active_version
       ON public.sor_files(document_key)
       WHERE is_active = true AND is_test = false AND document_key IS NOT NULL;
     RAISE NOTICE 'Created partial unique index uq_sor_files_active_version.';
