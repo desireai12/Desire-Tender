@@ -19,22 +19,33 @@ import type {
   SorMatchAuditRecord,
 } from './types';
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres.udwjptggvaavoemuvjbm:desireenergy%401234@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres';
-
 let pool: Pool | null = null;
 
 export function getDbPool(): Pool {
   if (!pool) {
+    const connStr = process.env.DATABASE_URL;
+    if (!connStr || typeof connStr !== 'string' || !connStr.trim()) {
+      throw new Error('[DB_CONFIG_ERROR] DATABASE_URL environment variable is required and must be configured.');
+    }
     pool = new Pool({
-      connectionString,
+      connectionString: connStr.trim(),
       ssl: { rejectUnauthorized: false },
       max: 10,
       idleTimeoutMillis: 30000,
     });
   }
   return pool;
+}
+
+function sanitizeDbError(err: any): { code: string; message: string } {
+  const code = typeof err?.code === 'string' ? err.code : (typeof err?.code === 'number' ? String(err.code) : 'UNKNOWN');
+  const rawMsg = typeof err?.message === 'string' ? err.message : (typeof err === 'string' ? err : 'Database error');
+  const sanitizedMsg = rawMsg
+    .replace(/postgres(?:ql)?:\/\/[^@\s]+@/gi, 'postgresql://***@')
+    .replace(/(?:password|pwd)\s*=\s*(?:'[^']*'|"[^"]*"|[^\s;]+)/gi, 'password=***')
+    .replace(/(?:user|username)\s*=\s*(?:'[^']*'|"[^"]*"|[^\s;]+)/gi, 'user=***')
+    .slice(0, 300);
+  return { code, message: sanitizedMsg };
 }
 
 export function isPersistentDbRequired(): boolean {
@@ -453,7 +464,7 @@ export async function saveFileAndItemsAtomic(
     try {
       await client.query('ROLLBACK');
     } catch (rbErr) {
-      console.warn('[DB_WARN] ROLLBACK failed in saveFileAndItemsAtomic:', rbErr);
+      console.warn('[DB_WARN] ROLLBACK failed in saveFileAndItemsAtomic:', sanitizeDbError(rbErr));
     }
     throw err;
   } finally {
@@ -528,7 +539,7 @@ export async function saveCanonicalGroup(group: SorItemGroupRecord): Promise<voi
     try {
       await client.query('ROLLBACK');
     } catch (rbErr) {
-      console.warn('[DB_WARN] ROLLBACK failed in saveCanonicalGroup:', rbErr);
+      console.warn('[DB_WARN] ROLLBACK failed in saveCanonicalGroup:', sanitizeDbError(rbErr));
     }
     throw err;
   } finally {
@@ -596,7 +607,7 @@ export async function getAllApprovedMappings(): Promise<Map<string, { canonical_
       map.set(row.mapping_hash, row);
     }
   } catch (e) {
-    console.error('Failed to get all approved mappings:', e);
+    console.error('Failed to get all approved mappings:', sanitizeDbError(e));
   }
   return map;
 }
@@ -811,7 +822,7 @@ export async function setActiveVersionInDb(fileId: string, documentKey: string):
     try {
       await client.query('ROLLBACK');
     } catch (rbErr) {
-      console.warn('[DB_WARN] ROLLBACK failed:', rbErr);
+      console.warn('[DB_WARN] ROLLBACK failed:', sanitizeDbError(rbErr));
     }
     // Propagate transaction failures to calling API route
     throw err;
@@ -851,7 +862,7 @@ export async function saveAuthorityMappingToDb(mapping: AuthorityMapping): Promi
     );
   } catch (err) {
     // If table does not exist yet, log warning and let in-memory registry handle it
-    console.warn('[DB_WARN] saveAuthorityMappingToDb failed (table may not exist yet):', err);
+    console.warn('[DB_WARN] saveAuthorityMappingToDb failed (table may not exist yet):', sanitizeDbError(err));
   }
 }
 
@@ -931,7 +942,7 @@ export async function loadSkippedRowsFromDb(): Promise<(SkippedRowRecord & { fil
       skip_reason: r.skip_reason,
     }));
   } catch (e) {
-    console.error('Failed to load skipped rows from DB:', e);
+    console.error('Failed to load skipped rows from DB:', sanitizeDbError(e));
     return [];
   }
 }
@@ -1414,7 +1425,7 @@ export async function getDashboardMetricsFromDb(): Promise<DashboardMetricSummar
       categoryDistribution,
     };
   } catch (err) {
-    console.warn('[DB_METRICS_WARN] Falling back to default empty metrics:', err);
+    console.warn('[DB_METRICS_WARN] Falling back to default empty metrics:', sanitizeDbError(err));
     return {
       totalItems: 0,
       totalGroups: 0,

@@ -1095,6 +1095,17 @@ function runReportAudit(
 let cachedCompanies: any[] = [];
 let lastCompanyFetch = 0;
 
+function sanitizeDbErrorMessage(raw: any): { code: string; message: string } {
+  const code = typeof raw?.code === 'string' ? raw.code : (typeof raw?.code === 'number' ? String(raw.code) : 'UNKNOWN');
+  const rawMsg = typeof raw?.message === 'string' ? raw.message : (typeof raw === 'string' ? raw : 'Database operation failed');
+  const sanitizedMsg = rawMsg
+    .replace(/postgres(?:ql)?:\/\/[^@\s]+@/gi, 'postgresql://***@')
+    .replace(/(?:password|pwd)\s*=\s*(?:'[^']*'|"[^"]*"|[^\s;]+)/gi, 'password=***')
+    .replace(/(?:user|username)\s*=\s*(?:'[^']*'|"[^"]*"|[^\s;]+)/gi, 'user=***')
+    .slice(0, 300);
+  return { code, message: sanitizedMsg };
+}
+
 async function getCompaniesFromDatabase(): Promise<any[]> {
   const now = Date.now();
   if (cachedCompanies.length > 0 && now - lastCompanyFetch < 60000) {
@@ -1110,26 +1121,42 @@ async function getCompaniesFromDatabase(): Promise<any[]> {
         lastCompanyFetch = now;
         return cachedCompanies;
       }
-    } catch (sbErr) {
-      console.warn('[COMPANIES_DB] Supabase fetch warning:', sbErr);
+    } catch (sbErr: any) {
+      console.warn('[COMPANIES_DB] Supabase fetch warning:', sanitizeDbErrorMessage(sbErr));
     }
   }
 
   // 2. Try PostgreSQL direct connection
-  const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres.udwjptggvaavoemuvjbm:desireenergy%401234@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres';
-  if (dbUrl) {
-    try {
-      const { Pool } = require('pg');
-      const pool = new Pool({ connectionString: dbUrl, connectionTimeoutMillis: 5000 });
-      const res = await pool.query('SELECT * FROM public.companies ORDER BY created_at DESC');
-      await pool.end();
-      if (res && res.rows && res.rows.length > 0) {
-        cachedCompanies = normalizeCompaniesFromDB(res.rows);
-        lastCompanyFetch = now;
-        return cachedCompanies;
+  const dbUrl = (process.env.DATABASE_URL || '').trim();
+  if (!dbUrl) {
+    throw new Error('[DB_CONFIG_ERROR] DATABASE_URL environment variable is required and must be configured.');
+  }
+
+  let pool: any = null;
+  try {
+    const { Pool } = require('pg');
+    pool = new Pool({
+      connectionString: dbUrl,
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000,
+    });
+    const res = await pool.query('SELECT * FROM public.companies ORDER BY created_at DESC');
+    if (res && res.rows && res.rows.length > 0) {
+      cachedCompanies = normalizeCompaniesFromDB(res.rows);
+      lastCompanyFetch = now;
+      return cachedCompanies;
+    }
+  } catch (pgErr: any) {
+    const sanitized = sanitizeDbErrorMessage(pgErr);
+    console.warn('[COMPANIES_DB] Direct Postgres fetch warning:', sanitized);
+    throw new Error(`[DB_FETCH_ERROR] Failed to query companies (code: ${sanitized.code})`);
+  } finally {
+    if (pool) {
+      try {
+        await pool.end();
+      } catch (closeErr: any) {
+        console.warn('[COMPANIES_DB] Pool close warning:', sanitizeDbErrorMessage(closeErr));
       }
-    } catch (pgErr) {
-      console.warn('[COMPANIES_DB] Direct Postgres fetch warning:', pgErr);
     }
   }
 
@@ -2985,8 +3012,19 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
 
     // ═══ MASTER COMPANIES DIRECT HANDLERS (public.companies SINGLE SOURCE) ════
     if (subPath === 'companies' && method === 'GET') {
-      const comps = await getCompaniesFromDatabase();
-      return NextResponse.json({ status: 'success', companies: comps });
+      try {
+        const comps = await getCompaniesFromDatabase();
+        return NextResponse.json({ status: 'success', companies: comps });
+      } catch (err: any) {
+        const sanitized = sanitizeDbErrorMessage(err);
+        console.error('[COMPANIES_API] Failed to get companies:', sanitized);
+        return NextResponse.json({
+          status: 'error',
+          message: err?.message?.includes('DATABASE_URL')
+            ? 'Database configuration error: DATABASE_URL is not configured'
+            : `Database error: failed to query companies (code: ${sanitized.code})`
+        }, { status: 500 });
+      }
     }
 
     if (subPath === 'companies' && method === 'POST') {
@@ -2995,8 +3033,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         if (supabase) {
           try {
             await supabase.from('companies').upsert([newComp], { onConflict: 'id' });
-          } catch (e) {
-            console.warn('[COMPANIES_POST] Supabase upsert error:', e);
+          } catch (e: any) {
+            console.warn('[COMPANIES_POST] Supabase upsert error:', sanitizeDbErrorMessage(e));
           }
         }
         cachedCompanies = []; // Invalidate cache
@@ -3011,8 +3049,8 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
       if (supabase) {
         try {
           await supabase.from('companies').delete().eq('id', compId);
-        } catch (e) {
-          console.warn('[COMPANIES_DELETE] Supabase delete error:', e);
+        } catch (e: any) {
+          console.warn('[COMPANIES_DELETE] Supabase delete error:', sanitizeDbErrorMessage(e));
         }
       }
       cachedCompanies = cachedCompanies.filter(c => c.id !== compId);
@@ -3388,7 +3426,12 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         });
       }
 
-      const comps = await getCompaniesFromDatabase();
+      let comps: any[] = [];
+      try {
+        comps = await getCompaniesFromDatabase();
+      } catch (compErr: any) {
+        console.warn('[TENDER_ANALYZE] Could not fetch companies from DB:', sanitizeDbErrorMessage(compErr));
+      }
 
       let aiResult: any = null;
       let ragMetrics = { chunkCount: 0, indexedCount: 0 };
