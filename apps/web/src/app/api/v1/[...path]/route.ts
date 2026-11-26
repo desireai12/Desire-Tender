@@ -3210,7 +3210,7 @@ async function handleRequest(req: NextRequest, params: { path: string[] }) {
         return buildErrorResponse('FILE_UPLOAD_FAILED', 'Uploaded file buffer is empty or could not be downloaded from cloud storage.');
       }
 
-      const geminiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+      const geminiKey = process.env.GEMINI_API_KEY || '';
       if (!geminiKey) {
         return buildErrorResponse('AI_AUTH_FAILED', 'GEMINI_API_KEY environment variable is not configured.');
       }

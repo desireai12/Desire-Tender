@@ -27,6 +27,7 @@ export type NavTab =
   | 'india_tenders'
   | 'tender_tracker'
   | 'bid_flow'
+  | 'tender_eligibility'
   | 'eligibility' 
   | 'wizard' 
   | 'combine'
@@ -81,7 +82,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       title: 'Bidding & AI Engines',
       items: [
-        { id: 'eligibility', label: 'Check Eligibility', icon: Sparkles },
+        { id: 'tender_eligibility', label: 'Tender Eligibility (Phase 4)', icon: Sparkles },
+        { id: 'eligibility', label: 'Check Eligibility (Legacy)', icon: Layers },
         { id: 'wizard', label: 'JV & Combine Engine', icon: GitMerge },
         { id: 'costing', label: 'Tender Knowledge Base', icon: Calculator },
         { id: 'boq_costing', label: 'Costing Engine', icon: Calculator },

@@ -1,0 +1,432 @@
+{
+  "total_verified_tables": 23,
+  "original_reported_tables_count": 18,
+  "newly_reconstructed_tables_count": 5,
+  "tables": [
+    {
+      "table_index": 1,
+      "title": "Notice Inviting Tender Summary",
+      "start_page": 6,
+      "end_page": 6,
+      "category": "GENERAL",
+      "headers_count": 3,
+      "rows_count": 4,
+      "status": "VERIFIED",
+      "notes": "Headers verified across page span."
+    },
+    {
+      "table_index": 2,
+      "title": "Bid Data Sheet",
+      "start_page": 7,
+      "end_page": 9,
+      "category": "GENERAL",
+      "headers_count": 3,
+      "rows_count": 4,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 3,
+      "title": "TO BE FILLED UP BY THE BIDDER",
+      "start_page": 28,
+      "end_page": 28,
+      "category": "OTHERS",
+      "headers_count": 2,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 4,
+      "title": "The qualification questionnaire contains the following forms",
+      "start_page": 28,
+      "end_page": 28,
+      "category": "GENERAL",
+      "headers_count": 2,
+      "rows_count": 10,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 5,
+      "title": "Turnover for the last Five (5) financial year",
+      "start_page": 38,
+      "end_page": 38,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 6,
+      "title": "About the schemes in this package",
+      "start_page": 45,
+      "end_page": 45,
+      "category": "TECHNICAL",
+      "headers_count": 7,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 7,
+      "title": "Headwork/ Sub headwork Supply Demand",
+      "start_page": 51,
+      "end_page": 51,
+      "category": "TECHNICAL",
+      "headers_count": 3,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 8,
+      "title": "SCHEDULE FOR ESTABLISHMENT",
+      "start_page": 59,
+      "end_page": 60,
+      "category": "TECHNICAL",
+      "headers_count": 7,
+      "rows_count": 4,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 9,
+      "title": "Billing for water supply and incentives",
+      "start_page": 68,
+      "end_page": 68,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 1,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 10,
+      "title": "OVERHAUL SCHEDULE",
+      "start_page": 85,
+      "end_page": 86,
+      "category": "TECHNICAL",
+      "headers_count": 3,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 11,
+      "title": "Material Entry Register",
+      "start_page": 92,
+      "end_page": 92,
+      "category": "TECHNICAL",
+      "headers_count": 7,
+      "rows_count": 0,
+      "status": "NEEDS_REVIEW",
+      "notes": "Table has zero rows or empty headers in extracted representation."
+    },
+    {
+      "table_index": 12,
+      "title": "Land Details",
+      "start_page": 102,
+      "end_page": 103,
+      "category": "TECHNICAL",
+      "headers_count": 10,
+      "rows_count": 1,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 13,
+      "title": "WATER DEMAND CALCULATION",
+      "start_page": 105,
+      "end_page": 108,
+      "category": "TECHNICAL",
+      "headers_count": 9,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 14,
+      "title": "RAS RADHANPUR GROUP PIPE DETAILS",
+      "start_page": 109,
+      "end_page": 114,
+      "category": "TECHNICAL",
+      "headers_count": 4,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 15,
+      "title": "Schedule: B (Part -A. 4 Insaurnce Charges)",
+      "start_page": 126,
+      "end_page": 126,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 3,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 16,
+      "title": "Schedule: B (Part -A.4.3 Insurance for Labor)",
+      "start_page": 132,
+      "end_page": 132,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 17,
+      "title": "Coagulation-flocculation process, trouble shooting.",
+      "start_page": 140,
+      "end_page": 140,
+      "category": "TECHNICAL",
+      "headers_count": 3,
+      "rows_count": 1,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 18,
+      "title": "ANNEXURE-XVIIITOOLS & TACKLES",
+      "start_page": 153,
+      "end_page": 153,
+      "category": "OTHERS",
+      "headers_count": 4,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 19,
+      "title": "Turnover Price Escalation Multiplier Table",
+      "start_page": 26,
+      "end_page": 26,
+      "category": "A. FINANCIAL_ELIGIBILITY",
+      "relevance": "DIRECTLY_RELEVANT_TO_FINANCIAL_ELIGIBILITY",
+      "headers": [
+        "Year Relative to Base",
+        "Financial Year",
+        "Turnover Symbol",
+        "Compounding Multiplier",
+        "Turnover at Current Price Level"
+      ],
+      "rows": [
+        [
+          "-5",
+          "2021-2022",
+          "F",
+          1.61,
+          "1.61 x F"
+        ],
+        [
+          "-4",
+          "2022-2023",
+          "E",
+          1.46,
+          "1.46 x E"
+        ],
+        [
+          "-3",
+          "2023-2024",
+          "D",
+          1.33,
+          "1.33 x D"
+        ],
+        [
+          "-2",
+          "2024-2025",
+          "C",
+          1.21,
+          "1.21 x C"
+        ],
+        [
+          "-1",
+          "2025-2026",
+          "B",
+          1.1,
+          "1.10 x B"
+        ],
+        [
+          "Base Year",
+          "2026-2027",
+          "A",
+          1.0,
+          "1.00 x A"
+        ]
+      ],
+      "footnotes": [
+        "Turnover of previous year shall be given additional weightage of ten percent per year to bring them to current price level to account for price escalation as illustrated.",
+        "Turnover for 2025-26 considered subject to submission of provisional/audited CA certificate.",
+        "Cost of material supplied by Government/Client shall not be taken into account."
+      ],
+      "source_evidence": "Clause 4.2.2 Note to Turnover requirement (Page 26)",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "table_index": 20,
+      "title": "Contact Authority Directory",
+      "start_page": 14,
+      "end_page": 14,
+      "category": "INFORMATIONAL",
+      "relevance": "ADMINISTRATIVE_DIRECTORY",
+      "headers": [
+        "Sr. No.",
+        "Name of Officer",
+        "Designation & Address",
+        "Contact Phone (Office)",
+        "Contact Phone (Mobile)"
+      ],
+      "rows": [
+        [
+          1,
+          "Mr. S.V. Panchal",
+          "Deputy Executive Engineer, Satun WTP, Radhanpur, Dist: Patan - 385340",
+          null,
+          "9099052680"
+        ],
+        [
+          2,
+          "Mr. K. R. Patel",
+          "Executive Engineer, Jalbhavan, Behind Referral Hospital, Radhanpur - 385340",
+          "(02744) 220031",
+          "9909234035"
+        ],
+        [
+          3,
+          "Mr. S. Y. Mansuri",
+          "Superintending Engineer, P.H. Circle, GWSSB, Jal Bhavan, 1st Floor, Palanpur",
+          "(02742) 257071",
+          "9978406544"
+        ],
+        [
+          4,
+          "Smt. B. A. Mistry",
+          "Chief Engineer, Zone-2, GWSSB, Jal Bhavan, B/H Mangaldas Town Hall, Ahmedabad",
+          null,
+          "9978406701"
+        ]
+      ],
+      "footnotes": [
+        "Officers authorized for technical clarifications and tender communication."
+      ],
+      "source_evidence": "ITB Clause 3.1.11 (Page 14)",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "table_index": 21,
+      "title": "Form-8 Completed Works Experience Format",
+      "start_page": 40,
+      "end_page": 40,
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "relevance": "DIRECTLY_RELEVANT_TO_TECHNICAL_ELIGIBILITY",
+      "headers": [
+        "Sr. No.",
+        "Name of Project",
+        "Place / District / State",
+        "Cost of O&M Work (Rs. in Lac)",
+        "Date of Starting",
+        "Date of Completion",
+        "Remarks"
+      ],
+      "rows": [
+        [
+          "[Template]",
+          "[Project Name]",
+          "[Location]",
+          "[O&M Cost in Lakhs]",
+          "[DD/MM/YYYY]",
+          "[DD/MM/YYYY]",
+          "[Client Details & Remarks]"
+        ]
+      ],
+      "footnotes": [
+        "List of O&M works of similar nature completed during last 5 financial years (2021-22 to 2025-26) up to one month prior to bid submission.",
+        "Separate questionnaire details required for each completed work (Scope, WTP/STP, pipeline network, engineer-in-charge, penalties/liquidated damages).",
+        "Mandatory client certificate from officer not below rank of Executive Engineer or Nagarpalika Chief Officer.",
+        "Subcontractor and sublet experience is strictly prohibited.",
+        "(*) Hidden or misleading information results in tender disqualification and 3-year debarment."
+      ],
+      "source_evidence": "Form-8 Details of Experience of Completed Works (Page 40)",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "table_index": 22,
+      "title": "Form-9 Works on Hand / Existing Commitments Format",
+      "start_page": 41,
+      "end_page": 41,
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "relevance": "DIRECTLY_RELEVANT_TO_TECHNICAL_AND_FINANCIAL_CAPACITY",
+      "headers": [
+        "Sr. No.",
+        "Name of Project",
+        "Agreement No. & Date",
+        "Country & Location",
+        "Client Name & Address",
+        "Cost of O&M (Rs. in Lac)",
+        "Brief Scope Description",
+        "Period of Completion",
+        "Engineer-in-charge",
+        "Penalties/LD Imposed?"
+      ],
+      "rows": [
+        [
+          "[Template]",
+          "[Active Project]",
+          "[Agmt Ref]",
+          "[Location]",
+          "[Client]",
+          "[Cost in Lakhs]",
+          "[Intake/WTP/Network Scope]",
+          "[Duration]",
+          "[Engineer]",
+          "[Yes/No with details]"
+        ]
+      ],
+      "footnotes": [
+        "Details of existing commitments (works on hand) as on date of bid submission to be completed in next two years.",
+        "Necessary certificates showing year-wise breakup of amount of work done from officer concerned must be attached."
+      ],
+      "source_evidence": "Form-9 Details of Works on Hand (Page 41)",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "table_index": 23,
+      "title": "Annexure-I / Finance Department GR Approved Banks for BG & FDR",
+      "start_page": 8,
+      "end_page": 9,
+      "category": "D. BID_SUBMISSION_CHECKLIST",
+      "relevance": "DIRECTLY_RELEVANT_TO_BID_SUBMISSION_GATEKEEPER",
+      "headers": [
+        "Sr. No.",
+        "Category of Financial Institution",
+        "Statutory Authority / GR Reference",
+        "Applicable Instruments"
+      ],
+      "rows": [
+        [
+          1,
+          "Nationalized / Public Sector Banks",
+          "Govt of Gujarat Finance Department GR FD/MSM/e-file/04/2025/2712/DMO dated 01/04/2026",
+          "Tender Fee DD, EMD FDR / Bank Guarantee, Performance Security"
+        ],
+        [
+          2,
+          "Approved Private Sector / Scheduled Commercial Banks",
+          "As listed in Annexure-I of Finance Dept GR FD/MSM/e-file/04/2025/2712/DMO",
+          "Tender Fee DD, EMD FDR / Bank Guarantee, Performance Security"
+        ]
+      ],
+      "footnotes": [
+        "EMD validity must extend 28 days beyond bid validity of 180 days (Total 208 days).",
+        "Non-approved bank instruments result in immediate technical non-responsiveness."
+      ],
+      "source_evidence": "BDS Items 15, 16, 26 (Pages 7-9)",
+      "verification_state": "VERIFIED"
+    }
+  ]
+}

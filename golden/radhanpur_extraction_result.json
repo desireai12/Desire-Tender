@@ -1,0 +1,5369 @@
+{
+  "totalPages": 175,
+  "totalBatches": 14,
+  "batches": [
+    {
+      "batchIndex": 0,
+      "startPage": 1,
+      "endPage": 15,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 1,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Cover page of Gujarat Water Supply & Sewerage Board tender for Operation & Maintenance of Radhanpur-Santalpur RWSS."
+        },
+        {
+          "page_number": 2,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Intentionally blank page."
+        },
+        {
+          "page_number": 3,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Table of Contents for Volume I."
+        },
+        {
+          "page_number": 4,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Intentionally blank page."
+        },
+        {
+          "page_number": 5,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Section I: Instructions to Bidders title page."
+        },
+        {
+          "page_number": 6,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Notice Inviting Tender details including eligibility of contractor ('A' class & above in R&B/WRD of Govt. of Gujarat) and estimated cost."
+        },
+        {
+          "page_number": 7,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Bid Data Sheet containing general tender information, fees, and EMD amount."
+        },
+        {
+          "page_number": 8,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Bid Data Sheet continuation covering dates, pre-bid meeting, and submission instructions."
+        },
+        {
+          "page_number": 9,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Bid Data Sheet continuation covering contact details and document submission checklist."
+        },
+        {
+          "page_number": 10,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Instructions to Bidders - General terms, instructions, and stamp duty charges."
+        },
+        {
+          "page_number": 11,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Corrupt or fraudulent practices, work schedule, and eligible bidders."
+        },
+        {
+          "page_number": 12,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Eligible bidders continuation, contents of document, addenda & corrigenda, and download of tender."
+        },
+        {
+          "page_number": 13,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Preparation of bids general requirements, language of bid, and cost of bidding."
+        },
+        {
+          "page_number": 14,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Contact authority details and documents comprising the bid."
+        },
+        {
+          "page_number": 15,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Letter of bid & schedules, alternative bids, currency, validity of bids, bid security, and format/signing of tender."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "NIT_HEADER",
+          "anchor_name": "Notice Inviting Tender",
+          "page_number": 6,
+          "section_number": "1",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Bid Data Sheet",
+          "page_number": 7,
+          "section_number": "2",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Instruction to Bidders",
+          "page_number": 10,
+          "section_number": "3",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "NIT_Table",
+          "start_page": 6,
+          "end_page": 6,
+          "category": "GENERAL",
+          "title": "Notice Inviting Tender Summary",
+          "headers": [
+            "Sr No",
+            "Particulars",
+            "Details"
+          ],
+          "rows": [
+            [
+              "1",
+              "Name of work",
+              "Comprehensive Operation & Maintenance of Civil & Electromechanical assets..."
+            ],
+            [
+              "2",
+              "Estimated Cost",
+              "Rs 20,22,72,820.61"
+            ],
+            [
+              "3",
+              "Eligibility of contractor",
+              "Any bidder with “A” class & above of registration or higher in R&B/WRD of Govt. of Gujarat."
+            ],
+            [
+              "4",
+              "Last date of submission of tender",
+              "17-07-2026 up to 18:00 Hrs"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.95
+        },
+        {
+          "table_identifier": "BDS_Table",
+          "start_page": 7,
+          "end_page": 9,
+          "category": "GENERAL",
+          "title": "Bid Data Sheet",
+          "headers": [
+            "Sr",
+            "Parameter",
+            "Details"
+          ],
+          "rows": [
+            [
+              "1",
+              "Department Name",
+              "Gujarat Water Supply & Sewage Board"
+            ],
+            [
+              "6",
+              "Estimated Contract Value (INR)",
+              "Rs. 20,22,72,820.61 (5 years O & M Cost)"
+            ],
+            [
+              "14",
+              "Bid Document Fee / Bid Processing Fees / Tender Fee",
+              "Rs. 18000/- (Rupees Eighteen Thousand Only)"
+            ],
+            [
+              "16",
+              "Bid Security/EMD/Proposal Security (INR)",
+              "Rs. 20,23,000.00 (Rupees Twenty Lacs Twenty-Three Thousand Only)"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": true,
+          "reconstruction_confidence": 0.95
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "3",
+          "source_page": 6,
+          "verbatim_quote": "Any bidder with “A” class& aboveof registration or higher in R&B/WRD of Govt. of Gujarat. However, the bidder will have to Post Qualify as per Financial & Technical Criteria given in the bid document.",
+          "summary": "Contractor must have 'A' class or higher registration in R&B/WRD of Govt. of Gujarat.",
+          "materiality": "DISQUALIFYING",
+          "parameter_key": "contractor_class",
+          "extracted_numeric_value": null,
+          "extracted_unit": "Class A",
+          "confidence": 0.98
+        },
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "14",
+          "source_page": 7,
+          "verbatim_quote": "Rs. 18000/- (Rupees Eighteen Thousand Only)",
+          "summary": "Tender Fee requirement",
+          "materiality": "MANDATORY",
+          "parameter_key": "tender_fee",
+          "extracted_numeric_value": 18000,
+          "extracted_unit": "INR",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "16",
+          "source_page": 7,
+          "verbatim_quote": "Rs. 20,23,000.00(Rupees Twenty Lacs Twenty-Three Thousand Only)",
+          "summary": "Earnest Money Deposit (EMD) requirement",
+          "materiality": "DISQUALIFYING",
+          "parameter_key": "emd_amount",
+          "extracted_numeric_value": 2023000,
+          "extracted_unit": "INR",
+          "confidence": 1
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8712,
+        "candidatesTokenCount": 2622,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11334,
+        "estimatedMarketValueUsd": 0.0014399999999999999,
+        "payableCostUsd": 0,
+        "costUsd": 0.0014399999999999999,
+        "latencyMs": 10508
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8712,
+          "candidatesTokens": 2622,
+          "thinkingTokens": 0,
+          "totalTokens": 11334,
+          "estimatedMarketValueUsd": 0.0014399999999999999,
+          "payableCostUsd": 0,
+          "costUsd": 0.0014399999999999999,
+          "latencyMs": 10508,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 1,
+      "startPage": 14,
+      "endPage": 28,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 14,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Notes to financial year definition, audited certificates, and experience requirements including agency types and executive engineer level certificates."
+        },
+        {
+          "page_number": 15,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Table of Bid Forms from Form-1 to Form-10 along with instructions for completion."
+        },
+        {
+          "page_number": 16,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 17,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 18,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 19,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 20,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 21,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 22,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 23,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Blank or cover page between sections."
+        },
+        {
+          "page_number": 24,
+          "is_scanned_or_degraded": false,
+          "detected_category": "IRRELEVANT",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Cover page for Volume-I Qualification Criteria & Evaluation Procedure."
+        },
+        {
+          "page_number": 25,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "General rules for qualification criteria, company registration requirements, contractor classes, and debarment conditions."
+        },
+        {
+          "page_number": 26,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Financial capacity and experience scenarios (Scenario 1 & 2) covering turnover requirements and weightage table for price escalation."
+        },
+        {
+          "page_number": 27,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Detailed financial year definition, certificate requirements, and experience criteria notes."
+        },
+        {
+          "page_number": 28,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "List of Bid Forms from Form-1 to Form-10 to be filled up by the bidder."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "QUALIFICATION CRITERIA & EVALUATION PROCEDURE",
+          "page_number": 24,
+          "section_number": "4",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "QUALIFICATION_CRITERIA",
+          "anchor_name": "General eligibility criteria",
+          "page_number": 25,
+          "section_number": "4.2.1",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "QUALIFICATION_CRITERIA",
+          "anchor_name": "FinancialCapacity & Experience",
+          "page_number": 26,
+          "section_number": "4.2.2",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "BID FORMS",
+          "page_number": 28,
+          "section_number": "5",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "BID_FORMS_TABLE",
+          "start_page": 28,
+          "end_page": 28,
+          "category": "OTHERS",
+          "title": "TO BE FILLED UP BY THE BIDDER",
+          "headers": [
+            "FORM NO.",
+            "DESCRIPTION OF PROFORMA"
+          ],
+          "rows": [
+            [
+              "Form – 1",
+              "Letter for submission of tender"
+            ],
+            [
+              "Form – 2",
+              "Form-H (Declaration)"
+            ],
+            [
+              "Form – 3",
+              "Bank Guarantee (EMD)"
+            ],
+            [
+              "Form – 4",
+              "Performance bond/ Performance guarantee Proforma for bid security"
+            ],
+            [
+              "Form – 5",
+              "Details of organization structure of the bidder"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 1
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "4.2.2",
+          "source_page": 26,
+          "verbatim_quote": "Turnover: Bidder must have achieved minimum annual financial turnover (at current price level) from contract receipt of works (in all classes of civil engineering construction works or O&M services only) of Rs. 4 Crores in any three financial years out of last Five (5) financial years i.e., from 2021-22 to 2025-26.",
+          "summary": "Minimum annual financial turnover of Rs. 4 Crores in any three financial years out of the last five financial years (Scenario 1).",
+          "materiality": "MANDATORY",
+          "parameter_key": "annual_turnover",
+          "extracted_numeric_value": 4,
+          "extracted_unit": "Cr",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "4.2.2",
+          "source_page": 26,
+          "verbatim_quote": "Turnover: Bidder must have achieved minimum annual financial turnover (at current price level) from contract receipt of works (in all classes of civil engineering construction works or O&M services only) of Rs. 10 Crores in any three financial years out of last Five (5) financial years i.e., from 2021-22 to 2025-26.",
+          "summary": "Minimum annual financial turnover of Rs. 10 Crores in any three financial years out of the last five financial years (Scenario 2).",
+          "materiality": "MANDATORY",
+          "parameter_key": "annual_turnover",
+          "extracted_numeric_value": 10,
+          "extracted_unit": "Cr",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "4.2.2",
+          "source_page": 26,
+          "verbatim_quote": "Experience: The bidder shall have successfully completed operation and maintenance for minimum 1 years for any water supply system or part of its civil or electromechanical components such as water supply network, WTP, pumping machineries, intake/ offtake structure, storage structures, municipal STP or municipal sewage network etc. in last Five (5) financial years i.e., from 2021-22 to 2025-26.",
+          "summary": "Successfully completed O&M for minimum 1 year for any water supply system or components in the last 5 financial years.",
+          "materiality": "MANDATORY",
+          "parameter_key": "similar_work",
+          "extracted_numeric_value": 1,
+          "extracted_unit": "years",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "4.2.1",
+          "source_page": 25,
+          "verbatim_quote": "The bidder must have a valid registration as “A” Class & above as Civil or Electrical Contractor in R & B / Water Resources Department, Government of Gujarat",
+          "summary": "Must have valid registration as 'A' Class & above Civil or Electrical Contractor in R&B / Water Resources Department, Govt of Gujarat.",
+          "materiality": "MANDATORY",
+          "parameter_key": "contractor_class",
+          "extracted_numeric_value": null,
+          "extracted_unit": null,
+          "confidence": 1
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8717,
+        "candidatesTokenCount": 2679,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11396,
+        "estimatedMarketValueUsd": 0.001457475,
+        "payableCostUsd": 0,
+        "costUsd": 0.001457475,
+        "latencyMs": 9853
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8717,
+          "candidatesTokens": 2679,
+          "thinkingTokens": 0,
+          "totalTokens": 11396,
+          "estimatedMarketValueUsd": 0.001457475,
+          "payableCostUsd": 0,
+          "costUsd": 0.001457475,
+          "latencyMs": 9853,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 2,
+      "startPage": 27,
+      "endPage": 41,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 27,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Notes on turnover and experience requirements, including periods from 2021-22 to 2025-26, exclusions of government-supplied materials, contract agreement requirements, and minimum rank for experience certificates."
+        },
+        {
+          "page_number": 28,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "List of bid forms to be filled up by the bidder, ranging from Form-1 to Form-10."
+        },
+        {
+          "page_number": 29,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Form-1: Letter for submission of tender detailing comprehensive O&M works for Radhanpur & Santalpur RWSS."
+        },
+        {
+          "page_number": 30,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Form-1 (Letter for submission of tender), signatures, and execution details."
+        },
+        {
+          "page_number": 31,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form-2: Proforma for Letter of Undertaking (Form-H) declarations regarding site visits, relatives, blacklist status, and tender validity."
+        },
+        {
+          "page_number": 32,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Continuation of Form-2 declarations, penalties for incorrect info including 3-year debarment."
+        },
+        {
+          "page_number": 33,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Form-3: Form of Bank Guarantee for Earnest Money Deposit (EMD)."
+        },
+        {
+          "page_number": 34,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Form-4: Performance Bank Guarantee format and conditions."
+        },
+        {
+          "page_number": 35,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation and signature blocks for Form-4 Performance Bank Guarantee."
+        },
+        {
+          "page_number": 36,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form-5: Details of organization structure of the bidder, years of experience, establishment details."
+        },
+        {
+          "page_number": 37,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form-6: Litigation History / Debarment / Blacklisting information for the last ten years."
+        },
+        {
+          "page_number": 38,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form-7: Financial data requirements including turnover for the last 5 financial years (2021-2022 to 2025-2026) and gross income."
+        },
+        {
+          "page_number": 39,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Continuation of Form-7 financial data requesting sources of finance, bank soundness, and bankruptcy declarations."
+        },
+        {
+          "page_number": 40,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form-8: Details of experience of completed works of similar nature during the last 5 financial years."
+        },
+        {
+          "page_number": 41,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form-9: Bidder's work in hand details of existing commitments to be completed in the next two years."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "QUALIFICATION_CRITERIA",
+          "anchor_name": "Note to Experience requirement",
+          "page_number": 27,
+          "section_number": null,
+          "confidence": 0.99
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "5. BID FORMS",
+          "page_number": 28,
+          "section_number": "5",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "FINANCIAL_FORMAT",
+          "anchor_name": "FORM -7 FINANCIAL DATA",
+          "page_number": 38,
+          "section_number": "Form - 7",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "QUALIFICATION_CRITERIA",
+          "anchor_name": "FORM -8 DETAILS OF EXPERIENCE OF COMPLETED WORKS",
+          "page_number": 40,
+          "section_number": "Form - 8",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "form_list_table",
+          "start_page": 28,
+          "end_page": 28,
+          "category": "GENERAL",
+          "title": "The qualification questionnaire contains the following forms",
+          "headers": [
+            "FORM NO.",
+            "DESCRIPTION OF PROFORMA"
+          ],
+          "rows": [
+            [
+              "Form – 1",
+              "Letter for submission of tender"
+            ],
+            [
+              "Form – 2",
+              "Form-H (Declaration)"
+            ],
+            [
+              "Form – 3",
+              "Bank Guarantee (EMD)"
+            ],
+            [
+              "Form – 4",
+              "Performance bond/ Performance guarantee Proforma for bid security"
+            ],
+            [
+              "Form – 5",
+              "Details of organization structure of the bidder"
+            ],
+            [
+              "Form – 6",
+              "Litigation History / Debarment / Blacklisting"
+            ],
+            [
+              "Form – 7",
+              "Financial data"
+            ],
+            [
+              "Form – 8",
+              "Details of experience of completed work (similar nature)"
+            ],
+            [
+              "Form – 9",
+              "Details of works on hand with Bidder"
+            ],
+            [
+              "Form - 10",
+              "Information for tenders submitted but not awarded"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.99
+        },
+        {
+          "table_identifier": "financial_data_table",
+          "start_page": 38,
+          "end_page": 38,
+          "category": "FINANCIAL",
+          "title": "Turnover for the last Five (5) financial year",
+          "headers": [
+            "Sr. No.",
+            "Year",
+            "Turnover (Rs in Crores)",
+            "Reference page No. to balance sheet or other documents"
+          ],
+          "rows": [
+            [
+              "(I)",
+              "2021-2022",
+              "",
+              ""
+            ],
+            [
+              "(II)",
+              "2022-2023",
+              "",
+              ""
+            ],
+            [
+              "(III)",
+              "2023-2024",
+              "",
+              ""
+            ],
+            [
+              "(IV)",
+              "2024-2025",
+              "",
+              ""
+            ],
+            [
+              "(V)",
+              "2025-2026",
+              "",
+              ""
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.98
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "2",
+          "source_page": 27,
+          "verbatim_quote": "The details pertaining to Turnover for the year 2021-2022 to 2025-2026 shall be certified by Chartered Accountant on his own letter head and duly attested.",
+          "summary": "Turnover for 2021-2022 to 2025-2026 must be certified by a Chartered Accountant on letterhead.",
+          "materiality": "MANDATORY",
+          "parameter_key": "annual_turnover",
+          "extracted_numeric_value": null,
+          "extracted_unit": "years",
+          "confidence": 0.95
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "2",
+          "source_page": 27,
+          "verbatim_quote": "The above experience shall be within last Five (5) financial years i.e., from 2021-22 to 2025-26 and upto one month prior to last date of submission of the bid",
+          "summary": "Experience must be within the last 5 financial years from 2021-22 to 2025-26.",
+          "materiality": "MANDATORY",
+          "parameter_key": "similar_work",
+          "extracted_numeric_value": 5,
+          "extracted_unit": "years",
+          "confidence": 0.98
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "4",
+          "source_page": 27,
+          "verbatim_quote": "The experience certificate from the client equivalent to not below the rank of Executive Engineer shall be considered.",
+          "summary": "Experience certificates must be issued by an officer not below the rank of Executive Engineer.",
+          "materiality": "DISQUALIFYING",
+          "parameter_key": "similar_work",
+          "extracted_numeric_value": null,
+          "extracted_unit": null,
+          "confidence": 0.97
+        },
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "vii",
+          "source_page": 32,
+          "verbatim_quote": "If this declaration is found to be incorrect then without prejudice to any other action that may be taken I/weshall be debarred from bidding in GWSSB/GWIL tender for three yearsand my/our security deposit may be forfeited",
+          "summary": "Incorrect declarations lead to 3-year debarment and forfeiture of security deposit.",
+          "materiality": "DISQUALIFYING",
+          "parameter_key": "debarment",
+          "extracted_numeric_value": 3,
+          "extracted_unit": "years",
+          "confidence": 0.96
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8717,
+        "candidatesTokenCount": 3331,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 12048,
+        "estimatedMarketValueUsd": 0.001653075,
+        "payableCostUsd": 0,
+        "costUsd": 0.001653075,
+        "latencyMs": 14034
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8717,
+          "candidatesTokens": 3331,
+          "thinkingTokens": 0,
+          "totalTokens": 12048,
+          "estimatedMarketValueUsd": 0.001653075,
+          "payableCostUsd": 0,
+          "costUsd": 0.001653075,
+          "latencyMs": 14034,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 3,
+      "startPage": 40,
+      "endPage": 54,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 40,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form -8 Details of Experience of Completed Works and associated Proforma for bidding."
+        },
+        {
+          "page_number": 41,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Form -9 Bidder's Work in Hand details and commitments."
+        },
+        {
+          "page_number": 42,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Form -10 Information for tenders submitted but not awarded (Not required. Omitted)."
+        },
+        {
+          "page_number": 43,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Section II: Scope of Services header page."
+        },
+        {
+          "page_number": 44,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Introduction to GWSSB, Scope of Work overview covering operations and maintenance."
+        },
+        {
+          "page_number": 45,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Scope of Contractor, summary table of schemes in package, and brief scope of work."
+        },
+        {
+          "page_number": 46,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Detailed scope of work including comprehensive O&M of civil & electromechanical assets."
+        },
+        {
+          "page_number": 47,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Preventive & Curative maintenance requirements and General Maintenance activities."
+        },
+        {
+          "page_number": 48,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "General obligations, utilities, IT hardware, safety and statutory requirements."
+        },
+        {
+          "page_number": 49,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Scope of Employer and Exit Management provisions."
+        },
+        {
+          "page_number": 50,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-I Scheme Details & Beneficiary List salient features."
+        },
+        {
+          "page_number": 51,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Headwork/ Sub headwork Supply Demand summary table."
+        },
+        {
+          "page_number": 52,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "List of habitations supply to villages, ULBs and hamlets."
+        },
+        {
+          "page_number": 53,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of list of habitations for Radhanpur and Varahi sub-divisions."
+        },
+        {
+          "page_number": 54,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of list of habitations for Santalpur and Radhanpur sub-divisions."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "FORM -8 DETAILS OF EXPERIENCE OF COMPLETED WORKS",
+          "page_number": 40,
+          "section_number": "FORM -8",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "FORM -9 BIDDER'S WORK IN HAND",
+          "page_number": 41,
+          "section_number": "FORM -9",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Section II: Scope of Services",
+          "page_number": 43,
+          "section_number": "Section II",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "6. SCOPE OF WORK",
+          "page_number": 44,
+          "section_number": "6",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-I SCHEME DETAILS & BENEFICIARY LIST",
+          "page_number": 50,
+          "section_number": "ANNEXURE-I",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "table_scheme_package_summary",
+          "start_page": 45,
+          "end_page": 45,
+          "category": "TECHNICAL",
+          "title": "About the schemes in this package",
+          "headers": [
+            "Sr. No.",
+            "Group Name",
+            "Commissioning Year",
+            "Cost",
+            "Total commissioned habitations (village, towns and hemlets",
+            "Technical issue villages as on date",
+            "Voluntary villages as on date"
+          ],
+          "rows": [
+            [
+              "1",
+              "Radhanpur",
+              "April-2023",
+              "64 Villages + 1 city+2 Hamlet",
+              "0 Villages",
+              "0 Villages"
+            ],
+            [
+              "2",
+              "Santalpur",
+              "Sep-2022",
+              "62 Villages + 9 Hamlet",
+              "0 Villages",
+              "0 Villages"
+            ]
+          ],
+          "footnotes": [
+            "Note: Total commissioned habitations- technical issue habitations - voluntary habitations= operational habitations"
+          ],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.95
+        },
+        {
+          "table_identifier": "table_headwork_supply_demand",
+          "start_page": 51,
+          "end_page": 51,
+          "category": "TECHNICAL",
+          "title": "Headwork/ Sub headwork Supply Demand",
+          "headers": [
+            "Name of Headworks/Sub headworks",
+            "Water requirement (as per 2026) (MLD)",
+            "Average Water Supply (MLD)"
+          ],
+          "rows": [
+            [
+              "Satun HW",
+              "9.74",
+              "12.47"
+            ],
+            [
+              "Dharavadi HW",
+              "3.64",
+              "4.73"
+            ],
+            [
+              "SINAD HW",
+              "1.31",
+              "1.70"
+            ],
+            [
+              "Varahi HW",
+              "4.13",
+              "6.28"
+            ],
+            [
+              "Abiyana HW",
+              "2.20",
+              "3.34"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.98
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "1",
+          "source_page": 40,
+          "verbatim_quote": "List of O & M works of similar nature already completed by the bidder during last 5 financial years i.e. From 2021-22 to 2025-26& up to one month prior to last date of submission of the bid",
+          "summary": "Bidder must submit a list of O&M works of similar nature completed during the last 5 financial years from 2021-22 to 2025-26 up to one month prior to bid submission deadline.",
+          "materiality": "MANDATORY",
+          "parameter_key": "similar_work",
+          "extracted_numeric_value": 5,
+          "extracted_unit": "years",
+          "confidence": 0.99
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": null,
+          "source_page": 45,
+          "verbatim_quote": "The board intends to hire contractor for comprehensive O&M through e-tendering system for a duration of 60 (sixty) months for the Radhanpur&SantalpurRWSSschemecovering 1 City/126 villages/ 11 Hamlets and 6Nos Village Tube WellsSpread across Taluka: Radhanpur and SantalpurDistrict: Patan based on NMC at RankpurHW.",
+          "summary": "Comprehensive O&M contract duration is 60 months covering 1 City, 126 villages, 11 Hamlets, and 6 Village Tube Wells.",
+          "materiality": "MANDATORY",
+          "parameter_key": "contract_duration",
+          "extracted_numeric_value": 60,
+          "extracted_unit": "months",
+          "confidence": 0.99
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "10",
+          "source_page": 48,
+          "verbatim_quote": "Provide utility vehicle for pipeline inspection and repair activities by agency. Quantity as per Annexure III. This utility vehicle shall be a 4-seater pickup truck (utility vehicle) (mandatory).",
+          "summary": "Mandatory requirement to provide a 4-seater pickup truck as utility vehicle for pipeline inspection and repair.",
+          "materiality": "MANDATORY",
+          "parameter_key": "utility_vehicle",
+          "extracted_numeric_value": 4,
+          "extracted_unit": "seater",
+          "confidence": 0.95
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8717,
+        "candidatesTokenCount": 2855,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11572,
+        "estimatedMarketValueUsd": 0.001510275,
+        "payableCostUsd": 0,
+        "costUsd": 0.001510275,
+        "latencyMs": 10883
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8717,
+          "candidatesTokens": 2855,
+          "thinkingTokens": 0,
+          "totalTokens": 11572,
+          "estimatedMarketValueUsd": 0.001510275,
+          "payableCostUsd": 0,
+          "costUsd": 0.001510275,
+          "latencyMs": 10883,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 4,
+      "startPage": 53,
+      "endPage": 67,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 53,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "List of villages under Radhanpur & Santalpur RWSS with technical details, and supply to industries."
+        },
+        {
+          "page_number": 54,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of villages list under Radhanpur & Santalpur RWSS."
+        },
+        {
+          "page_number": 55,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of villages list, total water supply numbers, and supply to industries list."
+        },
+        {
+          "page_number": 56,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of supply to industries and supply to institutions list."
+        },
+        {
+          "page_number": 57,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Annexure-II Quality Testing & Frequency with water quality standards and testing frequency."
+        },
+        {
+          "page_number": 58,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Historical raw water quality data table."
+        },
+        {
+          "page_number": 59,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Annexure-III Schedule for Establishment detailing staffing requirements, qualifications, and experience."
+        },
+        {
+          "page_number": 60,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Continuation of schedule for establishment and notes regarding personnel and utility vehicles."
+        },
+        {
+          "page_number": 61,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-IV Guidelines and structure for site meetings (DPM, WPM, MRM)."
+        },
+        {
+          "page_number": 62,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of guidelines and structure for site meetings (QRM)."
+        },
+        {
+          "page_number": 63,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-V Reporting Formats - Daily Reporting Format."
+        },
+        {
+          "page_number": 64,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Daily Reporting Format."
+        },
+        {
+          "page_number": 65,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Monthly Reporting Format."
+        },
+        {
+          "page_number": 66,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annual Reporting Format."
+        },
+        {
+          "page_number": 67,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Annual Reporting Format and Service Level details."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-II QUALITY TESTING & FREQUENCY",
+          "page_number": 57,
+          "section_number": null,
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-III SCHEDULE FOR ESTABLISHMENT",
+          "page_number": 59,
+          "section_number": null,
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-IV GUIDELINES AND STRUCTURE FOR SITE MEETINGS",
+          "page_number": 61,
+          "section_number": null,
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-V REPORTING FORMATS",
+          "page_number": 63,
+          "section_number": null,
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "ESTABLISHMENT_SCHEDULE",
+          "start_page": 59,
+          "end_page": 60,
+          "category": "TECHNICAL",
+          "title": "SCHEDULE FOR ESTABLISHMENT",
+          "headers": [
+            "S.N.",
+            "Designation",
+            "Minimum Education",
+            "Role and office",
+            "Minimum Experience",
+            "Radhanpur Gr.",
+            "Santalpur Gr."
+          ],
+          "rows": [
+            [
+              "1",
+              "O&M Manager",
+              "- MBA or PGDM in Business Management and - Bachelor's degree in Civil/ Mechanical/ Electrical/ Environmental/ Public Health engineering",
+              "Role: O&M coordinator / District coordinator Location: Agency's office within 10 km radius from GWSSB's division",
+              "Minimum 7 years of experience",
+              "1",
+              "1"
+            ],
+            [
+              "2",
+              "Maintenance Engineer (Supervisor)",
+              "- Bachelor's degree in Civil/ Mechanical/ Electrical/ Environmental/ Public Health engineering",
+              "Role: O&M Overseer (supervisor) Location: At Main Headwork",
+              "Minimum 5 years of experience",
+              "1",
+              "1"
+            ],
+            [
+              "3",
+              "Asst. Maintenance Engineer",
+              "- Bachelor's degree in Civil/ Mechanical/ Electrical/ Environmental/ Public Health engineering",
+              "Role: Assistance to Engineer Location: Agency's office within 10 km radius from each of GWSSB's sub division",
+              "Minimum 1 years of experience",
+              "1",
+              "1"
+            ],
+            [
+              "4",
+              "Operators",
+              "ITI (mech/ electrical/ instrumentation/ water supply operator) or Diploma (Mechanical/ Electrical/ Instrumentation) or B. Sc. Environmental Science",
+              "Role: For operating Filter plant/ pumping machinery/ chlorination plant Location: Respective plant/ pumping station",
+              "Minimum 1 year of experience",
+              "21",
+              "20"
+            ]
+          ],
+          "footnotes": [
+            "a) Any personnel deployed in the scheme must be on contractor's payroll and should be above 18 years of age and below 60 years of age."
+          ],
+          "is_multi_page": true,
+          "reconstruction_confidence": 0.95
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "1",
+          "source_page": 59,
+          "verbatim_quote": "Minimum 7 years of experience",
+          "summary": "O&M Manager must have minimum 7 years of experience and MBA/PGDM or Bachelor's degree in relevant engineering.",
+          "materiality": "MANDATORY",
+          "parameter_key": "experience",
+          "extracted_numeric_value": 7,
+          "extracted_unit": "years",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "2",
+          "source_page": 59,
+          "verbatim_quote": "Minimum 5 years of experience",
+          "summary": "Maintenance Engineer (Supervisor) must have minimum 5 years of experience and a Bachelor's degree in relevant engineering.",
+          "materiality": "MANDATORY",
+          "parameter_key": "experience",
+          "extracted_numeric_value": 5,
+          "extracted_unit": "years",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "3",
+          "source_page": 59,
+          "verbatim_quote": "Minimum 1 years of experience",
+          "summary": "Asst. Maintenance Engineer must have minimum 1 year of experience and a Bachelor's degree in relevant engineering.",
+          "materiality": "MANDATORY",
+          "parameter_key": "experience",
+          "extracted_numeric_value": 1,
+          "extracted_unit": "years",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": "4",
+          "source_page": 59,
+          "verbatim_quote": "Minimum 1 year of experience",
+          "summary": "Operators must have minimum 1 year of experience with ITI/Diploma or B.Sc in relevant field.",
+          "materiality": "MANDATORY",
+          "parameter_key": "experience",
+          "extracted_numeric_value": 1,
+          "extracted_unit": "year",
+          "confidence": 1
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8717,
+        "candidatesTokenCount": 2712,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11429,
+        "estimatedMarketValueUsd": 0.001467375,
+        "payableCostUsd": 0,
+        "costUsd": 0.001467375,
+        "latencyMs": 8812
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8717,
+          "candidatesTokens": 2712,
+          "thinkingTokens": 0,
+          "totalTokens": 11429,
+          "estimatedMarketValueUsd": 0.001467375,
+          "payableCostUsd": 0,
+          "costUsd": 0.001467375,
+          "latencyMs": 8812,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 5,
+      "startPage": 66,
+      "endPage": 80,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 66,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annual Reporting Format (MIS Portal/ ERP Operations O & M Module) covering details of RWSS, customers, water sources, cost of water, and distribution charges."
+        },
+        {
+          "page_number": 67,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Annual Reporting Format including service levels, grievance analysis, distribution losses, proposed courses of action, and regulatory actions."
+        },
+        {
+          "page_number": 68,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-VI Payment, Resolution Time & Penalties detailing billing for water supply, incentives, and deductions."
+        },
+        {
+          "page_number": 69,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Operational penalties for water supply coverage, absence of manpower, quality non-compliance, reporting delays, conduct, and safety."
+        },
+        {
+          "page_number": 70,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Maintenance and curative maintenance repair penalties, along with other penalties like GPF/ESI compliance."
+        },
+        {
+          "page_number": 71,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Late submission penalties for monthly bills and conditions for contract termination due to SLA non-compliance."
+        },
+        {
+          "page_number": 72,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-VII Preventive Maintenance Schedule framework and weather-specific preparations."
+        },
+        {
+          "page_number": 73,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Daily operations checklist template for pumps and motors."
+        },
+        {
+          "page_number": 74,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Daily checklist template for panels, circuit breakers, and starters."
+        },
+        {
+          "page_number": 75,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Daily checklist template for transformer and substation."
+        },
+        {
+          "page_number": 76,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Daily checklist template for headworks and filter plant."
+        },
+        {
+          "page_number": 77,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Daily checklist template for valves and gates."
+        },
+        {
+          "page_number": 78,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Calibration & Service Log template and applicability list."
+        },
+        {
+          "page_number": 79,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Periodic maintenance activities for pump and motor sets (monthly, quarterly, annually)."
+        },
+        {
+          "page_number": 80,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Overhauling of pumpset and periodic maintenance activities for panels, circuit breakers, and starters."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-VIPAYMENT, RESOLUTION TIME & PENALTIES",
+          "page_number": 68,
+          "section_number": null,
+          "confidence": 0.99
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-VII PREVENTIVE MAINTENANCE SCHEDULE",
+          "page_number": 72,
+          "section_number": "VII",
+          "confidence": 0.99
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "Billing_for_Water_Supply_And_Incentives",
+          "start_page": 68,
+          "end_page": 68,
+          "category": "FINANCIAL",
+          "title": "Billing for water supply and incentives",
+          "headers": [
+            "Aspect",
+            "Activity",
+            "Type",
+            "Description"
+          ],
+          "rows": [
+            [
+              "Billing for water supply and incentives",
+              "a)100% operational habitations covered, & b) Voluntary habitations, which have demanded water supply, are covered...",
+              "Regular Billing",
+              "100% payment of Part A, per month, if a) and b) has been satisfied..."
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.95
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "a",
+          "source_page": 71,
+          "verbatim_quote": "If applicable penalties for each month exceed 25% of billing amount per month, for a block of 4 consecutive months, then contract shall be liable for termination.",
+          "summary": "Contract termination if monthly penalties exceed 25% of the billing amount for 4 consecutive months.",
+          "materiality": "DISQUALIFYING",
+          "parameter_key": "monthly_penalty_threshold",
+          "extracted_numeric_value": 25,
+          "extracted_unit": "%",
+          "confidence": 0.98
+        },
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "b",
+          "source_page": 71,
+          "verbatim_quote": "Cumulative penalties levied against non-performance in any of the SLA (viz. operational, preventive or curative maintenance) exceeds 10% of the total contract value.",
+          "summary": "Contract termination if cumulative penalties exceed 10% of the total contract value.",
+          "materiality": "DISQUALIFYING",
+          "parameter_key": "cumulative_penalty_threshold",
+          "extracted_numeric_value": 10,
+          "extracted_unit": "%",
+          "confidence": 0.98
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8717,
+        "candidatesTokenCount": 2067,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 10784,
+        "estimatedMarketValueUsd": 0.0012738749999999998,
+        "payableCostUsd": 0,
+        "costUsd": 0.0012738749999999998,
+        "latencyMs": 8394
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8717,
+          "candidatesTokens": 2067,
+          "thinkingTokens": 0,
+          "totalTokens": 10784,
+          "estimatedMarketValueUsd": 0.0012738749999999998,
+          "payableCostUsd": 0,
+          "costUsd": 0.0012738749999999998,
+          "latencyMs": 8394,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 6,
+      "startPage": 79,
+      "endPage": 93,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 79,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Periodic maintenance activities for Pump & Motor Set including monthly, quarterly, and annually tasks."
+        },
+        {
+          "page_number": 80,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Overhauling of pumpset and periodic maintenance for Panels, Circuit Breakers, and Starters."
+        },
+        {
+          "page_number": 81,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Periodic maintenance for Transformer & Substation including monthly, quarterly, annually, and long term schedules."
+        },
+        {
+          "page_number": 82,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Periodic maintenance for Filter Plant & Headwork including monthly, quarterly, half-yearly, and annually tasks."
+        },
+        {
+          "page_number": 83,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Filter Plant & Headwork periodic maintenance activities."
+        },
+        {
+          "page_number": 84,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Periodic maintenance activities for Valves (sluice, butterfly, NRV, kinetic air, zero velocity)."
+        },
+        {
+          "page_number": 85,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Periodic maintenance for Water Meters/Flow Meters and the comprehensive Overhaul Schedule."
+        },
+        {
+          "page_number": 86,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Overhaul Schedule, painting specifications, housekeeping, maintenance activities, and signages."
+        },
+        {
+          "page_number": 87,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Signage types, weather specific activities including pre-summer yearly performance testing and monsoon preparedness."
+        },
+        {
+          "page_number": 88,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-VIII Records: Filter Plant Register template."
+        },
+        {
+          "page_number": 89,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Filter bed Head loss & Backwash register template."
+        },
+        {
+          "page_number": 90,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pumping Station Daily Pumping Report template."
+        },
+        {
+          "page_number": 91,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Chemical Stock & Dosing register template."
+        },
+        {
+          "page_number": 92,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Stores: Material Entry Register, Material Issue Register, and Material Stock Register requirements."
+        },
+        {
+          "page_number": 93,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Grievance Register template."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "Periodic Maintenance activities - PUMP & MOTOR SET",
+          "page_number": 79,
+          "section_number": "ii",
+          "confidence": 0.98
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "PANELS, CIRCUIT BREAKERS, STARTERS",
+          "page_number": 80,
+          "section_number": null,
+          "confidence": 0.98
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "TRANSFORMER & SUBSTATION",
+          "page_number": 81,
+          "section_number": null,
+          "confidence": 0.98
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "FILTER PLANT & HEADWORK",
+          "page_number": 82,
+          "section_number": null,
+          "confidence": 0.98
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "VALVES (sluice, butterfly, NRV, kinetic air, zero velocity)",
+          "page_number": 84,
+          "section_number": null,
+          "confidence": 0.98
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "WATER METERS/ FLOW METERS",
+          "page_number": 85,
+          "section_number": null,
+          "confidence": 0.98
+        },
+        {
+          "anchor_type": "SCHEDULE",
+          "anchor_name": "OVERHAUL SCHEDULE",
+          "page_number": 85,
+          "section_number": null,
+          "confidence": 0.98
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-VIII RECORDS",
+          "page_number": 88,
+          "section_number": "VIII",
+          "confidence": 0.98
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "OVERHAUL_SCHEDULE",
+          "start_page": 85,
+          "end_page": 86,
+          "category": "TECHNICAL",
+          "title": "OVERHAUL SCHEDULE",
+          "headers": [
+            "Activity – Included in quoted price",
+            "Frequency (months)",
+            "Tentative schedule"
+          ],
+          "rows": [
+            [
+              "Replace Gland packings, mechanical seal",
+              "3",
+              "Jan, Apr, Jul, Oct"
+            ],
+            [
+              "Replace balls & seats in Kinetic air valves",
+              "3",
+              "Jan, Apr, Jul, Oct"
+            ],
+            [
+              "Oil topup in panels/ starters/ circuit breakers",
+              "3",
+              "Jan, Apr, Jul, Oct"
+            ],
+            [
+              "Check conditions of insulators and replace (panels/ starters/ breakers)",
+              "3",
+              "Jan, Apr, Jul, Oct"
+            ],
+            [
+              "Pump Overhaul (activities as per checklist)- VT/ centrifugal",
+              "24",
+              "Jan20...... and 20....."
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": true,
+          "reconstruction_confidence": 0.95
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "TECHNICAL",
+          "clause_number": null,
+          "source_page": 81,
+          "verbatim_quote": "Measure resistance of earth pit. Resistance shall not exceed 1 ohm.",
+          "summary": "Earth pit resistance must not exceed 1 ohm.",
+          "materiality": "MANDATORY",
+          "parameter_key": "earth_pit_resistance",
+          "extracted_numeric_value": 1,
+          "extracted_unit": "ohm",
+          "confidence": 0.99
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8717,
+        "candidatesTokenCount": 2329,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11046,
+        "estimatedMarketValueUsd": 0.001352475,
+        "payableCostUsd": 0,
+        "costUsd": 0.001352475,
+        "latencyMs": 8110
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8717,
+          "candidatesTokens": 2329,
+          "thinkingTokens": 0,
+          "totalTokens": 11046,
+          "estimatedMarketValueUsd": 0.001352475,
+          "payableCostUsd": 0,
+          "costUsd": 0.001352475,
+          "latencyMs": 8110,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 7,
+      "startPage": 92,
+      "endPage": 106,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 92,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Material Entry Register, Material Issue Register, and Material Stock Register formats."
+        },
+        {
+          "page_number": 93,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Grievance Register format for project maintenance."
+        },
+        {
+          "page_number": 94,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Visitor's Register format."
+        },
+        {
+          "page_number": 95,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Preventive & Curative Maintenance register format."
+        },
+        {
+          "page_number": 96,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Calibration of Instruments register format with notes."
+        },
+        {
+          "page_number": 97,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Daily Habitation wise Water Supply Report format."
+        },
+        {
+          "page_number": 98,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Leak Repair Register format."
+        },
+        {
+          "page_number": 99,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Machinery details and Pumping station schedule for Radhanpur Section."
+        },
+        {
+          "page_number": 100,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Machinery details and Pumping station schedule for Varahi Section."
+        },
+        {
+          "page_number": 101,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Machinery details and Pumping station schedule continued."
+        },
+        {
+          "page_number": 102,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Land Details for PHSSD Radhanpur and Santalpur."
+        },
+        {
+          "page_number": 103,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Land Details table continuation and maintenance period definition note."
+        },
+        {
+          "page_number": 104,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Water Demand Calculation for Radhanpur and Santalpur Sections."
+        },
+        {
+          "page_number": 105,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Population and Water Demand breakdown for Radhanpur Section Headworks."
+        },
+        {
+          "page_number": 106,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Population and Water Demand breakdown continuation."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Stores",
+          "page_number": 92,
+          "section_number": "4",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Grievance Register",
+          "page_number": 93,
+          "section_number": "5",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Visitor's Register",
+          "page_number": 94,
+          "section_number": "6",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Preventive & Curative Maintenance register",
+          "page_number": 95,
+          "section_number": "7",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Calibration of Instruments register",
+          "page_number": 96,
+          "section_number": "7.1",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Daily Habitation wise Water Supply Report",
+          "page_number": 97,
+          "section_number": "8",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Leak Repair Register",
+          "page_number": 98,
+          "section_number": "9",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "material_entry_register",
+          "start_page": 92,
+          "end_page": 92,
+          "category": "TECHNICAL",
+          "title": "Material Entry Register",
+          "headers": [
+            "Date",
+            "Name of material",
+            "Material Code",
+            "Received from",
+            "Invoice Number",
+            "Quantity Received",
+            "Receiver's Name & Signature"
+          ],
+          "rows": [],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 1
+        },
+        {
+          "table_identifier": "land_details",
+          "start_page": 102,
+          "end_page": 103,
+          "category": "TECHNICAL",
+          "title": "Land Details",
+          "headers": [
+            "Sr.no",
+            "Name of Rwss",
+            "HW",
+            "Name Of Village",
+            "Survey No",
+            "Compound Area in Sqmtr",
+            "Compound Area in Sqft",
+            "Built up Area in Sqmtr",
+            "Built up Area in Sqft",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "1",
+              "Radhanpur&Santalpur RWSS",
+              "Satun HW",
+              "Radhanpur",
+              "",
+              "31368",
+              "337519.68",
+              "",
+              "",
+              "Main Head Work"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": true,
+          "reconstruction_confidence": 0.95
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": null,
+          "source_page": 103,
+          "verbatim_quote": "The agency shall consider the maintenance and repairing period as follows: 2026 as the 1st year, 2027 as the 2nd year, 2028 as the 3rd year, 2029 as the 4th year, 2030 as the 5th year.",
+          "summary": "Definition of maintenance and repairing period years from 2026 to 2030.",
+          "materiality": "MANDATORY",
+          "parameter_key": "maintenance_period",
+          "extracted_numeric_value": 5,
+          "extracted_unit": "years",
+          "confidence": 1
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8722,
+        "candidatesTokenCount": 2335,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11057,
+        "estimatedMarketValueUsd": 0.00135465,
+        "payableCostUsd": 0,
+        "costUsd": 0.00135465,
+        "latencyMs": 9394
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8722,
+          "candidatesTokens": 2335,
+          "thinkingTokens": 0,
+          "totalTokens": 11057,
+          "estimatedMarketValueUsd": 0.00135465,
+          "payableCostUsd": 0,
+          "costUsd": 0.00135465,
+          "latencyMs": 9394,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 8,
+      "startPage": 105,
+      "endPage": 119,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 105,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Water demand calculation and population details for Radhanpur-Santalpur RWSS TA: Radhanpur, Dist: Patan, covering Satun HW, Dharavadi HW, and Sinad HW."
+        },
+        {
+          "page_number": 106,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Water demand calculation table continuation for Sherganj HW, Bhilot HW, Daiset HW, and Gotarka HW."
+        },
+        {
+          "page_number": 107,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Water demand calculation continuation for Varahi Section, including Varahi Group, Abiyana Group, and Sidhada Group."
+        },
+        {
+          "page_number": 108,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Water demand calculation continuation for Zazam Group, Santalpur Group, Kalyanpura Group, Garamadi Group, and Dhokavada Group."
+        },
+        {
+          "page_number": 109,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Ras Radhanpur group pipe details showing rising main pipes and Dharavadi HW pipe networks."
+        },
+        {
+          "page_number": 110,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipe details table continuation for Sinad HW, Sherganj HW, and Satun WTP."
+        },
+        {
+          "page_number": 111,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipe details table continuation for Satun WTP, Bhilot HW, and Daisar HW."
+        },
+        {
+          "page_number": 112,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipe details table continuation for Daisar HW, Moti Pipali HW, and Gotarka HW."
+        },
+        {
+          "page_number": 113,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Total length summary and Santalpur Section pipeline details."
+        },
+        {
+          "page_number": 114,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipeline details for Santalpur Section including Varahi HW connections."
+        },
+        {
+          "page_number": 115,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipeline details continuation for Varahi Group and Abiyana Group."
+        },
+        {
+          "page_number": 116,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipeline details continuation for Abiyana Group, Zazam Group, and Sidhada Group."
+        },
+        {
+          "page_number": 117,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipeline details continuation for Sidhada Group and Santalpur Group."
+        },
+        {
+          "page_number": 118,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pipeline details final summary including Kalyanpura Group and Dhokawada Group with Grand Total."
+        },
+        {
+          "page_number": 119,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Schematic flow diagram for Radhanpur & Santalpur RWSS headworks and village distributions."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "WATER DEMAND CALCULATION",
+          "page_number": 105,
+          "section_number": null,
+          "confidence": 0.99
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "RAS RADHANPUR GROUP PIPE DETAILS",
+          "page_number": 109,
+          "section_number": null,
+          "confidence": 0.99
+        },
+        {
+          "anchor_type": "TECHNICAL_SPECS",
+          "anchor_name": "Pipeline Details Santalpur Section",
+          "page_number": 113,
+          "section_number": null,
+          "confidence": 0.99
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "WATER_DEMAND_CALCULATION",
+          "start_page": 105,
+          "end_page": 108,
+          "category": "TECHNICAL",
+          "title": "WATER DEMAND CALCULATION",
+          "headers": [
+            "Taluka",
+            "Village Name",
+            "L.C.No.",
+            "2011",
+            "2026",
+            "2027",
+            "2028",
+            "2029",
+            "2030"
+          ],
+          "rows": [
+            [
+              "Radhanpur",
+              "Satun",
+              "507429",
+              "2518",
+              "3149",
+              "3191",
+              "3233",
+              "3275",
+              "3317"
+            ],
+            [
+              "Radhanpur",
+              "Kamalpur (S)",
+              "507440",
+              "4486",
+              "5610",
+              "5685",
+              "5760",
+              "5834",
+              "5909"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": true,
+          "reconstruction_confidence": 0.95
+        },
+        {
+          "table_identifier": "PIPE_DETAILS_SUMMARY",
+          "start_page": 109,
+          "end_page": 114,
+          "category": "TECHNICAL",
+          "title": "RAS RADHANPUR GROUP PIPE DETAILS",
+          "headers": [
+            "Details",
+            "Pipe Material",
+            "Dia",
+            "Qty"
+          ],
+          "rows": [
+            [
+              "RanakpurIntakewell to Satun WTP",
+              "MS",
+              "914mm",
+              "29200"
+            ],
+            [
+              "Satun wtp To Milan Hotel Jn.",
+              "D.I.",
+              "600mm",
+              "7130"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": true,
+          "reconstruction_confidence": 0.95
+        }
+      ],
+      "extracted_clauses": [],
+      "token_metrics": {
+        "promptTokenCount": 8727,
+        "candidatesTokenCount": 2134,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 10861,
+        "estimatedMarketValueUsd": 0.001294725,
+        "payableCostUsd": 0,
+        "costUsd": 0.001294725,
+        "latencyMs": 9019
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8727,
+          "candidatesTokens": 2134,
+          "thinkingTokens": 0,
+          "totalTokens": 10861,
+          "estimatedMarketValueUsd": 0.001294725,
+          "payableCostUsd": 0,
+          "costUsd": 0.001294725,
+          "latencyMs": 9019,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 9,
+      "startPage": 118,
+      "endPage": 132,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 118,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Technical details regarding Garamadi, Kalyanpura, and Dhokawada groups with lengths and group totals."
+        },
+        {
+          "page_number": 119,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Flow chart and summary tables for Radhanpur Section."
+        },
+        {
+          "page_number": 120,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Flow chart for Santalpur Zone and headworks population/demand summary table."
+        },
+        {
+          "page_number": 121,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-IX Asset List & Status for Electro-Mechanical items in Radhanpur Section."
+        },
+        {
+          "page_number": 122,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Annexure-IX Asset List & Status for Electro-Mechanical items."
+        },
+        {
+          "page_number": 123,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Annexure-IX Asset List & Status including Santalpur section."
+        },
+        {
+          "page_number": 124,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Abstract of Asset Inspection Report template."
+        },
+        {
+          "page_number": 125,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-X Citizen Grievance Logs log format and table."
+        },
+        {
+          "page_number": 126,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Annexure-XI Insurance specifications and Schedule B Insurance Charges summary."
+        },
+        {
+          "page_number": 127,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Schedule B (Part-A.4.1 Insurance for Structure) detailing values for Radhanpur Subdivision."
+        },
+        {
+          "page_number": 128,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Schedule B (Part-A.4.1 Insurance for Structure) for Varahi Subdivision and Santalpur Section."
+        },
+        {
+          "page_number": 129,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Schedule B (Part-A.4.2 Pumping Machinery & all Type electrical) for Radhanpur Section."
+        },
+        {
+          "page_number": 130,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Schedule B (Part-A.4.2) for Radhanpur and Santalpur sections."
+        },
+        {
+          "page_number": 131,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Continuation of Schedule B (Part-A.4.2) and Total."
+        },
+        {
+          "page_number": 132,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Schedule B (Part -A.4.3 Insurance for Labor) total manpower costs."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-IX ASSET LIST & STATUS",
+          "page_number": 121,
+          "section_number": "IX",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-X CITIZEN GRIEVANCE LOGS",
+          "page_number": 125,
+          "section_number": "X",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XI INSURANCE",
+          "page_number": 126,
+          "section_number": "XI",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "SCHEDULE",
+          "anchor_name": "Schedule: B (Part -A. 4 Insaurnce Charges)",
+          "page_number": 126,
+          "section_number": "B",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "insurance_charges_summary",
+          "start_page": 126,
+          "end_page": 126,
+          "category": "FINANCIAL",
+          "title": "Schedule: B (Part -A. 4 Insaurnce Charges)",
+          "headers": [
+            "Sr. No.",
+            "Item Description",
+            "Radhanpur",
+            "Santalpur"
+          ],
+          "rows": [
+            [
+              "1",
+              "All risk insurance provision for WTP & all Civil Structures for Main HW / SHW / Store/ office & above mention & entire electrical mechanical items to be installed at P. S",
+              "75,770.00",
+              "32,090.00"
+            ],
+            [
+              "2",
+              "All risk insurance provision for electrical mechanical items to be installed at P. S",
+              "31,700.00",
+              "16,970.00"
+            ],
+            [
+              "3",
+              "All risk insurance provision for Establishment to be deployed at Main HW / SHW / Store/ office for",
+              "50,520.00",
+              "42,900.00"
+            ]
+          ],
+          "footnotes": [
+            "Total= 1,57,990.00 91,960.00",
+            "1St Year= 2,49,950.00",
+            "2nd year= 2,64,947.00",
+            "3rd year= 2,80,844.00",
+            "4th Year= 2,97,694.00",
+            "5th year= 3,15,556.00"
+          ],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.99
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": null,
+          "source_page": 126,
+          "verbatim_quote": "This insurance shall be for a limit of per occurrence of not less than the amount of Rs. 5 Lacs, with no limit on the number of occurrences.",
+          "summary": "Minimum insurance limit per occurrence shall be Rs. 5 Lacs with no limit on occurrences.",
+          "materiality": "MANDATORY",
+          "parameter_key": "insurance_limit",
+          "extracted_numeric_value": 5,
+          "extracted_unit": "Lacs",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": null,
+          "source_page": 126,
+          "verbatim_quote": "The depreciated value is considered Rs.3435.53 lac for the purpose of insurance for respective year.",
+          "summary": "Depreciated value considered is Rs. 3435.53 lac for insurance purposes.",
+          "materiality": "INFORMATIONAL",
+          "parameter_key": "depreciated_value",
+          "extracted_numeric_value": 3435.53,
+          "extracted_unit": "lac",
+          "confidence": 1
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8727,
+        "candidatesTokenCount": 2491,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11218,
+        "estimatedMarketValueUsd": 0.001401825,
+        "payableCostUsd": 0,
+        "costUsd": 0.001401825,
+        "latencyMs": 9324
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8727,
+          "candidatesTokens": 2491,
+          "thinkingTokens": 0,
+          "totalTokens": 11218,
+          "estimatedMarketValueUsd": 0.001401825,
+          "payableCostUsd": 0,
+          "costUsd": 0.001401825,
+          "latencyMs": 9324,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 10,
+      "startPage": 131,
+      "endPage": 145,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 131,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Volume I page 131 detailing itemized costs for Zazam WTP, Santalpur H/W, Kalyanpura H/W, Dhokavada H/W, Garamadi H/W, and Tubewell & Sump M/C Repairing with total cost 128345660.93."
+        },
+        {
+          "page_number": 132,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Schedule B (Part -A.4.3 Insurance for Labor) for Radhanpur & Santalpur RWSS showing manpower cost for All Risk Insurance."
+        },
+        {
+          "page_number": 133,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-XII Safety Considerations: Storage and Handling of Chlorine cylinders, maintenance of storage area, loading/unloading, and transportation."
+        },
+        {
+          "page_number": 134,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-XII continuation: Transportation of chlorine, personal protective equipment, breathing apparatus, protective clothing, maintenance, and employee training."
+        },
+        {
+          "page_number": 135,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "List of safety systems at chlorination plant including breathing apparatus, emergency kit, leak detectors, neutralization tank, and scrubber system."
+        },
+        {
+          "page_number": 136,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Safety aspects for electrical components in pump houses and working at height guidelines."
+        },
+        {
+          "page_number": 137,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Safety considerations during painting such as toxic paints, skin exposure, spray painting respirators, and scaffolding."
+        },
+        {
+          "page_number": 138,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-XIII Uniforms for operator's staff specifications for full body coveralls, office formals, laboratory personnel, and business casuals."
+        },
+        {
+          "page_number": 139,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-XIV Identity card format for agency's staff."
+        },
+        {
+          "page_number": 140,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-XV Operating Procedures - Troubleshooting for short circuiting in flocculator, coagulation-flocculation process."
+        },
+        {
+          "page_number": 141,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Sedimentation process troubleshooting table detailing problems, operator actions, and possible process changes."
+        },
+        {
+          "page_number": 142,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Filtration process troubleshooting and effluent quality changes table."
+        },
+        {
+          "page_number": 143,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Transmission - Procedure to follow in case of leakage found in pipeline."
+        },
+        {
+          "page_number": 144,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Start-up and shutdown procedures for Coagulation-flocculation start-up steps."
+        },
+        {
+          "page_number": 145,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Coagulation-flocculation shut down procedures step-by-step."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XII SAFETY CONSIDERATIONS",
+          "page_number": 133,
+          "section_number": "XII",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XIII UNIFORMS FOR OPERATOR'S STAFF",
+          "page_number": 138,
+          "section_number": "XIII",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XIV IDENTITY CARD FOR AGENCY'S STAFF",
+          "page_number": 139,
+          "section_number": "XIV",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XV OPERATING PROCEDURES",
+          "page_number": 140,
+          "section_number": "XV",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "SCHEDULE",
+          "anchor_name": "Schedule: B (Part -A.4.3 Insurance for Labor)",
+          "page_number": 132,
+          "section_number": "B",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "Insurance for Labor",
+          "start_page": 132,
+          "end_page": 132,
+          "category": "FINANCIAL",
+          "title": "Schedule: B (Part -A.4.3 Insurance for Labor)",
+          "headers": [
+            "Sr.No.",
+            "Item",
+            "Section",
+            "All Risk InsuranceDepreciatedValue"
+          ],
+          "rows": [
+            [
+              "1",
+              "Total Manpower Cost for all required personnel for one month",
+              "Radhanpur",
+              "10104000.00"
+            ],
+            [
+              "",
+              "",
+              "Santalpur",
+              "8580000.00"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 1
+        },
+        {
+          "table_identifier": "Coagulation-flocculation trouble shooting",
+          "start_page": 140,
+          "end_page": 140,
+          "category": "TECHNICAL",
+          "title": "Coagulation-flocculation process, trouble shooting.",
+          "headers": [
+            "Problems",
+            "Operator Actions",
+            "Possible process changes"
+          ],
+          "rows": [
+            [
+              "Turbidity",
+              "1. Perform necessary analyses to determine extent of change",
+              "1. Adjust coagulant dosage."
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 0.95
+        }
+      ],
+      "extracted_clauses": [],
+      "token_metrics": {
+        "promptTokenCount": 8727,
+        "candidatesTokenCount": 2264,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 10991,
+        "estimatedMarketValueUsd": 0.001333725,
+        "payableCostUsd": 0,
+        "costUsd": 0.001333725,
+        "latencyMs": 8416
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8727,
+          "candidatesTokens": 2264,
+          "thinkingTokens": 0,
+          "totalTokens": 10991,
+          "estimatedMarketValueUsd": 0.001333725,
+          "payableCostUsd": 0,
+          "costUsd": 0.001333725,
+          "latencyMs": 8416,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 11,
+      "startPage": 144,
+      "endPage": 158,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 144,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Start-up procedures for coagulation-flocculation plant operations."
+        },
+        {
+          "page_number": 145,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Shut down procedures for coagulation-flocculation plant operations."
+        },
+        {
+          "page_number": 146,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Sedimentation and Filtration start-up and shutdown procedures."
+        },
+        {
+          "page_number": 147,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Filtration shutdown procedures and Pumping start-up procedures."
+        },
+        {
+          "page_number": 148,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Vertical turbine pump, submersible pump, jet pump, and reciprocating pump start-up instructions."
+        },
+        {
+          "page_number": 149,
+          "is_scanned_or_degraded": false,
+          "detected_category": "TECHNICAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Pump shutdown instructions under normal conditions and after power failure/tripping."
+        },
+        {
+          "page_number": 150,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Annexure-XVI Training Program for Agency's Staff outlining required training topics and frequencies."
+        },
+        {
+          "page_number": 151,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Continuation of Annexure-XVI Training Program for Agency's Staff."
+        },
+        {
+          "page_number": 152,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-XVII Communication or Reporting Matrix containing designations, office addresses, and contacts."
+        },
+        {
+          "page_number": 153,
+          "is_scanned_or_degraded": false,
+          "detected_category": "OTHERS",
+          "has_tables": true,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Annexure-XVIII Tools and Tackles list with required quantities and units."
+        },
+        {
+          "page_number": 154,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Section III Conditions of Contract title page."
+        },
+        {
+          "page_number": 155,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "General Conditions of Contract - Security Deposit terms and additional performance security calculations."
+        },
+        {
+          "page_number": 156,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "General Conditions of Contract - Fire prevention, damages, subletting, changes in firm, and disputes."
+        },
+        {
+          "page_number": 157,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "General Conditions of Contract - Arbitration, Worker's Compensation, Medical Aid, Safety, and Emergencies."
+        },
+        {
+          "page_number": 158,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "General Conditions of Contract - Minimum age requirement, fair wages to labourers, and accident liability."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "START-UP AND SHUTDOWN PROCEDURES",
+          "page_number": 144,
+          "section_number": null,
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XVI TRAINING PROGRAM FOR AGENCY'S STAFF",
+          "page_number": 150,
+          "section_number": "XVI",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XVII COMMUNICATION OR REPORTING MATRIX",
+          "page_number": 152,
+          "section_number": "XVII",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "ANNEXURE",
+          "anchor_name": "ANNEXURE-XVIII TOOLS & TACKLES",
+          "page_number": 153,
+          "section_number": "XVIII",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "Section III: Conditions of Contract",
+          "page_number": 154,
+          "section_number": "Section III",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [
+        {
+          "table_identifier": "tools_and_tackles_table",
+          "start_page": 153,
+          "end_page": 153,
+          "category": "OTHERS",
+          "title": "ANNEXURE-XVIIITOOLS & TACKLES",
+          "headers": [
+            "Sl. No.",
+            "Item",
+            "Quantity",
+            "Unit"
+          ],
+          "rows": [
+            [
+              "1",
+              "For spanner set size 6mm to 22mm",
+              "16",
+              "Set"
+            ],
+            [
+              "2",
+              "Fix spanner set size 6mm to 52mm",
+              "16",
+              "Set"
+            ],
+            [
+              "3",
+              "Ring spanner set size 6mm to 22mm",
+              "16",
+              "Set"
+            ],
+            [
+              "4",
+              "Ring spanner set size 7mm to 52mm",
+              "16",
+              "Set"
+            ],
+            [
+              "5",
+              "Box spanner set size 6mm to 38mm",
+              "16",
+              "Set"
+            ]
+          ],
+          "footnotes": [],
+          "is_multi_page": false,
+          "reconstruction_confidence": 1
+        }
+      ],
+      "extracted_clauses": [
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "1.1",
+          "source_page": 155,
+          "verbatim_quote": "pay the total amount of Security Deposit equal to 10 (ten) percent of the estimated cost or contract value (Part A & B of price bid) whichever is higher for the work put to tender.",
+          "summary": "Security Deposit shall be equal to 10% of the estimated cost or contract value (Part A & B of price bid) whichever is higher.",
+          "materiality": "MANDATORY",
+          "parameter_key": "security_deposit",
+          "extracted_numeric_value": 10,
+          "extracted_unit": "%",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "11",
+          "source_page": 158,
+          "verbatim_quote": "Minimum age of person employed: No Contractor shall employ any person who is under the age of 18 years.",
+          "summary": "Contractor must not employ any person under the age of 18 years.",
+          "materiality": "MANDATORY",
+          "parameter_key": "minimum_age",
+          "extracted_numeric_value": 18,
+          "extracted_unit": "years",
+          "confidence": 1
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8727,
+        "candidatesTokenCount": 2406,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11133,
+        "estimatedMarketValueUsd": 0.0013763249999999999,
+        "payableCostUsd": 0,
+        "costUsd": 0.0013763249999999999,
+        "latencyMs": 12156
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8727,
+          "candidatesTokens": 2406,
+          "thinkingTokens": 0,
+          "totalTokens": 11133,
+          "estimatedMarketValueUsd": 0.0013763249999999999,
+          "payableCostUsd": 0,
+          "costUsd": 0.0013763249999999999,
+          "latencyMs": 12156,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 12,
+      "startPage": 157,
+      "endPage": 171,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 157,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Dispute resolution, arbitration, worker's compensation, expenses of medical aid, safety, and emergencies."
+        },
+        {
+          "page_number": 158,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Notification of emergencies, minimum age requirements (18 years), fair wages, and liability for accidents."
+        },
+        {
+          "page_number": 159,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Accident occurrence rules, general insurance conditions, and policy requirements."
+        },
+        {
+          "page_number": 160,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Insurance coverage details, contract labour licence, commencement and duration of O&M, and applicable law."
+        },
+        {
+          "page_number": 161,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Monthly bills, retention money (5%), taxes (GST, Income Tax, Labour Cess), and Force Majeure definition."
+        },
+        {
+          "page_number": 162,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Force Majeure continuation, notice of force majeure, duty to minimize delay, and termination by employer."
+        },
+        {
+          "page_number": 163,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Termination conditions, foreclosure by authority, and payments upon termination."
+        },
+        {
+          "page_number": 164,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Successor to contractor upon termination, handover requirements, and survival of rights."
+        },
+        {
+          "page_number": 165,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Risk and cost clauses, contractor default powers, and rescission of contract."
+        },
+        {
+          "page_number": 166,
+          "is_scanned_or_degraded": false,
+          "detected_category": "FINANCIAL",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Recovery from contractors, land revenue recovery, inspection, measurement, and analysis of flow meters."
+        },
+        {
+          "page_number": 167,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions for tenderers, online/offline activities, e-tender, digital signature, and IT Act."
+        },
+        {
+          "page_number": 168,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions for construction plant, contract, contractor, contract price, and compliance with laws."
+        },
+        {
+          "page_number": 169,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions for country, day, drawings, employer, and employer's use of contractor's documents."
+        },
+        {
+          "page_number": 170,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions for engineer-in-charge, estimated cost, executive engineer, facility, and governmental authority."
+        },
+        {
+          "page_number": 171,
+          "is_scanned_or_degraded": false,
+          "detected_category": "LEGAL_ADMIN",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions for maintenance standard, materials, month, O&M manual, and performance guarantees."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "7. ARBITRATION",
+          "page_number": 157,
+          "section_number": "7",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "8. WORKER'S COMPENSATION",
+          "page_number": 157,
+          "section_number": "8",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "11. MINIMUM AGE",
+          "page_number": 158,
+          "section_number": "11",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "14. INSURANCE",
+          "page_number": 159,
+          "section_number": "14",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "16. PAYMENT",
+          "page_number": 161,
+          "section_number": "16",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "17. FORCE MAJEURE",
+          "page_number": 161,
+          "section_number": "17",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "18. TERMINATION",
+          "page_number": 162,
+          "section_number": "18",
+          "confidence": 1
+        },
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "9. DEFINITIONS & INTREPRETATION",
+          "page_number": 167,
+          "section_number": "9",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [],
+      "extracted_clauses": [
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "16.2",
+          "source_page": 161,
+          "verbatim_quote": "5% (five) of the lumpsum fees shall be held back from each payment, as Retention money as per Clause 1 of General Conditions of Contract.",
+          "summary": "5% of the lump sum fees is held back from each payment as retention money.",
+          "materiality": "MANDATORY",
+          "parameter_key": "retention_money",
+          "extracted_numeric_value": 5,
+          "extracted_unit": "%",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "11",
+          "source_page": 158,
+          "verbatim_quote": "Minimum age of person employed: No Contractor shall employ any person who is under the age of 18 years.",
+          "summary": "Contractors are prohibited from employing any person under the age of 18 years.",
+          "materiality": "MANDATORY",
+          "parameter_key": "minimum_age",
+          "extracted_numeric_value": 18,
+          "extracted_unit": "years",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "15.1.1",
+          "source_page": 160,
+          "verbatim_quote": "The O & M Period shall commence from the date of issue of work order and shall continue for a period of 5 years there from.",
+          "summary": "The Operation and Maintenance period is 5 years from the date of issue of the work order.",
+          "materiality": "MANDATORY",
+          "parameter_key": "om_period",
+          "extracted_numeric_value": 5,
+          "extracted_unit": "years",
+          "confidence": 1
+        },
+        {
+          "criterion_type": "FINANCIAL",
+          "clause_number": "16.5",
+          "source_page": 161,
+          "verbatim_quote": "As per Building and other construction works welfare cess act and the provision under Rule No.5 of the rules of 1998 of Gujarat State, the 1% cess shall be recovered from the running account bill of the contractor.",
+          "summary": "A 1% labour cess is recovered from the contractor's running account bill.",
+          "materiality": "MANDATORY",
+          "parameter_key": "labour_cess",
+          "extracted_numeric_value": 1,
+          "extracted_unit": "%",
+          "confidence": 1
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 8727,
+        "candidatesTokenCount": 2629,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 11356,
+        "estimatedMarketValueUsd": 0.0014432249999999998,
+        "payableCostUsd": 0,
+        "costUsd": 0.0014432249999999998,
+        "latencyMs": 13918
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 8727,
+          "candidatesTokens": 2629,
+          "thinkingTokens": 0,
+          "totalTokens": 11356,
+          "estimatedMarketValueUsd": 0.0014432249999999998,
+          "payableCostUsd": 0,
+          "costUsd": 0.0014432249999999998,
+          "latencyMs": 13918,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    },
+    {
+      "batchIndex": 13,
+      "startPage": 170,
+      "endPage": 175,
+      "modelUsed": "gemini-3.5-flash-lite",
+      "pages_processed": [
+        {
+          "page_number": 170,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions and general conditions including Engineer-in-Charge, Estimated Contract Value, Executive Engineer, Facility, Governmental Authority, and Laws."
+        },
+        {
+          "page_number": 171,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Maintenance Standard, Materials, Material Supplier, Month, O&M Manual, Operation and Maintenance Obligations, Operation Standard, and Performance Guarantees."
+        },
+        {
+          "page_number": 172,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions for Rupee, Site, Taking Over, Temporary Works, Tests on Completion, Week, Works, Completion, Applicable Law, Contract, Contractor's Equipment, Contractor's Personnel, and Dispute."
+        },
+        {
+          "page_number": 173,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions for Employer's Risk, Employer's Personnel, Employer's Requirements, Facility, Force Majeure, General Conditions, Good Operating Practices, O&M Contract, O&M Completion Certificate, O&M Services, and O&M Standard."
+        },
+        {
+          "page_number": 174,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": false,
+          "extracted_text_summary": "Definitions including O&M Manual, O&M Period, O&M Price, Party, Performance Guarantees, Successor Contractor, Site, Taking Over Date, Taking Over Certificate, Termination, and Interpretation rules."
+        },
+        {
+          "page_number": 175,
+          "is_scanned_or_degraded": false,
+          "detected_category": "GENERAL_CONDITIONS",
+          "has_tables": false,
+          "has_qualification_criteria": true,
+          "extracted_text_summary": "Special Conditions of Contract for Part C activities, specifically addressing Liquidated Damages for Delay and Extension of Time Limit."
+        }
+      ],
+      "structural_anchors": [
+        {
+          "anchor_type": "CHAPTER_HEADING",
+          "anchor_name": "SPECIAL CONDITIONS OF CONTRACT",
+          "page_number": 175,
+          "section_number": "10",
+          "confidence": 1
+        }
+      ],
+      "structured_tables": [],
+      "extracted_clauses": [
+        {
+          "criterion_type": "OTHERS",
+          "clause_number": "10.1",
+          "source_page": 175,
+          "verbatim_quote": "Liquidated damages at the rate of 0.1% of contract value per day of delay subjected to the maximum amount of 10% of the Estimated amount put to tender or total contract value whichever is higher, shall be recovered from the contractor.",
+          "summary": "Liquidated damages for delay at 0.1% per day up to a maximum of 10% of estimated tender cost or contract value.",
+          "materiality": "MANDATORY",
+          "parameter_key": "liquidated_damages",
+          "extracted_numeric_value": 0.1,
+          "extracted_unit": "%",
+          "confidence": 0.99
+        }
+      ],
+      "token_metrics": {
+        "promptTokenCount": 4047,
+        "candidatesTokenCount": 976,
+        "thinkingTokenCount": 0,
+        "totalTokenCount": 5023,
+        "estimatedMarketValueUsd": 0.000596325,
+        "payableCostUsd": 0,
+        "costUsd": 0.000596325,
+        "latencyMs": 10100
+      },
+      "attempts": [
+        {
+          "attemptNumber": 1,
+          "model": "gemini-3.5-flash-lite",
+          "status": "SUCCEEDED",
+          "promptTokens": 4047,
+          "candidatesTokens": 976,
+          "thinkingTokens": 0,
+          "totalTokens": 5023,
+          "estimatedMarketValueUsd": 0.000596325,
+          "payableCostUsd": 0,
+          "costUsd": 0.000596325,
+          "latencyMs": 10100,
+          "error": null
+        }
+      ],
+      "status": "SUCCESS",
+      "ocrFallbackPages": [],
+      "errorMessage": null
+    }
+  ],
+  "all_clauses": [
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": "4.2.2",
+      "source_page": 26,
+      "verbatim_quote": "Turnover: Bidder must have achieved minimum annual financial turnover (at current price level) from contract receipt of works (in all classes of civil engineering construction works or O&M services only) of Rs. 4 Crores in any three financial years out of last Five (5) financial years i.e., from 2021-22 to 2025-26.",
+      "summary": "Minimum annual financial turnover of Rs. 4 Crores in any three financial years out of the last five financial years (Scenario 1).",
+      "materiality": "MANDATORY",
+      "parameter_key": "annual_turnover",
+      "extracted_numeric_value": 4,
+      "extracted_unit": "Cr",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": "2",
+      "source_page": 27,
+      "verbatim_quote": "The details pertaining to Turnover for the year 2021-2022 to 2025-2026 shall be certified by Chartered Accountant on his own letter head and duly attested.",
+      "summary": "Turnover for 2021-2022 to 2025-2026 must be certified by a Chartered Accountant on letterhead.",
+      "materiality": "MANDATORY",
+      "parameter_key": "annual_turnover",
+      "extracted_numeric_value": null,
+      "extracted_unit": "years",
+      "confidence": 0.95
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": "a",
+      "source_page": 71,
+      "verbatim_quote": "If applicable penalties for each month exceed 25% of billing amount per month, for a block of 4 consecutive months, then contract shall be liable for termination.",
+      "summary": "Contract termination if monthly penalties exceed 25% of the billing amount for 4 consecutive months.",
+      "materiality": "DISQUALIFYING",
+      "parameter_key": "monthly_penalty_threshold",
+      "extracted_numeric_value": 25,
+      "extracted_unit": "%",
+      "confidence": 0.98
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": "b",
+      "source_page": 71,
+      "verbatim_quote": "Cumulative penalties levied against non-performance in any of the SLA (viz. operational, preventive or curative maintenance) exceeds 10% of the total contract value.",
+      "summary": "Contract termination if cumulative penalties exceed 10% of the total contract value.",
+      "materiality": "DISQUALIFYING",
+      "parameter_key": "cumulative_penalty_threshold",
+      "extracted_numeric_value": 10,
+      "extracted_unit": "%",
+      "confidence": 0.98
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": null,
+      "source_page": 126,
+      "verbatim_quote": "This insurance shall be for a limit of per occurrence of not less than the amount of Rs. 5 Lacs, with no limit on the number of occurrences.",
+      "summary": "Minimum insurance limit per occurrence shall be Rs. 5 Lacs with no limit on occurrences.",
+      "materiality": "MANDATORY",
+      "parameter_key": "insurance_limit",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "Lacs",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": null,
+      "source_page": 126,
+      "verbatim_quote": "The depreciated value is considered Rs.3435.53 lac for the purpose of insurance for respective year.",
+      "summary": "Depreciated value considered is Rs. 3435.53 lac for insurance purposes.",
+      "materiality": "INFORMATIONAL",
+      "parameter_key": "depreciated_value",
+      "extracted_numeric_value": 3435.53,
+      "extracted_unit": "lac",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": "1.1",
+      "source_page": 155,
+      "verbatim_quote": "pay the total amount of Security Deposit equal to 10 (ten) percent of the estimated cost or contract value (Part A & B of price bid) whichever is higher for the work put to tender.",
+      "summary": "Security Deposit shall be equal to 10% of the estimated cost or contract value (Part A & B of price bid) whichever is higher.",
+      "materiality": "MANDATORY",
+      "parameter_key": "security_deposit",
+      "extracted_numeric_value": 10,
+      "extracted_unit": "%",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": "16.2",
+      "source_page": 161,
+      "verbatim_quote": "5% (five) of the lumpsum fees shall be held back from each payment, as Retention money as per Clause 1 of General Conditions of Contract.",
+      "summary": "5% of the lump sum fees is held back from each payment as retention money.",
+      "materiality": "MANDATORY",
+      "parameter_key": "retention_money",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "%",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "FINANCIAL",
+      "clause_number": "16.5",
+      "source_page": 161,
+      "verbatim_quote": "As per Building and other construction works welfare cess act and the provision under Rule No.5 of the rules of 1998 of Gujarat State, the 1% cess shall be recovered from the running account bill of the contractor.",
+      "summary": "A 1% labour cess is recovered from the contractor's running account bill.",
+      "materiality": "MANDATORY",
+      "parameter_key": "labour_cess",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "%",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "3",
+      "source_page": 6,
+      "verbatim_quote": "Any bidder with “A” class& aboveof registration or higher in R&B/WRD of Govt. of Gujarat. However, the bidder will have to Post Qualify as per Financial & Technical Criteria given in the bid document.",
+      "summary": "Contractor must have 'A' class or higher registration in R&B/WRD of Govt. of Gujarat.",
+      "materiality": "DISQUALIFYING",
+      "parameter_key": "contractor_class",
+      "extracted_numeric_value": null,
+      "extracted_unit": "Class A",
+      "confidence": 0.98
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "4",
+      "source_page": 27,
+      "verbatim_quote": "The experience certificate from the client equivalent to not below the rank of Executive Engineer shall be considered.",
+      "summary": "Experience certificates must be issued by an officer not below the rank of Executive Engineer.",
+      "materiality": "DISQUALIFYING",
+      "parameter_key": "similar_work",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "confidence": 0.97
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "1",
+      "source_page": 40,
+      "verbatim_quote": "List of O & M works of similar nature already completed by the bidder during last 5 financial years i.e. From 2021-22 to 2025-26& up to one month prior to last date of submission of the bid",
+      "summary": "Bidder must submit a list of O&M works of similar nature completed during the last 5 financial years from 2021-22 to 2025-26 up to one month prior to bid submission deadline.",
+      "materiality": "MANDATORY",
+      "parameter_key": "similar_work",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "confidence": 0.99
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": null,
+      "source_page": 45,
+      "verbatim_quote": "The board intends to hire contractor for comprehensive O&M through e-tendering system for a duration of 60 (sixty) months for the Radhanpur&SantalpurRWSSschemecovering 1 City/126 villages/ 11 Hamlets and 6Nos Village Tube WellsSpread across Taluka: Radhanpur and SantalpurDistrict: Patan based on NMC at RankpurHW.",
+      "summary": "Comprehensive O&M contract duration is 60 months covering 1 City, 126 villages, 11 Hamlets, and 6 Village Tube Wells.",
+      "materiality": "MANDATORY",
+      "parameter_key": "contract_duration",
+      "extracted_numeric_value": 60,
+      "extracted_unit": "months",
+      "confidence": 0.99
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "10",
+      "source_page": 48,
+      "verbatim_quote": "Provide utility vehicle for pipeline inspection and repair activities by agency. Quantity as per Annexure III. This utility vehicle shall be a 4-seater pickup truck (utility vehicle) (mandatory).",
+      "summary": "Mandatory requirement to provide a 4-seater pickup truck as utility vehicle for pipeline inspection and repair.",
+      "materiality": "MANDATORY",
+      "parameter_key": "utility_vehicle",
+      "extracted_numeric_value": 4,
+      "extracted_unit": "seater",
+      "confidence": 0.95
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "1",
+      "source_page": 59,
+      "verbatim_quote": "Minimum 7 years of experience",
+      "summary": "O&M Manager must have minimum 7 years of experience and MBA/PGDM or Bachelor's degree in relevant engineering.",
+      "materiality": "MANDATORY",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 7,
+      "extracted_unit": "years",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "2",
+      "source_page": 59,
+      "verbatim_quote": "Minimum 5 years of experience",
+      "summary": "Maintenance Engineer (Supervisor) must have minimum 5 years of experience and a Bachelor's degree in relevant engineering.",
+      "materiality": "MANDATORY",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "3",
+      "source_page": 59,
+      "verbatim_quote": "Minimum 1 years of experience",
+      "summary": "Asst. Maintenance Engineer must have minimum 1 year of experience and a Bachelor's degree in relevant engineering.",
+      "materiality": "MANDATORY",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "years",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": "4",
+      "source_page": 59,
+      "verbatim_quote": "Minimum 1 year of experience",
+      "summary": "Operators must have minimum 1 year of experience with ITI/Diploma or B.Sc in relevant field.",
+      "materiality": "MANDATORY",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "year",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "TECHNICAL",
+      "clause_number": null,
+      "source_page": 81,
+      "verbatim_quote": "Measure resistance of earth pit. Resistance shall not exceed 1 ohm.",
+      "summary": "Earth pit resistance must not exceed 1 ohm.",
+      "materiality": "MANDATORY",
+      "parameter_key": "earth_pit_resistance",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "ohm",
+      "confidence": 0.99
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": "14",
+      "source_page": 7,
+      "verbatim_quote": "Rs. 18000/- (Rupees Eighteen Thousand Only)",
+      "summary": "Tender Fee requirement",
+      "materiality": "MANDATORY",
+      "parameter_key": "tender_fee",
+      "extracted_numeric_value": 18000,
+      "extracted_unit": "INR",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": "16",
+      "source_page": 7,
+      "verbatim_quote": "Rs. 20,23,000.00(Rupees Twenty Lacs Twenty-Three Thousand Only)",
+      "summary": "Earnest Money Deposit (EMD) requirement",
+      "materiality": "DISQUALIFYING",
+      "parameter_key": "emd_amount",
+      "extracted_numeric_value": 2023000,
+      "extracted_unit": "INR",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": "4.2.1",
+      "source_page": 25,
+      "verbatim_quote": "The bidder must have a valid registration as “A” Class & above as Civil or Electrical Contractor in R & B / Water Resources Department, Government of Gujarat",
+      "summary": "Must have valid registration as 'A' Class & above Civil or Electrical Contractor in R&B / Water Resources Department, Govt of Gujarat.",
+      "materiality": "MANDATORY",
+      "parameter_key": "contractor_class",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "confidence": 1
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": "vii",
+      "source_page": 32,
+      "verbatim_quote": "If this declaration is found to be incorrect then without prejudice to any other action that may be taken I/weshall be debarred from bidding in GWSSB/GWIL tender for three yearsand my/our security deposit may be forfeited",
+      "summary": "Incorrect declarations lead to 3-year debarment and forfeiture of security deposit.",
+      "materiality": "DISQUALIFYING",
+      "parameter_key": "debarment",
+      "extracted_numeric_value": 3,
+      "extracted_unit": "years",
+      "confidence": 0.96
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": null,
+      "source_page": 103,
+      "verbatim_quote": "The agency shall consider the maintenance and repairing period as follows: 2026 as the 1st year, 2027 as the 2nd year, 2028 as the 3rd year, 2029 as the 4th year, 2030 as the 5th year.",
+      "summary": "Definition of maintenance and repairing period years from 2026 to 2030.",
+      "materiality": "MANDATORY",
+      "parameter_key": "maintenance_period",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": "11",
+      "source_page": 158,
+      "verbatim_quote": "Minimum age of person employed: No Contractor shall employ any person who is under the age of 18 years.",
+      "summary": "Contractor must not employ any person under the age of 18 years.",
+      "materiality": "MANDATORY",
+      "parameter_key": "minimum_age",
+      "extracted_numeric_value": 18,
+      "extracted_unit": "years",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": "15.1.1",
+      "source_page": 160,
+      "verbatim_quote": "The O & M Period shall commence from the date of issue of work order and shall continue for a period of 5 years there from.",
+      "summary": "The Operation and Maintenance period is 5 years from the date of issue of the work order.",
+      "materiality": "MANDATORY",
+      "parameter_key": "om_period",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "confidence": 1
+    },
+    {
+      "criterion_type": "OTHERS",
+      "clause_number": "10.1",
+      "source_page": 175,
+      "verbatim_quote": "Liquidated damages at the rate of 0.1% of contract value per day of delay subjected to the maximum amount of 10% of the Estimated amount put to tender or total contract value whichever is higher, shall be recovered from the contractor.",
+      "summary": "Liquidated damages for delay at 0.1% per day up to a maximum of 10% of estimated tender cost or contract value.",
+      "materiality": "MANDATORY",
+      "parameter_key": "liquidated_damages",
+      "extracted_numeric_value": 0.1,
+      "extracted_unit": "%",
+      "confidence": 0.99
+    }
+  ],
+  "all_anchors": [
+    {
+      "anchor_type": "NIT_HEADER",
+      "anchor_name": "Notice Inviting Tender",
+      "page_number": 6,
+      "section_number": "1",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Bid Data Sheet",
+      "page_number": 7,
+      "section_number": "2",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Instruction to Bidders",
+      "page_number": 10,
+      "section_number": "3",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "QUALIFICATION CRITERIA & EVALUATION PROCEDURE",
+      "page_number": 24,
+      "section_number": "4",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "QUALIFICATION_CRITERIA",
+      "anchor_name": "General eligibility criteria",
+      "page_number": 25,
+      "section_number": "4.2.1",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "QUALIFICATION_CRITERIA",
+      "anchor_name": "FinancialCapacity & Experience",
+      "page_number": 26,
+      "section_number": "4.2.2",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "BID FORMS",
+      "page_number": 28,
+      "section_number": "5",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "QUALIFICATION_CRITERIA",
+      "anchor_name": "Note to Experience requirement",
+      "page_number": 27,
+      "section_number": null,
+      "confidence": 0.99
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "5. BID FORMS",
+      "page_number": 28,
+      "section_number": "5",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "FINANCIAL_FORMAT",
+      "anchor_name": "FORM -7 FINANCIAL DATA",
+      "page_number": 38,
+      "section_number": "Form - 7",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "QUALIFICATION_CRITERIA",
+      "anchor_name": "FORM -8 DETAILS OF EXPERIENCE OF COMPLETED WORKS",
+      "page_number": 40,
+      "section_number": "Form - 8",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "FORM -8 DETAILS OF EXPERIENCE OF COMPLETED WORKS",
+      "page_number": 40,
+      "section_number": "FORM -8",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "FORM -9 BIDDER'S WORK IN HAND",
+      "page_number": 41,
+      "section_number": "FORM -9",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Section II: Scope of Services",
+      "page_number": 43,
+      "section_number": "Section II",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "6. SCOPE OF WORK",
+      "page_number": 44,
+      "section_number": "6",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-I SCHEME DETAILS & BENEFICIARY LIST",
+      "page_number": 50,
+      "section_number": "ANNEXURE-I",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-II QUALITY TESTING & FREQUENCY",
+      "page_number": 57,
+      "section_number": null,
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-III SCHEDULE FOR ESTABLISHMENT",
+      "page_number": 59,
+      "section_number": null,
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-IV GUIDELINES AND STRUCTURE FOR SITE MEETINGS",
+      "page_number": 61,
+      "section_number": null,
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-V REPORTING FORMATS",
+      "page_number": 63,
+      "section_number": null,
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-VIPAYMENT, RESOLUTION TIME & PENALTIES",
+      "page_number": 68,
+      "section_number": null,
+      "confidence": 0.99
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-VII PREVENTIVE MAINTENANCE SCHEDULE",
+      "page_number": 72,
+      "section_number": "VII",
+      "confidence": 0.99
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "Periodic Maintenance activities - PUMP & MOTOR SET",
+      "page_number": 79,
+      "section_number": "ii",
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "PANELS, CIRCUIT BREAKERS, STARTERS",
+      "page_number": 80,
+      "section_number": null,
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "TRANSFORMER & SUBSTATION",
+      "page_number": 81,
+      "section_number": null,
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "FILTER PLANT & HEADWORK",
+      "page_number": 82,
+      "section_number": null,
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "VALVES (sluice, butterfly, NRV, kinetic air, zero velocity)",
+      "page_number": 84,
+      "section_number": null,
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "WATER METERS/ FLOW METERS",
+      "page_number": 85,
+      "section_number": null,
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "SCHEDULE",
+      "anchor_name": "OVERHAUL SCHEDULE",
+      "page_number": 85,
+      "section_number": null,
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-VIII RECORDS",
+      "page_number": 88,
+      "section_number": "VIII",
+      "confidence": 0.98
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Stores",
+      "page_number": 92,
+      "section_number": "4",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Grievance Register",
+      "page_number": 93,
+      "section_number": "5",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Visitor's Register",
+      "page_number": 94,
+      "section_number": "6",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Preventive & Curative Maintenance register",
+      "page_number": 95,
+      "section_number": "7",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Calibration of Instruments register",
+      "page_number": 96,
+      "section_number": "7.1",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Daily Habitation wise Water Supply Report",
+      "page_number": 97,
+      "section_number": "8",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Leak Repair Register",
+      "page_number": 98,
+      "section_number": "9",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "WATER DEMAND CALCULATION",
+      "page_number": 105,
+      "section_number": null,
+      "confidence": 0.99
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "RAS RADHANPUR GROUP PIPE DETAILS",
+      "page_number": 109,
+      "section_number": null,
+      "confidence": 0.99
+    },
+    {
+      "anchor_type": "TECHNICAL_SPECS",
+      "anchor_name": "Pipeline Details Santalpur Section",
+      "page_number": 113,
+      "section_number": null,
+      "confidence": 0.99
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-IX ASSET LIST & STATUS",
+      "page_number": 121,
+      "section_number": "IX",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-X CITIZEN GRIEVANCE LOGS",
+      "page_number": 125,
+      "section_number": "X",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XI INSURANCE",
+      "page_number": 126,
+      "section_number": "XI",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "SCHEDULE",
+      "anchor_name": "Schedule: B (Part -A. 4 Insaurnce Charges)",
+      "page_number": 126,
+      "section_number": "B",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XII SAFETY CONSIDERATIONS",
+      "page_number": 133,
+      "section_number": "XII",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XIII UNIFORMS FOR OPERATOR'S STAFF",
+      "page_number": 138,
+      "section_number": "XIII",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XIV IDENTITY CARD FOR AGENCY'S STAFF",
+      "page_number": 139,
+      "section_number": "XIV",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XV OPERATING PROCEDURES",
+      "page_number": 140,
+      "section_number": "XV",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "SCHEDULE",
+      "anchor_name": "Schedule: B (Part -A.4.3 Insurance for Labor)",
+      "page_number": 132,
+      "section_number": "B",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "START-UP AND SHUTDOWN PROCEDURES",
+      "page_number": 144,
+      "section_number": null,
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XVI TRAINING PROGRAM FOR AGENCY'S STAFF",
+      "page_number": 150,
+      "section_number": "XVI",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XVII COMMUNICATION OR REPORTING MATRIX",
+      "page_number": 152,
+      "section_number": "XVII",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "ANNEXURE",
+      "anchor_name": "ANNEXURE-XVIII TOOLS & TACKLES",
+      "page_number": 153,
+      "section_number": "XVIII",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "Section III: Conditions of Contract",
+      "page_number": 154,
+      "section_number": "Section III",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "7. ARBITRATION",
+      "page_number": 157,
+      "section_number": "7",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "8. WORKER'S COMPENSATION",
+      "page_number": 157,
+      "section_number": "8",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "11. MINIMUM AGE",
+      "page_number": 158,
+      "section_number": "11",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "14. INSURANCE",
+      "page_number": 159,
+      "section_number": "14",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "16. PAYMENT",
+      "page_number": 161,
+      "section_number": "16",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "17. FORCE MAJEURE",
+      "page_number": 161,
+      "section_number": "17",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "18. TERMINATION",
+      "page_number": 162,
+      "section_number": "18",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "9. DEFINITIONS & INTREPRETATION",
+      "page_number": 167,
+      "section_number": "9",
+      "confidence": 1
+    },
+    {
+      "anchor_type": "CHAPTER_HEADING",
+      "anchor_name": "SPECIAL CONDITIONS OF CONTRACT",
+      "page_number": 175,
+      "section_number": "10",
+      "confidence": 1
+    }
+  ],
+  "all_tables": [
+    {
+      "table_identifier": "NIT_Table",
+      "start_page": 6,
+      "end_page": 6,
+      "category": "GENERAL",
+      "title": "Notice Inviting Tender Summary",
+      "headers": [
+        "Sr No",
+        "Particulars",
+        "Details"
+      ],
+      "rows": [
+        [
+          "1",
+          "Name of work",
+          "Comprehensive Operation & Maintenance of Civil & Electromechanical assets..."
+        ],
+        [
+          "2",
+          "Estimated Cost",
+          "Rs 20,22,72,820.61"
+        ],
+        [
+          "3",
+          "Eligibility of contractor",
+          "Any bidder with “A” class & above of registration or higher in R&B/WRD of Govt. of Gujarat."
+        ],
+        [
+          "4",
+          "Last date of submission of tender",
+          "17-07-2026 up to 18:00 Hrs"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "BDS_Table",
+      "start_page": 7,
+      "end_page": 9,
+      "category": "GENERAL",
+      "title": "Bid Data Sheet",
+      "headers": [
+        "Sr",
+        "Parameter",
+        "Details"
+      ],
+      "rows": [
+        [
+          "1",
+          "Department Name",
+          "Gujarat Water Supply & Sewage Board"
+        ],
+        [
+          "6",
+          "Estimated Contract Value (INR)",
+          "Rs. 20,22,72,820.61 (5 years O & M Cost)"
+        ],
+        [
+          "14",
+          "Bid Document Fee / Bid Processing Fees / Tender Fee",
+          "Rs. 18000/- (Rupees Eighteen Thousand Only)"
+        ],
+        [
+          "16",
+          "Bid Security/EMD/Proposal Security (INR)",
+          "Rs. 20,23,000.00 (Rupees Twenty Lacs Twenty-Three Thousand Only)"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": true,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "BID_FORMS_TABLE",
+      "start_page": 28,
+      "end_page": 28,
+      "category": "OTHERS",
+      "title": "TO BE FILLED UP BY THE BIDDER",
+      "headers": [
+        "FORM NO.",
+        "DESCRIPTION OF PROFORMA"
+      ],
+      "rows": [
+        [
+          "Form – 1",
+          "Letter for submission of tender"
+        ],
+        [
+          "Form – 2",
+          "Form-H (Declaration)"
+        ],
+        [
+          "Form – 3",
+          "Bank Guarantee (EMD)"
+        ],
+        [
+          "Form – 4",
+          "Performance bond/ Performance guarantee Proforma for bid security"
+        ],
+        [
+          "Form – 5",
+          "Details of organization structure of the bidder"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 1
+    },
+    {
+      "table_identifier": "form_list_table",
+      "start_page": 28,
+      "end_page": 28,
+      "category": "GENERAL",
+      "title": "The qualification questionnaire contains the following forms",
+      "headers": [
+        "FORM NO.",
+        "DESCRIPTION OF PROFORMA"
+      ],
+      "rows": [
+        [
+          "Form – 1",
+          "Letter for submission of tender"
+        ],
+        [
+          "Form – 2",
+          "Form-H (Declaration)"
+        ],
+        [
+          "Form – 3",
+          "Bank Guarantee (EMD)"
+        ],
+        [
+          "Form – 4",
+          "Performance bond/ Performance guarantee Proforma for bid security"
+        ],
+        [
+          "Form – 5",
+          "Details of organization structure of the bidder"
+        ],
+        [
+          "Form – 6",
+          "Litigation History / Debarment / Blacklisting"
+        ],
+        [
+          "Form – 7",
+          "Financial data"
+        ],
+        [
+          "Form – 8",
+          "Details of experience of completed work (similar nature)"
+        ],
+        [
+          "Form – 9",
+          "Details of works on hand with Bidder"
+        ],
+        [
+          "Form - 10",
+          "Information for tenders submitted but not awarded"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.99
+    },
+    {
+      "table_identifier": "financial_data_table",
+      "start_page": 38,
+      "end_page": 38,
+      "category": "FINANCIAL",
+      "title": "Turnover for the last Five (5) financial year",
+      "headers": [
+        "Sr. No.",
+        "Year",
+        "Turnover (Rs in Crores)",
+        "Reference page No. to balance sheet or other documents"
+      ],
+      "rows": [
+        [
+          "(I)",
+          "2021-2022",
+          "",
+          ""
+        ],
+        [
+          "(II)",
+          "2022-2023",
+          "",
+          ""
+        ],
+        [
+          "(III)",
+          "2023-2024",
+          "",
+          ""
+        ],
+        [
+          "(IV)",
+          "2024-2025",
+          "",
+          ""
+        ],
+        [
+          "(V)",
+          "2025-2026",
+          "",
+          ""
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.98
+    },
+    {
+      "table_identifier": "table_scheme_package_summary",
+      "start_page": 45,
+      "end_page": 45,
+      "category": "TECHNICAL",
+      "title": "About the schemes in this package",
+      "headers": [
+        "Sr. No.",
+        "Group Name",
+        "Commissioning Year",
+        "Cost",
+        "Total commissioned habitations (village, towns and hemlets",
+        "Technical issue villages as on date",
+        "Voluntary villages as on date"
+      ],
+      "rows": [
+        [
+          "1",
+          "Radhanpur",
+          "April-2023",
+          "64 Villages + 1 city+2 Hamlet",
+          "0 Villages",
+          "0 Villages"
+        ],
+        [
+          "2",
+          "Santalpur",
+          "Sep-2022",
+          "62 Villages + 9 Hamlet",
+          "0 Villages",
+          "0 Villages"
+        ]
+      ],
+      "footnotes": [
+        "Note: Total commissioned habitations- technical issue habitations - voluntary habitations= operational habitations"
+      ],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "table_headwork_supply_demand",
+      "start_page": 51,
+      "end_page": 51,
+      "category": "TECHNICAL",
+      "title": "Headwork/ Sub headwork Supply Demand",
+      "headers": [
+        "Name of Headworks/Sub headworks",
+        "Water requirement (as per 2026) (MLD)",
+        "Average Water Supply (MLD)"
+      ],
+      "rows": [
+        [
+          "Satun HW",
+          "9.74",
+          "12.47"
+        ],
+        [
+          "Dharavadi HW",
+          "3.64",
+          "4.73"
+        ],
+        [
+          "SINAD HW",
+          "1.31",
+          "1.70"
+        ],
+        [
+          "Varahi HW",
+          "4.13",
+          "6.28"
+        ],
+        [
+          "Abiyana HW",
+          "2.20",
+          "3.34"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.98
+    },
+    {
+      "table_identifier": "ESTABLISHMENT_SCHEDULE",
+      "start_page": 59,
+      "end_page": 60,
+      "category": "TECHNICAL",
+      "title": "SCHEDULE FOR ESTABLISHMENT",
+      "headers": [
+        "S.N.",
+        "Designation",
+        "Minimum Education",
+        "Role and office",
+        "Minimum Experience",
+        "Radhanpur Gr.",
+        "Santalpur Gr."
+      ],
+      "rows": [
+        [
+          "1",
+          "O&M Manager",
+          "- MBA or PGDM in Business Management and - Bachelor's degree in Civil/ Mechanical/ Electrical/ Environmental/ Public Health engineering",
+          "Role: O&M coordinator / District coordinator Location: Agency's office within 10 km radius from GWSSB's division",
+          "Minimum 7 years of experience",
+          "1",
+          "1"
+        ],
+        [
+          "2",
+          "Maintenance Engineer (Supervisor)",
+          "- Bachelor's degree in Civil/ Mechanical/ Electrical/ Environmental/ Public Health engineering",
+          "Role: O&M Overseer (supervisor) Location: At Main Headwork",
+          "Minimum 5 years of experience",
+          "1",
+          "1"
+        ],
+        [
+          "3",
+          "Asst. Maintenance Engineer",
+          "- Bachelor's degree in Civil/ Mechanical/ Electrical/ Environmental/ Public Health engineering",
+          "Role: Assistance to Engineer Location: Agency's office within 10 km radius from each of GWSSB's sub division",
+          "Minimum 1 years of experience",
+          "1",
+          "1"
+        ],
+        [
+          "4",
+          "Operators",
+          "ITI (mech/ electrical/ instrumentation/ water supply operator) or Diploma (Mechanical/ Electrical/ Instrumentation) or B. Sc. Environmental Science",
+          "Role: For operating Filter plant/ pumping machinery/ chlorination plant Location: Respective plant/ pumping station",
+          "Minimum 1 year of experience",
+          "21",
+          "20"
+        ]
+      ],
+      "footnotes": [
+        "a) Any personnel deployed in the scheme must be on contractor's payroll and should be above 18 years of age and below 60 years of age."
+      ],
+      "is_multi_page": true,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "Billing_for_Water_Supply_And_Incentives",
+      "start_page": 68,
+      "end_page": 68,
+      "category": "FINANCIAL",
+      "title": "Billing for water supply and incentives",
+      "headers": [
+        "Aspect",
+        "Activity",
+        "Type",
+        "Description"
+      ],
+      "rows": [
+        [
+          "Billing for water supply and incentives",
+          "a)100% operational habitations covered, & b) Voluntary habitations, which have demanded water supply, are covered...",
+          "Regular Billing",
+          "100% payment of Part A, per month, if a) and b) has been satisfied..."
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "OVERHAUL_SCHEDULE",
+      "start_page": 85,
+      "end_page": 86,
+      "category": "TECHNICAL",
+      "title": "OVERHAUL SCHEDULE",
+      "headers": [
+        "Activity – Included in quoted price",
+        "Frequency (months)",
+        "Tentative schedule"
+      ],
+      "rows": [
+        [
+          "Replace Gland packings, mechanical seal",
+          "3",
+          "Jan, Apr, Jul, Oct"
+        ],
+        [
+          "Replace balls & seats in Kinetic air valves",
+          "3",
+          "Jan, Apr, Jul, Oct"
+        ],
+        [
+          "Oil topup in panels/ starters/ circuit breakers",
+          "3",
+          "Jan, Apr, Jul, Oct"
+        ],
+        [
+          "Check conditions of insulators and replace (panels/ starters/ breakers)",
+          "3",
+          "Jan, Apr, Jul, Oct"
+        ],
+        [
+          "Pump Overhaul (activities as per checklist)- VT/ centrifugal",
+          "24",
+          "Jan20...... and 20....."
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": true,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "material_entry_register",
+      "start_page": 92,
+      "end_page": 92,
+      "category": "TECHNICAL",
+      "title": "Material Entry Register",
+      "headers": [
+        "Date",
+        "Name of material",
+        "Material Code",
+        "Received from",
+        "Invoice Number",
+        "Quantity Received",
+        "Receiver's Name & Signature"
+      ],
+      "rows": [],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 1
+    },
+    {
+      "table_identifier": "land_details",
+      "start_page": 102,
+      "end_page": 103,
+      "category": "TECHNICAL",
+      "title": "Land Details",
+      "headers": [
+        "Sr.no",
+        "Name of Rwss",
+        "HW",
+        "Name Of Village",
+        "Survey No",
+        "Compound Area in Sqmtr",
+        "Compound Area in Sqft",
+        "Built up Area in Sqmtr",
+        "Built up Area in Sqft",
+        "Purpose"
+      ],
+      "rows": [
+        [
+          "1",
+          "Radhanpur&Santalpur RWSS",
+          "Satun HW",
+          "Radhanpur",
+          "",
+          "31368",
+          "337519.68",
+          "",
+          "",
+          "Main Head Work"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": true,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "WATER_DEMAND_CALCULATION",
+      "start_page": 105,
+      "end_page": 108,
+      "category": "TECHNICAL",
+      "title": "WATER DEMAND CALCULATION",
+      "headers": [
+        "Taluka",
+        "Village Name",
+        "L.C.No.",
+        "2011",
+        "2026",
+        "2027",
+        "2028",
+        "2029",
+        "2030"
+      ],
+      "rows": [
+        [
+          "Radhanpur",
+          "Satun",
+          "507429",
+          "2518",
+          "3149",
+          "3191",
+          "3233",
+          "3275",
+          "3317"
+        ],
+        [
+          "Radhanpur",
+          "Kamalpur (S)",
+          "507440",
+          "4486",
+          "5610",
+          "5685",
+          "5760",
+          "5834",
+          "5909"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": true,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "PIPE_DETAILS_SUMMARY",
+      "start_page": 109,
+      "end_page": 114,
+      "category": "TECHNICAL",
+      "title": "RAS RADHANPUR GROUP PIPE DETAILS",
+      "headers": [
+        "Details",
+        "Pipe Material",
+        "Dia",
+        "Qty"
+      ],
+      "rows": [
+        [
+          "RanakpurIntakewell to Satun WTP",
+          "MS",
+          "914mm",
+          "29200"
+        ],
+        [
+          "Satun wtp To Milan Hotel Jn.",
+          "D.I.",
+          "600mm",
+          "7130"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": true,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "insurance_charges_summary",
+      "start_page": 126,
+      "end_page": 126,
+      "category": "FINANCIAL",
+      "title": "Schedule: B (Part -A. 4 Insaurnce Charges)",
+      "headers": [
+        "Sr. No.",
+        "Item Description",
+        "Radhanpur",
+        "Santalpur"
+      ],
+      "rows": [
+        [
+          "1",
+          "All risk insurance provision for WTP & all Civil Structures for Main HW / SHW / Store/ office & above mention & entire electrical mechanical items to be installed at P. S",
+          "75,770.00",
+          "32,090.00"
+        ],
+        [
+          "2",
+          "All risk insurance provision for electrical mechanical items to be installed at P. S",
+          "31,700.00",
+          "16,970.00"
+        ],
+        [
+          "3",
+          "All risk insurance provision for Establishment to be deployed at Main HW / SHW / Store/ office for",
+          "50,520.00",
+          "42,900.00"
+        ]
+      ],
+      "footnotes": [
+        "Total= 1,57,990.00 91,960.00",
+        "1St Year= 2,49,950.00",
+        "2nd year= 2,64,947.00",
+        "3rd year= 2,80,844.00",
+        "4th Year= 2,97,694.00",
+        "5th year= 3,15,556.00"
+      ],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.99
+    },
+    {
+      "table_identifier": "Insurance for Labor",
+      "start_page": 132,
+      "end_page": 132,
+      "category": "FINANCIAL",
+      "title": "Schedule: B (Part -A.4.3 Insurance for Labor)",
+      "headers": [
+        "Sr.No.",
+        "Item",
+        "Section",
+        "All Risk InsuranceDepreciatedValue"
+      ],
+      "rows": [
+        [
+          "1",
+          "Total Manpower Cost for all required personnel for one month",
+          "Radhanpur",
+          "10104000.00"
+        ],
+        [
+          "",
+          "",
+          "Santalpur",
+          "8580000.00"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 1
+    },
+    {
+      "table_identifier": "Coagulation-flocculation trouble shooting",
+      "start_page": 140,
+      "end_page": 140,
+      "category": "TECHNICAL",
+      "title": "Coagulation-flocculation process, trouble shooting.",
+      "headers": [
+        "Problems",
+        "Operator Actions",
+        "Possible process changes"
+      ],
+      "rows": [
+        [
+          "Turbidity",
+          "1. Perform necessary analyses to determine extent of change",
+          "1. Adjust coagulant dosage."
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 0.95
+    },
+    {
+      "table_identifier": "tools_and_tackles_table",
+      "start_page": 153,
+      "end_page": 153,
+      "category": "OTHERS",
+      "title": "ANNEXURE-XVIIITOOLS & TACKLES",
+      "headers": [
+        "Sl. No.",
+        "Item",
+        "Quantity",
+        "Unit"
+      ],
+      "rows": [
+        [
+          "1",
+          "For spanner set size 6mm to 22mm",
+          "16",
+          "Set"
+        ],
+        [
+          "2",
+          "Fix spanner set size 6mm to 52mm",
+          "16",
+          "Set"
+        ],
+        [
+          "3",
+          "Ring spanner set size 6mm to 22mm",
+          "16",
+          "Set"
+        ],
+        [
+          "4",
+          "Ring spanner set size 7mm to 52mm",
+          "16",
+          "Set"
+        ],
+        [
+          "5",
+          "Box spanner set size 6mm to 38mm",
+          "16",
+          "Set"
+        ]
+      ],
+      "footnotes": [],
+      "is_multi_page": false,
+      "reconstruction_confidence": 1
+    }
+  ],
+  "page_dispositions": {
+    "1": "PROCESSING",
+    "2": "PROCESSING",
+    "3": "PROCESSING",
+    "4": "PROCESSING",
+    "5": "PROCESSING",
+    "6": "RELEVANT",
+    "7": "PROCESSING",
+    "8": "PROCESSING",
+    "9": "RELEVANT",
+    "10": "PROCESSING",
+    "11": "PROCESSING",
+    "12": "PROCESSING",
+    "13": "PROCESSING",
+    "14": "RELEVANT",
+    "15": "PROCESSING",
+    "16": "PROCESSING",
+    "17": "PROCESSING",
+    "18": "PROCESSING",
+    "19": "PROCESSING",
+    "20": "PROCESSING",
+    "21": "PROCESSING",
+    "22": "PROCESSING",
+    "23": "PROCESSING",
+    "24": "PROCESSING",
+    "25": "RELEVANT",
+    "26": "RELEVANT",
+    "27": "RELEVANT",
+    "28": "RELEVANT",
+    "29": "PROCESSING",
+    "30": "PROCESSING",
+    "31": "RELEVANT",
+    "32": "RELEVANT",
+    "33": "PROCESSING",
+    "34": "PROCESSING",
+    "35": "PROCESSING",
+    "36": "RELEVANT",
+    "37": "RELEVANT",
+    "38": "RELEVANT",
+    "39": "RELEVANT",
+    "40": "RELEVANT",
+    "41": "RELEVANT",
+    "42": "PROCESSING",
+    "43": "PROCESSING",
+    "44": "PROCESSING",
+    "45": "PROCESSING",
+    "46": "PROCESSING",
+    "47": "PROCESSING",
+    "48": "PROCESSING",
+    "49": "PROCESSING",
+    "50": "PROCESSING",
+    "51": "PROCESSING",
+    "52": "PROCESSING",
+    "53": "PROCESSING",
+    "54": "PROCESSING",
+    "55": "PROCESSING",
+    "56": "PROCESSING",
+    "57": "RELEVANT",
+    "58": "PROCESSING",
+    "59": "RELEVANT",
+    "60": "RELEVANT",
+    "61": "PROCESSING",
+    "62": "PROCESSING",
+    "63": "PROCESSING",
+    "64": "PROCESSING",
+    "65": "PROCESSING",
+    "66": "PROCESSING",
+    "67": "PROCESSING",
+    "68": "PROCESSING",
+    "69": "RELEVANT",
+    "70": "RELEVANT",
+    "71": "RELEVANT",
+    "72": "PROCESSING",
+    "73": "PROCESSING",
+    "74": "PROCESSING",
+    "75": "PROCESSING",
+    "76": "PROCESSING",
+    "77": "PROCESSING",
+    "78": "PROCESSING",
+    "79": "PROCESSING",
+    "80": "PROCESSING",
+    "81": "PROCESSING",
+    "82": "PROCESSING",
+    "83": "PROCESSING",
+    "84": "PROCESSING",
+    "85": "PROCESSING",
+    "86": "PROCESSING",
+    "87": "PROCESSING",
+    "88": "PROCESSING",
+    "89": "PROCESSING",
+    "90": "PROCESSING",
+    "91": "PROCESSING",
+    "92": "PROCESSING",
+    "93": "PROCESSING",
+    "94": "PROCESSING",
+    "95": "PROCESSING",
+    "96": "PROCESSING",
+    "97": "PROCESSING",
+    "98": "PROCESSING",
+    "99": "PROCESSING",
+    "100": "PROCESSING",
+    "101": "PROCESSING",
+    "102": "PROCESSING",
+    "103": "PROCESSING",
+    "104": "PROCESSING",
+    "105": "PROCESSING",
+    "106": "PROCESSING",
+    "107": "PROCESSING",
+    "108": "PROCESSING",
+    "109": "PROCESSING",
+    "110": "PROCESSING",
+    "111": "PROCESSING",
+    "112": "PROCESSING",
+    "113": "PROCESSING",
+    "114": "PROCESSING",
+    "115": "PROCESSING",
+    "116": "PROCESSING",
+    "117": "PROCESSING",
+    "118": "PROCESSING",
+    "119": "PROCESSING",
+    "120": "PROCESSING",
+    "121": "PROCESSING",
+    "122": "PROCESSING",
+    "123": "PROCESSING",
+    "124": "PROCESSING",
+    "125": "PROCESSING",
+    "126": "RELEVANT",
+    "127": "PROCESSING",
+    "128": "PROCESSING",
+    "129": "PROCESSING",
+    "130": "PROCESSING",
+    "131": "PROCESSING",
+    "132": "PROCESSING",
+    "133": "PROCESSING",
+    "134": "PROCESSING",
+    "135": "PROCESSING",
+    "136": "PROCESSING",
+    "137": "PROCESSING",
+    "138": "PROCESSING",
+    "139": "PROCESSING",
+    "140": "PROCESSING",
+    "141": "PROCESSING",
+    "142": "PROCESSING",
+    "143": "PROCESSING",
+    "144": "PROCESSING",
+    "145": "PROCESSING",
+    "146": "PROCESSING",
+    "147": "PROCESSING",
+    "148": "PROCESSING",
+    "149": "PROCESSING",
+    "150": "RELEVANT",
+    "151": "RELEVANT",
+    "152": "PROCESSING",
+    "153": "PROCESSING",
+    "154": "PROCESSING",
+    "155": "RELEVANT",
+    "156": "PROCESSING",
+    "157": "PROCESSING",
+    "158": "RELEVANT",
+    "159": "PROCESSING",
+    "160": "PROCESSING",
+    "161": "PROCESSING",
+    "162": "PROCESSING",
+    "163": "PROCESSING",
+    "164": "PROCESSING",
+    "165": "PROCESSING",
+    "166": "PROCESSING",
+    "167": "PROCESSING",
+    "168": "PROCESSING",
+    "169": "PROCESSING",
+    "170": "PROCESSING",
+    "171": "PROCESSING",
+    "172": "PROCESSING",
+    "173": "PROCESSING",
+    "174": "PROCESSING",
+    "175": "RELEVANT"
+  },
+  "ocr_fallback_pages": [],
+  "total_prompt_tokens": 117418,
+  "total_output_tokens": 33830,
+  "total_thinking_tokens": 0,
+  "estimated_market_value_usd": 0.018955350000000003,
+  "payable_cost_usd": 0,
+  "total_cost_usd": 0.018955350000000003,
+  "total_attempts": 14
+}

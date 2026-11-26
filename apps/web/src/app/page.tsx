@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Sidebar, NavTab } from '@/components/Sidebar';
 import { DashboardView } from '@/components/DashboardView';
 import { IndiaTendersSectorView, IndiaTenderItem } from '@/components/IndiaTendersSectorView';
+import { TenderEligibilityDashboard } from '@/components/eligibility/TenderEligibilityDashboard';
 import { EligibilityChecker } from '@/components/EligibilityChecker';
 import { AdminKnowledgeBase } from '@/components/AdminKnowledgeBase';
 import { AdminBackendConfig } from '@/components/AdminBackendConfig';
@@ -525,6 +526,12 @@ export default function Home() {
 
           {activeTab === 'bid_flow' && (
             <BidFlowBoard currentUser={currentUser} />
+          )}
+
+          {activeTab === 'tender_eligibility' && (
+            <div className="py-2">
+              <TenderEligibilityDashboard />
+            </div>
           )}
 
           {activeTab === 'eligibility' && (

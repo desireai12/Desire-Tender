@@ -1,0 +1,2900 @@
+{
+  "total_pages_reviewed": 175,
+  "relevant_pages_count": 55,
+  "non_relevant_pages_count": 120,
+  "original_extracted_clauses_count": 27,
+  "verified_clauses_count": 27,
+  "needs_review_clauses_count": 0,
+  "rejected_clauses_count": 0,
+  "reclassified_clauses_count": 17,
+  "missed_criteria_count": 14,
+  "verified_tables_count": 18,
+  "missed_tables_count": 5,
+  "corrigenda_count": 0,
+  "completeness_status": "SUFFICIENT_FOR_DETERMINISTIC_EVALUATION_WITH_STAGE2B_SUPPLEMENTS",
+  "verified_clauses": [
+    {
+      "clause_index": 1,
+      "source_page": 26,
+      "clause_number": "Clause 4.2.2 (Scenario-1 a)",
+      "parameter_key": "annual_turnover",
+      "extracted_numeric_value": 4,
+      "extracted_unit": "Cr",
+      "verbatim_quote": "Turnover: Bidder must have achieved minimum annual financial turnover (at current price level) from contract receipt of works (in all classes of civil engineering construction works or O&M services only) of Rs. 4 Crores in any three financial years out of last Five (5) financial years i.e., from 2021-22 to 2025-26.",
+      "summary": "Minimum annual financial turnover of Rs. 4 Crores in any three financial years out of the last five financial years (Scenario 1).",
+      "original_category": "FINANCIAL",
+      "audited_category": "A. FINANCIAL_ELIGIBILITY",
+      "secondary_category": null,
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 2,
+      "source_page": 27,
+      "clause_number": "Clause 4.2.2 Note 2",
+      "parameter_key": "annual_turnover",
+      "extracted_numeric_value": null,
+      "extracted_unit": "years",
+      "verbatim_quote": "The details pertaining to Turnover for the year 2021-2022 to 2025-2026 shall be certified by Chartered Accountant on his own letter head and duly attested.",
+      "summary": "Turnover for 2021-2022 to 2025-2026 must be certified by a Chartered Accountant on letterhead.",
+      "original_category": "FINANCIAL",
+      "audited_category": "A. FINANCIAL_ELIGIBILITY",
+      "secondary_category": "D. BID_SUBMISSION_CHECKLIST",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 3,
+      "source_page": 71,
+      "clause_number": "Section 2 / SLA Penalty Conditions (p. 71)",
+      "parameter_key": "monthly_penalty_threshold",
+      "extracted_numeric_value": 25,
+      "extracted_unit": "%",
+      "verbatim_quote": "If applicable penalties for each month exceed 25% of billing amount per month, for a block of 4 consecutive months, then contract shall be liable for termination.",
+      "summary": "Contract termination if monthly penalties exceed 25% of the billing amount for 4 consecutive months.",
+      "original_category": "FINANCIAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as FINANCIAL; reclassified to CONTRACT_TERMS (SLA penalty threshold, not an upfront qualification gate)."
+      ]
+    },
+    {
+      "clause_index": 4,
+      "source_page": 71,
+      "clause_number": "Section 2 / SLA Penalty Conditions (p. 71)",
+      "parameter_key": "cumulative_penalty_threshold",
+      "extracted_numeric_value": 10,
+      "extracted_unit": "%",
+      "verbatim_quote": "Cumulative penalties levied against non-performance in any of the SLA (viz. operational, preventive or curative maintenance) exceeds 10% of the total contract value.",
+      "summary": "Contract termination if cumulative penalties exceed 10% of the total contract value.",
+      "original_category": "FINANCIAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as FINANCIAL; reclassified to CONTRACT_TERMS (SLA penalty threshold, not an upfront qualification gate)."
+      ]
+    },
+    {
+      "clause_index": 5,
+      "source_page": 126,
+      "clause_number": "Schedule B Part A.4 (p. 126)",
+      "parameter_key": "insurance_limit",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "Lacs",
+      "verbatim_quote": "This insurance shall be for a limit of per occurrence of not less than the amount of Rs. 5 Lacs, with no limit on the number of occurrences.",
+      "summary": "Minimum insurance limit per occurrence shall be Rs. 5 Lacs with no limit on occurrences.",
+      "original_category": "FINANCIAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as FINANCIAL; reclassified to CONTRACT_TERMS (post-award insurance obligation)."
+      ]
+    },
+    {
+      "clause_index": 6,
+      "source_page": 126,
+      "clause_number": "Schedule B Part A.4 (p. 126)",
+      "parameter_key": "depreciated_value",
+      "extracted_numeric_value": 3435.53,
+      "extracted_unit": "lac",
+      "verbatim_quote": "The depreciated value is considered Rs.3435.53 lac for the purpose of insurance for respective year.",
+      "summary": "Depreciated value considered is Rs. 3435.53 lac for insurance purposes.",
+      "original_category": "FINANCIAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as FINANCIAL; reclassified to CONTRACT_TERMS (post-award insurance obligation)."
+      ]
+    },
+    {
+      "clause_index": 7,
+      "source_page": 155,
+      "clause_number": "Clause 1(a) Security Deposit (p. 155)",
+      "parameter_key": "security_deposit",
+      "extracted_numeric_value": 10,
+      "extracted_unit": "%",
+      "verbatim_quote": "pay the total amount of Security Deposit equal to 10 (ten) percent of the estimated cost or contract value (Part A & B of price bid) whichever is higher for the work put to tender.",
+      "summary": "Security Deposit shall be equal to 10% of the estimated cost or contract value (Part A & B of price bid) whichever is higher.",
+      "original_category": "FINANCIAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": "D. BID_SUBMISSION_CHECKLIST",
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as FINANCIAL; reclassified to CONTRACT_TERMS (Performance security deposit)."
+      ]
+    },
+    {
+      "clause_index": 8,
+      "source_page": 161,
+      "clause_number": "Clause 16 Payment (p. 161)",
+      "parameter_key": "retention_money",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "%",
+      "verbatim_quote": "5% (five) of the lumpsum fees shall be held back from each payment, as Retention money as per Clause 1 of General Conditions of Contract.",
+      "summary": "5% of the lump sum fees is held back from each payment as retention money.",
+      "original_category": "FINANCIAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as FINANCIAL; reclassified to CONTRACT_TERMS (statutory cess and billing retention deductions)."
+      ]
+    },
+    {
+      "clause_index": 9,
+      "source_page": 161,
+      "clause_number": "Clause 16 Payment (p. 161)",
+      "parameter_key": "labour_cess",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "%",
+      "verbatim_quote": "As per Building and other construction works welfare cess act and the provision under Rule No.5 of the rules of 1998 of Gujarat State, the 1% cess shall be recovered from the running account bill of the contractor.",
+      "summary": "A 1% labour cess is recovered from the contractor's running account bill.",
+      "original_category": "FINANCIAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as FINANCIAL; reclassified to CONTRACT_TERMS (statutory cess and billing retention deductions)."
+      ]
+    },
+    {
+      "clause_index": 10,
+      "source_page": 6,
+      "clause_number": "NIT Item 3 (p. 6)",
+      "parameter_key": "contractor_class",
+      "extracted_numeric_value": null,
+      "extracted_unit": "Class A",
+      "verbatim_quote": "Any bidder with \u201cA\u201d class& aboveof registration or higher in R&B/WRD of Govt. of Gujarat. However, the bidder will have to Post Qualify as per Financial & Technical Criteria given in the bid document.",
+      "summary": "Contractor must have 'A' class or higher registration in R&B/WRD of Govt. of Gujarat.",
+      "original_category": "TECHNICAL",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": "C. OTHER_ELIGIBILITY",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 11,
+      "source_page": 27,
+      "clause_number": "Clause 4.2.2 Note to Experience 4 (p. 27)",
+      "parameter_key": "similar_work",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "verbatim_quote": "The experience certificate from the client equivalent to not below the rank of Executive Engineer shall be considered.",
+      "summary": "Experience certificates must be issued by an officer not below the rank of Executive Engineer.",
+      "original_category": "TECHNICAL",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": null,
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 12,
+      "source_page": 40,
+      "clause_number": "Form-8 Schedule Instructions (p. 40)",
+      "parameter_key": "similar_work",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "verbatim_quote": "List of O & M works of similar nature already completed by the bidder during last 5 financial years i.e. From 2021-22 to 2025-26& up to one month prior to last date of submission of the bid",
+      "summary": "Bidder must submit a list of O&M works of similar nature completed during the last 5 financial years from 2021-22 to 2025-26 up to one month prior to bid submission deadline.",
+      "original_category": "TECHNICAL",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": "D. BID_SUBMISSION_CHECKLIST",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 13,
+      "source_page": 45,
+      "clause_number": "Scope Section 6 (p. 45)",
+      "parameter_key": "contract_duration",
+      "extracted_numeric_value": 60,
+      "extracted_unit": "months",
+      "verbatim_quote": "The board intends to hire contractor for comprehensive O&M through e-tendering system for a duration of 60 (sixty) months for the Radhanpur&SantalpurRWSSschemecovering 1 City/126 villages/ 11 Hamlets and 6Nos Village Tube WellsSpread across Taluka: Radhanpur and SantalpurDistrict: Patan based on NMC at RankpurHW.",
+      "summary": "Comprehensive O&M contract duration is 60 months covering 1 City, 126 villages, 11 Hamlets, and 6 Village Tube Wells.",
+      "original_category": "TECHNICAL",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "materiality": "INFORMATIONAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as TECHNICAL; reclassified to CONTRACT_TERMS / SCOPE."
+      ]
+    },
+    {
+      "clause_index": 14,
+      "source_page": 48,
+      "clause_number": "Scope Section 6 (p. 48)",
+      "parameter_key": "utility_vehicle",
+      "extracted_numeric_value": 4,
+      "extracted_unit": "seater",
+      "verbatim_quote": "Provide utility vehicle for pipeline inspection and repair activities by agency. Quantity as per Annexure III. This utility vehicle shall be a 4-seater pickup truck (utility vehicle) (mandatory).",
+      "summary": "Mandatory requirement to provide a 4-seater pickup truck as utility vehicle for pipeline inspection and repair.",
+      "original_category": "TECHNICAL",
+      "audited_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "secondary_category": null,
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as TECHNICAL; reclassified to TECHNICAL_SPECS_AND_SCOPE."
+      ]
+    },
+    {
+      "clause_index": 15,
+      "source_page": 59,
+      "clause_number": "Schedule for Establishment (p. 59)",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 7,
+      "extracted_unit": "years",
+      "verbatim_quote": "Minimum 7 years of experience",
+      "summary": "O&M Manager must have minimum 7 years of experience and MBA/PGDM or Bachelor's degree in relevant engineering.",
+      "original_category": "TECHNICAL",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 16,
+      "source_page": 59,
+      "clause_number": "Schedule for Establishment (p. 59)",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "verbatim_quote": "Minimum 5 years of experience",
+      "summary": "Maintenance Engineer (Supervisor) must have minimum 5 years of experience and a Bachelor's degree in relevant engineering.",
+      "original_category": "TECHNICAL",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 17,
+      "source_page": 59,
+      "clause_number": "Schedule for Establishment (p. 59)",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "years",
+      "verbatim_quote": "Minimum 1 years of experience",
+      "summary": "Asst. Maintenance Engineer must have minimum 1 year of experience and a Bachelor's degree in relevant engineering.",
+      "original_category": "TECHNICAL",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 18,
+      "source_page": 59,
+      "clause_number": "Schedule for Establishment (p. 59)",
+      "parameter_key": "experience",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "year",
+      "verbatim_quote": "Minimum 1 year of experience",
+      "summary": "Operators must have minimum 1 year of experience with ITI/Diploma or B.Sc in relevant field.",
+      "original_category": "TECHNICAL",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 19,
+      "source_page": 81,
+      "clause_number": "Technical Specs (p. 81)",
+      "parameter_key": "earth_pit_resistance",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "ohm",
+      "verbatim_quote": "Measure resistance of earth pit. Resistance shall not exceed 1 ohm.",
+      "summary": "Earth pit resistance must not exceed 1 ohm.",
+      "original_category": "TECHNICAL",
+      "audited_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "secondary_category": null,
+      "materiality": "TECHNICAL_STANDARD",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as TECHNICAL; reclassified to TECHNICAL_SPECS_AND_SCOPE (operating equipment maintenance standard)."
+      ]
+    },
+    {
+      "clause_index": 20,
+      "source_page": 7,
+      "clause_number": "BDS Item 14 (p. 7)",
+      "parameter_key": "tender_fee",
+      "extracted_numeric_value": 18000,
+      "extracted_unit": "INR",
+      "verbatim_quote": "Rs. 18000/- (Rupees Eighteen Thousand Only)",
+      "summary": "Tender Fee requirement",
+      "original_category": "OTHERS",
+      "audited_category": "D. BID_SUBMISSION_CHECKLIST",
+      "secondary_category": null,
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as OTHERS; reclassified to BID_SUBMISSION_CHECKLIST."
+      ]
+    },
+    {
+      "clause_index": 21,
+      "source_page": 7,
+      "clause_number": "BDS Item 16 (p. 7)",
+      "parameter_key": "emd_amount",
+      "extracted_numeric_value": 2023000,
+      "extracted_unit": "INR",
+      "verbatim_quote": "Rs. 20,23,000.00(Rupees Twenty Lacs Twenty-Three Thousand Only)",
+      "summary": "Earnest Money Deposit (EMD) requirement",
+      "original_category": "OTHERS",
+      "audited_category": "D. BID_SUBMISSION_CHECKLIST",
+      "secondary_category": null,
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as OTHERS; reclassified to BID_SUBMISSION_CHECKLIST."
+      ]
+    },
+    {
+      "clause_index": 22,
+      "source_page": 25,
+      "clause_number": "Clause 4.2.1(2) (p. 25)",
+      "parameter_key": "contractor_class",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "verbatim_quote": "The bidder must have a valid registration as \u201cA\u201d Class & above as Civil or Electrical Contractor in R & B / Water Resources Department, Government of Gujarat",
+      "summary": "Must have valid registration as 'A' Class & above Civil or Electrical Contractor in R&B / Water Resources Department, Govt of Gujarat.",
+      "original_category": "OTHERS",
+      "audited_category": "B. TECHNICAL_ELIGIBILITY",
+      "secondary_category": "C. OTHER_ELIGIBILITY",
+      "materiality": "MANDATORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": []
+    },
+    {
+      "clause_index": 23,
+      "source_page": 32,
+      "clause_number": "Form-H Undertaking (p. 32)",
+      "parameter_key": "debarment",
+      "extracted_numeric_value": 3,
+      "extracted_unit": "years",
+      "verbatim_quote": "If this declaration is found to be incorrect then without prejudice to any other action that may be taken I/weshall be debarred from bidding in GWSSB/GWIL tender for three yearsand my/our security deposit may be forfeited",
+      "summary": "Incorrect declarations lead to 3-year debarment and forfeiture of security deposit.",
+      "original_category": "OTHERS",
+      "audited_category": "C. OTHER_ELIGIBILITY",
+      "secondary_category": "D. BID_SUBMISSION_CHECKLIST",
+      "materiality": "DISQUALIFYING",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as OTHERS; reclassified to OTHER_ELIGIBILITY (Disqualification / debarment penalty)."
+      ]
+    },
+    {
+      "clause_index": 24,
+      "source_page": 103,
+      "clause_number": "Special Conditions (p. 103)",
+      "parameter_key": "maintenance_period",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "verbatim_quote": "The agency shall consider the maintenance and repairing period as follows: 2026 as the 1st year, 2027 as the 2nd year, 2028 as the 3rd year, 2029 as the 4th year, 2030 as the 5th year.",
+      "summary": "Definition of maintenance and repairing period years from 2026 to 2030.",
+      "original_category": "OTHERS",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": "F. TECHNICAL_SPECS_AND_SCOPE",
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as OTHERS; reclassified to CONTRACT_TERMS."
+      ]
+    },
+    {
+      "clause_index": 25,
+      "source_page": 158,
+      "clause_number": "Labor Regulations (p. 158)",
+      "parameter_key": "minimum_age",
+      "extracted_numeric_value": 18,
+      "extracted_unit": "years",
+      "verbatim_quote": "Minimum age of person employed: No Contractor shall employ any person who is under the age of 18 years.",
+      "summary": "Contractor must not employ any person under the age of 18 years.",
+      "original_category": "OTHERS",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "STATUTORY",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as OTHERS; reclassified to CONTRACT_TERMS (statutory labor condition)."
+      ]
+    },
+    {
+      "clause_index": 26,
+      "source_page": 160,
+      "clause_number": "General Conditions Clause 15 (p. 160)",
+      "parameter_key": "om_period",
+      "extracted_numeric_value": 5,
+      "extracted_unit": "years",
+      "verbatim_quote": "The O & M Period shall commence from the date of issue of work order and shall continue for a period of 5 years there from.",
+      "summary": "The Operation and Maintenance period is 5 years from the date of issue of the work order.",
+      "original_category": "OTHERS",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as OTHERS; reclassified to CONTRACT_TERMS."
+      ]
+    },
+    {
+      "clause_index": 27,
+      "source_page": 175,
+      "clause_number": "SCC Clause 10 (p. 175)",
+      "parameter_key": "liquidated_damages",
+      "extracted_numeric_value": 0.1,
+      "extracted_unit": "%",
+      "verbatim_quote": "Liquidated damages at the rate of 0.1% of contract value per day of delay subjected to the maximum amount of 10% of the Estimated amount put to tender or total contract value whichever is higher, shall be recovered from the contractor.",
+      "summary": "Liquidated damages for delay at 0.1% per day up to a maximum of 10% of estimated tender cost or contract value.",
+      "original_category": "OTHERS",
+      "audited_category": "E. CONTRACT_TERMS",
+      "secondary_category": null,
+      "materiality": "CONTRACTUAL",
+      "quote_found_in_pdf": true,
+      "evidence_state": "VERIFIED",
+      "discrepancy_notes": [
+        "Originally classified as OTHERS; reclassified to CONTRACT_TERMS."
+      ]
+    }
+  ],
+  "missed_criteria": [
+    {
+      "id": "MISSED_01",
+      "title": "Turnover Scenario-2 Alternate Qualification Threshold",
+      "category": "A. FINANCIAL_ELIGIBILITY",
+      "source_page": 26,
+      "clause_number": "Clause 4.2.2 (Scenario-2 a)",
+      "verbatim_quote": "Scenario-2 a) Turnover: Bidder must have achieved minimum annual financial turnover (at current price level) from contract receipt of works (in all classes of civil engineering construction works or O&M services only) of Rs. 10 Crores in any three financial years out of last Five (5) financial years i.e., from 2021-22 to 2025-26.",
+      "extracted_numeric_value": 10.0,
+      "extracted_unit": "Cr",
+      "materiality": "MANDATORY_ALTERNATIVE",
+      "importance": "CRITICAL: Provides alternate qualification pathway if bidder lacks 1-year water O&M experience but has >= Rs. 10 Cr annual turnover."
+    },
+    {
+      "id": "MISSED_02",
+      "title": "Turnover Annual Price Escalation Weightage Formula",
+      "category": "A. FINANCIAL_ELIGIBILITY",
+      "source_page": 26,
+      "clause_number": "Clause 4.2.2 Note to Turnover",
+      "verbatim_quote": "Turnover of previous year shall be given additional weightage of ten percent per year to bring them to current price level to account for price escalation as illustrated below: 2021-2022: 1.61 x F, 2022-2023: 1.46 x E, 2023-2024: 1.33 x D, 2024-2025: 1.21 x C, 2025-2026: 1.10 x B, Base Year 2026-2027: 1.00 x A.",
+      "extracted_numeric_value": 10.0,
+      "extracted_unit": "% per year",
+      "materiality": "EVALUATION_FORMULA",
+      "importance": "CRITICAL: Evaluator must multiply past years turnover by compounding escalation factors (up to 1.61x)."
+    },
+    {
+      "id": "MISSED_03",
+      "title": "Bidder Legal Constitution Requirement",
+      "category": "C. OTHER_ELIGIBILITY",
+      "source_page": 25,
+      "clause_number": "Clause 4.2.1(1)",
+      "verbatim_quote": "The bidder should be a company registered under Companies Registration act 1956/2013 or Limited Liability Partnership Act, 2008, or a Proprietorship registered in India as on bid submission date.",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "materiality": "MANDATORY",
+      "importance": "MANDATORY: Restricts eligible entities to Indian Registered Company, LLP, or Proprietorship."
+    },
+    {
+      "id": "MISSED_04",
+      "title": "Comprehensive Blacklisting / Debarment Gate",
+      "category": "C. OTHER_ELIGIBILITY",
+      "source_page": 25,
+      "clause_number": "Clause 4.2.1(4)",
+      "verbatim_quote": "Bidder should not be under the effect of blacklisting/debarment by any Ministry of Government of India or by any State Government of any other State in India or by Government of Gujarat or any of the Government PSUs at the time of bidding.",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "materiality": "DISQUALIFYING",
+      "importance": "CRITICAL: Broad government-wide debarment check required."
+    },
+    {
+      "id": "MISSED_05",
+      "title": "Electrical Contractor License Requirement",
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "source_page": 25,
+      "clause_number": "Clause 4.2.1(3)",
+      "verbatim_quote": "Electrical contractor\u2019s license issued by Electric Licensing Board, Gandhinagar",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "materiality": "MANDATORY",
+      "importance": "CRITICAL: Mandatory statutory license for electromechanical operations."
+    },
+    {
+      "id": "MISSED_06",
+      "title": "Absolute Subcontractor & Sublet Experience Disqualification",
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "source_page": 27,
+      "clause_number": "Clause 4.2.2 Note to Experience 3 & 4",
+      "verbatim_quote": "Experience as sub-contractor shall not be considered... The experience of sublet works shall not be considered.",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "materiality": "DISQUALIFYING",
+      "importance": "CRITICAL: Prime contractor experience only; subcontracted experience is completely rejected."
+    },
+    {
+      "id": "MISSED_07",
+      "title": "Minimum Experience Duration for Scenario-1",
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "source_page": 26,
+      "clause_number": "Clause 4.2.2 (Scenario-1 b)",
+      "verbatim_quote": "The bidder shall have successfully completed operation and maintenance for minimum 1 years for any water supply system or part of its civil or electromechanical components such as water supply network, WTP, pumping machineries, intake/ offtake structure, storage structures, municipal STP or municipal sewage network etc. in last Five (5) financial years i.e., from 2021-22 to 2025-26.",
+      "extracted_numeric_value": 1.0,
+      "extracted_unit": "year",
+      "materiality": "MANDATORY",
+      "importance": "CRITICAL: Defines the minimum duration (1 year) and valid facility types for Scenario 1 experience."
+    },
+    {
+      "id": "MISSED_08",
+      "title": "Government / Board / Corporation Issuing Authority Requirement",
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "source_page": 27,
+      "clause_number": "Clause 4.2.2 Note to Experience 4",
+      "verbatim_quote": "The experience of O & M works executed in Government (State/Central), Board, Corporation, and Government Undertaking /Organisations of state & central government shall only be considered for evaluation... In case of Nagarpalika, the experience certificate of duly Sign by Chief officer shall only be considered.",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "materiality": "MANDATORY",
+      "importance": "CRITICAL: Rejects private client experience; requires Govt/PSU/Nagarpalika client certificate."
+    },
+    {
+      "id": "MISSED_09",
+      "title": "Bid Validity and EMD Validity Periods",
+      "category": "D. BID_SUBMISSION_CHECKLIST",
+      "source_page": 8,
+      "clause_number": "BDS Items 24 & 26",
+      "verbatim_quote": "Bid Validity Period: 180 Days from the last date of submission of bid... EMD valid up to 28 days from the date of closure of the bid validity period of 180 days i.e. (Total of 180+28=208 days)",
+      "extracted_numeric_value": 180,
+      "extracted_unit": "days",
+      "materiality": "MANDATORY",
+      "importance": "PROCEDURAL: Bidder offer must remain valid for 180 days; BG must be for 208 days."
+    },
+    {
+      "id": "MISSED_10",
+      "title": "Physical Instrument Submission Deadline & 3-Year Banning Rule",
+      "category": "D. BID_SUBMISSION_CHECKLIST",
+      "source_page": 8,
+      "clause_number": "BDS Item 25",
+      "verbatim_quote": "bidder shall send the same in original through SPEED POST/HAND DELIVERY so as to reach to \u201cExecutive Engineer, Public Health Works Division- Radhanpur... of Seven days from the last date of bidding by 15:00. For not submitting DD/FDR/BG in original, bidder shall be banned to participate in any tender of the Board for period of 3 years as a penal action.",
+      "extracted_numeric_value": 7,
+      "extracted_unit": "days",
+      "materiality": "DISQUALIFYING",
+      "importance": "CRITICAL GATE: Physical submission within 7 days is mandatory; failure invokes 3-year ban."
+    },
+    {
+      "id": "MISSED_11",
+      "title": "Non-Judicial Stamp Paper Form-H Declaration",
+      "category": "D. BID_SUBMISSION_CHECKLIST",
+      "source_page": 31,
+      "clause_number": "Form-2 (Form-H Header)",
+      "verbatim_quote": "TO BE EXECUTED ON NON-JUDICIAL E-STAMP PAPER OF Rs. 300/- AND SUBMITTED BY THE TENDERER ALONGWITH HIS TENDER IN A SEPARATE COVER",
+      "extracted_numeric_value": 300.0,
+      "extracted_unit": "INR",
+      "materiality": "MANDATORY",
+      "importance": "PROCEDURAL: Form-H must be on Rs. 300 stamp paper and notarized."
+    },
+    {
+      "id": "MISSED_12",
+      "title": "Litigation History 10-Year Disclosure Requirement",
+      "category": "C. OTHER_ELIGIBILITY",
+      "source_page": 37,
+      "clause_number": "Form-6 Item 1",
+      "verbatim_quote": "Company\u2019s history of litigation or arbitration / Debarment / Blacklisting from contract executed in the last ten years or currently under execution. Please indicate for each case the year, name of employer, cause, matter in dispute, disputed amount, and whether the award was for or against the company.",
+      "extracted_numeric_value": 10,
+      "extracted_unit": "years",
+      "materiality": "MANDATORY",
+      "importance": "EVALUATED: Full 10-year litigation and arbitration history must be provided in Form 6."
+    },
+    {
+      "id": "MISSED_13",
+      "title": "Prohibition of Multiple Bids by Same Bidder",
+      "category": "C. OTHER_ELIGIBILITY",
+      "source_page": 10,
+      "clause_number": "ITB Clause 3.1.1 (5) & 3.1.20 (4)",
+      "verbatim_quote": "Not more than one tender shall be submitted by a Bidder... A bidder who submits more than one bid in the particular work will be disqualified.",
+      "extracted_numeric_value": 1,
+      "extracted_unit": "bid",
+      "materiality": "DISQUALIFYING",
+      "importance": "DISQUALIFYING: Strict rule against multiple entity submissions."
+    },
+    {
+      "id": "MISSED_14",
+      "title": "Joint Venture / Consortium Omission (Inherent Single-Entity Rule)",
+      "category": "C. OTHER_ELIGIBILITY",
+      "source_page": 25,
+      "clause_number": "Clause 4.2 / Form 5 Item 6",
+      "verbatim_quote": "To qualify, each bidder in the same name and style should have achieved the following performances... Bid is submitted as: a) An individual/ proprietary firm, b) A partnership firm, c) A limited Company or Corporation.",
+      "extracted_numeric_value": null,
+      "extracted_unit": null,
+      "materiality": "MANDATORY",
+      "importance": "ARCHITECTURAL: Zero JV clauses exist in this tender; bids must be submitted by a single entity in the same name and style."
+    }
+  ],
+  "page_audit_summary": [
+    {
+      "page_number": 1,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [],
+      "character_count": 1042,
+      "has_tables": false
+    },
+    {
+      "page_number": 2,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [],
+      "character_count": 164,
+      "has_tables": false
+    },
+    {
+      "page_number": 3,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [],
+      "character_count": 497,
+      "has_tables": false
+    },
+    {
+      "page_number": 4,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [],
+      "character_count": 165,
+      "has_tables": false
+    },
+    {
+      "page_number": 5,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [],
+      "character_count": 153,
+      "has_tables": false
+    },
+    {
+      "page_number": 6,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BDS",
+        "BID_SUBMISSION",
+        "FINANCIAL_SUBMISSION",
+        "TECHNICAL_ELIGIBILITY"
+      ],
+      "key_sections": [
+        "Notice Inviting Tender & Bid Data Sheet"
+      ],
+      "character_count": 1808,
+      "has_tables": true
+    },
+    {
+      "page_number": 7,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BDS",
+        "BID_SUBMISSION",
+        "FINANCIAL_SUBMISSION",
+        "TECHNICAL_ELIGIBILITY"
+      ],
+      "key_sections": [
+        "Notice Inviting Tender & Bid Data Sheet"
+      ],
+      "character_count": 1992,
+      "has_tables": true
+    },
+    {
+      "page_number": 8,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BDS",
+        "BID_SUBMISSION",
+        "FINANCIAL_SUBMISSION",
+        "TECHNICAL_ELIGIBILITY"
+      ],
+      "key_sections": [
+        "Notice Inviting Tender & Bid Data Sheet"
+      ],
+      "character_count": 2514,
+      "has_tables": true
+    },
+    {
+      "page_number": 9,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BDS",
+        "BID_SUBMISSION",
+        "FINANCIAL_SUBMISSION",
+        "TECHNICAL_ELIGIBILITY"
+      ],
+      "key_sections": [
+        "Notice Inviting Tender & Bid Data Sheet"
+      ],
+      "character_count": 1951,
+      "has_tables": true
+    },
+    {
+      "page_number": 10,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2078,
+      "has_tables": false
+    },
+    {
+      "page_number": 11,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2558,
+      "has_tables": false
+    },
+    {
+      "page_number": 12,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 1956,
+      "has_tables": false
+    },
+    {
+      "page_number": 13,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2351,
+      "has_tables": false
+    },
+    {
+      "page_number": 14,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2114,
+      "has_tables": false
+    },
+    {
+      "page_number": 15,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2117,
+      "has_tables": false
+    },
+    {
+      "page_number": 16,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 3095,
+      "has_tables": false
+    },
+    {
+      "page_number": 17,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2446,
+      "has_tables": false
+    },
+    {
+      "page_number": 18,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2956,
+      "has_tables": false
+    },
+    {
+      "page_number": 19,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2622,
+      "has_tables": false
+    },
+    {
+      "page_number": 20,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2930,
+      "has_tables": false
+    },
+    {
+      "page_number": 21,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2879,
+      "has_tables": false
+    },
+    {
+      "page_number": 22,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 2500,
+      "has_tables": false
+    },
+    {
+      "page_number": 23,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "ITB",
+        "BID_SUBMISSION",
+        "LEGAL_TERMS"
+      ],
+      "key_sections": [
+        "Instructions to Bidders (ITB)"
+      ],
+      "character_count": 667,
+      "has_tables": false
+    },
+    {
+      "page_number": 24,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "SECTION_HEADER"
+      ],
+      "key_sections": [
+        "Volume I Qualification Criteria & Evaluation Procedure Cover"
+      ],
+      "character_count": 264,
+      "has_tables": false
+    },
+    {
+      "page_number": 25,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "FINANCIAL_ELIGIBILITY",
+        "TECHNICAL_ELIGIBILITY",
+        "OTHER_ELIGIBILITY"
+      ],
+      "key_sections": [
+        "Minimum Qualifying Criteria (Scenarios 1 & 2, Notes, Escalation)"
+      ],
+      "character_count": 2458,
+      "has_tables": false
+    },
+    {
+      "page_number": 26,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "FINANCIAL_ELIGIBILITY",
+        "TECHNICAL_ELIGIBILITY",
+        "OTHER_ELIGIBILITY"
+      ],
+      "key_sections": [
+        "Minimum Qualifying Criteria (Scenarios 1 & 2, Notes, Escalation)"
+      ],
+      "character_count": 2191,
+      "has_tables": false
+    },
+    {
+      "page_number": 27,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "FINANCIAL_ELIGIBILITY",
+        "TECHNICAL_ELIGIBILITY",
+        "OTHER_ELIGIBILITY"
+      ],
+      "key_sections": [
+        "Minimum Qualifying Criteria (Scenarios 1 & 2, Notes, Escalation)"
+      ],
+      "character_count": 1545,
+      "has_tables": false
+    },
+    {
+      "page_number": 28,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 1262,
+      "has_tables": true
+    },
+    {
+      "page_number": 29,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 2873,
+      "has_tables": false
+    },
+    {
+      "page_number": 30,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 1454,
+      "has_tables": false
+    },
+    {
+      "page_number": 31,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 2449,
+      "has_tables": false
+    },
+    {
+      "page_number": 32,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 1105,
+      "has_tables": false
+    },
+    {
+      "page_number": 33,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 2205,
+      "has_tables": false
+    },
+    {
+      "page_number": 34,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 3489,
+      "has_tables": false
+    },
+    {
+      "page_number": 35,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 504,
+      "has_tables": false
+    },
+    {
+      "page_number": 36,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 1569,
+      "has_tables": false
+    },
+    {
+      "page_number": 37,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 707,
+      "has_tables": false
+    },
+    {
+      "page_number": 38,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 1565,
+      "has_tables": true
+    },
+    {
+      "page_number": 39,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 840,
+      "has_tables": false
+    },
+    {
+      "page_number": 40,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 1440,
+      "has_tables": false
+    },
+    {
+      "page_number": 41,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 1244,
+      "has_tables": false
+    },
+    {
+      "page_number": 42,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "BID_SUBMISSION_CHECKLIST",
+        "QUALIFICATION_FORMS",
+        "DECLARATIONS"
+      ],
+      "key_sections": [
+        "Qualification Questionnaire Forms (Forms 1 to 10)"
+      ],
+      "character_count": 181,
+      "has_tables": false
+    },
+    {
+      "page_number": 43,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Scope of Services Section Header & Introduction"
+      ],
+      "character_count": 166,
+      "has_tables": false
+    },
+    {
+      "page_number": 44,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Scope of Services Section Header & Introduction"
+      ],
+      "character_count": 2965,
+      "has_tables": false
+    },
+    {
+      "page_number": 45,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 2744,
+      "has_tables": true
+    },
+    {
+      "page_number": 46,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 3192,
+      "has_tables": false
+    },
+    {
+      "page_number": 47,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2672,
+      "has_tables": false
+    },
+    {
+      "page_number": 48,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 3114,
+      "has_tables": false
+    },
+    {
+      "page_number": 49,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2647,
+      "has_tables": false
+    },
+    {
+      "page_number": 50,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1366,
+      "has_tables": false
+    },
+    {
+      "page_number": 51,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 764,
+      "has_tables": true
+    },
+    {
+      "page_number": 52,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1962,
+      "has_tables": false
+    },
+    {
+      "page_number": 53,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2238,
+      "has_tables": false
+    },
+    {
+      "page_number": 54,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2199,
+      "has_tables": false
+    },
+    {
+      "page_number": 55,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2060,
+      "has_tables": false
+    },
+    {
+      "page_number": 56,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2175,
+      "has_tables": false
+    },
+    {
+      "page_number": 57,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1970,
+      "has_tables": false
+    },
+    {
+      "page_number": 58,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 337,
+      "has_tables": false
+    },
+    {
+      "page_number": 59,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 2305,
+      "has_tables": true
+    },
+    {
+      "page_number": 60,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 2398,
+      "has_tables": true
+    },
+    {
+      "page_number": 61,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2550,
+      "has_tables": false
+    },
+    {
+      "page_number": 62,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 946,
+      "has_tables": false
+    },
+    {
+      "page_number": 63,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1234,
+      "has_tables": false
+    },
+    {
+      "page_number": 64,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 362,
+      "has_tables": false
+    },
+    {
+      "page_number": 65,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1196,
+      "has_tables": false
+    },
+    {
+      "page_number": 66,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1311,
+      "has_tables": false
+    },
+    {
+      "page_number": 67,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2029,
+      "has_tables": false
+    },
+    {
+      "page_number": 68,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 3586,
+      "has_tables": true
+    },
+    {
+      "page_number": 69,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 3425,
+      "has_tables": false
+    },
+    {
+      "page_number": 70,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2903,
+      "has_tables": false
+    },
+    {
+      "page_number": 71,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 1920,
+      "has_tables": false
+    },
+    {
+      "page_number": 72,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1865,
+      "has_tables": false
+    },
+    {
+      "page_number": 73,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1585,
+      "has_tables": false
+    },
+    {
+      "page_number": 74,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1487,
+      "has_tables": false
+    },
+    {
+      "page_number": 75,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1456,
+      "has_tables": false
+    },
+    {
+      "page_number": 76,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1499,
+      "has_tables": false
+    },
+    {
+      "page_number": 77,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1408,
+      "has_tables": false
+    },
+    {
+      "page_number": 78,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1088,
+      "has_tables": false
+    },
+    {
+      "page_number": 79,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2127,
+      "has_tables": false
+    },
+    {
+      "page_number": 80,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2057,
+      "has_tables": false
+    },
+    {
+      "page_number": 81,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 2320,
+      "has_tables": false
+    },
+    {
+      "page_number": 82,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2153,
+      "has_tables": false
+    },
+    {
+      "page_number": 83,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 528,
+      "has_tables": false
+    },
+    {
+      "page_number": 84,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1210,
+      "has_tables": false
+    },
+    {
+      "page_number": 85,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2239,
+      "has_tables": true
+    },
+    {
+      "page_number": 86,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2754,
+      "has_tables": true
+    },
+    {
+      "page_number": 87,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2960,
+      "has_tables": false
+    },
+    {
+      "page_number": 88,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 683,
+      "has_tables": false
+    },
+    {
+      "page_number": 89,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 537,
+      "has_tables": false
+    },
+    {
+      "page_number": 90,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 562,
+      "has_tables": false
+    },
+    {
+      "page_number": 91,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 571,
+      "has_tables": false
+    },
+    {
+      "page_number": 92,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 736,
+      "has_tables": true
+    },
+    {
+      "page_number": 93,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 472,
+      "has_tables": false
+    },
+    {
+      "page_number": 94,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 362,
+      "has_tables": false
+    },
+    {
+      "page_number": 95,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 455,
+      "has_tables": false
+    },
+    {
+      "page_number": 96,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 721,
+      "has_tables": false
+    },
+    {
+      "page_number": 97,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 533,
+      "has_tables": false
+    },
+    {
+      "page_number": 98,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 532,
+      "has_tables": false
+    },
+    {
+      "page_number": 99,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1214,
+      "has_tables": false
+    },
+    {
+      "page_number": 100,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1440,
+      "has_tables": false
+    },
+    {
+      "page_number": 101,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1551,
+      "has_tables": false
+    },
+    {
+      "page_number": 102,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1391,
+      "has_tables": true
+    },
+    {
+      "page_number": 103,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "TECHNICAL_SPECS",
+        "PERSONNEL_ESTABLISHMENT"
+      ],
+      "key_sections": [
+        "Technical Scope, Personnel Establishment, SLA Penalties"
+      ],
+      "character_count": 869,
+      "has_tables": true
+    },
+    {
+      "page_number": 104,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2246,
+      "has_tables": false
+    },
+    {
+      "page_number": 105,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2690,
+      "has_tables": true
+    },
+    {
+      "page_number": 106,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 4198,
+      "has_tables": true
+    },
+    {
+      "page_number": 107,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 4309,
+      "has_tables": true
+    },
+    {
+      "page_number": 108,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 2702,
+      "has_tables": true
+    },
+    {
+      "page_number": 109,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1594,
+      "has_tables": true
+    },
+    {
+      "page_number": 110,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1496,
+      "has_tables": true
+    },
+    {
+      "page_number": 111,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1550,
+      "has_tables": true
+    },
+    {
+      "page_number": 112,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1569,
+      "has_tables": true
+    },
+    {
+      "page_number": 113,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1485,
+      "has_tables": true
+    },
+    {
+      "page_number": 114,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1681,
+      "has_tables": true
+    },
+    {
+      "page_number": 115,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1814,
+      "has_tables": false
+    },
+    {
+      "page_number": 116,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1809,
+      "has_tables": false
+    },
+    {
+      "page_number": 117,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1815,
+      "has_tables": false
+    },
+    {
+      "page_number": 118,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 1453,
+      "has_tables": false
+    },
+    {
+      "page_number": 119,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 152,
+      "has_tables": false
+    },
+    {
+      "page_number": 120,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Technical Specifications, Pipe Schedules, Pumping Details, Asset Inventories"
+      ],
+      "character_count": 888,
+      "has_tables": false
+    },
+    {
+      "page_number": 121,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 1578,
+      "has_tables": false
+    },
+    {
+      "page_number": 122,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 2085,
+      "has_tables": false
+    },
+    {
+      "page_number": 123,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 2683,
+      "has_tables": false
+    },
+    {
+      "page_number": 124,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 448,
+      "has_tables": false
+    },
+    {
+      "page_number": 125,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 1037,
+      "has_tables": false
+    },
+    {
+      "page_number": 126,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS"
+      ],
+      "key_sections": [
+        "Schedule B Insurance Requirements"
+      ],
+      "character_count": 2588,
+      "has_tables": true
+    },
+    {
+      "page_number": 127,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 1577,
+      "has_tables": false
+    },
+    {
+      "page_number": 128,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 1283,
+      "has_tables": false
+    },
+    {
+      "page_number": 129,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 1759,
+      "has_tables": false
+    },
+    {
+      "page_number": 130,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 1590,
+      "has_tables": false
+    },
+    {
+      "page_number": 131,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 1650,
+      "has_tables": false
+    },
+    {
+      "page_number": 132,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS"
+      ],
+      "key_sections": [
+        "Schedule B Insurance Requirements"
+      ],
+      "character_count": 453,
+      "has_tables": true
+    },
+    {
+      "page_number": 133,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 3245,
+      "has_tables": false
+    },
+    {
+      "page_number": 134,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 2788,
+      "has_tables": false
+    },
+    {
+      "page_number": 135,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 941,
+      "has_tables": false
+    },
+    {
+      "page_number": 136,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 2476,
+      "has_tables": false
+    },
+    {
+      "page_number": 137,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 994,
+      "has_tables": false
+    },
+    {
+      "page_number": 138,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 2181,
+      "has_tables": false
+    },
+    {
+      "page_number": 139,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 81,
+      "has_tables": false
+    },
+    {
+      "page_number": 140,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "Schedule B Bill of Quantities / Price Schedule Breakdown"
+      ],
+      "character_count": 2086,
+      "has_tables": true
+    },
+    {
+      "page_number": 141,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2456,
+      "has_tables": false
+    },
+    {
+      "page_number": 142,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2417,
+      "has_tables": false
+    },
+    {
+      "page_number": 143,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2622,
+      "has_tables": false
+    },
+    {
+      "page_number": 144,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 1934,
+      "has_tables": false
+    },
+    {
+      "page_number": 145,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 898,
+      "has_tables": false
+    },
+    {
+      "page_number": 146,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 1932,
+      "has_tables": false
+    },
+    {
+      "page_number": 147,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2590,
+      "has_tables": false
+    },
+    {
+      "page_number": 148,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2822,
+      "has_tables": false
+    },
+    {
+      "page_number": 149,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2349,
+      "has_tables": false
+    },
+    {
+      "page_number": 150,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2192,
+      "has_tables": false
+    },
+    {
+      "page_number": 151,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 875,
+      "has_tables": false
+    },
+    {
+      "page_number": 152,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 1909,
+      "has_tables": false
+    },
+    {
+      "page_number": 153,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 1198,
+      "has_tables": true
+    },
+    {
+      "page_number": 154,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 108,
+      "has_tables": false
+    },
+    {
+      "page_number": 155,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 3784,
+      "has_tables": false
+    },
+    {
+      "page_number": 156,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 3520,
+      "has_tables": false
+    },
+    {
+      "page_number": 157,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 3366,
+      "has_tables": false
+    },
+    {
+      "page_number": 158,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 3793,
+      "has_tables": false
+    },
+    {
+      "page_number": 159,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 3548,
+      "has_tables": false
+    },
+    {
+      "page_number": 160,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 3558,
+      "has_tables": false
+    },
+    {
+      "page_number": 161,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 2933,
+      "has_tables": false
+    },
+    {
+      "page_number": 162,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2728,
+      "has_tables": false
+    },
+    {
+      "page_number": 163,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 3022,
+      "has_tables": false
+    },
+    {
+      "page_number": 164,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 3470,
+      "has_tables": false
+    },
+    {
+      "page_number": 165,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 4133,
+      "has_tables": false
+    },
+    {
+      "page_number": 166,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 3588,
+      "has_tables": false
+    },
+    {
+      "page_number": 167,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 1919,
+      "has_tables": false
+    },
+    {
+      "page_number": 168,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2134,
+      "has_tables": false
+    },
+    {
+      "page_number": 169,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2363,
+      "has_tables": false
+    },
+    {
+      "page_number": 170,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2754,
+      "has_tables": false
+    },
+    {
+      "page_number": 171,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 1893,
+      "has_tables": false
+    },
+    {
+      "page_number": 172,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2442,
+      "has_tables": false
+    },
+    {
+      "page_number": 173,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 3056,
+      "has_tables": false
+    },
+    {
+      "page_number": 174,
+      "page_type": "NO_ELIGIBILITY_INFO",
+      "categories_present": [],
+      "key_sections": [
+        "General Conditions of Contract Standard Boilerplate Clauses"
+      ],
+      "character_count": 2924,
+      "has_tables": false
+    },
+    {
+      "page_number": 175,
+      "page_type": "RELEVANT",
+      "categories_present": [
+        "CONTRACT_TERMS",
+        "GCC_SCC"
+      ],
+      "key_sections": [
+        "General / Special Conditions of Contract (Security, Deductions, Termination, LD)"
+      ],
+      "character_count": 1582,
+      "has_tables": false
+    }
+  ],
+  "table_audits": [
+    {
+      "table_index": 1,
+      "title": "Notice Inviting Tender Summary",
+      "start_page": 6,
+      "end_page": 6,
+      "category": "GENERAL",
+      "headers_count": 3,
+      "rows_count": 4,
+      "status": "VERIFIED",
+      "notes": "Headers verified across page span."
+    },
+    {
+      "table_index": 2,
+      "title": "Bid Data Sheet",
+      "start_page": 7,
+      "end_page": 9,
+      "category": "GENERAL",
+      "headers_count": 3,
+      "rows_count": 4,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 3,
+      "title": "TO BE FILLED UP BY THE BIDDER",
+      "start_page": 28,
+      "end_page": 28,
+      "category": "OTHERS",
+      "headers_count": 2,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 4,
+      "title": "The qualification questionnaire contains the following forms",
+      "start_page": 28,
+      "end_page": 28,
+      "category": "GENERAL",
+      "headers_count": 2,
+      "rows_count": 10,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 5,
+      "title": "Turnover for the last Five (5) financial year",
+      "start_page": 38,
+      "end_page": 38,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 6,
+      "title": "About the schemes in this package",
+      "start_page": 45,
+      "end_page": 45,
+      "category": "TECHNICAL",
+      "headers_count": 7,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 7,
+      "title": "Headwork/ Sub headwork Supply Demand",
+      "start_page": 51,
+      "end_page": 51,
+      "category": "TECHNICAL",
+      "headers_count": 3,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 8,
+      "title": "SCHEDULE FOR ESTABLISHMENT",
+      "start_page": 59,
+      "end_page": 60,
+      "category": "TECHNICAL",
+      "headers_count": 7,
+      "rows_count": 4,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 9,
+      "title": "Billing for water supply and incentives",
+      "start_page": 68,
+      "end_page": 68,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 1,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 10,
+      "title": "OVERHAUL SCHEDULE",
+      "start_page": 85,
+      "end_page": 86,
+      "category": "TECHNICAL",
+      "headers_count": 3,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 11,
+      "title": "Material Entry Register",
+      "start_page": 92,
+      "end_page": 92,
+      "category": "TECHNICAL",
+      "headers_count": 7,
+      "rows_count": 0,
+      "status": "NEEDS_REVIEW",
+      "notes": "Table has zero rows or empty headers in extracted representation."
+    },
+    {
+      "table_index": 12,
+      "title": "Land Details",
+      "start_page": 102,
+      "end_page": 103,
+      "category": "TECHNICAL",
+      "headers_count": 10,
+      "rows_count": 1,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 13,
+      "title": "WATER DEMAND CALCULATION",
+      "start_page": 105,
+      "end_page": 108,
+      "category": "TECHNICAL",
+      "headers_count": 9,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 14,
+      "title": "RAS RADHANPUR GROUP PIPE DETAILS",
+      "start_page": 109,
+      "end_page": 114,
+      "category": "TECHNICAL",
+      "headers_count": 4,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 15,
+      "title": "Schedule: B (Part -A. 4 Insaurnce Charges)",
+      "start_page": 126,
+      "end_page": 126,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 3,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 16,
+      "title": "Schedule: B (Part -A.4.3 Insurance for Labor)",
+      "start_page": 132,
+      "end_page": 132,
+      "category": "FINANCIAL",
+      "headers_count": 4,
+      "rows_count": 2,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 17,
+      "title": "Coagulation-flocculation process, trouble shooting.",
+      "start_page": 140,
+      "end_page": 140,
+      "category": "TECHNICAL",
+      "headers_count": 3,
+      "rows_count": 1,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    },
+    {
+      "table_index": 18,
+      "title": "ANNEXURE-XVIIITOOLS & TACKLES",
+      "start_page": 153,
+      "end_page": 153,
+      "category": "OTHERS",
+      "headers_count": 4,
+      "rows_count": 5,
+      "status": "VERIFIED",
+      "notes": "Table reconstructed with accurate headers and structure."
+    }
+  ],
+  "missed_tables": [
+    {
+      "title": "Turnover Price Escalation Weightage Table",
+      "page": 26,
+      "category": "A. FINANCIAL_ELIGIBILITY",
+      "headers": [
+        "Year",
+        "Financial Year",
+        "Turnover",
+        "Turnover at current price level"
+      ],
+      "importance": "Contains official multipliers (1.61, 1.46, 1.33, 1.21, 1.10) for adjusting historical turnover."
+    },
+    {
+      "title": "Contact Authority Directory",
+      "page": 14,
+      "category": "INFORMATIONAL",
+      "headers": [
+        "Sr. No.",
+        "Name of Officer",
+        "Designation & Address",
+        "Contact Nos. (Office / Mobile)"
+      ],
+      "importance": "Key contact information for Executive Engineer, Superintending Engineer, and Chief Engineer."
+    },
+    {
+      "title": "Form-8 Schedule: Details of Experience of Completed Works",
+      "page": 40,
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "headers": [
+        "Sr. No.",
+        "Name of Project",
+        "Place/Dist/State",
+        "Cost of O&M (Rs Lac)",
+        "Date Starting",
+        "Date Completion",
+        "Remarks"
+      ],
+      "importance": "Mandatory questionnaire table for submitting similar work experience."
+    },
+    {
+      "title": "Form-9 Schedule: Details of Works on Hand",
+      "page": 41,
+      "category": "B. TECHNICAL_ELIGIBILITY",
+      "headers": [
+        "Sr. No.",
+        "Name of Project",
+        "Agreement No.",
+        "Client Name",
+        "Cost of O&M",
+        "Period of Completion",
+        "Engineer-in-charge",
+        "Penalties Imposed"
+      ],
+      "importance": "Mandatory questionnaire table for calculating bid capacity and commitments."
+    },
+    {
+      "title": "Annexure-I Approved Scheduled Commercial Banks for BG/FDR",
+      "page": 8,
+      "category": "D. BID_SUBMISSION_CHECKLIST",
+      "headers": [
+        "Sr. No.",
+        "Bank Type",
+        "List of Eligible Commercial Banks"
+      ],
+      "importance": "Defines which bank guarantees and FDRs are legally accepted by GWSSB."
+    }
+  ]
+}

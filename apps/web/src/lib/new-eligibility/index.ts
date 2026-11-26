@@ -10,6 +10,17 @@ export * from './pdfTextSelector';
 export * from './clauseExtractor';
 export * from './evaluator';
 export * from './reportRenderer';
+export * from './tenderRuleAdapter';
+export * from './adapters/radhanpurAdapter';
+export * from './deterministicEvaluator';
+export * from './evaluationReportGenerator';
+export * from './dbTypes';
+export * from './evaluationReportRenderer';
+export * from './datasetFinalizationGate';
+export * from './proposalManager';
+export * from './billingSafeguards';
+export * from './databaseEnvironmentGuard';
+export * from './mockData';
 
 export interface EvaluationOptions {
   filename?: string;
